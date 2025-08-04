@@ -11,6 +11,7 @@ import {
     Palette,
     Settings,
     ShoppingBag,
+    Store,
     Truck,
     X
 } from 'lucide-react'
@@ -41,7 +42,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
   }
 
-  if (!config) {
+  // Permitir acesso à página de gerenciar lojas mesmo sem slug válido
+  if (!config && pathname !== '/dashboard/gerenciar-lojas') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -53,6 +55,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   const navigation = [
+    {
+      name: 'Gerenciar Lojas',
+      href: '/dashboard/gerenciar-lojas',
+      icon: Store,
+      current: pathname === '/dashboard/gerenciar-lojas',
+      isGlobal: true // Flag para indicar que não depende do slug
+    },
     {
       name: 'Visão Geral',
       href: `/dashboard/${slug}`,
@@ -229,14 +238,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">Dashboard</span>
-              <a
-                href={`/loja/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Ver Loja
-              </a>
+              {slug && slug !== 'gerenciar-lojas' && (
+                <a
+                  href={`/loja/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Ver Loja
+                </a>
+              )}
             </div>
           </div>
         </div>
