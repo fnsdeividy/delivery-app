@@ -25,31 +25,34 @@ function showSystemInfo(port = 3000) {
   console.log(c('blue', c('bright', '🏪 SISTEMA MULTI-TENANT - DELIVERY APP')))
   console.log('='.repeat(80))
   
-  console.log(c('yellow', c('bright', '\n📱 INTERFACES PÚBLICAS:')))
-  console.log(`   • Loja Demo: ${c('green', `http://localhost:${port}/loja/boteco-do-joao`)}`)
-  console.log(`   • Cardápio com tema personalizado do "Boteco do João"`)
+  console.log(c('yellow', c('bright', '\n📱 LOJA DEMO:')))
+  console.log(`   ${c('green', `http://localhost:${port}/loja/boteco-do-joao`)}`)
+  console.log(`   Cardápio público com tema personalizado`)
   
-  console.log(c('magenta', c('bright', '\n🔐 DASHBOARD ADMINISTRATIVO:')))
-  console.log(`   • Login: ${c('green', `http://localhost:${port}/login/lojista`)}`)
-  console.log(`   • Dashboard: ${c('green', `http://localhost:${port}/dashboard/boteco-do-joao`)}`)
+  console.log(c('magenta', c('bright', '\n🔐 DASHBOARD ADMIN:')))
+  console.log(`   ${c('green', `http://localhost:${port}/login/lojista`)}`)
+  console.log(`   Painel de controle do proprietário`)
   
-  console.log(c('cyan', c('bright', '\n🧪 CREDENCIAIS DEMO:')))
-  console.log(`   • Email: ${c('yellow', 'admin@boteco.com')}`)
-  console.log(`   • Senha: ${c('yellow', '123456')}`)
-  console.log(`   • Slug: ${c('yellow', 'boteco-do-joao')}`)
+  console.log(c('cyan', c('bright', '\n🔑 LOGIN DEMO:')))
+  console.log(`   Email: ${c('yellow', 'admin@boteco.com')}`)
+  console.log(`   Senha: ${c('yellow', '123456')}`)
+  console.log(`   Loja:  ${c('yellow', 'boteco-do-joao')}`)
   
-  console.log(c('white', c('bright', '\n🔧 API ENDPOINTS:')))
-  console.log(`   • Config: ${c('green', `http://localhost:${port}/api/stores/boteco-do-joao/config`)}`)
-  console.log(`   • Testar: ${c('gray', `curl http://localhost:${port}/api/stores/boteco-do-joao/config`)}`)
+  console.log(c('white', c('bright', '\n🔧 API CONFIG:')))
+  console.log(`   ${c('green', `http://localhost:${port}/api/stores/boteco-do-joao/config`)}`)
   
-  console.log(c('red', c('bright', '\n💡 COMO CRIAR NOVA LOJA:')))
-  console.log(`   1. Copie: ${c('gray', 'config/stores/boteco-do-joao.json')}`)
-  console.log(`   2. Renomeie para: ${c('gray', 'config/stores/sua-loja.json')}`)
-  console.log(`   3. Altere o "slug" e configurações`)
-  console.log(`   4. Acesse: ${c('green', `http://localhost:${port}/loja/sua-loja`)}`)
+  console.log(c('red', c('bright', '\n📖 DOCUMENTAÇÃO:')))
+  console.log(`   ${c('gray', '• README_START.md - Guia para usuários')}`)
+  console.log(`   ${c('gray', '• README.md - Documentação técnica')}`)
+  console.log(`   ${c('gray', '• DEPLOY_MULTI_TENANT.md - Deploy')}`)
+  
+  console.log(c('red', c('bright', '\n⚡ CRIAR NOVA LOJA:')))
+  console.log(`   1. ${c('gray', 'cp config/stores/boteco-do-joao.json config/stores/minha-loja.json')}`)
+  console.log(`   2. ${c('gray', 'Editar "slug": "minha-loja" no arquivo')}`)
+  console.log(`   3. ${c('green', `http://localhost:${port}/loja/minha-loja`)}`)
   
   console.log('\n' + '='.repeat(80))
-  console.log(c('green', c('bright', '✅ Sistema Multi-Tenant pronto para uso!')))
+  console.log(c('green', c('bright', '✅ Sistema pronto! Acesse as URLs acima para testar')))
   console.log('='.repeat(80) + '\n')
 }
 

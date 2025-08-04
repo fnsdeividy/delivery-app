@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Store, ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 
 export default function LojistaLogin() {
   const router = useRouter()

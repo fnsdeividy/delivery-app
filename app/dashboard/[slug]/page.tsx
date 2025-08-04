@@ -1,18 +1,17 @@
 'use client'
 
+import {
+    AlertCircle,
+    DollarSign,
+    Package,
+    ShoppingBag,
+    Star,
+    TrendingUp,
+    Truck,
+    Users
+} from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useStoreConfig, useStoreStatus } from '../../../lib/store/useStoreConfig'
-import { 
-  ShoppingBag, 
-  TrendingUp, 
-  Users, 
-  DollarSign,
-  Clock,
-  Star,
-  Package,
-  Truck,
-  AlertCircle
-} from 'lucide-react'
 
 export default function DashboardOverview() {
   const params = useParams()
