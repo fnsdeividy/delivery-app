@@ -25,7 +25,7 @@ interface CustomizeModalProps {
     description: string
     basePrice: number
     image: string
-    ingredients: Ingredient[]
+    customizeIngredients: Ingredient[]
     addons: Addon[]
   }
   onAddToCart: (customization: any) => void
@@ -33,9 +33,17 @@ interface CustomizeModalProps {
 
 export default function CustomizeModal({ isOpen, onClose, product, onAddToCart }: CustomizeModalProps) {
   const [quantity, setQuantity] = useState(1)
-  const [ingredients, setIngredients] = useState<Ingredient[]>(product.ingredients)
+  const [ingredients, setIngredients] = useState<Ingredient[]>(product.customizeIngredients)
   const [addons, setAddons] = useState<Addon[]>(product.addons)
   const [specialObservations, setSpecialObservations] = useState('')
+
+  // Reset form when product changes
+  useEffect(() => {
+    setQuantity(1)
+    setIngredients(product.customizeIngredients)
+    setAddons(product.addons)
+    setSpecialObservations('')
+  }, [product.id, product.customizeIngredients, product.addons])
 
   // Fechar modal com ESC
   useEffect(() => {
@@ -170,16 +178,16 @@ export default function CustomizeModal({ isOpen, onClose, product, onAddToCart }
             <p className="text-sm text-gray-600 mb-3">
               Remova os ingredientes que não deseja
             </p>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {ingredients.map((ingredient) => (
-                <label key={ingredient.id} className="flex items-center space-x-3 cursor-pointer">
+                <label key={ingredient.id} className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors">
                   <input
                     type="checkbox"
                     checked={ingredient.included}
                     onChange={() => toggleIngredient(ingredient.id)}
-                    className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                    className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
                   />
-                  <span className="text-sm text-gray-700">{ingredient.name}</span>
+                  <span className="text-sm font-medium text-gray-900">{ingredient.name}</span>
                 </label>
               ))}
             </div>
@@ -190,17 +198,17 @@ export default function CustomizeModal({ isOpen, onClose, product, onAddToCart }
             <h4 className="font-semibold text-gray-900 mb-3">Adicionais</h4>
             <div className="space-y-3">
               {addons.map((addon) => (
-                <label key={addon.id} className="flex items-center justify-between cursor-pointer">
+                <label key={addon.id} className="flex items-center justify-between cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors">
                   <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       checked={addon.selected}
                       onChange={() => toggleAddon(addon.id)}
-                      className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                      className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-700">{addon.name}</span>
+                    <span className="text-sm font-medium text-gray-900">{addon.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-semibold text-green-600">
                     +R$ {addon.price.toFixed(2).replace('.', ',')}
                   </span>
                 </label>
