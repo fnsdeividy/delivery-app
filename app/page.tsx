@@ -16,6 +16,7 @@ export default function Home() {
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [cartItems, setCartItems] = useState<number[]>([])
   const [notification, setNotification] = useState({ show: false, message: '' })
@@ -568,7 +569,7 @@ export default function Home() {
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
       />
-      
+
       {/* Notification */}
       <Notification 
         message={notification.message}

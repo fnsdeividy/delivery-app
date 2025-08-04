@@ -184,6 +184,30 @@ delivery-app/
 - `npm run start` - Executa a aplicação em produção
 - `npm run lint` - Executa o linter
 
+## 🎨 Sistema de Personalização por Loja
+
+### Configuração de Tema Dinâmica
+- **JSON Config**: Sistema baseado em `theme-config.json` para cada loja
+- **Cores Personalizáveis**: Primary, secondary, backgrounds, texto e estados
+- **Logo Customizável**: Upload e configuração de logo próprio
+- **Metadados**: Título, descrição e SEO personalizados por loja
+- **Tipografia**: Controle de fontes, tamanhos e pesos
+
+> 📁 Veja `config/README.md` para documentação completa do sistema de temas
+
+## 🐛 Correções Realizadas
+
+### v1.0.2 - Remoção do Seletor de Tema Manual
+- **Header**: Removido botão de seleção de tema manual
+- **Theme System**: Preparado para sistema baseado em JSON por loja
+- **Estrutura**: Criada configuração exemplo em `config/theme-config.json`
+
+### v1.0.1 - Correção de Erros Críticos
+- **Cart.tsx**: Removida função `updateQuantity` duplicada que causava erro de compilação
+- **UserProfile.tsx**: Adicionado import faltante do componente `Heart` do lucide-react
+- **Compilação**: Todos os erros de TypeScript foram corrigidos
+- **Tela de Perfil**: Agora funciona corretamente sem erros
+
 ## 🌟 Próximas Funcionalidades
 
 - [ ] Sistema de autenticação completo

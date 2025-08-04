@@ -5,6 +5,7 @@ import {
     Clock,
     CreditCard,
     Edit3,
+    Heart,
     Mail,
     MapPin,
     Phone,

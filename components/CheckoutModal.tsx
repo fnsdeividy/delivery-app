@@ -3,6 +3,7 @@
 import { Car, Clock, CreditCard, Home, UserCheck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatAddress, mockUser } from '../data/mockUser'
+import { useTheme } from '../hooks/useTheme'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ interface CheckoutModalProps {
 type DeliveryType = 'waiter' | 'pickup' | 'delivery'
 
 export default function CheckoutModal({ isOpen, onClose, cartItems, total }: CheckoutModalProps) {
+  const { getPaymentColors, getDeliveryColors, getPrimaryColor } = useTheme()
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery')
   const [customerInfo, setCustomerInfo] = useState({
     name: mockUser.name,
@@ -232,71 +234,34 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Forma de Pagamento</h3>
                 <div className="space-y-3">
                   {mockUser.paymentMethods.map((payment) => {
-                    const getIconAndColors = () => {
+                    const colors = getPaymentColors(payment.type)
+                    
+                    const getIcon = () => {
                       switch (payment.type) {
                         case 'credit':
-                          return {
-                            icon: <CreditCard className="h-5 w-5 mr-3" />,
-                            colors: {
-                              icon: 'text-blue-600',
-                              selected: 'border-blue-500 bg-blue-50',
-                              unselected: 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/30',
-                              badge: 'bg-blue-100 text-blue-700'
-                            }
-                          }
                         case 'debit':
-                          return {
-                            icon: <CreditCard className="h-5 w-5 mr-3" />,
-                            colors: {
-                              icon: 'text-green-600',
-                              selected: 'border-green-500 bg-green-50',
-                              unselected: 'border-gray-200 hover:border-green-300 hover:bg-green-50/30',
-                              badge: 'bg-green-100 text-green-700'
-                            }
-                          }
+                          return <CreditCard className="h-5 w-5 mr-3" />
                         case 'pix':
-                          return {
-                            icon: <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 rounded text-white text-xs font-bold">PIX</div>,
-                            colors: {
-                              icon: 'text-teal-600',
-                              selected: 'border-teal-500 bg-teal-50',
-                              unselected: 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/30',
-                              badge: 'bg-teal-100 text-teal-700'
-                            }
-                          }
+                          return <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 rounded text-white text-xs font-bold">PIX</div>
                         case 'cash':
-                          return {
-                            icon: <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-green-600 rounded text-white text-sm">💰</div>,
-                            colors: {
-                              icon: 'text-emerald-600',
-                              selected: 'border-emerald-500 bg-emerald-50',
-                              unselected: 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30',
-                              badge: 'bg-emerald-100 text-emerald-700'
-                            }
-                          }
+                          return <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-green-600 rounded text-white text-sm">💰</div>
                         default:
-                          return {
-                            icon: <CreditCard className="h-5 w-5 mr-3" />,
-                            colors: {
-                              icon: 'text-gray-600',
-                              selected: 'border-gray-500 bg-gray-50',
-                              unselected: 'border-gray-200 hover:border-gray-300',
-                              badge: 'bg-gray-100 text-gray-700'
-                            }
-                          }
+                          return <CreditCard className="h-5 w-5 mr-3" />
                       }
                     }
-
-                    const { icon, colors } = getIconAndColors()
 
                     return (
                       <label 
                         key={payment.id}
                         className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                           customerInfo.paymentMethodId === payment.id 
-                            ? `${colors.selected} shadow-md transform scale-[1.02]` 
-                            : `${colors.unselected} shadow-sm hover:shadow-md`
+                            ? `shadow-md transform scale-[1.02]` 
+                            : `border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md`
                         }`}
+                        style={{
+                          backgroundColor: customerInfo.paymentMethodId === payment.id ? colors.selected : 'white',
+                          borderColor: customerInfo.paymentMethodId === payment.id ? colors.selectedBorder : undefined
+                        }}
                       >
                         <input
                           type="radio"
@@ -306,8 +271,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                           onChange={(e) => setCustomerInfo({...customerInfo, paymentMethodId: e.target.value})}
                           className="sr-only"
                         />
-                        <div className={colors.icon}>
-                          {icon}
+                        <div style={{ color: colors.icon }}>
+                          {getIcon()}
                         </div>
                         <div className="flex-1">
                           <span className={`font-semibold ${
@@ -316,13 +281,22 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                             {payment.label}
                           </span>
                           {payment.isDefault && (
-                            <span className={`ml-2 text-xs px-2 py-1 rounded-full font-medium ${colors.badge}`}>
+                            <span 
+                              className="ml-2 text-xs px-2 py-1 rounded-full font-medium"
+                              style={{ 
+                                backgroundColor: colors.badge,
+                                color: colors.text 
+                              }}
+                            >
                               ⭐ Padrão
                             </span>
                           )}
                         </div>
                         {customerInfo.paymentMethodId === payment.id && (
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colors.icon.replace('text-', 'bg-')}`}>
+                          <div 
+                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: colors.icon }}
+                          >
                             <div className="w-2 h-2 bg-white rounded-full"></div>
                           </div>
                         )}
