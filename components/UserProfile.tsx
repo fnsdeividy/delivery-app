@@ -1,26 +1,26 @@
 'use client'
 
 import {
-    Check,
-    Clock,
-    CreditCard,
-    Edit3,
-    Heart,
-    Mail,
-    MapPin,
-    Phone,
-    Plus,
-    User,
-    X
+  Check,
+  Clock,
+  CreditCard,
+  Edit3,
+  Heart,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  User,
+  X
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-    formatAddress,
-    formatPhone,
-    getCompletedOrdersCount,
-    getTotalOrderValue,
-    mockUser,
-    type UserData
+  formatAddress,
+  formatPhone,
+  getCompletedOrdersCount,
+  getTotalOrderValue,
+  mockUser,
+  type UserData
 } from '../data/mockUser'
 
 interface UserProfileProps {
@@ -65,7 +65,7 @@ export default function UserProfile({ isOpen, onClose }: UserProfileProps) {
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-black" />
           </button>
         </div>
 
