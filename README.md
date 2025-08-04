@@ -1,6 +1,6 @@
-# Delivery App
+# Cardap.IO
 
-Uma aplicação moderna de delivery inspirada no design do Figma, construída com Next.js, TypeScript e Tailwind CSS.
+Uma aplicação moderna de delivery de comida inspirada no design do Figma, construída com Next.js, TypeScript e Tailwind CSS.
 
 ## 🚀 Características
 
@@ -10,6 +10,9 @@ Uma aplicação moderna de delivery inspirada no design do Figma, construída co
 - **Tailwind CSS**: Estilização moderna e consistente
 - **Componentes Reutilizáveis**: Arquitetura limpa e modular
 - **Responsivo**: Funciona perfeitamente em todos os dispositivos
+- **Modal de Personalização**: Interface completa para customizar produtos
+- **Sistema de Filtros**: Busca e filtros por categoria
+- **Carrinho Inteligente**: Com detalhes de personalização
 
 ## 🛠️ Tecnologias
 
@@ -60,7 +63,7 @@ Uma aplicação moderna de delivery inspirada no design do Figma, construída co
 
 ```env
 # Configurações da Aplicação
-NEXT_PUBLIC_APP_NAME="Sabor Express"
+NEXT_PUBLIC_APP_NAME="Cardap.IO"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Autenticação (obrigatório)
@@ -103,7 +106,10 @@ delivery-app/
 │   └── page.tsx             # Página inicial
 ├── components/              # Componentes reutilizáveis
 │   ├── Cart.tsx            # Carrinho de compras
-│   └── Notification.tsx    # Notificações
+│   ├── CustomizeModal.tsx  # Modal de personalização
+│   ├── Notification.tsx    # Notificações
+│   ├── Footer.tsx          # Rodapé
+│   └── LoadingSpinner.tsx  # Spinner de carregamento
 ├── lib/                     # Utilitários e configurações
 ├── public/                  # Arquivos estáticos
 ├── env.local.example        # Exemplo de variáveis de ambiente
@@ -125,9 +131,10 @@ delivery-app/
 - **Pesos**: 300, 400, 500, 600, 700
 
 ### Componentes
-- **Cards**: Restaurantes e categorias
+- **Cards**: Produtos com informações detalhadas
 - **Botões**: Primário, secundário e outline
 - **Inputs**: Barra de pesquisa e formulários
+- **Modais**: Personalização e carrinho
 - **Ícones**: Lucide React
 
 ## 📱 Funcionalidades
@@ -139,11 +146,34 @@ delivery-app/
 - **Produtos**: Grid com cards detalhados
 - **Carrinho**: Sidebar deslizante
 - **Notificações**: Feedback visual
+- **Footer**: Links e informações
+
+### Modal de Personalização
+- **Informações do Produto**: Imagem, nome, descrição e preço
+- **Seletor de Quantidade**: Botões +/- com input numérico
+- **Lista de Ingredientes**: Checkboxes para remover ingredientes
+- **Adicionais**: Checkboxes com preços para extras
+- **Observações Especiais**: Campo de texto livre
+- **Cálculo Dinâmico**: Total atualizado em tempo real
+
+### Sistema de Filtros
+- **Filtro por Categoria**: Pizzas, Hambúrgueres, Massas, etc.
+- **Busca Inteligente**: Por nome, descrição ou ingredientes
+- **Contadores**: Número de produtos por categoria
+- **Estado Vazio**: Mensagem quando nenhum produto é encontrado
+
+### Carrinho Inteligente
+- **Produtos Personalizados**: Com detalhes de customização
+- **Adicionais**: Listados com preços
+- **Observações**: Especiais exibidas
+- **Quantidade**: Controles +/- para cada item
+- **Total Dinâmico**: Calculado automaticamente
 
 ### Interatividade
 - **Busca**: Campo de pesquisa funcional
 - **Filtros**: Seleção por categorias
 - **Carrinho**: Adicionar/remover produtos
+- **Personalização**: Modal completo para customizar
 - **Notificações**: Feedback ao adicionar itens
 - **Responsividade**: Adaptação para mobile
 
@@ -161,11 +191,14 @@ delivery-app/
 - [ ] Sistema de pagamento com Stripe
 - [ ] Rastreamento de pedidos em tempo real
 - [ ] Avaliações e comentários
-- [ ] Filtros avançados
+- [ ] Filtros avançados (preço, avaliação, etc.)
 - [ ] Geolocalização
 - [ ] Push notifications
 - [ ] Sistema de cupons
 - [ ] Histórico de pedidos
+- [ ] Favoritos
+- [ ] Comparação de produtos
+- [ ] Recomendações personalizadas
 
 ## 📄 Licença
 

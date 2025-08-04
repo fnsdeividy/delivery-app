@@ -1,7 +1,7 @@
 'use client'
 
+import { Minus, Plus, ShoppingCart, X } from 'lucide-react'
 import { useState } from 'react'
-import { X, Minus, Plus, ShoppingCart } from 'lucide-react'
 
 interface CartItem {
   id: number
@@ -9,6 +9,11 @@ interface CartItem {
   price: number
   quantity: number
   image: string
+  customization?: {
+    ingredients: string[]
+    addons: string[]
+    specialObservations?: string
+  }
 }
 
 interface CartProps {
@@ -23,7 +28,12 @@ export default function Cart({ isOpen, onClose }: CartProps) {
       name: 'Pizza Margherita',
       price: 32.90,
       quantity: 2,
-      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=100&h=100&fit=crop'
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=100&h=100&fit=crop',
+      customization: {
+        ingredients: ['Molho de tomate', 'Mussarela', 'Manjericão'],
+        addons: ['Queijo extra'],
+        specialObservations: 'Bem passada'
+      }
     },
     {
       id: 2,
@@ -31,6 +41,18 @@ export default function Cart({ isOpen, onClose }: CartProps) {
       price: 24.22,
       quantity: 1,
       image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=100&h=100&fit=crop'
+    },
+    {
+      id: 4,
+      name: 'Pasta Carbonara',
+      price: 32.90, // Preço com bacon extra
+      quantity: 1,
+      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=100&h=100&fit=crop',
+      customization: {
+        ingredients: ['Massa italiana', 'Bacon', 'Ovos', 'Parmesão', 'Pimenta do reino', 'Creme de leite'],
+        addons: ['Bacon extra'],
+        specialObservations: 'Bem passada, sem cebola'
+      }
     }
   ])
 
@@ -56,9 +78,10 @@ export default function Cart({ isOpen, onClose }: CartProps) {
           <h2 className="text-xl font-semibold">Carrinho</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-700"
+            aria-label="Fechar carrinho"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 
@@ -73,32 +96,50 @@ export default function Cart({ isOpen, onClose }: CartProps) {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{item.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      R$ {item.price.toFixed(2).replace('.', ',')}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+                <div key={item.id} className="border rounded-lg p-3">
+                  <div className="flex items-start space-x-3">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{item.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        R$ {item.price.toFixed(2).replace('.', ',')}
+                      </p>
+                      
+                      {/* Customization Details */}
+                      {item.customization && (
+                        <div className="mt-2 space-y-1">
+                          {item.customization.addons.length > 0 && (
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium">Adicionais:</span> {item.customization.addons.join(', ')}
+                            </div>
+                          )}
+                          {item.customization.specialObservations && (
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium">Obs:</span> {item.customization.specialObservations}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="w-8 text-center font-medium">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

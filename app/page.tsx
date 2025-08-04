@@ -1,14 +1,18 @@
 'use client'
 
-import { Clock, Heart, MapPin, Search, Shield, Star, Truck, Zap, ShoppingCart, User } from 'lucide-react'
-import { useState } from 'react'
+import { Search, ShoppingCart, Star, User } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import Cart from '../components/Cart'
+import CustomizeModal from '../components/CustomizeModal'
+import Footer from '../components/Footer'
 import Notification from '../components/Notification'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [cartItems, setCartItems] = useState<number[]>([])
   const [notification, setNotification] = useState({ show: false, message: '' })
 
@@ -33,7 +37,21 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
       tags: ['Popular'],
-      tagColor: 'orange'
+      tagColor: 'orange',
+      category: 'Pizzas',
+      basePrice: 32.90,
+      customizeIngredients: [
+        { id: 1, name: 'Molho de tomate', included: true },
+        { id: 2, name: 'Mussarela', included: true },
+        { id: 3, name: 'Manjericão', included: true },
+        { id: 4, name: 'Azeite', included: true },
+        { id: 5, name: 'Orégano', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Queijo extra', price: 4.00, selected: false },
+        { id: 2, name: 'Pepperoni', price: 6.00, selected: false },
+        { id: 3, name: 'Cogumelos', price: 3.50, selected: false },
+      ]
     },
     {
       id: 2,
@@ -46,7 +64,22 @@ export default function Home() {
       originalPrice: 28.50,
       image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop',
       tags: ['-15%'],
-      tagColor: 'red'
+      tagColor: 'red',
+      category: 'Hambúrgueres',
+      basePrice: 24.22,
+      customizeIngredients: [
+        { id: 1, name: 'Pão brioche', included: true },
+        { id: 2, name: 'Carne 180g', included: true },
+        { id: 3, name: 'Queijo cheddar', included: true },
+        { id: 4, name: 'Alface', included: true },
+        { id: 5, name: 'Tomate', included: true },
+        { id: 6, name: 'Cebola', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Bacon', price: 5.00, selected: false },
+        { id: 2, name: 'Queijo extra', price: 3.00, selected: false },
+        { id: 3, name: 'Molho especial', price: 2.00, selected: false },
+      ]
     },
     {
       id: 3,
@@ -59,7 +92,21 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=300&fit=crop',
       tags: ['Sem glúten'],
-      tagColor: 'green'
+      tagColor: 'green',
+      category: 'Saladas',
+      basePrice: 24.90,
+      customizeIngredients: [
+        { id: 1, name: 'Mix de folhas', included: true },
+        { id: 2, name: 'Frango grelhado', included: true },
+        { id: 3, name: 'Croutons', included: true },
+        { id: 4, name: 'Parmesão', included: true },
+        { id: 5, name: 'Molho caesar', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Frango extra', price: 8.00, selected: false },
+        { id: 2, name: 'Croutons extra', price: 2.00, selected: false },
+        { id: 3, name: 'Queijo parmesão extra', price: 3.00, selected: false },
+      ]
     },
     {
       id: 4,
@@ -72,7 +119,22 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop',
       tags: [],
-      tagColor: ''
+      tagColor: '',
+      category: 'Massas',
+      basePrice: 26.90,
+      customizeIngredients: [
+        { id: 1, name: 'Massa italiana', included: true },
+        { id: 2, name: 'Bacon', included: true },
+        { id: 3, name: 'Ovos', included: true },
+        { id: 4, name: 'Parmesão', included: true },
+        { id: 5, name: 'Pimenta do reino', included: true },
+        { id: 6, name: 'Creme de leite', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Bacon extra', price: 6.00, selected: false },
+        { id: 2, name: 'Cogumelos', price: 4.00, selected: false },
+        { id: 3, name: 'Queijo parmesão extra', price: 3.00, selected: false },
+      ]
     },
     {
       id: 5,
@@ -85,7 +147,21 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
       tags: ['Novo', 'Vegano'],
-      tagColor: 'green'
+      tagColor: 'green',
+      category: 'Pizzas',
+      basePrice: 34.90,
+      customizeIngredients: [
+        { id: 1, name: 'Molho de tomate', included: true },
+        { id: 2, name: 'Queijo vegetal', included: true },
+        { id: 3, name: 'Abobrinha', included: true },
+        { id: 4, name: 'Berinjela', included: true },
+        { id: 5, name: 'Rúcula', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Queijo vegetal extra', price: 5.00, selected: false },
+        { id: 2, name: 'Tomate cereja', price: 3.00, selected: false },
+        { id: 3, name: 'Azeitonas', price: 2.50, selected: false },
+      ]
     },
     {
       id: 6,
@@ -98,7 +174,18 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=300&fit=crop',
       tags: [],
-      tagColor: ''
+      tagColor: '',
+      category: 'Bebidas',
+      basePrice: 6.50,
+      customizeIngredients: [
+        { id: 1, name: 'Água', included: true },
+        { id: 2, name: 'Açúcar', included: true },
+        { id: 3, name: 'Extrato de cola', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Gelo extra', price: 0.50, selected: false },
+        { id: 2, name: 'Limão', price: 1.00, selected: false },
+      ]
     },
     {
       id: 7,
@@ -111,7 +198,22 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1520072959219-c595dc870360?w=400&h=300&fit=crop',
       tags: ['Vegano'],
-      tagColor: 'green'
+      tagColor: 'green',
+      category: 'Hambúrgueres',
+      basePrice: 25.90,
+      customizeIngredients: [
+        { id: 1, name: 'Pão integral', included: true },
+        { id: 2, name: 'Hambúrguer vegetal', included: true },
+        { id: 3, name: 'Queijo vegetal', included: true },
+        { id: 4, name: 'Alface', included: true },
+        { id: 5, name: 'Tomate', included: true },
+        { id: 6, name: 'Molho vegano', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Queijo vegetal extra', price: 4.00, selected: false },
+        { id: 2, name: 'Abacate', price: 3.50, selected: false },
+        { id: 3, name: 'Cogumelos', price: 3.00, selected: false },
+      ]
     },
     {
       id: 8,
@@ -124,9 +226,45 @@ export default function Home() {
       originalPrice: null,
       image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
       tags: ['Popular'],
-      tagColor: 'orange'
+      tagColor: 'orange',
+      category: 'Pizzas',
+      basePrice: 36.90,
+      customizeIngredients: [
+        { id: 1, name: 'Molho de tomate', included: true },
+        { id: 2, name: 'Mussarela', included: true },
+        { id: 3, name: 'Pepperoni', included: true },
+        { id: 4, name: 'Orégano', included: true },
+      ],
+      addons: [
+        { id: 1, name: 'Pepperoni extra', price: 8.00, selected: false },
+        { id: 2, name: 'Queijo extra', price: 4.00, selected: false },
+        { id: 3, name: 'Pimenta jalapeño', price: 3.00, selected: false },
+      ]
     }
   ]
+
+  // Filtrar produtos por categoria e busca
+  const filteredProducts = useMemo(() => {
+    let filtered = products
+
+    // Filtrar por categoria
+    if (selectedCategory !== 'Todos') {
+      filtered = filtered.filter(product => product.category === selectedCategory)
+    }
+
+    // Filtrar por busca
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.ingredients.some(ingredient => 
+          ingredient.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      )
+    }
+
+    return filtered
+  }, [products, selectedCategory, searchQuery])
 
   const getTagColor = (color: string) => {
     switch (color) {
@@ -150,17 +288,30 @@ export default function Home() {
     })
   }
 
+  const openCustomizeModal = (product: any) => {
+    setSelectedProduct(product)
+    setIsCustomizeModalOpen(true)
+  }
+
+  const handleCustomizedAddToCart = (customization: any) => {
+    setCartItems(prev => [...prev, customization.productId])
+    setNotification({
+      show: true,
+      message: `${selectedProduct?.name} personalizado adicionado ao carrinho!`
+    })
+  }
+
   const cartItemCount = cartItems.length
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-black">Sabor Express</h1>
+              <h1 className="text-2xl font-bold text-black">Cardap.IO</h1>
             </div>
             
             {/* Search Bar */}
@@ -222,102 +373,144 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Products Grid */}
-      <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                {/* Product Image */}
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  
-                  {/* Tags */}
-                  <div className="absolute top-3 left-3 flex flex-col space-y-1">
-                    {product.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className={`px-2 py-1 text-xs font-medium rounded ${getTagColor(product.tagColor)}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Products Grid */}
+        <section className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Results Info */}
+            <div className="mb-6">
+              <p className="text-gray-600">
+                {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
+                {selectedCategory !== 'Todos' && ` em ${selectedCategory}`}
+                {searchQuery && ` para "${searchQuery}"`}
+              </p>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
                 </div>
-                
-                {/* Product Info */}
-                <div className="p-4">
-                  {/* Name and Rating */}
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-600">{product.rating}</span>
-                      <span className="text-xs text-gray-400">({product.reviews})</span>
-                    </div>
-                  </div>
-                  
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                  
-                  {/* Ingredients */}
-                  <div className="mb-3">
-                    <div className="flex flex-wrap gap-1">
-                      {product.ingredients.map((ingredient, index) => (
-                        <span
-                          key={index}
-                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                        >
-                          {ingredient}
-                        </span>
-                      ))}
-                      {product.ingredients.length > 0 && (
-                        <span className="text-xs text-gray-500 px-2 py-1">
-                          +{Math.max(0, 4 - product.ingredients.length)} mais
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-gray-900">
-                        R$ {product.price.toFixed(2).replace('.', ',')}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through">
-                          R$ {product.originalPrice.toFixed(2).replace('.', ',')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    <button className="flex-1 px-4 py-2 border border-black text-black rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-                      Personalizar
-                    </button>
-                    <button 
-                      onClick={() => addToCart(product.id)}
-                      className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
-                    >
-                      + Adicionar
-                    </button>
-                  </div>
-                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
+                <p className="text-gray-600">
+                  Tente ajustar os filtros ou buscar por outro termo
+                </p>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    {/* Product Image */}
+                    <div className="relative">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-cover"
+                      />
+                      
+                      {/* Tags */}
+                      <div className="absolute top-3 left-3 flex flex-col space-y-1">
+                        {product.tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className={`px-2 py-1 text-xs font-medium rounded ${getTagColor(product.tagColor)}`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="p-4">
+                      {/* Name and Rating */}
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-sm text-gray-600">{product.rating}</span>
+                          <span className="text-xs text-gray-400">({product.reviews})</span>
+                        </div>
+                      </div>
+                      
+                      {/* Description */}
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                      
+                      {/* Ingredients */}
+                      <div className="mb-3">
+                        <div className="flex flex-wrap gap-1">
+                          {product.ingredients.map((ingredient, index) => (
+                            <span
+                              key={index}
+                              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                            >
+                              {ingredient}
+                            </span>
+                          ))}
+                          {product.ingredients.length > 0 && (
+                            <span className="text-xs text-gray-500 px-2 py-1">
+                              +{Math.max(0, 4 - product.ingredients.length)} mais
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Price */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg font-bold text-gray-900">
+                            R$ {product.price.toFixed(2).replace('.', ',')}
+                          </span>
+                          {product.originalPrice && (
+                            <span className="text-sm text-gray-500 line-through">
+                              R$ {product.originalPrice.toFixed(2).replace('.', ',')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => openCustomizeModal(product)}
+                          className="flex-1 px-4 py-2 border border-black text-black rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        >
+                          Personalizar
+                        </button>
+                        <button 
+                          onClick={() => addToCart(product.id)}
+                          className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                        >
+                          + Adicionar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Cart Component */}
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      
+      {/* Customize Modal */}
+      {selectedProduct && (
+        <CustomizeModal
+          isOpen={isCustomizeModalOpen}
+          onClose={() => setIsCustomizeModalOpen(false)}
+          product={selectedProduct}
+          onAddToCart={handleCustomizedAddToCart}
+        />
+      )}
       
       {/* Notification */}
       <Notification 
