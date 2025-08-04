@@ -193,7 +193,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                         required
                         value={customerInfo.name}
                         onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-black text-black"
                         placeholder="Seu nome completo"
                       />
                     </div>
@@ -204,7 +204,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                         required
                         value={customerInfo.phone}
                         onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-black"
                         placeholder="(11) 99999-9999"
                       />
                     </div>
@@ -218,7 +218,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                         required
                         value={customerInfo.tableNumber}
                         onChange={(e) => setCustomerInfo({...customerInfo, tableNumber: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-black"
                         placeholder="Ex: Mesa 15"
                       />
                     </div>
@@ -232,7 +232,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                           required
                           value={customerInfo.selectedAddressId}
                           onChange={(e) => setCustomerInfo({...customerInfo, selectedAddressId: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-black"
                         >
                           <option value="">Selecione um endereço</option>
                           {(user?.addresses || []).map((address) => (

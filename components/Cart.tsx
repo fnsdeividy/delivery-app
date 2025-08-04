@@ -151,7 +151,7 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
                         >
                           <Minus className="h-4 w-4" />
                         </button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <span className="w-8 text-center font-medium text-black">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="p-1 hover:bg-gray-100 rounded text-gray-600 transition-colors"
