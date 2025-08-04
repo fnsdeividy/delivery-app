@@ -2,6 +2,7 @@
 
 import { Car, Clock, CreditCard, Home, UserCheck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { formatAddress, mockUser } from '../data/mockUser'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -15,14 +16,16 @@ type DeliveryType = 'waiter' | 'pickup' | 'delivery'
 export default function CheckoutModal({ isOpen, onClose, cartItems, total }: CheckoutModalProps) {
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery')
   const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    phone: '',
-    email: '',
+    name: mockUser.name,
+    phone: mockUser.phone,
+    email: mockUser.email,
     tableNumber: '',
-    address: '',
-    complement: '',
-    paymentMethod: 'credit'
+    selectedAddressId: mockUser.addresses.find(addr => addr.isDefault)?.id || '',
+    paymentMethodId: mockUser.paymentMethods.find(pm => pm.isDefault)?.id || ''
   })
+
+  const selectedAddress = mockUser.addresses.find(addr => addr.id === customerInfo.selectedAddressId)
+  const selectedPaymentMethod = mockUser.paymentMethods.find(pm => pm.id === customerInfo.paymentMethodId)
 
   // Fechar modal com ESC
   useEffect(() => {
@@ -196,26 +199,29 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                   {deliveryType === 'delivery' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Endereço *</label>
-                        <input
-                          type="text"
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Endereço de Entrega *</label>
+                        <select
                           required
-                          value={customerInfo.address}
-                          onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                          value={customerInfo.selectedAddressId}
+                          onChange={(e) => setCustomerInfo({...customerInfo, selectedAddressId: e.target.value})}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          placeholder="Rua, número, bairro"
-                        />
+                        >
+                          <option value="">Selecione um endereço</option>
+                          {mockUser.addresses.map((address) => (
+                            <option key={address.id} value={address.id}>
+                              {address.label} - {formatAddress(address)}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
-                        <input
-                          type="text"
-                          value={customerInfo.complement}
-                          onChange={(e) => setCustomerInfo({...customerInfo, complement: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          placeholder="Apartamento, bloco, ponto de referência"
-                        />
-                      </div>
+                      
+                      {selectedAddress && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-medium text-gray-900">{selectedAddress.label}</p>
+                          <p className="text-sm text-gray-600">{formatAddress(selectedAddress)}</p>
+                          <p className="text-xs text-gray-500">CEP: {selectedAddress.zipCode}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -225,65 +231,104 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Forma de Pagamento</h3>
                 <div className="space-y-3">
-                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    customerInfo.paymentMethod === 'credit' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="credit"
-                      checked={customerInfo.paymentMethod === 'credit'}
-                      onChange={(e) => setCustomerInfo({...customerInfo, paymentMethod: e.target.value})}
-                      className="sr-only"
-                    />
-                    <CreditCard className="h-5 w-5 text-orange-500 mr-3" />
-                    <span className="font-medium">Cartão de Crédito</span>
-                  </label>
-                  
-                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    customerInfo.paymentMethod === 'debit' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="debit"
-                      checked={customerInfo.paymentMethod === 'debit'}
-                      onChange={(e) => setCustomerInfo({...customerInfo, paymentMethod: e.target.value})}
-                      className="sr-only"
-                    />
-                    <CreditCard className="h-5 w-5 text-orange-500 mr-3" />
-                    <span className="font-medium">Cartão de Débito</span>
-                  </label>
-                  
-                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    customerInfo.paymentMethod === 'cash' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cash"
-                      checked={customerInfo.paymentMethod === 'cash'}
-                      onChange={(e) => setCustomerInfo({...customerInfo, paymentMethod: e.target.value})}
-                      className="sr-only"
-                    />
-                    <span className="text-orange-500 mr-3 text-lg">💰</span>
-                    <span className="font-medium">Dinheiro</span>
-                  </label>
-                  
-                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                    customerInfo.paymentMethod === 'pix' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="pix"
-                      checked={customerInfo.paymentMethod === 'pix'}
-                      onChange={(e) => setCustomerInfo({...customerInfo, paymentMethod: e.target.value})}
-                      className="sr-only"
-                    />
-                    <span className="text-orange-500 mr-3 text-lg">📱</span>
-                    <span className="font-medium">PIX</span>
-                  </label>
+                  {mockUser.paymentMethods.map((payment) => {
+                    const getIconAndColors = () => {
+                      switch (payment.type) {
+                        case 'credit':
+                          return {
+                            icon: <CreditCard className="h-5 w-5 mr-3" />,
+                            colors: {
+                              icon: 'text-blue-600',
+                              selected: 'border-blue-500 bg-blue-50',
+                              unselected: 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/30',
+                              badge: 'bg-blue-100 text-blue-700'
+                            }
+                          }
+                        case 'debit':
+                          return {
+                            icon: <CreditCard className="h-5 w-5 mr-3" />,
+                            colors: {
+                              icon: 'text-green-600',
+                              selected: 'border-green-500 bg-green-50',
+                              unselected: 'border-gray-200 hover:border-green-300 hover:bg-green-50/30',
+                              badge: 'bg-green-100 text-green-700'
+                            }
+                          }
+                        case 'pix':
+                          return {
+                            icon: <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 rounded text-white text-xs font-bold">PIX</div>,
+                            colors: {
+                              icon: 'text-teal-600',
+                              selected: 'border-teal-500 bg-teal-50',
+                              unselected: 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/30',
+                              badge: 'bg-teal-100 text-teal-700'
+                            }
+                          }
+                        case 'cash':
+                          return {
+                            icon: <div className="w-5 h-5 mr-3 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-green-600 rounded text-white text-sm">💰</div>,
+                            colors: {
+                              icon: 'text-emerald-600',
+                              selected: 'border-emerald-500 bg-emerald-50',
+                              unselected: 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30',
+                              badge: 'bg-emerald-100 text-emerald-700'
+                            }
+                          }
+                        default:
+                          return {
+                            icon: <CreditCard className="h-5 w-5 mr-3" />,
+                            colors: {
+                              icon: 'text-gray-600',
+                              selected: 'border-gray-500 bg-gray-50',
+                              unselected: 'border-gray-200 hover:border-gray-300',
+                              badge: 'bg-gray-100 text-gray-700'
+                            }
+                          }
+                      }
+                    }
+
+                    const { icon, colors } = getIconAndColors()
+
+                    return (
+                      <label 
+                        key={payment.id}
+                        className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                          customerInfo.paymentMethodId === payment.id 
+                            ? `${colors.selected} shadow-md transform scale-[1.02]` 
+                            : `${colors.unselected} shadow-sm hover:shadow-md`
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={payment.id}
+                          checked={customerInfo.paymentMethodId === payment.id}
+                          onChange={(e) => setCustomerInfo({...customerInfo, paymentMethodId: e.target.value})}
+                          className="sr-only"
+                        />
+                        <div className={colors.icon}>
+                          {icon}
+                        </div>
+                        <div className="flex-1">
+                          <span className={`font-semibold ${
+                            customerInfo.paymentMethodId === payment.id ? 'text-gray-900' : 'text-gray-700'
+                          }`}>
+                            {payment.label}
+                          </span>
+                          {payment.isDefault && (
+                            <span className={`ml-2 text-xs px-2 py-1 rounded-full font-medium ${colors.badge}`}>
+                              ⭐ Padrão
+                            </span>
+                          )}
+                        </div>
+                        {customerInfo.paymentMethodId === payment.id && (
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${colors.icon.replace('text-', 'bg-')}`}>
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                        )}
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Minus, Plus, ShoppingCart, X } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 
 interface CartItem {
@@ -57,17 +57,27 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
     }
   ])
 
+  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {
-      setItems(items.filter(item => item.id !== id))
-    } else {
-      setItems(items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      ))
+      removeItem(id)
+      return
     }
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    )
   }
 
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  const removeItem = (id: number) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== id))
+  }
+
+  const clearCart = () => {
+    setItems([])
+  }
 
   if (!isOpen) return null
 
@@ -126,19 +136,39 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-col items-end space-y-2">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                          className={`p-1 rounded transition-colors ${
+                            item.quantity <= 1 
+                              ? 'text-gray-300 cursor-not-allowed' 
+                              : 'hover:bg-gray-100 text-gray-600'
+                          }`}
+                          aria-label="Diminuir quantidade"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="p-1 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                          aria-label="Aumentar quantidade"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      
+                      {/* Remove Button */}
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-1 hover:bg-gray-100 rounded"
+                        onClick={() => removeItem(item.id)}
+                        className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 transition-colors"
+                        aria-label="Remover item"
+                        title="Remover item"
                       >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="w-8 text-center font-medium">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="p-1 hover:bg-gray-100 rounded"
-                      >
-                        <Plus className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -151,6 +181,16 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t p-4">
+            {/* Clear Cart Button */}
+            <div className="flex justify-center mb-3">
+              <button
+                onClick={clearCart}
+                className="text-sm text-red-500 hover:text-red-700 underline transition-colors"
+              >
+                Limpar carrinho
+              </button>
+            </div>
+            
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Total:</span>
               <span className="text-xl font-bold">

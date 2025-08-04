@@ -7,6 +7,7 @@ import CheckoutModal from '../components/CheckoutModal'
 import CustomizeModal from '../components/CustomizeModal'
 import Footer from '../components/Footer'
 import Notification from '../components/Notification'
+import UserProfile from '../components/UserProfile'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -14,6 +15,7 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [cartItems, setCartItems] = useState<number[]>([])
   const [notification, setNotification] = useState({ show: false, message: '' })
@@ -363,9 +365,13 @@ export default function Home() {
             
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors">
+              <button 
+                onClick={() => setIsProfileOpen(true)}
+                className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
+                title="Meu Perfil"
+              >
                 <User className="h-5 w-5" />
-                <span className="hidden sm:block">Entrar</span>
+                <span className="hidden sm:block">Perfil</span>
               </button>
               <button 
                 onClick={() => setIsCartOpen(true)}
@@ -555,6 +561,12 @@ export default function Home() {
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={mockCartItems}
         total={mockTotal}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfile
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
       />
       
       {/* Notification */}
