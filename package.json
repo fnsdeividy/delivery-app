@@ -3,26 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev-info.js",
+    "dev:simple": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "demo": "echo '🏪 DEMO URLs:' && echo 'Loja: http://localhost:3000/loja/boteco-do-joao' && echo 'Dashboard: http://localhost:3000/login/lojista' && echo 'Credenciais: admin@boteco.com / 123456 / boteco-do-joao'"
   },
   "dependencies": {
+    "autoprefixer": "^10.0.1",
+    "lucide-react": "^0.294.0",
     "next": "14.0.4",
+    "postcss": "^8",
     "react": "^18",
     "react-dom": "^18",
-    "lucide-react": "^0.294.0",
-    "tailwindcss": "^3.3.0",
-    "autoprefixer": "^10.0.1",
-    "postcss": "^8"
+    "tailwindcss": "^3.3.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "chalk": "^5.5.0",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4"
+    "eslint-config-next": "14.0.4",
+    "typescript": "^5"
   }
 }

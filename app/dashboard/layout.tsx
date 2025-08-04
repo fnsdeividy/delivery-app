@@ -1,23 +1,23 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { useStoreConfig } from '../../lib/store/useStoreConfig'
-import { 
-  LayoutDashboard, 
-  Package, 
-  Settings, 
-  ShoppingBag, 
-  BarChart3, 
-  Palette,
-  Truck,
-  CreditCard,
-  Clock,
-  LogOut,
-  Menu,
-  X
+import {
+    BarChart3,
+    Clock,
+    CreditCard,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    Package,
+    Palette,
+    Settings,
+    ShoppingBag,
+    Truck,
+    X
 } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import { useStoreConfig } from '../../lib/store/useStoreConfig'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -121,19 +121,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 dashboard-sidebar ${
+        sidebarOpen ? 'translate-x-0 animate-slide-in-left' : '-translate-x-full'
       }`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 animate-fade-in">
           <div className="flex items-center space-x-3">
             {config.branding.logo && (
               <img 
                 src={config.branding.logo} 
                 alt={config.name}
-                className="h-8 w-auto"
+                className="h-8 w-auto hover-scale"
               />
             )}
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
+            <h2 className="text-lg font-semibold text-gray-900 truncate animate-slide-in-left animate-delay-200">
               {config.name}
             </h2>
           </div>
@@ -145,15 +145,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 animate-slide-in-left animate-delay-300">
           <div className="space-y-1">
-            {navigation.map((item) => (
-              <div key={item.name}>
+            {navigation.map((item, index) => (
+              <div key={item.name} className="stagger-item" style={{ animationDelay: `${0.4 + index * 0.1}s` }}>
                 <a
                   href={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-300 hover-lift ${
                     item.current
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 animate-glow'
                       : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >

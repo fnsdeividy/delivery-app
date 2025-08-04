@@ -55,32 +55,32 @@ export default function LojistaLogin() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <Store className="h-12 w-12 text-blue-600" />
+        <div className="flex justify-center animate-bounce-gentle">
+          <Store className="h-12 w-12 text-blue-600 animate-float" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 animate-slide-in-top animate-delay-200">
           Painel do Lojista
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-gray-600 animate-slide-in-top animate-delay-300">
           Acesse o dashboard da sua loja
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 animate-scale-in animate-delay-500">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm animate-shake animate-slide-in-top">
                 {error}
               </div>
             )}
 
             {/* Demo credentials */}
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md text-sm">
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md text-sm animate-slide-in-left animate-delay-700">
               <strong>Demo:</strong> admin@boteco.com / 123456 / boteco-do-joao
             </div>
 
-            <div>
+            <div className="animate-slide-in-left stagger-item">
               <label htmlFor="storeSlug" className="block text-sm font-medium text-gray-700">
                 Slug da Loja
               </label>
@@ -93,7 +93,7 @@ export default function LojistaLogin() {
                   value={formData.storeSlug}
                   onChange={handleInputChange}
                   placeholder="ex: boteco-do-joao"
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
               </div>
               <p className="mt-1 text-sm text-gray-500">
@@ -101,7 +101,7 @@ export default function LojistaLogin() {
               </p>
             </div>
 
-            <div>
+            <div className="animate-slide-in-left stagger-item">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -114,12 +114,12 @@ export default function LojistaLogin() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
               </div>
             </div>
 
-            <div>
+            <div className="animate-slide-in-left stagger-item">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Senha
               </label>
@@ -132,11 +132,11 @@ export default function LojistaLogin() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover-scale transition-transform duration-200"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -168,18 +168,18 @@ export default function LojistaLogin() {
               </div>
             </div>
 
-            <div>
+            <div className="animate-slide-in-left stagger-item">
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed btn-primary transition-all duration-300"
               >
                 {loading ? 'Entrando...' : 'Entrar no Dashboard'}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-6 animate-fade-in animate-delay-700">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -192,17 +192,17 @@ export default function LojistaLogin() {
             <div className="mt-6">
               <a
                 href="/registro/loja"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 hover-lift transition-all duration-300"
               >
                 Cadastrar Nova Loja
               </a>
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center animate-fade-in animate-delay-700">
             <button
               onClick={() => router.push('/')}
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 hover-lift transition-all duration-300"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Voltar ao início

@@ -1,10 +1,10 @@
 'use client'
 
+import { Clock, Phone, Search, ShoppingCart, Truck } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { useStoreConfig, useStoreStatus } from '../../../lib/store/useStoreConfig'
-import { Search, ShoppingCart, Star, Clock, MapPin, Phone, Truck } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import { useStoreConfig, useStoreStatus } from '../../../lib/store/useStoreConfig'
 import { Product } from '../../../types/store'
 
 export default function StorePage() {
@@ -92,50 +92,50 @@ export default function StorePage() {
       color: config.branding.textColor 
     }}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white shadow-sm sticky top-0 z-50 animate-slide-in-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo e Nome */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 animate-slide-in-left">
               {config.branding.logo && (
                 <img 
                   src={config.branding.logo} 
                   alt={config.name}
-                  className="h-10 w-auto"
+                  className="h-10 w-auto hover-scale"
                 />
               )}
-              <h1 className="text-2xl font-bold" style={{ color: config.branding.primaryColor }}>
+              <h1 className="text-2xl font-bold animate-float" style={{ color: config.branding.primaryColor }}>
                 {config.name}
               </h1>
             </div>
             
             {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-8">
+            <div className="flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors" />
                 <input
                   type="text"
                   placeholder="Buscar produtos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white"
+                  className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white search-focus transition-all duration-300"
                   style={{ '--tw-ring-color': config.branding.primaryColor } as any}
                 />
               </div>
             </div>
             
             {/* Actions */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 animate-slide-in-right">
               <button 
                 onClick={() => setIsCartOpen(true)}
-                className="flex items-center space-x-2 hover:opacity-75 transition-opacity relative"
+                className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
                 style={{ color: config.branding.primaryColor }}
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-5 w-5 transition-transform" />
                 <span className="hidden sm:block">Carrinho</span>
                 {cartItems.length > 0 && (
                   <span 
-                    className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                    className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle"
                     style={{ backgroundColor: config.branding.accentColor }}
                   >
                     {cartItems.length}
@@ -149,16 +149,16 @@ export default function StorePage() {
 
       {/* Banner */}
       {config.branding.bannerImage && (
-        <div className="relative h-48 md:h-64 overflow-hidden">
+        <div className="relative h-48 md:h-64 overflow-hidden animate-fade-in">
           <img 
             src={config.branding.bannerImage} 
             alt={config.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">{config.name}</h2>
-              <p className="text-lg">{config.description}</p>
+            <div className="text-center text-white animate-scale-in animate-delay-300">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 animate-slide-in-top animate-delay-500">{config.name}</h2>
+              <p className="text-lg animate-slide-in-top animate-delay-700">{config.description}</p>
             </div>
           </div>
         </div>
@@ -166,9 +166,9 @@ export default function StorePage() {
 
       {/* Status da Loja */}
       {!isOpen && (
-        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 text-center">
+        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 text-center animate-slide-in-top animate-shake">
           <div className="flex items-center justify-center space-x-2">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-5 w-5 animate-pulse" />
             <span>{currentMessage}</span>
           </div>
         </div>
@@ -206,14 +206,14 @@ export default function StorePage() {
       </div>
 
       {/* Categories */}
-      <section className="bg-white border-b">
+      <section className="bg-white border-b animate-slide-in-left animate-delay-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory('todos')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${
                 selectedCategory === 'todos'
-                  ? 'text-white'
+                  ? 'text-white animate-glow'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               style={selectedCategory === 'todos' ? { backgroundColor: config.branding.primaryColor } : {}}
@@ -228,9 +228,9 @@ export default function StorePage() {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${
                     selectedCategory === category.id
-                      ? 'text-white'
+                      ? 'text-white animate-glow'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                   style={selectedCategory === category.id ? { backgroundColor: config.branding.primaryColor } : {}}
@@ -268,22 +268,27 @@ export default function StorePage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+              {filteredProducts.map((product, index) => (
+                <div 
+                  key={product.id} 
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover stagger-item"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   {/* Product Image */}
-                  <div className="relative">
+                  <div className="relative overflow-hidden">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-48 object-cover"
+                      className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
                     />
                     
                     {/* Tags */}
                     <div className="absolute top-3 left-3 flex flex-col space-y-1">
-                      {product.tags.map((tag, index) => (
+                      {product.tags.map((tag, tagIndex) => (
                         <span
-                          key={index}
-                          className={`px-2 py-1 text-xs font-medium rounded ${getTagColor(product.tagColor)}`}
+                          key={tagIndex}
+                          className={`px-2 py-1 text-xs font-medium rounded status-badge animate-slide-in-left ${getTagColor(product.tagColor)}`}
+                          style={{ animationDelay: `${(index + tagIndex) * 0.1}s` }}
                         >
                           {tag}
                         </span>
@@ -344,7 +349,7 @@ export default function StorePage() {
                     <button 
                       onClick={() => addToCart(product)}
                       disabled={!isOpen}
-                      className="w-full px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                       style={{ backgroundColor: isOpen ? config.branding.primaryColor : '#9ca3af' }}
                     >
                       {isOpen ? '+ Adicionar ao Carrinho' : 'Loja Fechada'}
@@ -358,24 +363,24 @@ export default function StorePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
+      <footer className="bg-gray-900 text-white py-8 animate-fade-in">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">{config.name}</h3>
-            <p className="text-gray-400 mb-4">{config.description}</p>
-            <div className="flex justify-center space-x-4">
+            <h3 className="text-lg font-semibold mb-2 animate-slide-in-top">{config.name}</h3>
+            <p className="text-gray-400 mb-4 animate-slide-in-top animate-delay-200">{config.description}</p>
+            <div className="flex justify-center space-x-4 animate-slide-in-top animate-delay-300">
               {config.business.socialMedia.instagram && (
-                <a href={`https://instagram.com/${config.business.socialMedia.instagram}`} className="text-gray-400 hover:text-white">
+                <a href={`https://instagram.com/${config.business.socialMedia.instagram}`} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
                   Instagram
                 </a>
               )}
               {config.business.socialMedia.facebook && (
-                <a href={`https://facebook.com/${config.business.socialMedia.facebook}`} className="text-gray-400 hover:text-white">
+                <a href={`https://facebook.com/${config.business.socialMedia.facebook}`} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
                   Facebook
                 </a>
               )}
               {config.business.website && (
-                <a href={config.business.website} className="text-gray-400 hover:text-white">
+                <a href={config.business.website} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
                   Website
                 </a>
               )}

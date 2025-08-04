@@ -94,22 +94,22 @@ export default function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Visão Geral</h1>
-        <p className="text-gray-600">Resumo das atividades da sua loja hoje</p>
+      <div className="animate-fade-in">
+        <h1 className="text-2xl font-bold text-gray-900 animate-slide-in-top">Visão Geral</h1>
+        <p className="text-gray-600 animate-slide-in-top animate-delay-200">Resumo das atividades da sua loja hoje</p>
       </div>
 
       {/* Status da Loja */}
-      <div className={`rounded-lg p-4 ${isOpen ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+      <div className={`rounded-lg p-4 animate-scale-in animate-delay-300 ${isOpen ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
         <div className="flex items-center space-x-3">
-          <div className={`h-3 w-3 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <div className={`h-3 w-3 rounded-full animate-pulse ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <span className={`font-medium ${isOpen ? 'text-green-800' : 'text-red-800'}`}>
             {isOpen ? 'Loja Aberta' : 'Loja Fechada'}
           </span>
           {!isOpen && (
             <>
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <span className="text-red-700 text-sm">{currentMessage}</span>
+              <AlertCircle className="h-4 w-4 text-red-600 animate-bounce-gentle" />
+              <span className="text-red-700 text-sm animate-shake">{currentMessage}</span>
             </>
           )}
         </div>
@@ -117,7 +117,7 @@ export default function DashboardOverview() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 card-hover animate-slide-in-left stagger-item">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Vendas Hoje</p>
@@ -136,13 +136,13 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 card-hover animate-slide-in-left stagger-item">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pedidos Hoje</p>
               <p className="text-2xl font-bold text-gray-900">{stats.todayOrders}</p>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
+            <div className="p-3 bg-blue-100 rounded-full hover-rotate">
               <ShoppingBag className="h-6 w-6 text-blue-600" />
             </div>
           </div>
@@ -153,14 +153,14 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 card-hover animate-slide-in-left stagger-item">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Avaliação</p>
               <p className="text-2xl font-bold text-gray-900">{stats.averageRating}</p>
             </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Star className="h-6 w-6 text-yellow-600" />
+            <div className="p-3 bg-yellow-100 rounded-full hover-rotate">
+              <Star className="h-6 w-6 text-yellow-600 animate-float" />
             </div>
           </div>
           <div className="mt-4 flex items-center space-x-1 text-sm">
@@ -168,13 +168,13 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 card-hover animate-slide-in-left stagger-item">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Produtos Ativos</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
             </div>
-            <div className="p-3 bg-purple-100 rounded-full">
+            <div className="p-3 bg-purple-100 rounded-full hover-rotate">
               <Package className="h-6 w-6 text-purple-600" />
             </div>
           </div>
@@ -188,14 +188,18 @@ export default function DashboardOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pedidos Recentes */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 card-hover animate-slide-in-left animate-delay-500">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Pedidos Recentes</h3>
+            <h3 className="text-lg font-semibold text-gray-900 animate-fade-in">Pedidos Recentes</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              {recentOrders.map((order, index) => (
+                <div 
+                  key={order.id} 
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover-lift stagger-item"
+                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
+                >
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
                       <Users className="h-5 w-5 text-gray-600" />
@@ -228,14 +232,18 @@ export default function DashboardOverview() {
         </div>
 
         {/* Produtos Mais Vendidos */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 card-hover animate-slide-in-right animate-delay-500">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Produtos Mais Vendidos</h3>
+            <h3 className="text-lg font-semibold text-gray-900 animate-fade-in">Produtos Mais Vendidos</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
               {topProducts.map((product, index) => (
-                <div key={product.name} className="flex items-center justify-between">
+                <div 
+                  key={product.name} 
+                  className="flex items-center justify-between hover-lift stagger-item"
+                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
+                >
                   <div className="flex items-center space-x-4">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium text-blue-600">#{index + 1}</span>
@@ -266,15 +274,16 @@ export default function DashboardOverview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 animate-fade-in animate-delay-700">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Ações Rápidas</h3>
+          <h3 className="text-lg font-semibold text-gray-900 animate-slide-in-top">Ações Rápidas</h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <a
               href={`/dashboard/${slug}/produtos/novo`}
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 hover-lift card-hover stagger-item"
+              style={{ animationDelay: '0.8s' }}
             >
               <Package className="h-8 w-8 text-blue-600" />
               <div>
@@ -285,7 +294,8 @@ export default function DashboardOverview() {
 
             <a
               href={`/dashboard/${slug}/configuracoes/visual`}
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 hover-lift card-hover stagger-item"
+              style={{ animationDelay: '0.9s' }}
             >
               <div className="h-8 w-8 text-purple-600">
                 🎨
@@ -300,7 +310,8 @@ export default function DashboardOverview() {
               href={`/loja/${slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 hover-lift card-hover stagger-item"
+              style={{ animationDelay: '1s' }}
             >
               <Truck className="h-8 w-8 text-green-600" />
               <div>
