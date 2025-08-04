@@ -19,6 +19,46 @@ export default function StorePage() {
   const [cartItems, setCartItems] = useState<any[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
 
+  // Filtrar produtos - movido para antes dos returns condicionais
+  const filteredProducts = useMemo(() => {
+    if (!config?.menu?.products) return []
+    
+    let filtered = config.menu.products.filter(p => p.active)
+
+    // Filtrar por categoria
+    if (selectedCategory !== 'todos') {
+      filtered = filtered.filter(product => product.category === selectedCategory)
+    }
+
+    // Filtrar por busca
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query) ||
+        product.ingredients.some(ingredient => 
+          ingredient.toLowerCase().includes(query)
+        )
+      )
+    }
+
+    return filtered
+  }, [config?.menu?.products, selectedCategory, searchQuery])
+
+  const addToCart = (product: Product) => {
+    setCartItems(prev => [...prev, { ...product, quantity: 1 }])
+  }
+
+  const getTagColor = (color: string) => {
+    switch (color) {
+      case 'orange': return 'bg-orange-500 text-white'
+      case 'red': return 'bg-red-500 text-white'
+      case 'green': return 'bg-green-500 text-white'
+      case 'blue': return 'bg-blue-500 text-white'
+      default: return 'bg-gray-500 text-white'
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -44,44 +84,6 @@ export default function StorePage() {
         </div>
       </div>
     )
-  }
-
-  // Filtrar produtos
-  const filteredProducts = useMemo(() => {
-    let filtered = config.menu.products.filter(p => p.active)
-
-    // Filtrar por categoria
-    if (selectedCategory !== 'todos') {
-      filtered = filtered.filter(product => product.category === selectedCategory)
-    }
-
-    // Filtrar por busca
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(query)
-        )
-      )
-    }
-
-    return filtered
-  }, [config.menu.products, selectedCategory, searchQuery])
-
-  const addToCart = (product: Product) => {
-    setCartItems(prev => [...prev, { ...product, quantity: 1 }])
-  }
-
-  const getTagColor = (color: string) => {
-    switch (color) {
-      case 'orange': return 'bg-orange-500 text-white'
-      case 'red': return 'bg-red-500 text-white'
-      case 'green': return 'bg-green-500 text-white'
-      case 'blue': return 'bg-blue-500 text-white'
-      default: return 'bg-gray-500 text-white'
-    }
   }
 
   return (
@@ -217,10 +219,10 @@ export default function StorePage() {
               style={selectedCategory === 'todos' ? { backgroundColor: config.branding.primaryColor } : {}}
             >
               <span className="font-medium">Todos</span>
-              <span className="text-sm opacity-75">({config.menu.products.filter(p => p.active).length})</span>
+              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
             </button>
             
-            {config.menu.categories.filter(c => c.active).map((category) => {
+            {config?.menu?.categories?.filter(c => c.active).map((category) => {
               const count = config.menu.products.filter(p => p.active && p.category === category.id).length
               return (
                 <button
@@ -249,7 +251,7 @@ export default function StorePage() {
           <div className="mb-6">
             <p className="text-gray-600">
               {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
-              {selectedCategory !== 'todos' && ` em ${config.menu.categories.find(c => c.id === selectedCategory)?.name}`}
+              {selectedCategory !== 'todos' && ` em ${config?.menu?.categories?.find(c => c.id === selectedCategory)?.name}`}
               {searchQuery && ` para "${searchQuery}"`}
             </p>
           </div>

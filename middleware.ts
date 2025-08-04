@@ -70,6 +70,7 @@ function validateStoreRoute(request: NextRequest) {
 
 /**
  * Configuração do middleware - rotas que devem ser processadas
+ * Excluir rotas da API, arquivos estáticos e _next
  */
 export const config = {
   matcher: [
