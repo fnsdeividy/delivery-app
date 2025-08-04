@@ -151,7 +151,8 @@ export function useStoreStatus(config: StoreConfig | null) {
 
     const checkStoreStatus = () => {
       const now = new Date()
-      const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' }) as keyof typeof config.schedule.workingHours
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+      const currentDay = dayNames[now.getDay()] as keyof typeof config.schedule.workingHours
       const currentTime = now.toTimeString().slice(0, 5) // HH:mm format
       
       const todaySchedule = config.schedule.workingHours[currentDay]
