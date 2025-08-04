@@ -3,6 +3,7 @@
 import { Search, ShoppingCart, Star, User } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import Cart from '../components/Cart'
+import CheckoutModal from '../components/CheckoutModal'
 import CustomizeModal from '../components/CustomizeModal'
 import Footer from '../components/Footer'
 import Notification from '../components/Notification'
@@ -12,9 +13,36 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [cartItems, setCartItems] = useState<number[]>([])
   const [notification, setNotification] = useState({ show: false, message: '' })
+
+  // Mock dos itens do carrinho para o checkout
+  const mockCartItems = [
+    {
+      id: 1,
+      name: 'Pizza Margherita',
+      price: 32.90,
+      quantity: 2,
+      customization: {
+        addons: ['Queijo extra'],
+        specialObservations: 'Bem passada'
+      }
+    },
+    {
+      id: 2,
+      name: 'Burger Artesanal',
+      price: 24.22,
+      quantity: 1,
+      customization: {
+        addons: [],
+        specialObservations: ''
+      }
+    }
+  ]
+
+  const mockTotal = mockCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
   const categories = [
     { name: 'Todos', count: 24 },
@@ -301,6 +329,11 @@ export default function Home() {
     })
   }
 
+  const handleCheckout = () => {
+    setIsCartOpen(false)
+    setIsCheckoutOpen(true)
+  }
+
   const cartItemCount = cartItems.length
 
   return (
@@ -500,7 +533,11 @@ export default function Home() {
       <Footer />
 
       {/* Cart Component */}
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Cart 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        onCheckout={handleCheckout}
+      />
       
       {/* Customize Modal */}
       {selectedProduct && (
@@ -511,6 +548,14 @@ export default function Home() {
           onAddToCart={handleCustomizedAddToCart}
         />
       )}
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        cartItems={mockCartItems}
+        total={mockTotal}
+      />
       
       {/* Notification */}
       <Notification 

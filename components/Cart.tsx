@@ -19,9 +19,10 @@ interface CartItem {
 interface CartProps {
   isOpen: boolean
   onClose: () => void
+  onCheckout: () => void
 }
 
-export default function Cart({ isOpen, onClose }: CartProps) {
+export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
   const [items, setItems] = useState<CartItem[]>([
     {
       id: 1,
@@ -156,7 +157,10 @@ export default function Cart({ isOpen, onClose }: CartProps) {
                 R$ {total.toFixed(2).replace('.', ',')}
               </span>
             </div>
-            <button className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+            <button 
+              onClick={onCheckout}
+              className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+            >
               Finalizar Pedido
             </button>
           </div>
