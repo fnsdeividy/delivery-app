@@ -1,9 +1,12 @@
 'use client'
 
-import { Clock, Phone, Search, ShoppingCart, Truck } from 'lucide-react'
+import { Clock, Phone, Search, ShoppingCart, Truck, User } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import LoginModal from '../../../components/LoginModal'
+import UserProfile from '../../../components/UserProfile'
+import { useAuth } from '../../../hooks/useAuth'
 import { useStoreConfig, useStoreStatus } from '../../../lib/store/useStoreConfig'
 import { Product } from '../../../types/store'
 
@@ -14,10 +17,13 @@ export default function StorePage() {
   const { config, loading, error } = useStoreConfig(slug)
   const { isOpen, currentMessage } = useStoreStatus(config)
   
+  const { isAuthenticated, user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('todos')
   const [cartItems, setCartItems] = useState<any[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   // Filtrar produtos - movido para antes dos returns condicionais
   const filteredProducts = useMemo(() => {
@@ -126,6 +132,32 @@ export default function StorePage() {
             
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
+              {/* Login/Profile Button */}
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
+                  style={{ color: config.branding.primaryColor }}
+                  title="Meu Perfil"
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">
+                    {user?.name ? user.name.split(' ')[0] : 'Perfil'}
+                  </span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsLoginOpen(true)}
+                  className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
+                  style={{ color: config.branding.primaryColor }}
+                  title="Fazer Login"
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">Login</span>
+                </button>
+              )}
+              
+              {/* Cart Button */}
               <button 
                 onClick={() => setIsCartOpen(true)}
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
@@ -388,6 +420,22 @@ export default function StorePage() {
           </div>
         </div>
       </footer>
+
+      {/* User Profile Modal */}
+      <UserProfile
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onSuccess={() => {
+          setIsLoginOpen(false)
+          // Usuário logado com sucesso
+        }}
+      />
     </div>
   )
 }
