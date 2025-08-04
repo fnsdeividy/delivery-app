@@ -318,6 +318,19 @@ curl -X PUT http://localhost:3000/api/stores/boteco-do-joao/config \
 2. Altere o slug e configurações
 3. Acesse `/loja/sua-loja` e `/dashboard/sua-loja`
 
+## 📚 Documentação
+
+### **Para Usuários (Proprietários de Loja):**
+- 🚀 **[Guia de Início](README_START.md)** - Como criar e configurar sua loja
+- 🎨 **[Personalização Visual](README_START.md#-personalização-visual)** - Cores, logo e branding
+- 🍔 **[Gestão de Produtos](README_START.md#-gestão-de-produtos-e-cardápio)** - Cardápio e categorias
+- 🚚 **[Configurações de Entrega](README_START.md#-configurações-de-entrega)** - Áreas e taxas
+
+### **Para Desenvolvedores:**
+- 🏗️ **[Arquitetura Multi-Tenant](plano_dashboard_multi_tenant.md)** - Estrutura técnica
+- 🚀 **[Deploy em Produção](DEPLOY_MULTI_TENANT.md)** - Guia de deploy
+- 🧪 **[Testes e APIs](README.md#-como-testar-o-sistema-multi-tenant)** - Endpoints e testes
+
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
