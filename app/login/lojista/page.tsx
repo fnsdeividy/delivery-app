@@ -93,7 +93,7 @@ export default function LojistaLogin() {
                   value={formData.storeSlug}
                   onChange={handleInputChange}
                   placeholder="ex: boteco-do-joao"
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-blackfocus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
               </div>
               <p className="mt-1 text-sm text-gray-500">
@@ -114,7 +114,7 @@ export default function LojistaLogin() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-blackfocus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function LojistaLogin() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
+                  className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md placeholder-blackfocus:outline-none focus:ring-blue-500 focus:border-blue-500 search-focus transition-all duration-300"
                 />
                 <button
                   type="button"
