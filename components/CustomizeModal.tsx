@@ -149,26 +149,50 @@ export default function CustomizeModal({ isOpen, onClose, product, onAddToCart }
           {/* Quantity */}
           <div className="mb-6">
             <h4 className="font-semibold text-gray-900 mb-3">Quantidade</h4>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-16 text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                min="1"
-              />
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Escolha a quantidade desejada</span>
+              <div className="flex items-center bg-gray-50 rounded-lg p-1">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    quantity <= 1 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-orange-500'
+                  }`}
+                  aria-label="Diminuir quantidade"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <div className="mx-3 min-w-[60px] text-center">
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1
+                      setQuantity(Math.max(1, Math.min(99, value)))
+                    }}
+                    className="w-full text-center bg-transparent text-lg font-semibold text-gray-900 border-none outline-none appearance-none"
+                    min="1"
+                    max="99"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {quantity === 1 ? 'unidade' : 'unidades'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setQuantity(Math.min(99, quantity + 1))}
+                  disabled={quantity >= 99}
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    quantity >= 99 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-orange-500'
+                  }`}
+                  aria-label="Aumentar quantidade"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
