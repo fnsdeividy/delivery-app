@@ -6,16 +6,20 @@ import Cart from '../components/Cart'
 import CheckoutModal from '../components/CheckoutModal'
 import CustomizeModal from '../components/CustomizeModal'
 import Footer from '../components/Footer'
+import LoginModal from '../components/LoginModal'
 import Notification from '../components/Notification'
 import UserProfile from '../components/UserProfile'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [cartItems, setCartItems] = useState<number[]>([])
@@ -366,14 +370,27 @@ export default function Home() {
             
             {/* Actions */}
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setIsProfileOpen(true)}
-                className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
-                title="Meu Perfil"
-              >
-                <User className="h-5 w-5" />
-                <span className="hidden sm:block">Perfil</span>
-              </button>
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => setIsProfileOpen(true)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
+                  title="Meu Perfil"
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">
+                    {user?.name ? user.name.split(' ')[0] : 'Perfil'}
+                  </span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsLoginOpen(true)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
+                  title="Fazer Login"
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">Login</span>
+                </button>
+              )}
               <button 
                 onClick={() => setIsCartOpen(true)}
                 className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors relative"
@@ -568,6 +585,16 @@ export default function Home() {
       <UserProfile
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onSuccess={() => {
+          setIsLoginOpen(false)
+          // Usuário logado com sucesso
+        }}
       />
 
       {/* Notification */}

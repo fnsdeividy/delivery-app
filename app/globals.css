@@ -2,6 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Variáveis CSS para configurações dinâmicas das lojas */
+:root {
+  --store-primary: #ed7516;
+  --store-secondary: #64748b;
+  --store-background: #f8fafc;
+  --store-text: #1f2937;
+  --store-accent: #f59e0b;
+}
+
+/* Classes utilitárias para cores dinâmicas */
+.text-store-primary {
+  color: var(--store-primary);
+}
+
+.bg-store-primary {
+  background-color: var(--store-primary);
+}
+
+.border-store-primary {
+  border-color: var(--store-primary);
+}
+
+.text-store-secondary {
+  color: var(--store-secondary);
+}
+
+.bg-store-secondary {
+  background-color: var(--store-secondary);
+}
+
+.text-store-accent {
+  color: var(--store-accent);
+}
+
+.bg-store-accent {
+  background-color: var(--store-accent);
+}
+
+.bg-store-background {
+  background-color: var(--store-background);
+}
+
+.text-store-text {
+  color: var(--store-text);
+}
+
+/* Animações suaves para mudanças de tema */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
+}
+
+/* Estilos específicos para o dashboard */
+.dashboard-sidebar {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Estilos para status indicators */
+.status-indicator {
+  position: relative;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0.1;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {

@@ -2,8 +2,10 @@
 
 import { Car, Clock, CreditCard, Home, UserCheck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { formatAddress, mockUser } from '../data/mockUser'
+import { formatAddress } from '../data/mockUser'
+import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
+import LoginModal from './LoginModal'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -16,18 +18,34 @@ type DeliveryType = 'waiter' | 'pickup' | 'delivery'
 
 export default function CheckoutModal({ isOpen, onClose, cartItems, total }: CheckoutModalProps) {
   const { getPaymentColors, getDeliveryColors, getPrimaryColor } = useTheme()
+  const { isAuthenticated, user } = useAuth()
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery')
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const [customerInfo, setCustomerInfo] = useState({
-    name: mockUser.name,
-    phone: mockUser.phone,
-    email: mockUser.email,
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
     tableNumber: '',
-    selectedAddressId: mockUser.addresses.find(addr => addr.isDefault)?.id || '',
-    paymentMethodId: mockUser.paymentMethods.find(pm => pm.isDefault)?.id || ''
+    selectedAddressId: user?.addresses.find(addr => addr.isDefault)?.id || '',
+    paymentMethodId: user?.paymentMethods.find(pm => pm.isDefault)?.id || ''
   })
 
-  const selectedAddress = mockUser.addresses.find(addr => addr.id === customerInfo.selectedAddressId)
-  const selectedPaymentMethod = mockUser.paymentMethods.find(pm => pm.id === customerInfo.paymentMethodId)
+  // Atualizar dados do cliente quando usuário logado muda
+  useEffect(() => {
+    if (user) {
+      setCustomerInfo({
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        tableNumber: '',
+        selectedAddressId: user.addresses.find(addr => addr.isDefault)?.id || '',
+        paymentMethodId: user.paymentMethods.find(pm => pm.isDefault)?.id || ''
+      })
+    }
+  }, [user])
+
+  const selectedAddress = user?.addresses.find(addr => addr.id === customerInfo.selectedAddressId)
+  const selectedPaymentMethod = user?.paymentMethods.find(pm => pm.id === customerInfo.paymentMethodId)
 
   // Fechar modal com ESC
   useEffect(() => {
@@ -53,12 +71,20 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Verificar se usuário está logado
+    if (!isAuthenticated) {
+      setShowLoginModal(true)
+      return
+    }
+    
     // Aqui você implementaria a lógica de envio do pedido
     console.log('Pedido enviado:', {
       deliveryType,
       customerInfo,
       cartItems,
-      total: finalTotal
+      total: finalTotal,
+      userId: user?.id
     })
     alert('Pedido realizado com sucesso!')
     onClose()
@@ -209,7 +235,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         >
                           <option value="">Selecione um endereço</option>
-                          {mockUser.addresses.map((address) => (
+                          {(user?.addresses || []).map((address) => (
                             <option key={address.id} value={address.id}>
                               {address.label} - {formatAddress(address)}
                             </option>
@@ -233,7 +259,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Forma de Pagamento</h3>
                 <div className="space-y-3">
-                  {mockUser.paymentMethods.map((payment) => {
+                  {(user?.paymentMethods || []).map((payment) => {
                     const colors = getPaymentColors(payment.type)
                     
                     const getIcon = () => {
@@ -376,6 +402,16 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
           </div>
         </form>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false)
+          // O checkout continuará automaticamente após o login
+        }}
+      />
     </div>
   )
 }

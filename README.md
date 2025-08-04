@@ -13,6 +13,9 @@ Uma aplicação moderna de delivery de comida inspirada no design do Figma, cons
 - **Modal de Personalização**: Interface completa para customizar produtos
 - **Sistema de Filtros**: Busca e filtros por categoria
 - **Carrinho Inteligente**: Com detalhes de personalização
+- **🔐 Sistema de Login**: Autenticação completa com proteção de checkout
+- **👤 Gerenciamento de Usuário**: Login, registro, logout e perfil dinâmico
+- **🔒 Checkout Protegido**: Apenas usuários logados podem finalizar pedidos
 
 ## 🛠️ Tecnologias
 
@@ -184,16 +187,52 @@ delivery-app/
 - `npm run start` - Executa a aplicação em produção
 - `npm run lint` - Executa o linter
 
-## 🎨 Sistema de Personalização por Loja
+## 🏪 Sistema Multi-Tenant para Estabelecimentos
 
-### Configuração de Tema Dinâmica
-- **JSON Config**: Sistema baseado em `theme-config.json` para cada loja
-- **Cores Personalizáveis**: Primary, secondary, backgrounds, texto e estados
-- **Logo Customizável**: Upload e configuração de logo próprio
-- **Metadados**: Título, descrição e SEO personalizados por loja
-- **Tipografia**: Controle de fontes, tamanhos e pesos
+### 🌐 Estrutura de URLs
+- **Loja Pública**: `/loja/[slug]` - Interface do consumidor final
+- **Dashboard Privado**: `/dashboard/[slug]` - Painel administrativo do lojista
+- **Login Lojista**: `/login/lojista` - Autenticação para proprietários
+- **Exemplo**: 
+  - Cliente: `https://app.com/loja/boteco-do-joao`
+  - Admin: `https://app.com/dashboard/boteco-do-joao`
 
-> 📁 Veja `config/README.md` para documentação completa do sistema de temas
+### 🔐 Controle de Acesso
+- **Middleware de Proteção**: Protege rotas `/dashboard/*` automaticamente
+- **Autenticação por Loja**: Cada loja tem seu próprio sistema de login
+- **Roles de Usuário**: Cliente, Lojista, Manager, Admin
+- **Session Management**: JWT tokens com validação por slug
+
+### 📊 Configuração por Loja
+- **Arquivo JSON**: `config/stores/[slug].json` para cada estabelecimento
+- **Configurações Dinâmicas**: Cores, logo, horários, entrega, pagamentos
+- **Hook useStoreConfig**: Carregamento e aplicação automática de configurações
+- **CSS Dinâmico**: Variáveis CSS aplicadas em tempo real
+- **API REST**: `/api/stores/[slug]/config` para CRUD de configurações
+
+### 🎨 Personalização Visual
+- **Cores Personalizáveis**: Primary, secondary, background, text, accent
+- **Logo e Favicon**: Upload e aplicação automática
+- **Banner Promocional**: Imagem de destaque na loja
+- **CSS Dinâmico**: Variáveis CSS aplicadas automaticamente
+- **Preview em Tempo Real**: Mudanças refletidas instantaneamente
+
+### 🛠️ Dashboard Administrativo
+- **Layout Responsivo**: Sidebar colapsável com navegação
+- **Visão Geral**: Métricas, vendas, pedidos recentes
+- **Gestão de Produtos**: CRUD completo com upload de imagens
+- **Configurações**: Visual, entrega, pagamento, horários
+- **Analytics**: Relatórios de vendas e performance
+- **Gestão de Pedidos**: Status em tempo real
+
+### 📱 Interface da Loja
+- **Tema Dinâmico**: Carregamento automático das configurações da loja
+- **Status da Loja**: Verificação de horário de funcionamento
+- **Cardápio Personalizado**: Produtos, categorias e preços específicos
+- **Informações de Entrega**: Taxas, raio, tempo estimado
+- **Integração com WhatsApp**: Templates personalizados
+
+> 📁 Veja `plano_dashboard_multi_tenant.md` para documentação completa do sistema
 
 ## 🐛 Correções Realizadas
 
@@ -208,21 +247,76 @@ delivery-app/
 - **Compilação**: Todos os erros de TypeScript foram corrigidos
 - **Tela de Perfil**: Agora funciona corretamente sem erros
 
-## 🌟 Próximas Funcionalidades
+## 🌟 Funcionalidades Implementadas
 
-- [ ] Sistema de autenticação completo
+### ✅ Sistema Base
+- [x] ✅ Sistema de autenticação completo
+- [x] ✅ Login e registro de usuários
+- [x] ✅ Proteção de checkout
+- [x] ✅ Gerenciamento de perfil
+
+### ✅ Sistema Multi-Tenant
+- [x] ✅ Estrutura de rotas por loja (/loja/[slug], /dashboard/[slug])
+- [x] ✅ Middleware de proteção de rotas
+- [x] ✅ Sistema de configuração JSON por loja
+- [x] ✅ Hook useStoreConfig para gerenciamento dinâmico
+- [x] ✅ Dashboard administrativo completo
+- [x] ✅ Interface pública personalizada por loja
+- [x] ✅ Sistema de autenticação para lojistas
+- [x] ✅ API REST para configurações de loja
+
+### 🚧 Próximas Funcionalidades
+- [ ] CRUD completo de produtos no dashboard
+- [ ] Interface de configurações visuais
+- [ ] Sistema de upload de imagens
+- [ ] Configurações operacionais (horários, entrega)
+- [ ] Gestão de pedidos em tempo real
+- [ ] Analytics e relatórios
 - [ ] Integração com banco de dados
 - [ ] Sistema de pagamento com Stripe
-- [ ] Rastreamento de pedidos em tempo real
-- [ ] Avaliações e comentários
-- [ ] Filtros avançados (preço, avaliação, etc.)
+- [ ] Testes unitários e integração
+- [ ] Sistema de cupons e promoções
+- [ ] Notificações push
 - [ ] Geolocalização
-- [ ] Push notifications
-- [ ] Sistema de cupons
-- [ ] Histórico de pedidos
-- [ ] Favoritos
-- [ ] Comparação de produtos
-- [ ] Recomendações personalizadas
+- [ ] Avaliações e comentários
+
+## 🧪 Como Testar o Sistema Multi-Tenant
+
+### 1. **Iniciar o Servidor**
+```bash
+npm run dev
+```
+
+### 2. **Testar a Loja Pública**
+Acesse: `http://localhost:3000/loja/boteco-do-joao`
+- Visualize o cardápio personalizado
+- Teste o sistema de busca e filtros
+- Observe as cores e visual personalizados
+- Verifique o status da loja (aberta/fechada)
+
+### 3. **Testar o Dashboard Administrativo**
+1. Acesse: `http://localhost:3000/login/lojista`
+2. Use as credenciais de demo:
+   - **Email**: admin@boteco.com
+   - **Senha**: 123456
+   - **Slug**: boteco-do-joao
+3. Explore o dashboard em: `http://localhost:3000/dashboard/boteco-do-joao`
+
+### 4. **Testar as APIs**
+```bash
+# Buscar configurações da loja
+curl http://localhost:3000/api/stores/boteco-do-joao/config
+
+# Atualizar configurações (exemplo: mudar cor primária)
+curl -X PUT http://localhost:3000/api/stores/boteco-do-joao/config \
+  -H "Content-Type: application/json" \
+  -d '{"branding": {"primaryColor": "#ff6b35"}}'
+```
+
+### 5. **Criar Nova Loja**
+1. Copie `config/stores/boteco-do-joao.json` para `config/stores/sua-loja.json`
+2. Altere o slug e configurações
+3. Acesse `/loja/sua-loja` e `/dashboard/sua-loja`
 
 ## 📄 Licença
 

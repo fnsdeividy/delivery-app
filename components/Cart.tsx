@@ -29,7 +29,7 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
       name: 'Pizza Margherita',
       price: 32.90,
       quantity: 2,
-      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=100&h=100&fit=crop',
+      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8UGl6emElMjBNYXJnaGVyaXRhfGVufDB8fDB8fHww',
       customization: {
         ingredients: ['Molho de tomate', 'Mussarela', 'Manjericão'],
         addons: ['Queijo extra'],
@@ -48,7 +48,7 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
       name: 'Pasta Carbonara',
       price: 32.90, // Preço com bacon extra
       quantity: 1,
-      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=100&h=100&fit=crop',
+      image: 'https://images.unsplash.com/photo-1627207644206-a2040d60ecad?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8UGFzdGElMjBDYXJib25hcmF8ZW58MHx8MHx8fDA%3D',
       customization: {
         ingredients: ['Massa italiana', 'Bacon', 'Ovos', 'Parmesão', 'Pimenta do reino', 'Creme de leite'],
         addons: ['Bacon extra'],

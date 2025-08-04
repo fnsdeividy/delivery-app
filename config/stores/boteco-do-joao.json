@@ -1,0 +1,356 @@
+{
+  "slug": "boteco-do-joao",
+  "name": "Boteco do João",
+  "description": "O melhor boteco da cidade com petiscos autênticos e ambiente acolhedor",
+  
+  "branding": {
+    "logo": "/assets/stores/boteco-do-joao/logo.png",
+    "favicon": "/assets/stores/boteco-do-joao/favicon.ico",
+    "primaryColor": "#d97706",
+    "secondaryColor": "#92400e",
+    "backgroundColor": "#fef3c7",
+    "textColor": "#1f2937",
+    "accentColor": "#f59e0b",
+    "bannerImage": "/assets/stores/boteco-do-joao/banner.jpg"
+  },
+  
+  "business": {
+    "cnpj": "12.345.678/0001-90",
+    "phone": "(11) 99999-9999",
+    "email": "contato@botecodjoao.com.br",
+    "website": "https://botecodjoao.com.br",
+    "socialMedia": {
+      "instagram": "@botecodjoao",
+      "facebook": "BotecoDoJoaoOficial",
+      "whatsapp": "5511999999999"
+    }
+  },
+  
+  "menu": {
+    "categories": [
+      {
+        "id": "petiscos",
+        "name": "Petiscos",
+        "description": "Deliciosos petiscos tradicionais",
+        "order": 1,
+        "active": true,
+        "image": "/assets/categories/petiscos.jpg"
+      },
+      {
+        "id": "porcoes",
+        "name": "Porções",
+        "description": "Porções generosas para compartilhar",
+        "order": 2,
+        "active": true,
+        "image": "/assets/categories/porcoes.jpg"
+      },
+      {
+        "id": "bebidas",
+        "name": "Bebidas",
+        "description": "Cervejas geladas e drinks especiais",
+        "order": 3,
+        "active": true,
+        "image": "/assets/categories/bebidas.jpg"
+      }
+    ],
+    "products": [
+      {
+        "id": "pastel-carne",
+        "name": "Pastel de Carne",
+        "description": "Pastel tradicional com recheio de carne moída temperada",
+        "price": 8.90,
+        "image": "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop",
+        "category": "petiscos",
+        "ingredients": ["Massa", "Carne moída", "Cebola", "Temperos"],
+        "tags": ["Popular"],
+        "tagColor": "orange",
+        "active": true,
+        "preparationTime": 15,
+        "customizeIngredients": [
+          {
+            "id": "massa",
+            "name": "Massa",
+            "included": true,
+            "removable": false
+          },
+          {
+            "id": "carne",
+            "name": "Carne moída",
+            "included": true,
+            "removable": false
+          },
+          {
+            "id": "cebola",
+            "name": "Cebola",
+            "included": true,
+            "removable": true
+          }
+        ],
+        "addons": [
+          {
+            "id": "queijo",
+            "name": "Queijo extra",
+            "price": 2.00,
+            "selected": false,
+            "maxQuantity": 2
+          },
+          {
+            "id": "azeitona",
+            "name": "Azeitona",
+            "price": 1.50,
+            "selected": false,
+            "maxQuantity": 1
+          }
+        ]
+      },
+      {
+        "id": "porcao-fritas",
+        "name": "Porção de Batata Frita",
+        "description": "Batatas fritas crocantes temperadas com sal grosso",
+        "price": 18.90,
+        "image": "https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=400&h=300&fit=crop",
+        "category": "porcoes",
+        "ingredients": ["Batata", "Sal grosso", "Óleo"],
+        "tags": ["Vegetariano"],
+        "tagColor": "green",
+        "active": true,
+        "preparationTime": 20,
+        "customizeIngredients": [
+          {
+            "id": "batata",
+            "name": "Batata",
+            "included": true,
+            "removable": false
+          },
+          {
+            "id": "sal",
+            "name": "Sal grosso",
+            "included": true,
+            "removable": true
+          }
+        ],
+        "addons": [
+          {
+            "id": "bacon",
+            "name": "Bacon",
+            "price": 5.00,
+            "selected": false,
+            "maxQuantity": 1
+          },
+          {
+            "id": "queijo-derretido",
+            "name": "Queijo derretido",
+            "price": 4.00,
+            "selected": false,
+            "maxQuantity": 1
+          }
+        ]
+      },
+      {
+        "id": "cerveja-pilsen",
+        "name": "Cerveja Pilsen 600ml",
+        "description": "Cerveja pilsen gelada, perfeita para acompanhar os petiscos",
+        "price": 8.50,
+        "image": "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&fit=crop",
+        "category": "bebidas",
+        "ingredients": ["Água", "Malte", "Lúpulo"],
+        "tags": ["Gelada"],
+        "tagColor": "blue",
+        "active": true,
+        "preparationTime": 2,
+        "customizeIngredients": [
+          {
+            "id": "cerveja",
+            "name": "Cerveja Pilsen",
+            "included": true,
+            "removable": false
+          }
+        ],
+        "addons": [
+          {
+            "id": "limao",
+            "name": "Limão",
+            "price": 1.00,
+            "selected": false,
+            "maxQuantity": 2
+          }
+        ]
+      }
+    ],
+    "addons": []
+  },
+  
+  "delivery": {
+    "enabled": true,
+    "radius": 5,
+    "fee": 5.00,
+    "freeDeliveryMinimum": 30.00,
+    "estimatedTime": 45,
+    "areas": [
+      {
+        "id": "centro",
+        "name": "Centro",
+        "active": true,
+        "fee": 3.00,
+        "estimatedTime": 30
+      },
+      {
+        "id": "vila-madalena",
+        "name": "Vila Madalena",
+        "active": true,
+        "fee": 5.00,
+        "estimatedTime": 45
+      },
+      {
+        "id": "pinheiros",
+        "name": "Pinheiros",
+        "active": true,
+        "fee": 6.00,
+        "estimatedTime": 50
+      }
+    ]
+  },
+  
+  "payments": {
+    "pix": true,
+    "cash": true,
+    "card": true,
+    "online": false,
+    "integrations": {}
+  },
+  
+  "schedule": {
+    "timezone": "America/Sao_Paulo",
+    "workingHours": {
+      "monday": {
+        "open": false,
+        "hours": []
+      },
+      "tuesday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "23:30"
+          }
+        ]
+      },
+      "wednesday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "23:30"
+          }
+        ]
+      },
+      "thursday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "23:30"
+          }
+        ]
+      },
+      "friday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "01:00"
+          }
+        ]
+      },
+      "saturday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "01:00"
+          }
+        ]
+      },
+      "sunday": {
+        "open": true,
+        "hours": [
+          {
+            "start": "17:00",
+            "end": "23:00"
+          }
+        ]
+      }
+    },
+    "holidays": [],
+    "closedMessage": "Estamos fechados no momento. Confira nossos horários de funcionamento!"
+  },
+  
+  "promotions": {
+    "coupons": [
+      {
+        "id": "primeira-compra",
+        "code": "BEMVINDO10",
+        "name": "Primeira Compra",
+        "description": "10% de desconto na primeira compra",
+        "type": "percentage",
+        "value": 10,
+        "minimumValue": 20.00,
+        "maxDiscount": 15.00,
+        "validFrom": "2024-01-01",
+        "validUntil": "2024-12-31",
+        "usageLimit": 1000,
+        "usageCount": 0,
+        "active": true,
+        "firstTimeOnly": true
+      }
+    ],
+    "combos": [
+      {
+        "id": "combo-boteco",
+        "name": "Combo Boteco",
+        "description": "2 Pastéis + 1 Cerveja",
+        "image": "/assets/combos/combo-boteco.jpg",
+        "price": 22.90,
+        "originalPrice": 26.30,
+        "active": true,
+        "products": [
+          {
+            "productId": "pastel-carne",
+            "quantity": 2
+          },
+          {
+            "productId": "cerveja-pilsen",
+            "quantity": 1
+          }
+        ]
+      }
+    ],
+    "loyaltyProgram": {
+      "enabled": true,
+      "pointsPerReal": 1,
+      "pointsToReal": 100,
+      "bonusRules": [
+        {
+          "id": "happy-hour",
+          "name": "Happy Hour",
+          "description": "Pontos em dobro das 17h às 19h",
+          "multiplier": 2,
+          "conditions": {
+            "timeRange": {
+              "start": "17:00",
+              "end": "19:00"
+            }
+          }
+        }
+      ]
+    }
+  },
+  
+  "settings": {
+    "preparationTime": 25,
+    "whatsappTemplate": "Olá! Gostaria de fazer um pedido no Boteco do João. 🍻",
+    "orderNotifications": true,
+    "customerRegistrationRequired": false,
+    "minimumOrderValue": 15.00
+  }
+}
