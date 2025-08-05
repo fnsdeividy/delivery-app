@@ -97,7 +97,7 @@ export default function SuperAdminLogin() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-black"
                   placeholder="admin@cardap.io"
                 />
               </div>
@@ -117,7 +117,7 @@ export default function SuperAdminLogin() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-black"
                   placeholder="••••••••"
                 />
                 <button
