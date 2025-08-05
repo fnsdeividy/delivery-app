@@ -660,24 +660,24 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Background Colors - Dark Mode */
-    --dashboard-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-    --dashboard-bg-solid: #0f172a;
-    --dashboard-content-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
-    --dashboard-card: #1e293b;
-    --dashboard-card-hover: #334155;
+    --dashboard-bg: linear-gradient(135deg, #c5c7cd 0%, #cbd1d9 50%, #d4d9df 100%);
+    --dashboard-bg-solid: #bfc6d7;
+    --dashboard-content-bg: linear-gradient(135deg, rgba(225, 231, 237, 0.8) 0%, rgba(209, 217, 225, 0.6) 100%);
+    --dashboard-card: #e1e7ed;
+    --dashboard-card-hover: #f0f4f8;
     --dashboard-border: rgba(71, 85, 105, 0.4);
     --dashboard-border-hover: rgba(59, 130, 246, 0.3);
     --dashboard-shadow: rgba(0, 0, 0, 0.2);
     --dashboard-shadow-hover: rgba(0, 0, 0, 0.4);
-    --dashboard-text: #f1f5f9;
-    --dashboard-text-muted: #94a3b8;
+    --dashboard-text: #1e293b;
+    --dashboard-text-muted: #475569;
     --dashboard-text-light: #64748b;
     
     /* Sidebar Colors - Dark Mode */
-    --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    --sidebar-border: rgba(71, 85, 105, 0.6);
-    --sidebar-text: #cbd5e1;
-    --sidebar-text-active: #93c5fd;
+    --sidebar-bg: linear-gradient(180deg, #e1e7ed 0%, #d1d9e1 100%);
+    --sidebar-border: rgba(148, 163, 184, 0.3);
+    --sidebar-text: #475569;
+    --sidebar-text-active: #1d4ed8;
     --sidebar-item-hover: rgba(59, 130, 246, 0.1);
     --sidebar-item-active: rgba(59, 130, 246, 0.2);
     
