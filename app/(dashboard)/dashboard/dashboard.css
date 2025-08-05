@@ -1,0 +1,551 @@
+/* ========================================
+   🎨 DASHBOARD CSS - SISTEMA ORGANIZADO
+======================================== */
+
+/* ========================================
+   📱 VARIÁVEIS CSS RESPONSIVAS
+======================================== */
+:root {
+  /* Breakpoints */
+  --mobile: 640px;
+  --tablet: 768px;
+  --desktop: 1024px;
+  --wide: 1280px;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Colors */
+  --dashboard-bg: #f8fafc;
+  --dashboard-card: #ffffff;
+  --dashboard-border: rgba(229, 231, 235, 0.8);
+  --dashboard-shadow: rgba(0, 0, 0, 0.06);
+  --dashboard-text: #1f2937;
+  --dashboard-text-muted: #6b7280;
+  
+  /* Dashboard specific */
+  --sidebar-width: 16rem;
+  --header-height: 4rem;
+  --card-radius: 0.75rem;
+}
+
+/* ========================================
+   🏗️ LAYOUT BASE
+======================================== */
+.dashboard-layout {
+  min-height: 100vh;
+  background-color: var(--dashboard-bg);
+  color: var(--dashboard-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.dashboard-container {
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+.dashboard-main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-main-layout {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+/* ========================================
+   📋 SIDEBAR RESPONSIVA
+======================================== */
+.dashboard-sidebar {
+  width: var(--sidebar-width);
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  border-right: 1px solid var(--dashboard-border);
+  box-shadow: 0 4px 20px var(--dashboard-shadow);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Sidebar responsiva */
+@media (max-width: 1023px) {
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+  }
+  
+  .dashboard-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+}
+
+/* Navegação do dashboard */
+.dashboard-nav-button {
+  position: relative;
+  background: transparent;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  margin: 0 8px;
+}
+
+.dashboard-nav-button.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.05) 100%);
+  border-left-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.dashboard-nav-button:hover {
+  background: rgba(59, 130, 246, 0.05);
+  color: #1d4ed8;
+  transform: translateX(2px);
+}
+
+/* ========================================
+   📦 SISTEMA DE CARDS RESPONSIVOS
+======================================== */
+.dashboard-main-card {
+  background: var(--dashboard-card);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--card-radius);
+  box-shadow: 
+    0 4px 20px var(--dashboard-shadow),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.dashboard-main-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    0 4px 15px rgba(0, 0, 0, 0.06);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Card responsivo */
+@media (max-width: 639px) {
+  .dashboard-main-card {
+    margin: var(--space-sm);
+    border-radius: var(--space-md);
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-main-card {
+    margin: 0;
+  }
+}
+
+/* ========================================
+   📊 SISTEMA DE MÉTRICAS RESPONSIVAS
+======================================== */
+.dashboard-metrics-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: 1fr;
+}
+
+/* Grid responsivo para métricas */
+@media (min-width: 640px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.dashboard-metric-card {
+  position: relative;
+  background: var(--dashboard-card);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--card-radius);
+  padding: var(--space-xl);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.dashboard-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.dashboard-metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 8px 25px rgba(0, 0, 0, 0.06);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Responsividade das métricas */
+@media (max-width: 639px) {
+  .dashboard-metric-card {
+    padding: var(--space-lg);
+  }
+  
+  .dashboard-metric-card .metric-number {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-metric-card .metric-number {
+    font-size: 2.25rem;
+  }
+}
+
+/* Ícones das métricas */
+.dashboard-metric-icon {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dashboard-metric-card:hover .dashboard-metric-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Status indicators */
+.dashboard-status-modern {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-status-modern.online {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(74, 222, 128, 0.05) 100%);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.dashboard-status-modern.offline {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(248, 113, 113, 0.05) 100%);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.dashboard-status-modern::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.dashboard-status-modern.online::before {
+  background: #22c55e;
+}
+
+.dashboard-status-modern.offline::before {
+  background: #ef4444;
+}
+
+/* ========================================
+   🧭 HEADER RESPONSIVO
+======================================== */
+.dashboard-main-header {
+  height: var(--header-height);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--dashboard-border);
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.dashboard-main-content {
+  padding: var(--space-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Content responsivo */
+@media (max-width: 639px) {
+  .dashboard-main-content {
+    padding: var(--space-md);
+  }
+}
+
+@media (min-width: 640px) {
+  .dashboard-main-content {
+    padding: var(--space-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-main-content {
+    margin-left: var(--sidebar-width);
+    padding: var(--space-2xl);
+  }
+}
+
+/* Quick Actions */
+.dashboard-quick-action {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+}
+
+.dashboard-quick-action::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dashboard-quick-action:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.dashboard-quick-action:hover::after {
+  opacity: 1;
+}
+
+/* Animações */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* ========================================
+   📱 SISTEMA DE GRID RESPONSIVO
+======================================== */
+.dashboard-content-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .dashboard-content-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard-content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ========================================
+   🎯 QUICK ACTIONS RESPONSIVAS
+======================================== */
+.dashboard-actions-grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .dashboard-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard-actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ========================================
+   📱 RESPONSIVIDADE GERAL
+======================================== */
+@media (max-width: 639px) {
+  .dashboard-main-card {
+    margin: var(--space-xs);
+    border-radius: var(--space-md);
+  }
+  
+  .dashboard-metric-card {
+    padding: var(--space-lg);
+  }
+  
+  .dashboard-quick-action {
+    padding: var(--space-lg);
+  }
+  
+  .dashboard-section {
+    gap: var(--space-md);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .dashboard-main-content {
+    padding: var(--space-lg) var(--space-xl);
+  }
+}
+
+/* Fallbacks para browsers antigos */
+.dashboard-sidebar {
+  background: #ffffff;
+}
+
+.dashboard-main-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+/* ========================================
+   🎨 CLASSES AUXILIARES
+======================================== */
+.dashboard-header-section {
+  margin-bottom: var(--space-lg);
+}
+
+.dashboard-header-section h1 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.2;
+}
+
+/* Loading states */
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+}
+
+.dashboard-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--dashboard-border);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty states */
+.dashboard-empty-state {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--dashboard-text-muted);
+}
+
+/* Utility classes */
+.dashboard-hover-safe {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-hover-safe:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   🔧 UTILITÁRIOS RESPONSIVOS
+======================================== */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+.show-mobile {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .show-mobile {
+    display: none;
+  }
+}
+
+/* ========================================
+   ♿ ACESSIBILIDADE E PERFORMANCE
+======================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dashboard-bg: #0f172a;
+    --dashboard-card: #1e293b;
+    --dashboard-border: rgba(51, 65, 85, 0.8);
+    --dashboard-text: #f1f5f9;
+    --dashboard-text-muted: #94a3b8;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .dashboard-main-card {
+    border-width: 2px;
+    border-color: #000;
+  }
+}

@@ -3,17 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-info.js",
-    "dev:simple": "next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "demo": "echo '🏪 DEMO URLs:' && echo 'Loja: http://localhost:3000/loja/boteco-do-joao' && echo 'Dashboard: http://localhost:3000/login/lojista' && echo 'Credenciais: admin@boteco.com / 123456 / boteco-do-joao'"
+    "demo": "echo '🏪 CARDAP.IO DEMO:' && echo '🌐 Homepage: http://localhost:3000' && echo '🏪 Loja Demo: http://localhost:3000/store/boteco-do-joao' && echo '📊 Dashboard: http://localhost:3000/login/lojista' && echo '👑 Super Admin: http://localhost:3000/login/super-admin' && echo '' && echo '📋 DADOS PARA TESTE:' && echo '✅ Lojista: admin@boteco.com / 123456' && echo '✅ Super Admin: superadmin@cardap.io / admin123' && echo '✅ Loja Slug: boteco-do-joao'"
   },
   "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "autoprefixer": "^10.0.1",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
+    "next-auth": "^4.24.11",
     "postcss": "^8",
     "react": "^18",
     "react-dom": "^18",

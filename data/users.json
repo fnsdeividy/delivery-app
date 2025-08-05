@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "email": "superadmin@cardap.io",
+    "password": "$2b$12$xTXgBvKwPE5E3taIFV8vKu9jPfqkS3KNzj4g.ViEvNUPJlPIxdV/a",
+    "name": "Super Admin",
+    "role": "super_admin",
+    "active": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "permissions": [
+      "manage_all_stores",
+      "manage_users",
+      "view_analytics"
+    ]
+  },
+  {
+    "id": "2",
+    "email": "admin@boteco.com",
+    "password": "$2b$12$n2II5N3QhW2wsL3e2OTaRufHZlZoxIXe8SC5jeGy2PhLQLtoazjwe",
+    "name": "João Silva",
+    "role": "admin",
+    "storeSlug": "boteco-do-joao",
+    "active": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "permissions": [
+      "manage_own_store",
+      "manage_products",
+      "manage_orders"
+    ]
+  },
+  {
+    "id": "3",
+    "email": "cliente@teste.com",
+    "password": "$2b$12$n2II5N3QhW2wsL3e2OTaRufHZlZoxIXe8SC5jeGy2PhLQLtoazjwe",
+    "name": "Maria Santos",
+    "role": "cliente",
+    "active": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "permissions": [
+      "place_orders",
+      "view_orders"
+    ]
+  }
+]

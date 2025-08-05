@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configurações removidas pois não são mais necessárias no Next.js 14
+  // Redirects para manter compatibilidade com URLs antigas
+  async redirects() {
+    return [
+      {
+        source: '/loja/:slug*',
+        destination: '/store/:slug*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig 

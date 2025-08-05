@@ -1,608 +1,378 @@
 'use client'
 
-import { Search, ShoppingCart, Star, User } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import Cart from '../components/Cart'
-import CheckoutModal from '../components/CheckoutModal'
-import CustomizeModal from '../components/CustomizeModal'
-import Footer from '../components/Footer'
-import LoginModal from '../components/LoginModal'
-import Notification from '../components/Notification'
-import UserProfile from '../components/UserProfile'
-import { useAuth } from '../hooks/useAuth'
+import { ArrowRight, Crown, Search, Shield, Store, Users } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
-export default function Home() {
-  const { isAuthenticated, user } = useAuth()
+export default function HomePage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('Todos')
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
-  const [cartItems, setCartItems] = useState<number[]>([])
-  const [notification, setNotification] = useState({ show: false, message: '' })
-
-  // Mock dos itens do carrinho para o checkout
-  const mockCartItems = [
-    {
-      id: 1,
-      name: 'Pizza Margherita',
-      price: 32.90,
-      quantity: 2,
-      customization: {
-        addons: ['Queijo extra'],
-        specialObservations: 'Bem passada'
-      }
-    },
-    {
-      id: 2,
-      name: 'Burger Artesanal',
-      price: 24.22,
-      quantity: 1,
-      customization: {
-        addons: [],
-        specialObservations: ''
-      }
-    }
-  ]
-
-  const mockTotal = mockCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-
-  const categories = [
-    { name: 'Todos', count: 24 },
-    { name: 'Pizzas', count: 8 },
-    { name: 'Hambúrgueres', count: 6 },
-    { name: 'Massas', count: 4 },
-    { name: 'Saladas', count: 3 },
-    { name: 'Bebidas', count: 3 },
-  ]
-
-  const products = [
-    {
-      id: 1,
-      name: 'Pizza Margherita',
-      rating: 4.8,
-      reviews: 127,
-      description: 'Pizza clássica com molho de tomate, mussarela, manjericão fresco e azeite...',
-      ingredients: ['Molho de tomate', 'Mussarela', 'Manjericão'],
-      price: 32.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-      tags: ['Popular'],
-      tagColor: 'orange',
-      category: 'Pizzas',
-      basePrice: 32.90,
-      customizeIngredients: [
-        { id: 1, name: 'Molho de tomate', included: true },
-        { id: 2, name: 'Mussarela', included: true },
-        { id: 3, name: 'Manjericão', included: true },
-        { id: 4, name: 'Azeite', included: true },
-        { id: 5, name: 'Orégano', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Queijo extra', price: 4.00, selected: false },
-        { id: 2, name: 'Pepperoni', price: 6.00, selected: false },
-        { id: 3, name: 'Cogumelos', price: 3.50, selected: false },
-      ]
-    },
-    {
-      id: 2,
-      name: 'Burger Artesanal',
-      rating: 4.6,
-      reviews: 89,
-      description: 'Hambúrguer de carne bovina 180g, queijo cheddar, alface, tomate, cebol...',
-      ingredients: ['Pão brioche', 'Carne 180g', 'Queijo cheddar'],
-      price: 24.22,
-      originalPrice: 28.50,
-      image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop',
-      tags: ['-15%'],
-      tagColor: 'red',
-      category: 'Hambúrgueres',
-      basePrice: 24.22,
-      customizeIngredients: [
-        { id: 1, name: 'Pão brioche', included: true },
-        { id: 2, name: 'Carne 180g', included: true },
-        { id: 3, name: 'Queijo cheddar', included: true },
-        { id: 4, name: 'Alface', included: true },
-        { id: 5, name: 'Tomate', included: true },
-        { id: 6, name: 'Cebola', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Bacon', price: 5.00, selected: false },
-        { id: 2, name: 'Queijo extra', price: 3.00, selected: false },
-        { id: 3, name: 'Molho especial', price: 2.00, selected: false },
-      ]
-    },
-    {
-      id: 3,
-      name: 'Salada Caesar',
-      rating: 4.4,
-      reviews: 56,
-      description: 'Mix de folhas verdes, frango grelhado, croutons, parmesão e molho caesar...',
-      ingredients: ['Mix de folhas', 'Frango grelhado', 'Croutons'],
-      price: 24.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=300&fit=crop',
-      tags: ['Sem glúten'],
-      tagColor: 'green',
-      category: 'Saladas',
-      basePrice: 24.90,
-      customizeIngredients: [
-        { id: 1, name: 'Mix de folhas', included: true },
-        { id: 2, name: 'Frango grelhado', included: true },
-        { id: 3, name: 'Croutons', included: true },
-        { id: 4, name: 'Parmesão', included: true },
-        { id: 5, name: 'Molho caesar', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Frango extra', price: 8.00, selected: false },
-        { id: 2, name: 'Croutons extra', price: 2.00, selected: false },
-        { id: 3, name: 'Queijo parmesão extra', price: 3.00, selected: false },
-      ]
-    },
-    {
-      id: 4,
-      name: 'Pasta Carbonara',
-      rating: 4.7,
-      reviews: 73,
-      description: 'Massa italiana com bacon, ovos, parmesão, pimenta do reino e molho...',
-      ingredients: ['Massa italiana', 'Bacon', 'Ovos'],
-      price: 26.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop',
-      tags: [],
-      tagColor: '',
-      category: 'Massas',
-      basePrice: 26.90,
-      customizeIngredients: [
-        { id: 1, name: 'Massa italiana', included: true },
-        { id: 2, name: 'Bacon', included: true },
-        { id: 3, name: 'Ovos', included: true },
-        { id: 4, name: 'Parmesão', included: true },
-        { id: 5, name: 'Pimenta do reino', included: true },
-        { id: 6, name: 'Creme de leite', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Bacon extra', price: 6.00, selected: false },
-        { id: 2, name: 'Cogumelos', price: 4.00, selected: false },
-        { id: 3, name: 'Queijo parmesão extra', price: 3.00, selected: false },
-      ]
-    },
-    {
-      id: 5,
-      name: 'Pizza Vegana',
-      rating: 4.5,
-      reviews: 42,
-      description: 'Pizza com molho de tomate, queijo vegetal, abobrinha, berinjela e rúcula',
-      ingredients: ['Molho de tomate', 'Queijo vegetal', 'Abobrinha'],
-      price: 34.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      tags: ['Novo', 'Vegano'],
-      tagColor: 'green',
-      category: 'Pizzas',
-      basePrice: 34.90,
-      customizeIngredients: [
-        { id: 1, name: 'Molho de tomate', included: true },
-        { id: 2, name: 'Queijo vegetal', included: true },
-        { id: 3, name: 'Abobrinha', included: true },
-        { id: 4, name: 'Berinjela', included: true },
-        { id: 5, name: 'Rúcula', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Queijo vegetal extra', price: 5.00, selected: false },
-        { id: 2, name: 'Tomate cereja', price: 3.00, selected: false },
-        { id: 3, name: 'Azeitonas', price: 2.50, selected: false },
-      ]
-    },
-    {
-      id: 6,
-      name: 'Refrigerante Cola',
-      rating: 4.2,
-      reviews: 24,
-      description: 'Refrigerante cola gelado 350ml',
-      ingredients: ['Água', 'Açúcar', 'Extrato de cola'],
-      price: 6.50,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=300&fit=crop',
-      tags: [],
-      tagColor: '',
-      category: 'Bebidas',
-      basePrice: 6.50,
-      customizeIngredients: [
-        { id: 1, name: 'Água', included: true },
-        { id: 2, name: 'Açúcar', included: true },
-        { id: 3, name: 'Extrato de cola', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Gelo extra', price: 0.50, selected: false },
-        { id: 2, name: 'Limão', price: 1.00, selected: false },
-      ]
-    },
-    {
-      id: 7,
-      name: 'Burger Veggie',
-      rating: 4.3,
-      reviews: 38,
-      description: 'Hambúrguer de grão-de-bico e quinoa, queijo vegetal, alface, tomate e molh...',
-      ingredients: ['Pão integral', 'Hambúrguer vegetal', 'Queijo vegetal'],
-      price: 25.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1520072959219-c595dc870360?w=400&h=300&fit=crop',
-      tags: ['Vegano'],
-      tagColor: 'green',
-      category: 'Hambúrgueres',
-      basePrice: 25.90,
-      customizeIngredients: [
-        { id: 1, name: 'Pão integral', included: true },
-        { id: 2, name: 'Hambúrguer vegetal', included: true },
-        { id: 3, name: 'Queijo vegetal', included: true },
-        { id: 4, name: 'Alface', included: true },
-        { id: 5, name: 'Tomate', included: true },
-        { id: 6, name: 'Molho vegano', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Queijo vegetal extra', price: 4.00, selected: false },
-        { id: 2, name: 'Abacate', price: 3.50, selected: false },
-        { id: 3, name: 'Cogumelos', price: 3.00, selected: false },
-      ]
-    },
-    {
-      id: 8,
-      name: 'Pizza Pepperoni',
-      rating: 4.9,
-      reviews: 156,
-      description: 'Pizza com molho de tomate, mussarela e fatias generosas de pepperoni',
-      ingredients: ['Molho de tomate', 'Mussarela', 'Pepperoni'],
-      price: 36.90,
-      originalPrice: null,
-      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      tags: ['Popular'],
-      tagColor: 'orange',
-      category: 'Pizzas',
-      basePrice: 36.90,
-      customizeIngredients: [
-        { id: 1, name: 'Molho de tomate', included: true },
-        { id: 2, name: 'Mussarela', included: true },
-        { id: 3, name: 'Pepperoni', included: true },
-        { id: 4, name: 'Orégano', included: true },
-      ],
-      addons: [
-        { id: 1, name: 'Pepperoni extra', price: 8.00, selected: false },
-        { id: 2, name: 'Queijo extra', price: 4.00, selected: false },
-        { id: 3, name: 'Pimenta jalapeño', price: 3.00, selected: false },
-      ]
-    }
-  ]
-
-  // Filtrar produtos por categoria e busca
-  const filteredProducts = useMemo(() => {
-    let filtered = products
-
-    // Filtrar por categoria
-    if (selectedCategory !== 'Todos') {
-      filtered = filtered.filter(product => product.category === selectedCategory)
-    }
-
-    // Filtrar por busca
+  const handleStoreSearch = (e: React.FormEvent) => {
+    e.preventDefault()
     if (searchQuery.trim()) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      )
-    }
-
-    return filtered
-  }, [products, selectedCategory, searchQuery])
-
-  const getTagColor = (color: string) => {
-    switch (color) {
-      case 'orange':
-        return 'bg-orange-500 text-white'
-      case 'red':
-        return 'bg-red-500 text-white'
-      case 'green':
-        return 'bg-green-500 text-white'
-      default:
-        return 'bg-gray-500 text-white'
+      // Navegar para a loja (por enquanto usa slug padrão)
+      router.push(`/store/${searchQuery.trim().toLowerCase().replace(/\s+/g, '-')}`)
     }
   }
 
-  const addToCart = (productId: number) => {
-    const product = products.find(p => p.id === productId)
-    setCartItems(prev => [...prev, productId])
-    setNotification({
-      show: true,
-      message: `${product?.name} adicionado ao carrinho!`
-    })
-  }
-
-  const openCustomizeModal = (product: any) => {
-    setSelectedProduct(product)
-    setIsCustomizeModalOpen(true)
-  }
-
-  const handleCustomizedAddToCart = (customization: any) => {
-    setCartItems(prev => [...prev, customization.productId])
-    setNotification({
-      show: true,
-      message: `${selectedProduct?.name} personalizado adicionado ao carrinho!`
-    })
-  }
-
-  const handleCheckout = () => {
-    setIsCartOpen(false)
-    setIsCheckoutOpen(true)
-  }
-
-  const cartItemCount = cartItems.length
+  const featuredStores = [
+    {
+      name: 'Boteco do João',
+      slug: 'boteco-do-joao',
+      description: 'Comida caseira e ambiente acolhedor',
+      image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop',
+      rating: 4.8,
+      categories: ['Brasileira', 'Caseira', 'Bebidas']
+    },
+    {
+      name: 'Pizza Express',
+      slug: 'pizza-express',
+      description: 'As melhores pizzas da região',
+      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
+      rating: 4.6,
+      categories: ['Pizza', 'Italiana', 'Delivery']
+    },
+    {
+      name: 'Burger House',
+      slug: 'burger-house',
+      description: 'Hambúrguers artesanais premium',
+      image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop',
+      rating: 4.7,
+      categories: ['Hamburger', 'Americana', 'Gourmet']
+    }
+  ]
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+          <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-black">Cardap.IO</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Cardap.IO</h1>
+              <span className="ml-3 px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                Multi-Tenant
+              </span>
             </div>
-            
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar pratos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white"
-                />
-              </div>
-            </div>
-            
-            {/* Actions */}
             <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <button 
-                  onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
-                  title="Meu Perfil"
-                >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">
-                    {user?.name ? user.name.split(' ')[0] : 'Perfil'}
-                  </span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setIsLoginOpen(true)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
-                  title="Fazer Login"
-                >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">Login</span>
-                </button>
-              )}
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors relative"
+              <Link
+                href="/login"
+                className="text-gray-600 hover:text-gray-900 font-medium"
               >
-                <ShoppingCart className="h-5 w-5" />
-                <span className="hidden sm:block">Carrinho</span>
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemCount}
-                  </span>
-                )}
-              </button>
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-medium"
+              >
+                Cadastrar
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Categories */}
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4 py-4 overflow-x-auto">
-            {categories.map((category) => (
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-orange-50 to-amber-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-5xl font-bold text-gray-900 mb-6">
+            Plataforma Completa de
+            <span className="text-orange-600"> Delivery</span>
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Sistema multi-tenant para lojistas e clientes. Gerencie sua loja, 
+            faça pedidos e monitore tudo em um só lugar.
+          </p>
+
+          {/* Search */}
+          <form onSubmit={handleStoreSearch} className="max-w-md mx-auto mb-12">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Buscar loja pelo nome..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
               <button
-                key={category.name}
-                onClick={() => setSelectedCategory(category.name)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                  selectedCategory === category.name
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                type="submit"
+                className="absolute right-2 top-2 bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700"
               >
-                <span className="font-medium">{category.name}</span>
-                <span className="text-sm opacity-75">({category.count})</span>
+                Buscar
               </button>
+            </div>
+          </form>
+
+          {/* Quick Access */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/store/boteco-do-joao"
+              className="inline-flex items-center px-8 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold shadow-lg"
+            >
+              <Store className="w-5 h-5 mr-2" />
+              Ver Loja Demo
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+            <Link
+              href="/login/lojista"
+              className="inline-flex items-center px-8 py-4 bg-white text-orange-600 border-2 border-orange-600 rounded-lg hover:bg-orange-50 font-semibold shadow-lg"
+            >
+              <Shield className="w-5 h-5 mr-2" />
+              Dashboard Lojista
+            </Link>
+          </div>
+
+                      {/* Dados de Demonstração */}
+          <div className="mt-12 bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto border-2 border-orange-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">
+              📋 Dados para Demonstração - ✅ CORRIGIDO
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {/* Lojista */}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h4 className="font-semibold text-orange-800 mb-2">🏪 Login Lojista</h4>
+                <div className="space-y-1 text-orange-700 font-mono">
+                  <p><strong>Email:</strong> admin@boteco.com</p>
+                  <p><strong>Senha:</strong> 123456</p>
+                  <p><strong>Loja:</strong> boteco-do-joao</p>
+                </div>
+                <div className="mt-2 pt-2 border-t border-orange-200">
+                  <Link
+                    href="/login/lojista"
+                    className="text-xs bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition-colors"
+                  >
+                    → Testar Login
+                  </Link>
+                </div>
+              </div>
+
+              {/* Super Admin */}
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h4 className="font-semibold text-purple-800 mb-2">👑 Login Super Admin</h4>
+                <div className="space-y-1 text-purple-700 font-mono">
+                  <p><strong>Email:</strong> superadmin@cardap.io</p>
+                  <p><strong>Senha:</strong> admin123</p>
+                  <p><strong>Acesso:</strong> Todas as lojas</p>
+                </div>
+                <div className="mt-2 pt-2 border-t border-purple-200">
+                  <Link
+                    href="/login/super-admin"
+                    className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors"
+                  >
+                    → Testar Login
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-green-800 mb-2">✅ Sistema Corrigido</h4>
+              <ul className="text-green-700 text-sm space-y-1">
+                <li>• <strong>Hashes de senha</strong> atualizados corretamente</li>
+                <li>• <strong>Roles padronizados</strong> (admin, super_admin)</li>
+                <li>• <strong>Validações</strong> de autenticação corrigidas</li>
+                <li>• <strong>Redirects</strong> funcionando para porta única</li>
+              </ul>
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-800 mb-2">🧪 Fluxos de Teste</h4>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li>• <strong>Criar Loja:</strong> /register/loja (formulário multi-step)</li>
+                <li>• <strong>Ver Cardápio:</strong> /store/boteco-do-joao (interface pública)</li>
+                <li>• <strong>Dashboard:</strong> Login lojista → gestão completa</li>
+                <li>• <strong>Super Admin:</strong> Login admin → controle global</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Para Cada Tipo de Usuário
+            </h3>
+            <p className="text-lg text-gray-600">
+              Diferentes portais para diferentes necessidades
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Clientes */}
+            <div className="bg-blue-50 rounded-xl p-8 text-center">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Clientes</h4>
+              <p className="text-gray-600 mb-6">
+                Navegue pelos cardápios, faça pedidos e acompanhe entregas
+              </p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>🌐 Interface Pública</p>
+                <p>📱 Cardápios personalizados</p>
+                <p>🛒 Carrinho inteligente</p>
+              </div>
+            </div>
+
+            {/* Lojistas */}
+            <div className="bg-orange-50 rounded-xl p-8 text-center">
+              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Store className="w-8 h-8 text-white" />
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Lojistas</h4>
+              <p className="text-gray-600 mb-6">
+                Gerencie produtos, pedidos e configure sua loja
+              </p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>📊 Dashboard Administrativo</p>
+                <p>🍔 Gestão de produtos</p>
+                <p>⚙️ Configurações da loja</p>
+              </div>
+            </div>
+
+            {/* Super Admin */}
+            <div className="bg-purple-50 rounded-xl p-8 text-center">
+              <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-white" />
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">Super Admin</h4>
+              <p className="text-gray-600 mb-6">
+                Controle total do sistema e todas as lojas
+              </p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>👑 Painel de Controle</p>
+                <p>🏢 Gestão de lojas</p>
+                <p>📈 Analytics globais</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Stores */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Lojas em Destaque
+            </h3>
+            <p className="text-lg text-gray-600">
+              Experimente nosso sistema com estas lojas demo
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {featuredStores.map((store) => (
+              <Link
+                key={store.slug}
+                href={`/store/${store.slug}`}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <img
+                  src={store.image}
+                  alt={store.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">{store.name}</h4>
+                    <div className="flex items-center">
+                      <span className="text-yellow-400">⭐</span>
+                      <span className="text-sm text-gray-600 ml-1">{store.rating}</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-4">{store.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {store.categories.map((category) => (
+                      <span
+                        key={category}
+                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                      >
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <main className="flex-1">
-        {/* Products Grid */}
-        <section className="py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Results Info */}
-            <div className="mb-6">
-              <p className="text-gray-600">
-                {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
-                {selectedCategory !== 'Todos' && ` em ${selectedCategory}`}
-                {searchQuery && ` para "${searchQuery}"`}
-              </p>
-            </div>
-
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
-                <p className="text-gray-600">
-                  Tente ajustar os filtros ou buscar por outro termo
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <div key={product.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                    {/* Product Image */}
-                    <div className="relative">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      
-                      {/* Tags */}
-                      <div className="absolute top-3 left-3 flex flex-col space-y-1">
-                        {product.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className={`px-2 py-1 text-xs font-medium rounded ${getTagColor(product.tagColor)}`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Product Info */}
-                    <div className="p-4">
-                      {/* Name and Rating */}
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-sm text-gray-600">{product.rating}</span>
-                          <span className="text-xs text-gray-400">({product.reviews})</span>
-                        </div>
-                      </div>
-                      
-                      {/* Description */}
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                      
-                      {/* Ingredients */}
-                      <div className="mb-3">
-                        <div className="flex flex-wrap gap-1">
-                          {product.ingredients.map((ingredient, index) => (
-                            <span
-                              key={index}
-                              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                            >
-                              {ingredient}
-                            </span>
-                          ))}
-                          {product.ingredients.length > 0 && (
-                            <span className="text-xs text-gray-500 px-2 py-1">
-                              +{Math.max(0, 4 - product.ingredients.length)} mais
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Price */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg font-bold text-gray-900">
-                            R$ {product.price.toFixed(2).replace('.', ',')}
-                          </span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-gray-500 line-through">
-                              R$ {product.originalPrice.toFixed(2).replace('.', ',')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => openCustomizeModal(product)}
-                          className="flex-1 px-4 py-2 border border-black text-black rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                        >
-                          Personalizar
-                        </button>
-                        <button 
-                          onClick={() => addToCart(product.id)}
-                          className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
-                        >
-                          + Adicionar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* CTA Section */}
+      <section className="py-20 bg-orange-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h3 className="text-3xl font-bold text-white mb-4">
+            Pronto para começar?
+          </h3>
+          <p className="text-xl text-orange-100 mb-8">
+            Crie sua loja ou faça seu primeiro pedido
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/register/loja"
+              className="inline-flex items-center px-8 py-4 bg-white text-orange-600 rounded-lg hover:bg-gray-100 font-semibold"
+            >
+              <Store className="w-5 h-5 mr-2" />
+              Criar Minha Loja
+            </Link>
+            <Link
+              href="/store/boteco-do-joao"
+              className="inline-flex items-center px-8 py-4 bg-orange-700 text-white rounded-lg hover:bg-orange-800 font-semibold"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              Explorar Cardápios
+            </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       {/* Footer */}
-      <Footer />
-
-      {/* Cart Component */}
-      <Cart 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        onCheckout={handleCheckout}
-      />
-      
-      {/* Customize Modal */}
-      {selectedProduct && (
-        <CustomizeModal
-          isOpen={isCustomizeModalOpen}
-          onClose={() => setIsCustomizeModalOpen(false)}
-          product={selectedProduct}
-          onAddToCart={handleCustomizedAddToCart}
-        />
-      )}
-
-      {/* Checkout Modal */}
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        cartItems={mockCartItems}
-        total={mockTotal}
-      />
-
-      {/* User Profile Modal */}
-      <UserProfile
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-      />
-
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onSuccess={() => {
-          setIsLoginOpen(false)
-          // Usuário logado com sucesso
-        }}
-      />
-
-      {/* Notification */}
-      <Notification 
-        message={notification.message}
-        isVisible={notification.show}
-        onClose={() => setNotification({ show: false, message: '' })}
-      />
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h5 className="text-lg font-bold mb-4">Cardap.IO</h5>
+              <p className="text-gray-400">
+                Plataforma multi-tenant completa para delivery
+              </p>
+            </div>
+            <div>
+              <h6 className="font-semibold mb-4">Para Clientes</h6>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/store/boteco-do-joao" className="hover:text-white">Ver Cardápios</Link></li>
+                <li><Link href="/login" className="hover:text-white">Fazer Login</Link></li>
+                <li><Link href="/register" className="hover:text-white">Criar Conta</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h6 className="font-semibold mb-4">Para Lojistas</h6>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/login/lojista" className="hover:text-white">Dashboard</Link></li>
+                <li><Link href="/register/loja" className="hover:text-white">Criar Loja</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h6 className="font-semibold mb-4">Sistema</h6>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/login/super-admin" className="hover:text-white">Super Admin</Link></li>
+                <li><a href="#" className="hover:text-white">Documentação</a></li>
+                <li><a href="#" className="hover:text-white">Suporte</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 mt-8 text-center text-gray-400">
+            <p>&copy; 2025 Cardap.IO. Sistema Multi-Tenant de Delivery.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
-} 
+}

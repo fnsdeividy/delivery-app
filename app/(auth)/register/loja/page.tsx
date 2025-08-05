@@ -1,0 +1,428 @@
+'use client'
+
+import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+export default function RegisterLojaPage() {
+  const router = useRouter()
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState({
+    // Dados do proprietário
+    ownerName: '',
+    ownerEmail: '',
+    ownerPhone: '',
+    password: '',
+    confirmPassword: '',
+    
+    // Dados da loja
+    storeName: '',
+    storeSlug: '',
+    description: '',
+    category: '',
+    
+    // Endereço
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    
+    // Configurações iniciais
+    deliveryEnabled: true,
+    deliveryFee: '5.00',
+    minimumOrder: '20.00'
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }))
+    
+    // Auto-gerar slug quando digitar nome da loja
+    if (name === 'storeName') {
+      const slug = value.toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      
+      setFormData(prev => ({
+        ...prev,
+        storeSlug: slug
+      }))
+    }
+  }
+
+  const handleNextStep = () => {
+    // Validações básicas por step
+    if (step === 1) {
+      if (!formData.ownerName || !formData.ownerEmail || !formData.password) {
+        setError('Preencha todos os campos obrigatórios')
+        return
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('As senhas não coincidem')
+        return
+      }
+    }
+    
+    if (step === 2) {
+      if (!formData.storeName || !formData.storeSlug || !formData.category) {
+        setError('Preencha todos os campos obrigatórios')
+        return
+      }
+    }
+    
+    setError('')
+    setStep(step + 1)
+  }
+
+  const handleSubmit = async () => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // TODO: Implementar registro real
+      console.log('Registrando loja:', formData)
+      
+      // Simular delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Redirecionar para login com sucesso
+      router.push('/login/lojista?message=Loja criada com sucesso! Faça seu login.')
+      
+    } catch (err) {
+      setError('Erro ao criar loja. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const categories = [
+    'Restaurante',
+    'Pizzaria', 
+    'Hamburgueria',
+    'Sorveteria',
+    'Cafeteria',
+    'Padaria',
+    'Açaí',
+    'Comida Japonesa',
+    'Comida Italiana',
+    'Comida Brasileira',
+    'Vegetariana/Vegana',
+    'Outros'
+  ]
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
+            <Store className="w-6 h-6 text-white" />
+          </div>
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          Criar Nova Loja
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Configure sua loja em poucos passos
+        </p>
+        
+        {/* Progress */}
+        <div className="mt-8">
+          <div className="flex items-center justify-center space-x-4">
+            {[1, 2, 3].map((stepNumber) => (
+              <div
+                key={stepNumber}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step >= stepNumber
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {stepNumber}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center space-x-8 mt-2">
+            <span className="text-xs text-gray-500">Proprietário</span>
+            <span className="text-xs text-gray-500">Loja</span>
+            <span className="text-xs text-gray-500">Confirmação</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {/* Step 1: Dados do Proprietário */}
+          {step === 1 && (
+            <form className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nome completo *
+                </label>
+                <input
+                  type="text"
+                  name="ownerName"
+                  required
+                  value={formData.ownerName}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Seu nome completo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  name="ownerEmail"
+                  required
+                  value={formData.ownerEmail}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="seu@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Telefone
+                </label>
+                <input
+                  type="tel"
+                  name="ownerPhone"
+                  value={formData.ownerPhone}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Senha *
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Confirmar senha *
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="••••••••"
+                />
+              </div>
+            </form>
+          )}
+
+          {/* Step 2: Dados da Loja */}
+          {step === 2 && (
+            <form className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nome da loja *
+                </label>
+                <input
+                  type="text"
+                  name="storeName"
+                  required
+                  value={formData.storeName}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ex: Pizzaria do João"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  URL da loja *
+                </label>
+                <div className="mt-1 flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    cardap.io/store/
+                  </span>
+                  <input
+                    type="text"
+                    name="storeSlug"
+                    required
+                    value={formData.storeSlug}
+                    onChange={handleInputChange}
+                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="pizzaria-do-joao"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Será gerado automaticamente baseado no nome da loja
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Categoria *
+                </label>
+                <select
+                  name="category"
+                  required
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Descrição
+                </label>
+                <textarea
+                  name="description"
+                  rows={3}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Descreva sua loja..."
+                />
+              </div>
+            </form>
+          )}
+
+          {/* Step 3: Confirmação */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <h3 className="text-lg font-medium text-green-800 mb-2">
+                  Quase pronto! 🎉
+                </h3>
+                <p className="text-green-700 text-sm">
+                  Revise os dados abaixo e confirme a criação da sua loja.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-900">Proprietário</h4>
+                  <p className="text-sm text-gray-600">{formData.ownerName}</p>
+                  <p className="text-sm text-gray-600">{formData.ownerEmail}</p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900">Loja</h4>
+                  <p className="text-sm text-gray-600">{formData.storeName}</p>
+                  <p className="text-sm text-gray-500">cardap.io/store/{formData.storeSlug}</p>
+                  <p className="text-sm text-gray-600">{formData.category}</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Próximos passos</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>✅ Sua loja será criada</li>
+                  <li>📧 Você receberá um email de confirmação</li>
+                  <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
+                  <li>🎨 Personalizar cores e logo da loja</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mt-6">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="mt-6 flex space-x-4">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={() => setStep(step - 1)}
+                className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+              >
+                Voltar
+              </button>
+            )}
+            
+            {step < 3 ? (
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 font-medium"
+              >
+                Próximo
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium disabled:opacity-50"
+              >
+                {loading ? 'Criando...' : 'Criar Loja'}
+              </button>
+            )}
+          </div>
+
+          {/* Links */}
+          <div className="mt-6 flex items-center justify-between">
+            <Link
+              href="/login/lojista"
+              className="text-sm text-orange-600 hover:text-orange-500"
+            >
+              Já tenho uma loja
+            </Link>
+            <Link
+              href="/"
+              className="flex items-center text-sm text-gray-600 hover:text-gray-500"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Voltar ao início
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
