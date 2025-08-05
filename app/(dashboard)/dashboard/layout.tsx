@@ -18,6 +18,7 @@ import {
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import WelcomeNotification from '../../../components/WelcomeNotification'
 import { useStoreConfig } from '../../../lib/store/useStoreConfig'
 import './dashboard.css'
 
@@ -33,9 +34,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathParts = pathname.split('/')
   const slug = pathParts[2]
   
-  const { config, loading } = useStoreConfig(slug)
+  // Para a página raiz do dashboard, não precisamos carregar configuração de loja
+  const shouldLoadStoreConfig = pathname !== '/dashboard' && pathname !== '/dashboard/gerenciar-lojas'
+  const { config, loading } = shouldLoadStoreConfig ? useStoreConfig(slug) : { config: null, loading: false, error: null }
 
-  if (loading) {
+  if (loading && shouldLoadStoreConfig) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />
@@ -43,8 +46,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
   }
 
-  // Permitir acesso à página de gerenciar lojas mesmo sem slug válido
-  if (!config && pathname !== '/dashboard/gerenciar-lojas') {
+  // Permitir acesso à página de gerenciar lojas e página raiz do dashboard mesmo sem slug válido
+  if (!config && pathname !== '/dashboard/gerenciar-lojas' && pathname !== '/dashboard') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -121,8 +124,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   ]
 
-  // Para a página de gerenciar lojas, usar layout simplificado
-  if (pathname === '/dashboard/gerenciar-lojas') {
+  // Para a página de gerenciar lojas e página raiz do dashboard, usar layout simplificado
+  if (pathname === '/dashboard/gerenciar-lojas' || pathname === '/dashboard') {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header simples */}
@@ -287,6 +290,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Welcome Notification */}
+      <WelcomeNotification storeName={config?.name} />
     </div>
   )
 }

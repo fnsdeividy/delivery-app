@@ -1,16 +1,19 @@
 'use client'
 
-import { ArrowLeft, Eye, EyeOff, LogIn, Store } from 'lucide-react'
+import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
+  
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    userType: 'cliente' // 'cliente' ou 'lojista'
+    password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -22,19 +25,25 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // TODO: Implementar autenticação real
       if (!formData.email || !formData.password) {
         throw new Error('Email e senha são obrigatórios')
       }
 
-      // Simular autenticação
-      if (formData.userType === 'lojista') {
-        // Redirecionar para login específico de lojista
-        router.push('/login/lojista')
-      } else {
-        // Login de cliente
-        // TODO: Implementar autenticação de cliente
-        console.log('Login de cliente')
+      // Autenticação real com NextAuth
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        userType: 'lojista', // Sempre lojista para dashboard
+        redirect: false
+      })
+
+      if (result?.error) {
+        throw new Error(result.error)
+      }
+
+      if (result?.ok) {
+        // Redirecionar direto para o dashboard
+        router.push('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login')
@@ -59,35 +68,23 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Faça login em sua conta
+          Acesse seu Dashboard
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Ou{' '}
-          <Link href="/register" className="font-medium text-orange-600 hover:text-orange-500">
-            crie uma nova conta
-          </Link>
+          Faça login para gerenciar sua loja
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Tipo de usuário */}
-            <div>
-              <label htmlFor="userType" className="block text-sm font-medium text-gray-700">
-                Tipo de conta
-              </label>
-              <select
-                id="userType"
-                name="userType"
-                value={formData.userType}
-                onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
-              >
-                <option value="cliente">Cliente</option>
-                <option value="lojista">Lojista</option>
-              </select>
+          {/* Mensagem de sucesso */}
+          {message && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-3">
+              <p className="text-green-700 text-sm">{decodeURIComponent(message)}</p>
             </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
 
             {/* Email */}
             <div>
@@ -147,25 +144,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Link para lojista */}
-            {formData.userType === 'lojista' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                <div className="flex items-center">
-                  <Store className="w-5 h-5 text-blue-600 mr-2" />
-                  <div>
-                    <p className="text-blue-700 text-sm font-medium">
-                      Lojista? Use o login especializado
-                    </p>
-                    <Link 
-                      href="/login/lojista"
-                      className="text-blue-600 text-sm hover:text-blue-500"
-                    >
-                      Acessar painel do lojista →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {/* Submit */}
             <div>
@@ -187,11 +166,10 @@ export default function LoginPage() {
                 Esqueceu a senha?
               </Link>
               <Link
-                href="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-500"
+                href="/register/loja"
+                className="text-sm text-orange-600 hover:text-orange-500"
               >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Voltar ao início
+                Criar nova loja
               </Link>
             </div>
           </form>

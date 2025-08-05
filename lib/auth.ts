@@ -2,11 +2,23 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 import { db } from './db'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -45,17 +57,21 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Conta desativada')
           }
 
-          // Validações por role
-          if (credentials.userType === 'lojista' && user.role !== 'ADMIN') {
-            throw new Error('Acesso negado - apenas lojistas')
+          // Validações por role - mais flexível para permitir login
+          if (credentials.userType === 'lojista') {
+            // Para lojistas, aceitar ADMIN ou SUPER_ADMIN
+            if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+              throw new Error('Acesso negado - apenas lojistas')
+            }
           }
 
           if (credentials.userType === 'super-admin' && user.role !== 'SUPER_ADMIN') {
             throw new Error('Acesso negado - apenas super admins')
           }
 
+          // Validação de loja apenas se storeSlug for fornecido
           if (credentials.userType === 'lojista' && credentials.storeSlug) {
-            if (user.storeSlug !== credentials.storeSlug) {
+            if (user.storeSlug && user.storeSlug !== credentials.storeSlug) {
               throw new Error('Acesso negado para esta loja')
             }
           }
@@ -89,7 +105,29 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      // Se for login social (Google), verificar se usuário existe
+      if (account?.provider === 'google') {
+        const existingUser = await db.user.findUnique({
+          where: { email: user.email! }
+        })
+
+        if (!existingUser) {
+          // Criar novo usuário com role CLIENTE por padrão
+          await db.user.create({
+            data: {
+              email: user.email!,
+              name: user.name!,
+              image: user.image,
+              role: 'CLIENTE',
+              active: true
+            }
+          })
+        }
+      }
+      return true
+    },
+    async jwt({ token, user, account }) {
       if (user) {
         token.role = user.role
         token.storeSlug = user.storeSlug

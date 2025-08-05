@@ -1,0 +1,189 @@
+# Configurações do Cursor AI para Delivery App
+
+Você é um especialista em TypeScript, Node.js, Next.js App Router, React, Prisma, Shadcn UI, Radix UI e Tailwind CSS.
+
+## Stack do Projeto
+- Frontend: Next.js 14 com App Router, React, TypeScript
+- Backend: Next.js API Routes, Prisma ORM
+- Database: PostgreSQL
+- Autenticação: NextAuth.js
+- UI: Tailwind CSS, componentes customizados
+- Deployment: Docker
+
+## Estrutura e Estilo de Código
+
+### Princípios
+- Escreva código TypeScript conciso e técnico com exemplos precisos
+- Use programação funcional e declarativa; evite classes
+- Prefira iteração e modularização ao invés de duplicação de código
+- Use nomes de variáveis descritivos com verbos auxiliares (ex: isLoading, hasError)
+- Estruture arquivos: componente exportado, subcomponentes, helpers, conteúdo estático, tipos
+
+### Convenções de Nomenclatura
+- Use lowercase com hífens para diretórios (ex: components/auth-wizard)
+- Favoreça exports nomeados para componentes
+- Use PascalCase para componentes React
+- Use camelCase para funções e variáveis
+- Use UPPER_SNAKE_CASE para constantes
+
+### Uso do TypeScript
+- Use TypeScript para todo o código; prefira interfaces sobre types
+- Evite enums; use maps ao invés
+- Use componentes funcionais com interfaces TypeScript
+- Defina tipos precisos para props, estado e funções
+
+### Sintaxe e Formatação
+- Use a palavra-chave "function" para funções puras
+- Evite chaves desnecessárias em condicionais; use sintaxe concisa para declarações simples
+- Use JSX declarativo
+- Mantenha consistência na indentação (2 espaços)
+
+## React e Next.js
+
+### Componentes React
+- Prefira Componentes Funcionais com Hooks sobre Componentes de Classe
+- Mantenha componentes pequenos e focados (Princípio da Responsabilidade Única)
+- Use desestruturação das props: `function MeuComponente({ nome, quantidade }) { ... }`
+- Implemente React.memo para otimização quando necessário
+
+### Hooks
+- Só chame Hooks no nível superior dos componentes funcionais
+- Não chame Hooks dentro de loops, condições ou funções aninhadas
+- Use useEffect para efeitos colaterais; sempre inclua array de dependências
+- Use useCallback e useMemo para memoização quando necessário
+
+### Next.js Específico
+- Minimize 'use client', 'useEffect', e 'setState'; favoreça React Server Components (RSC)
+- Encapsule componentes client em Suspense com fallback
+- Use dynamic loading para componentes não críticos
+- Otimize imagens: use formato WebP, inclua dados de tamanho, implemente lazy loading
+- Use 'nuqs' para gerenciamento de estado de parâmetros de URL
+
+### Performance
+- Limite 'use client' ao mínimo necessário
+- Favoreça server components e Next.js SSR
+- Use apenas para acesso a Web APIs em componentes pequenos
+- Evite para data fetching ou gerenciamento de estado
+- Otimize Web Vitals (LCP, CLS, FID)
+
+## UI e Estilização
+
+### Tailwind CSS
+- Use Tailwind para componentes e estilização
+- Implemente design responsivo com approach mobile-first
+- Use classes utilitárias consistentes
+- Evite estilos inline exceto para ajustes dinâmicos simples
+
+### Componentes
+- Use Shadcn UI e Radix para componentes base
+- Mantenha consistência visual através do sistema de design
+- Implemente dark mode quando apropriado
+
+## Banco de Dados e Backend
+
+### Prisma
+- Use Prisma Client para todas as operações de banco
+- Defina schemas precisos em schema.prisma
+- Use transactions para operações complexas
+- Implemente proper error handling para operações de DB
+
+### API Routes
+- Estruture APIs RESTful claras
+- Use proper HTTP status codes
+- Implemente validação de dados robusta
+- Use middleware para autenticação e autorização
+
+### Autenticação
+- Use NextAuth.js para fluxo de autenticação
+- Implemente proper session management
+- Valide permissões em rotas protegidas
+
+## Qualidade de Código
+
+### Princípios SOLID
+- Single Responsibility: Uma função/classe deve ter uma única responsabilidade
+- Open/Closed: Aberto para extensão, fechado para modificação
+- Liskov Substitution: Subtipos devem ser substituíveis por seus tipos base
+- Interface Segregation: Muitas interfaces específicas são melhores que uma geral
+- Dependency Inversion: Dependa de abstrações, não de concretizações
+
+### Clean Code
+- DRY (Don't Repeat Yourself): Evite duplicação
+- KISS (Keep It Simple, Stupid): Mantenha simples
+- Código autoexplicativo sem comentários desnecessários
+- Funções pequenas com responsabilidade única
+
+### Arquitetura Limpa
+- Separe concerns apropriadamente
+- Use layers bem definidas (UI, Business Logic, Data)
+- Implemente proper dependency injection
+
+## Tratamento de Erros
+
+### Error Boundaries
+- Implemente Error Boundaries para componentes React
+- Use try-catch apropriadamente em funções async
+- Retorne errors informativos para o frontend
+
+### Validação
+- Valide dados na entrada (client e server)
+- Use schemas de validação (Zod recomendado)
+- Implemente feedback adequado para usuários
+
+## Segurança
+
+### Melhores Práticas
+- Valide e sanitize todas as entradas do usuário
+- Use HTTPS em produção
+- Implemente proper CORS policies
+- Protect sensitive routes com autenticação
+- Use environment variables para dados sensíveis
+
+## Testes
+
+### Estratégia de Testes
+- Escreva testes unitários para funções críticas
+- Use Jest para testes unitários
+- Implemente testes de integração para fluxos importantes
+- Mock dependencies externas apropriadamente
+
+## Ambiente e Deploy
+
+### Docker
+- Use multi-stage builds para otimização
+- Mantenha images pequenas e seguras
+- Use .dockerignore apropriadamente
+
+### Environment Variables
+- Use .env.local para desenvolvimento
+- Documente variáveis necessárias em .env.example
+- Nunca commite dados sensíveis
+
+## Padrões Específicos do Projeto
+
+### Delivery App
+- Mantenha configurações de loja em arquivos JSON estruturados
+- Implemente theming dinâmico por loja
+- Use proper state management para carrinho de compras
+- Implemente real-time updates para pedidos quando possível
+
+### Estrutura de Arquivos
+- Organize por funcionalidade em app/
+- Mantenha types em /types/
+- Centralize hooks em /hooks/
+- Use /lib/ para utilities e configurações
+
+## Comandos e Ferramentas
+
+### Desenvolvimento
+- Use `npm run dev` para desenvolvimento
+- Use `npm run build` para build de produção
+- Use `npx prisma studio` para visualizar banco de dados
+- Use `npx prisma migrate dev` para migrations
+
+### Linting e Formatação
+- Siga configurações do ESLint
+- Use Prettier para formatação consistente
+- Execute lint antes de commits
+
+Sempre responda em português brasileiro e siga essas diretrizes rigorosamente.

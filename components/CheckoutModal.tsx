@@ -1,11 +1,12 @@
 'use client'
 
-import { Car, Clock, CreditCard, Home, UserCheck, X } from 'lucide-react'
+import { Car, Clock, CreditCard, Home, UserCheck, X, Tag } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatAddress } from '../data/mockUser'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 import LoginModal from './LoginModal'
+import CouponModal from './CouponModal'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -21,6 +22,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
   const { isAuthenticated, user } = useAuth()
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery')
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showCouponModal, setShowCouponModal] = useState(false)
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null)
   const [customerInfo, setCustomerInfo] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -67,7 +70,20 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
   if (!isOpen) return null
 
   const deliveryFee = deliveryType === 'delivery' ? 5.00 : 0
-  const finalTotal = total + deliveryFee
+  
+  // Calcular desconto do cupom
+  const couponDiscount = appliedCoupon ? (
+    appliedCoupon.type === 'percentage' 
+      ? (total * appliedCoupon.discount / 100)
+      : appliedCoupon.discount
+  ) : 0
+  
+  const subtotal = total
+  const finalTotal = subtotal + deliveryFee - couponDiscount
+
+  const handleApplyCoupon = (coupon: any) => {
+    setAppliedCoupon(coupon)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -357,17 +373,55 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
                 ))}
               </div>
 
+              {/* Cupom */}
+              <div className="border-t pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Cupom de desconto</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponModal(true)}
+                    className="flex items-center space-x-1 text-orange-600 hover:text-orange-700 text-sm font-medium"
+                  >
+                    <Tag className="h-4 w-4" />
+                    <span>{appliedCoupon ? 'Alterar' : 'Aplicar'}</span>
+                  </button>
+                </div>
+                {appliedCoupon && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-800">
+                        {appliedCoupon.code} - {appliedCoupon.discount}{appliedCoupon.type === 'percentage' ? '%' : ' reais'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Resumo de Valores */}
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">R$ {total.toFixed(2).replace('.', ',')}</span>
+                  <span className="font-medium">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
                 </div>
                 
                 {deliveryType === 'delivery' && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Taxa de entrega</span>
                     <span className="font-medium">R$ {deliveryFee.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                )}
+
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Desconto ({appliedCoupon.code})</span>
+                    <span>- R$ {couponDiscount.toFixed(2).replace('.', ',')}</span>
                   </div>
                 )}
                 
@@ -411,6 +465,14 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }: Che
           setShowLoginModal(false)
           // O checkout continuará automaticamente após o login
         }}
+      />
+
+      {/* Coupon Modal */}
+      <CouponModal
+        isOpen={showCouponModal}
+        onClose={() => setShowCouponModal(false)}
+        onApply={handleApplyCoupon}
+        currentTotal={subtotal}
       />
     </div>
   )

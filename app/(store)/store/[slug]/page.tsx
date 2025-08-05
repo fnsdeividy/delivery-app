@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import LoginModal from '../../../../components/LoginModal'
 import UserProfile from '../../../../components/UserProfile'
+import PromotionsBanner from '../../../../components/PromotionsBanner'
 import { useAuth } from '../../../../hooks/useAuth'
 import { useStoreConfig, useStoreStatus } from '../../../../lib/store/useStoreConfig'
 import { Product } from '../../../../types/store'
@@ -24,6 +25,28 @@ export default function StorePage() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+
+  // Promoções de exemplo (em produção viriam do banco/config)
+  const promotions = [
+    {
+      id: '1',
+      title: '🎉 Primeira Compra',
+      description: '10% de desconto na primeira compra com cupom PRIMEIRA10',
+      type: 'discount' as const,
+      value: 10,
+      validUntil: '2025-12-31',
+      active: true
+    },
+    {
+      id: '2',
+      title: '🚚 Entrega Grátis',
+      description: 'Entrega grátis em pedidos acima de R$ 30,00',
+      type: 'free_delivery' as const,
+      value: 5,
+      validUntil: '2025-12-31',
+      active: true
+    }
+  ]
 
   // Filtrar produtos - movido para antes dos returns condicionais
   const filteredProducts = useMemo(() => {
@@ -97,6 +120,9 @@ export default function StorePage() {
       backgroundColor: config.branding.backgroundColor,
       color: config.branding.textColor 
     }}>
+      {/* Promotions Banner */}
+      <PromotionsBanner promotions={promotions} />
+      
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50 animate-slide-in-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -159,7 +185,14 @@ export default function StorePage() {
               
               {/* Cart Button */}
               <button 
-                onClick={() => setIsCartOpen(true)}
+                onClick={() => {
+                  if (cartItems.length > 0) {
+                    setIsCartOpen(true)
+                  } else {
+                    // Mostrar mensagem de carrinho vazio
+                    alert('Adicione produtos ao carrinho primeiro')
+                  }
+                }}
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
                 style={{ color: config.branding.primaryColor }}
               >

@@ -99,6 +99,72 @@ psql delivery_app -c "GRANT ALL PRIVILEGES ON DATABASE delivery_app TO cardapio_
 
 #### **3. Setup automático do banco**
 ```bash
+# Executar migrations e seed
+npm run db:reset
+npm run db:seed
+```
+
+#### **4. Iniciar o servidor**
+```bash
+npm run dev
+```
+
+#### **5. Acessar a aplicação**
+- 🌐 **Homepage:** http://localhost:3000
+- 🏪 **Loja Demo:** http://localhost:3000/store/boteco-do-joao
+- 🔐 **Login:** http://localhost:3000/login
+- 📊 **Dashboard:** http://localhost:3000/dashboard
+- 👑 **Super Admin:** http://localhost:3000/admin
+
+## 🔐 **Sistema de Autenticação**
+
+### **👥 Tipos de Usuário**
+- **👑 Super Admin:** Controle total do sistema
+- **🏪 Lojista (ADMIN):** Gestão da própria loja
+- **👤 Cliente:** Acesso ao cardápio e pedidos
+
+### **🧪 Usuários de Teste**
+
+#### **👑 Super Admins**
+```bash
+Email: superadmin@cardap.io
+Senha: admin123
+Tipo: super-admin
+```
+
+#### **🏪 Lojistas**
+```bash
+Email: teste@teste.com
+Senha: 123456
+Tipo: lojista
+
+Email: admin@burgerstation.com
+Senha: 123456
+Tipo: lojista
+```
+
+#### **👤 Clientes**
+```bash
+Email: cliente@teste.com
+Senha: 123456
+Tipo: cliente
+```
+
+### **🔍 Scripts de Teste**
+```bash
+# Listar todos os usuários
+npm run list-users
+
+# Testar autenticação
+npm run test-login
+
+# Ver dados de demonstração
+npm run demo
+
+# Testar fluxo completo
+npm run test-store
+```
+```bash
 # Criar tabelas e migrar dados
 npm run db:setup
 ```
@@ -248,6 +314,25 @@ npm run db:reset     # Reset completo e migração
 npm run db:studio    # Interface visual do banco (Prisma Studio)
 ```
 
+### **🔍 Prisma Studio - Interface Visual do Banco**
+```bash
+# Abrir interface visual do banco de dados
+npm run db:studio
+
+# Ou usar diretamente
+npx prisma studio
+```
+
+**Acesse:** http://localhost:5555
+
+**Funcionalidades:**
+- 👀 Visualizar todas as tabelas
+- ✏️ Editar dados diretamente
+- 🔍 Fazer consultas
+- 📊 Ver relacionamentos
+- ➕ Adicionar registros
+- 🗑️ Deletar dados
+
 ### **Usuários e Autenticação**
 ```bash
 npm run create-dev-master  # Criar usuário master para desenvolvimento
@@ -335,6 +420,24 @@ npm run test:watch   # Modo watch
 3. **Super Admin:** Login como admin, visualizar todas as lojas
 4. **Banco de Dados:** `npm run db:studio` para ver dados
 
+### **🔍 Visualizar Dados no Prisma Studio**
+```bash
+# Abrir interface visual do banco
+npm run db:studio
+
+# Acessar no navegador
+http://localhost:5555
+```
+
+**Tabelas disponíveis:**
+- 👥 `users` - Usuários do sistema
+- 🏪 `stores` - Lojas cadastradas
+- 🍔 `products` - Produtos do cardápio
+- 📂 `categories` - Categorias de produtos
+- 📦 `inventory` - Controle de estoque
+- 👤 `customers` - Clientes das lojas
+- 🛒 `orders` - Pedidos realizados
+
 ---
 
 ## 🤝 **Contribuição**
@@ -370,6 +473,8 @@ npm run test:watch   # Modo watch
 - **Erro de banco:** Verificar credenciais no `.env.local`
 - **Erro de build:** Executar `npm run build` para diagnóstico
 - **Erro de auth:** Verificar `NEXTAUTH_SECRET` configurado
+- **Dashboard 404:** Verificar se usuário tem role correto (ADMIN/SUPER_ADMIN)
+- **Redirecionamento incorreto:** Verificar se lojista tem loja associada
 
 ### **Logs e Debug**
 ```bash

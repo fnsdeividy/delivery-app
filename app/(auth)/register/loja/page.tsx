@@ -77,6 +77,10 @@ export default function RegisterLojaPage() {
         setError('Preencha todos os campos obrigatórios')
         return
       }
+      if (!formData.address || !formData.city || !formData.state) {
+        setError('Preencha todos os dados de endereço')
+        return
+      }
     }
     
     setError('')
@@ -109,8 +113,8 @@ export default function RegisterLojaPage() {
         throw new Error(data.error || 'Erro ao criar loja')
       }
 
-      // Sucesso - redirecionar para login
-      router.push(`/login/lojista?message=Loja criada com sucesso! Faça seu login.&slug=${formData.storeSlug}`)
+      // Sucesso - redirecionar para o dashboard da loja
+      router.push(`/dashboard/${formData.storeSlug}?welcome=true&message=Loja criada com sucesso! Configure sua loja.`)
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar loja. Tente novamente.')
@@ -188,7 +192,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.ownerName}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="Seu nome completo"
                 />
               </div>
@@ -203,7 +207,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.ownerEmail}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="seu@email.com"
                 />
               </div>
@@ -217,7 +221,7 @@ export default function RegisterLojaPage() {
                   name="ownerPhone"
                   value={formData.ownerPhone}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -233,7 +237,7 @@ export default function RegisterLojaPage() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                     placeholder="••••••••"
                   />
                   <button
@@ -260,7 +264,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="••••••••"
                 />
               </div>
@@ -280,7 +284,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.storeName}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="Ex: Pizzaria do João"
                 />
               </div>
@@ -299,7 +303,7 @@ export default function RegisterLojaPage() {
                     required
                     value={formData.storeSlug}
                     onChange={handleInputChange}
-                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                     placeholder="pizzaria-do-joao"
                   />
                 </div>
@@ -317,7 +321,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                 >
                   <option value="">Selecione uma categoria</option>
                   {categories.map((cat) => (
@@ -335,9 +339,75 @@ export default function RegisterLojaPage() {
                   rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                   placeholder="Descreva sua loja..."
                 />
+              </div>
+
+              {/* Campos de Endereço */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Endereço da Loja</h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Endereço *
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    required
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    placeholder="Rua, número, bairro"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Cidade *
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      required
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                      placeholder="Sua cidade"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Estado *
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      required
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                      placeholder="SP, RJ, MG..."
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    CEP
+                  </label>
+                  <input
+                    type="text"
+                    name="zipCode"
+                    value={formData.zipCode}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    placeholder="00000-000"
+                  />
+                </div>
               </div>
             </form>
           )}
@@ -371,6 +441,15 @@ export default function RegisterLojaPage() {
                   <p className="text-sm text-gray-600">{formData.category}</p>
                   {formData.description && (
                     <p className="text-sm text-gray-500 italic">{formData.description}</p>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900">Endereço</h4>
+                  <p className="text-sm text-gray-600">{formData.address}</p>
+                  <p className="text-sm text-gray-600">{formData.city}, {formData.state}</p>
+                  {formData.zipCode && (
+                    <p className="text-sm text-gray-600">CEP: {formData.zipCode}</p>
                   )}
                 </div>
 

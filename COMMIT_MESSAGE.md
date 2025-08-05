@@ -1,47 +1,66 @@
 # 🎯 **Mensagem de Commit**
 
+## 🔐 **Login Dashboard Simplificado**
+
+### **Alterações Realizadas:**
+
+**📱 Página de Login (`/login`)**
+- ✅ Removido campo "Tipo de conta" 
+- ✅ Login específico para dashboard (sempre lojista)
+- ✅ Redirecionamento direto para `/dashboard`
+- ✅ Título alterado para "Acesse seu Dashboard"
+- ✅ Subtítulo: "Faça login para gerenciar sua loja"
+- ✅ Link "Criar nova loja" adicionado
+- ✅ Removido link "Voltar ao início"
+
+### **Funcionalidades:**
+- 🔐 Login simplificado apenas com email e senha
+- 🎯 Redirecionamento automático para dashboard
+- 🏪 Foco total no gerenciamento de lojas
+- 📱 Interface limpa e objetiva
+
+### **Teste:**
+```bash
+# Acessar login
+http://localhost:3000/login
+
+# Credenciais de teste
+Email: admin@boteco.com
+Senha: 123456
+
+# Resultado: Redirecionamento direto para /dashboard
 ```
-feat: implementar sistema real de cadastro com banco PostgreSQL
 
-✨ NOVAS FUNCIONALIDADES:
-• API de registro de clientes (POST /api/auth/register)
-• API de registro de lojistas (POST /api/auth/register/loja)
-• Fluxo completo de cadastro em 3 etapas para lojas
-• Usuário master para desenvolvimento (dev@cardap.io)
-• Scripts automatizados de teste e criação de usuários
+```
+feat: implementar redirecionamento automático para dashboard após criação de loja
 
-🔐 SEGURANÇA:
-• Hash de senhas com bcrypt (12 rounds)
-• Validação robusta frontend/backend
-• Prevenção de duplicatas por email
-• Transações de banco para consistência
+- ✅ Implementar redirecionamento para /dashboard/{slug} após criação de loja
+- ✅ Criar componente WelcomeNotification para boas-vindas
+- ✅ Adicionar parâmetros de URL para indicar boas-vindas (welcome=true)
+- ✅ Implementar mensagem personalizada com nome da loja
+- ✅ Criar script de teste para validação do fluxo
+- ✅ Adicionar animações suaves na notificação
+- ✅ Integrar notificação no layout do dashboard
+- ✅ Documentar fluxo completo de criação → dashboard
 
-🛠️ MELHORIAS:
-• Substituição de dados mock por dados reais
-• Persistência no banco PostgreSQL
-• Interface de registro atualizada e polida
-• Documentação completa do sistema de usuários
+Arquivos modificados:
+- app/(auth)/register/loja/page.tsx
+- app/(dashboard)/dashboard/layout.tsx
+- components/WelcomeNotification.tsx (novo)
+- scripts/test-store-creation.ts (novo)
+- package.json
 
-📦 ARQUIVOS ADICIONADOS:
-• app/(api)/api/auth/register/route.ts
-• app/(api)/api/auth/register/loja/route.ts
-• scripts/create-dev-master.ts
-• scripts/test-auth-flow.ts
-• USUARIOS_SISTEMA.md
-• RESUMO_IMPLEMENTACAO.md
+Fluxo implementado:
+1. Criação da loja → API /api/auth/register/loja
+2. Redirecionamento → /dashboard/{slug}?welcome=true
+3. Notificação → WelcomeNotification com mensagem personalizada
 
-🧪 TESTES:
-• Scripts de teste automatizados
-• Validação de autenticação
-• Criação de usuários de exemplo
-• Verificação de permissões
+Scripts disponíveis:
+- npm run test-store (teste de criação de loja)
+- npm run list-users (listar usuários)
+- npm run test-login (teste de login)
 
-📋 COMANDOS NOVOS:
-• npm run create-dev-master
-• npm run test-auth
-
-Breaking Changes: Nenhuma
-Documentação: README.md atualizado com novos usuários
+Closes: #dashboard-redirect
 ```
 
 ---
@@ -50,17 +69,33 @@ Documentação: README.md atualizado com novos usuários
 
 ```bash
 git add .
-git commit -m "feat: implementar sistema real de cadastro com banco PostgreSQL
+git commit -m "feat: implementar redirecionamento automático para dashboard após criação de loja
 
-✨ Novas funcionalidades:
-- API de registro de clientes e lojistas  
-- Usuário master para desenvolvimento
-- Scripts automatizados de teste
-- Fluxo completo de cadastro em 3 etapas
+- ✅ Implementar redirecionamento para /dashboard/{slug} após criação de loja
+- ✅ Criar componente WelcomeNotification para boas-vindas
+- ✅ Adicionar parâmetros de URL para indicar boas-vindas (welcome=true)
+- ✅ Implementar mensagem personalizada com nome da loja
+- ✅ Criar script de teste para validação do fluxo
+- ✅ Adicionar animações suaves na notificação
+- ✅ Integrar notificação no layout do dashboard
+- ✅ Documentar fluxo completo de criação → dashboard
 
-🔐 Segurança implementada:
-- Hash bcrypt, validações robustas
-- Transações de banco, prevenção duplicatas
+Arquivos modificados:
+- app/(auth)/register/loja/page.tsx
+- app/(dashboard)/dashboard/layout.tsx
+- components/WelcomeNotification.tsx (novo)
+- scripts/test-store-creation.ts (novo)
+- package.json
 
-🛠️ Substituição de mock por dados reais no PostgreSQL"
+Fluxo implementado:
+1. Criação da loja → API /api/auth/register/loja
+2. Redirecionamento → /dashboard/{slug}?welcome=true
+3. Notificação → WelcomeNotification com mensagem personalizada
+
+Scripts disponíveis:
+- npm run test-store (teste de criação de loja)
+- npm run list-users (listar usuários)
+- npm run test-login (teste de login)
+
+Closes: #dashboard-redirect"
 ```

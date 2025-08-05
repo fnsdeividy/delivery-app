@@ -2,6 +2,7 @@
 
 import { AlertCircle, Eye, EyeOff, Lock, Mail, Phone, User, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useAuth } from '../hooks/useAuth'
 
 interface LoginModalProps {
@@ -175,14 +176,19 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
     try {
       setErrors({})
       
-      if (provider === 'google') {
-        await loginWithGoogle()
-      } else {
-        await loginWithFacebook()
+      const result = await signIn(provider, {
+        callbackUrl: window.location.href,
+        redirect: false
+      })
+      
+      if (result?.error) {
+        throw new Error(result.error)
       }
       
-      onClose()
-      onSuccess?.()
+      if (result?.ok) {
+        onClose()
+        onSuccess?.()
+      }
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Erro no login social' })

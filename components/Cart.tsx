@@ -2,6 +2,7 @@
 
 import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 
 interface CartItem {
   id: number
@@ -23,6 +24,7 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
+  const { isAuthenticated } = useAuth()
   const [items, setItems] = useState<CartItem[]>([
     {
       id: 1,
@@ -198,10 +200,17 @@ export default function Cart({ isOpen, onClose, onCheckout }: CartProps) {
               </span>
             </div>
             <button 
-              onClick={onCheckout}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  alert('Você precisa fazer login para finalizar o pedido')
+                  onClose()
+                  return
+                }
+                onCheckout()
+              }}
               className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors"
             >
-              Finalizar Pedido
+              {isAuthenticated ? 'Finalizar Pedido' : 'Fazer Login para Finalizar'}
             </button>
           </div>
         )}
