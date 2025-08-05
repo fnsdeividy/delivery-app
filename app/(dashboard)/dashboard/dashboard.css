@@ -53,6 +53,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
 }
 
 @media (min-width: 1024px) {
@@ -90,9 +92,12 @@
 
 @media (min-width: 1024px) {
   .dashboard-sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
-    height: 100vh;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    transform: translateX(0);
   }
 }
 
@@ -309,7 +314,6 @@
 
 @media (min-width: 1024px) {
   .dashboard-main-content {
-    margin-left: var(--sidebar-width);
     padding: var(--space-2xl);
   }
 }
@@ -429,11 +433,19 @@
   .dashboard-section {
     gap: var(--space-md);
   }
+
+  .dashboard-main-layout {
+    margin-left: 0 !important;
+  }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .dashboard-main-content {
     padding: var(--space-lg) var(--space-xl);
+  }
+
+  .dashboard-main-layout {
+    margin-left: 0 !important;
   }
 }
 
@@ -518,6 +530,54 @@
 @media (min-width: 640px) {
   .show-mobile {
     display: none;
+  }
+}
+
+/* ========================================
+   📱 CORREÇÕES ESPECÍFICAS DE LAYOUT
+======================================== */
+
+/* Garantir que o layout seja fluido em todos os tamanhos */
+.dashboard-layout {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Mobile first - garantir que funcione em telas pequenas */
+@media (max-width: 480px) {
+  .dashboard-main-content {
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .dashboard-metric-card {
+    padding: var(--space-md);
+  }
+  
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+/* Tablet portrait */
+@media (min-width: 481px) and (max-width: 768px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablet landscape e desktop pequeno */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
