@@ -42,7 +42,7 @@ export default function SuperAdminLogin() {
         // Buscar sessão para verificar role
         const session = await getSession()
         
-        if (session?.user?.role === 'super_admin') {
+        if (session?.user?.role === 'SUPER_ADMIN') {
           // Redirecionar para painel super admin
           router.push('/admin')
         } else {

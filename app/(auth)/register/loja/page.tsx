@@ -88,17 +88,32 @@ export default function RegisterLojaPage() {
     setError('')
 
     try {
-      // TODO: Implementar registro real
-      console.log('Registrando loja:', formData)
-      
-      // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Redirecionar para login com sucesso
-      router.push('/login/lojista?message=Loja criada com sucesso! Faça seu login.')
+      // Validações finais
+      if (!formData.address || !formData.city || !formData.state) {
+        setError('Preencha todos os dados de endereço')
+        return
+      }
+
+      // Registrar loja via API
+      const response = await fetch('/api/auth/register/loja', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao criar loja')
+      }
+
+      // Sucesso - redirecionar para login
+      router.push(`/login/lojista?message=Loja criada com sucesso! Faça seu login.&slug=${formData.storeSlug}`)
       
     } catch (err) {
-      setError('Erro ao criar loja. Tente novamente.')
+      setError(err instanceof Error ? err.message : 'Erro ao criar loja. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -327,7 +342,7 @@ export default function RegisterLojaPage() {
             </form>
           )}
 
-          {/* Step 3: Confirmação */}
+                      {/* Step 3: Confirmação */}
           {step === 3 && (
             <div className="space-y-6">
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
@@ -344,6 +359,9 @@ export default function RegisterLojaPage() {
                   <h4 className="font-medium text-gray-900">Proprietário</h4>
                   <p className="text-sm text-gray-600">{formData.ownerName}</p>
                   <p className="text-sm text-gray-600">{formData.ownerEmail}</p>
+                  {formData.ownerPhone && (
+                    <p className="text-sm text-gray-600">{formData.ownerPhone}</p>
+                  )}
                 </div>
                 
                 <div>
@@ -351,16 +369,33 @@ export default function RegisterLojaPage() {
                   <p className="text-sm text-gray-600">{formData.storeName}</p>
                   <p className="text-sm text-gray-500">cardap.io/store/{formData.storeSlug}</p>
                   <p className="text-sm text-gray-600">{formData.category}</p>
+                  {formData.description && (
+                    <p className="text-sm text-gray-500 italic">{formData.description}</p>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900">Configurações</h4>
+                  <p className="text-sm text-gray-600">
+                    Entrega: {formData.deliveryEnabled ? 'Ativada' : 'Desativada'}
+                  </p>
+                  {formData.deliveryEnabled && (
+                    <>
+                      <p className="text-sm text-gray-600">Taxa de entrega: R$ {formData.deliveryFee}</p>
+                      <p className="text-sm text-gray-600">Pedido mínimo: R$ {formData.minimumOrder}</p>
+                    </>
+                  )}
                 </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <h4 className="font-medium text-blue-800 mb-2">Próximos passos</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>✅ Sua loja será criada</li>
-                  <li>📧 Você receberá um email de confirmação</li>
+                  <li>✅ Sua loja será criada no banco de dados</li>
                   <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
                   <li>🎨 Personalizar cores e logo da loja</li>
+                  <li>📱 Configurar horários de funcionamento</li>
+                  <li>💳 Configurar métodos de pagamento</li>
                 </ul>
               </div>
             </div>

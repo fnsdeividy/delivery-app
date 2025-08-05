@@ -1,4 +1,5 @@
 import 'next-auth'
+import { UserRole } from '../lib/generated/prisma'
 
 declare module 'next-auth' {
   interface Session {
@@ -6,7 +7,7 @@ declare module 'next-auth' {
       id: string
       email: string
       name: string
-      role: 'admin' | 'super_admin' | 'cliente'
+      role: UserRole
       storeSlug?: string
       active: boolean
     }
@@ -16,7 +17,7 @@ declare module 'next-auth' {
     id: string
     email: string
     name: string
-    role: 'super-admin' | 'lojista' | 'cliente'
+    role: UserRole
     storeSlug?: string
     active: boolean
   }
@@ -24,7 +25,7 @@ declare module 'next-auth' {
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    role: 'super-admin' | 'lojista' | 'cliente'
+    role: UserRole
     storeSlug?: string
     active: boolean
   }

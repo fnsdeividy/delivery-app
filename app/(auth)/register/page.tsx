@@ -39,15 +39,33 @@ export default function RegisterPage() {
         throw new Error('A senha deve ter pelo menos 6 caracteres')
       }
 
-      // TODO: Implementar registro real
       if (formData.userType === 'lojista') {
         // Redirecionar para registro específico de lojista
-        router.push('/register/lojista')
+        router.push('/register/loja')
       } else {
-        // Registro de cliente
-        // TODO: Implementar registro de cliente
-        console.log('Registro de cliente:', formData)
-        router.push('/login')
+        // Registro de cliente via API
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            userType: 'cliente'
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao criar conta')
+        }
+
+        // Sucesso - redirecionar para login
+        router.push('/login?message=Conta criada com sucesso! Faça seu login.')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta')

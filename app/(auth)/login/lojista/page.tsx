@@ -18,11 +18,18 @@ export default function LojistaLogin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Pré-preencher slug se vier da URL
+  // Pré-preencher slug se vier da URL e mostrar mensagem
   useEffect(() => {
     const slug = searchParams.get('slug')
+    const message = searchParams.get('message')
+    
     if (slug) {
       setFormData(prev => ({ ...prev, storeSlug: slug }))
+    }
+    
+    if (message) {
+      // Mostrar mensagem de sucesso temporariamente
+      console.log('Mensagem:', message)
     }
   }, [searchParams])
 
@@ -53,10 +60,10 @@ export default function LojistaLogin() {
         // Buscar sessão para verificar role
         const session = await getSession()
         
-        if (session?.user?.role === 'admin') {
+        if (session?.user?.role === 'ADMIN') {
           // Redirecionar para dashboard da loja
           router.push(`/dashboard/${formData.storeSlug}`)
-        } else if (session?.user?.role === 'super_admin') {
+        } else if (session?.user?.role === 'SUPER_ADMIN') {
           // Super admin pode acessar qualquer dashboard
           router.push(`/dashboard/${formData.storeSlug}`)
         } else {

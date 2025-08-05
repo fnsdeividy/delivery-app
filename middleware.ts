@@ -46,7 +46,7 @@ async function protectDashboardRoute(request: NextRequest, token: any) {
   }
   
   // Verificar se usuário tem permissão (lojista ou super-admin)
-  if (token.role !== 'lojista' && token.role !== 'super-admin') {
+      if (token.role !== 'ADMIN' && token.role !== 'SUPER_ADMIN') {
     return NextResponse.redirect(new URL('/unauthorized', request.url))
   }
   
@@ -54,7 +54,7 @@ async function protectDashboardRoute(request: NextRequest, token: any) {
   const pathParts = pathname.split('/')
   const storeSlug = pathParts[2]
   
-  if (storeSlug && token.role === 'lojista') {
+      if (storeSlug && token.role === 'ADMIN') {
     // Lojista só pode acessar sua própria loja
     if (token.storeSlug !== storeSlug) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
@@ -79,7 +79,7 @@ async function protectSuperAdminRoute(request: NextRequest, token: any) {
   }
   
   // Apenas super admins podem acessar
-  if (token.role !== 'super-admin') {
+      if (token.role !== 'SUPER_ADMIN') {
     return NextResponse.redirect(new URL('/unauthorized', request.url))
   }
   

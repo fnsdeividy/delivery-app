@@ -1,348 +1,414 @@
-# Cardap.IO
+# 🍕 **Cardap.IO - Plataforma Multi-tenant de Delivery**
 
-Uma aplicação moderna de delivery de comida inspirada no design do Figma, construída com Next.js, TypeScript e Tailwind CSS.
+Uma plataforma moderna e robusta para delivery de comida com sistema multi-tenant, controle de estoque e gestão completa de clientes.
 
-## 🚀 Características
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
 
-- **Interface Moderna**: Design responsivo e intuitivo
-- **Performance Otimizada**: Construída com Next.js 14
-- **TypeScript**: Código tipado para maior segurança
-- **Tailwind CSS**: Estilização moderna e consistente
-- **Componentes Reutilizáveis**: Arquitetura limpa e modular
-- **Responsivo**: Funciona perfeitamente em todos os dispositivos
-- **Modal de Personalização**: Interface completa para customizar produtos
-- **Sistema de Filtros**: Busca e filtros por categoria
-- **Carrinho Inteligente**: Com detalhes de personalização
-- **🔐 Sistema de Login**: Autenticação completa com proteção de checkout
-- **👤 Gerenciamento de Usuário**: Login, registro, logout e perfil dinâmico
-- **🔒 Checkout Protegido**: Apenas usuários logados podem finalizar pedidos
+---
 
-## 🛠️ Tecnologias
+## 📸 **Preview**
 
-- **Next.js 14** - Framework React
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Framework CSS
-- **Lucide React** - Ícones
-- **React Hooks** - Gerenciamento de estado
+<div align="center">
 
-## 📦 Instalação
+### 🏪 **Interface da Loja**
+Interface pública personalizada para cada estabelecimento
 
-1. **Clone o repositório**
-   ```bash
-   git clone <repository-url>
-   cd delivery-app
-   ```
+### 📊 **Dashboard Administrativo**  
+Painel completo para gestão da loja
 
-2. **Instale as dependências**
-   ```bash
-   npm install
-   ```
+### 👑 **Painel Super Admin**
+Controle centralizado de todas as lojas
 
-3. **Configure as variáveis de ambiente**
-   ```bash
-   cp env.local.example .env.local
-   ```
-   
-   **Importante:** Edite o arquivo `.env.local` com suas configurações reais:
-   
-   - **Banco de Dados**: Configure sua conexão PostgreSQL
-   - **Autenticação**: Gere uma chave secreta para NextAuth
-   - **Pagamento**: Adicione suas chaves do Stripe
-   - **Email**: Configure SMTP para notificações
-   - **Upload**: Configure Cloudinary para imagens
-   - **Geocoding**: Adicione sua API key do Google Maps
+</div>
 
-4. **Execute o projeto**
-   ```bash
-   npm run dev
-   ```
+---
 
-5. **Acesse a aplicação**
-   Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+## 🚀 **Características Principais**
 
-## 🔧 Configuração das Variáveis de Ambiente
+### ✨ **Funcionalidades Implementadas**
+- 🏪 **Sistema Multi-tenant** - Cada loja com seus dados isolados
+- 🔐 **Autenticação Robusta** - NextAuth + Prisma com múltiplas roles
+- 📦 **Controle de Estoque** - Sistema completo com movimentações
+- 👥 **Gestão de Clientes** - CRM integrado por loja
+- 🛒 **Sistema de Pedidos** - Fluxo completo de vendas
+- 📊 **Dashboard Administrativo** - Interface moderna para lojistas
+- 👑 **Painel Super Admin** - Gestão centralizada de todas as lojas
+- 🎨 **Personalização Visual** - Temas dinâmicos por loja
+- 📱 **Design Responsivo** - Funciona em todos os dispositivos
 
-### Variáveis Obrigatórias para Desenvolvimento:
+### 🛠️ **Stack Tecnológica**
+- **Frontend:** Next.js 14 + TypeScript + Tailwind CSS
+- **Backend:** Next.js API Routes + Prisma ORM
+- **Banco de Dados:** PostgreSQL
+- **Autenticação:** NextAuth.js com Prisma Adapter
+- **Estilização:** Tailwind CSS + CSS Modules
+- **Ícones:** Lucide React
+- **Deploy:** Vercel Ready
 
+---
+
+## 🔧 **Instalação e Configuração**
+
+### **📋 Pré-requisitos**
+- Node.js 18+ 
+- PostgreSQL 12+ (ou Docker)
+- npm ou yarn
+
+### **🚀 Instalação Rápida**
+
+#### **1. Clone o repositório**
+```bash
+git clone <repository-url>
+cd delivery-app
+npm install
+```
+
+#### **2. Configure o banco de dados**
+
+**Opção A: Docker (Recomendado)**
+```bash
+# Iniciar PostgreSQL no Docker
+docker-compose up -d postgres
+
+# Configurar variáveis de ambiente
+cp env.local.example .env.local
+```
+
+Edite `.env.local`:
 ```env
-# Configurações da Aplicação
-NEXT_PUBLIC_APP_NAME="Cardap.IO"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Autenticação (obrigatório)
-NEXTAUTH_SECRET="sua-chave-secreta-aqui"
+DATABASE_URL="postgresql://cardapio_user:cardapio_123@localhost:5432/delivery_app?schema=public"
+NEXTAUTH_SECRET="sabor-express-secret-key-2024"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-### Variáveis Opcionais (para funcionalidades avançadas):
-
-```env
-# Banco de Dados (para persistência)
-DATABASE_URL="postgresql://username:password@localhost:5432/delivery_app"
-
-# Pagamento (para checkout)
-STRIPE_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-
-# Email (para notificações)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT="587"
-SMTP_USER="seu-email@gmail.com"
-SMTP_PASS="sua-senha-de-app"
-
-# Upload (para imagens)
-CLOUDINARY_CLOUD_NAME="seu-cloud-name"
-CLOUDINARY_API_KEY="sua-api-key"
-CLOUDINARY_API_SECRET="seu-api-secret"
-
-# Geocoding (para localização)
-GOOGLE_MAPS_API_KEY="sua-google-maps-api-key"
+**Opção B: PostgreSQL Local**
+```bash
+# Criar banco e usuário
+createdb delivery_app
+psql delivery_app -c "CREATE USER cardapio_user WITH ENCRYPTED PASSWORD 'sua_senha';"
+psql delivery_app -c "GRANT ALL PRIVILEGES ON DATABASE delivery_app TO cardapio_user;"
 ```
 
-## 🏗️ Estrutura do Projeto
+**Opção C: Supabase (Nuvem)**
+1. Crie projeto no [Supabase](https://supabase.com)
+2. Use a string de conexão no `.env.local`
 
-```
-delivery-app/
-├── app/
-│   ├── globals.css          # Estilos globais
-│   ├── layout.tsx           # Layout principal
-│   └── page.tsx             # Página inicial
-├── components/              # Componentes reutilizáveis
-│   ├── Cart.tsx            # Carrinho de compras
-│   ├── CustomizeModal.tsx  # Modal de personalização
-│   ├── Notification.tsx    # Notificações
-│   ├── Footer.tsx          # Rodapé
-│   └── LoadingSpinner.tsx  # Spinner de carregamento
-├── lib/                     # Utilitários e configurações
-├── public/                  # Arquivos estáticos
-├── env.local.example        # Exemplo de variáveis de ambiente
-├── .env.local              # Suas variáveis de ambiente (não commitado)
-├── package.json             # Dependências do projeto
-├── tailwind.config.js       # Configuração do Tailwind
-└── tsconfig.json           # Configuração do TypeScript
+#### **3. Setup automático do banco**
+```bash
+# Criar tabelas e migrar dados
+npm run db:setup
 ```
 
-## 🎨 Design System
-
-### Cores
-- **Primary**: Laranja (#ed7516) - Cor principal da marca
-- **Secondary**: Cinza (#64748b) - Cor secundária
-- **Background**: Cinza claro (#f8fafc) - Fundo da aplicação
-
-### Tipografia
-- **Fonte**: Inter (Google Fonts)
-- **Pesos**: 300, 400, 500, 600, 700
-
-### Componentes
-- **Cards**: Produtos com informações detalhadas
-- **Botões**: Primário, secundário e outline
-- **Inputs**: Barra de pesquisa e formulários
-- **Modais**: Personalização e carrinho
-- **Ícones**: Lucide React
-
-## 📱 Funcionalidades
-
-### Página Inicial
-- **Header**: Logo e navegação
-- **Busca**: Campo de pesquisa funcional
-- **Categorias**: Filtros por tipo de comida
-- **Produtos**: Grid com cards detalhados
-- **Carrinho**: Sidebar deslizante
-- **Notificações**: Feedback visual
-- **Footer**: Links e informações
-
-### Modal de Personalização
-- **Informações do Produto**: Imagem, nome, descrição e preço
-- **Seletor de Quantidade**: Botões +/- com input numérico
-- **Lista de Ingredientes**: Checkboxes para remover ingredientes
-- **Adicionais**: Checkboxes com preços para extras
-- **Observações Especiais**: Campo de texto livre
-- **Cálculo Dinâmico**: Total atualizado em tempo real
-
-### Sistema de Filtros
-- **Filtro por Categoria**: Pizzas, Hambúrgueres, Massas, etc.
-- **Busca Inteligente**: Por nome, descrição ou ingredientes
-- **Contadores**: Número de produtos por categoria
-- **Estado Vazio**: Mensagem quando nenhum produto é encontrado
-
-### Carrinho Inteligente
-- **Produtos Personalizados**: Com detalhes de customização
-- **Adicionais**: Listados com preços
-- **Observações**: Especiais exibidas
-- **Quantidade**: Controles +/- para cada item
-- **Total Dinâmico**: Calculado automaticamente
-
-### Interatividade
-- **Busca**: Campo de pesquisa funcional
-- **Filtros**: Seleção por categorias
-- **Carrinho**: Adicionar/remover produtos
-- **Personalização**: Modal completo para customizar
-- **Notificações**: Feedback ao adicionar itens
-- **Responsividade**: Adaptação para mobile
-
-## 🔧 Scripts Disponíveis
-
-- `npm run dev` - Executa o servidor de desenvolvimento
-- `npm run build` - Gera a build de produção
-- `npm run start` - Executa a aplicação em produção
-- `npm run lint` - Executa o linter
-
-## 🏪 Sistema Multi-Tenant para Estabelecimentos
-
-### 🌐 Estrutura de URLs
-- **Loja Pública**: `/loja/[slug]` - Interface do consumidor final
-- **Dashboard Privado**: `/dashboard/[slug]` - Painel administrativo do lojista
-- **Login Lojista**: `/login/lojista` - Autenticação para proprietários
-- **Exemplo**: 
-  - Cliente: `https://app.com/loja/boteco-do-joao`
-  - Admin: `https://app.com/dashboard/boteco-do-joao`
-
-### 🔐 Controle de Acesso
-- **Middleware de Proteção**: Protege rotas `/dashboard/*` automaticamente
-- **Autenticação por Loja**: Cada loja tem seu próprio sistema de login
-- **Roles de Usuário**: Cliente, Lojista, Manager, Admin
-- **Session Management**: JWT tokens com validação por slug
-
-### 📊 Configuração por Loja
-- **Arquivo JSON**: `config/stores/[slug].json` para cada estabelecimento
-- **Configurações Dinâmicas**: Cores, logo, horários, entrega, pagamentos
-- **Hook useStoreConfig**: Carregamento e aplicação automática de configurações
-- **CSS Dinâmico**: Variáveis CSS aplicadas em tempo real
-- **API REST**: `/api/stores/[slug]/config` para CRUD de configurações
-
-### 🎨 Personalização Visual
-- **Cores Personalizáveis**: Primary, secondary, background, text, accent
-- **Logo e Favicon**: Upload e aplicação automática
-- **Banner Promocional**: Imagem de destaque na loja
-- **CSS Dinâmico**: Variáveis CSS aplicadas automaticamente
-- **Preview em Tempo Real**: Mudanças refletidas instantaneamente
-
-### 🛠️ Dashboard Administrativo
-- **Layout Responsivo**: Sidebar colapsável com navegação
-- **Visão Geral**: Métricas, vendas, pedidos recentes
-- **Gestão de Produtos**: CRUD completo com upload de imagens
-- **Configurações**: Visual, entrega, pagamento, horários
-- **Analytics**: Relatórios de vendas e performance
-- **Gestão de Pedidos**: Status em tempo real
-
-### 📱 Interface da Loja
-- **Tema Dinâmico**: Carregamento automático das configurações da loja
-- **Status da Loja**: Verificação de horário de funcionamento
-- **Cardápio Personalizado**: Produtos, categorias e preços específicos
-- **Informações de Entrega**: Taxas, raio, tempo estimado
-- **Integração com WhatsApp**: Templates personalizados
-
-> 📁 Veja `plano_dashboard_multi_tenant.md` para documentação completa do sistema
-
-## 🐛 Correções Realizadas
-
-### v1.0.2 - Remoção do Seletor de Tema Manual
-- **Header**: Removido botão de seleção de tema manual
-- **Theme System**: Preparado para sistema baseado em JSON por loja
-- **Estrutura**: Criada configuração exemplo em `config/theme-config.json`
-
-### v1.0.1 - Correção de Erros Críticos
-- **Cart.tsx**: Removida função `updateQuantity` duplicada que causava erro de compilação
-- **UserProfile.tsx**: Adicionado import faltante do componente `Heart` do lucide-react
-- **Compilação**: Todos os erros de TypeScript foram corrigidos
-- **Tela de Perfil**: Agora funciona corretamente sem erros
-
-## 🌟 Funcionalidades Implementadas
-
-### ✅ Sistema Base
-- [x] ✅ Sistema de autenticação completo
-- [x] ✅ Login e registro de usuários
-- [x] ✅ Proteção de checkout
-- [x] ✅ Gerenciamento de perfil
-
-### ✅ Sistema Multi-Tenant
-- [x] ✅ Estrutura de rotas por loja (/loja/[slug], /dashboard/[slug])
-- [x] ✅ Middleware de proteção de rotas
-- [x] ✅ Sistema de configuração JSON por loja
-- [x] ✅ Hook useStoreConfig para gerenciamento dinâmico
-- [x] ✅ Dashboard administrativo completo
-- [x] ✅ Interface pública personalizada por loja
-- [x] ✅ Sistema de autenticação para lojistas
-- [x] ✅ API REST para configurações de loja
-
-### 🚧 Próximas Funcionalidades
-- [ ] CRUD completo de produtos no dashboard
-- [ ] Interface de configurações visuais
-- [ ] Sistema de upload de imagens
-- [ ] Configurações operacionais (horários, entrega)
-- [ ] Gestão de pedidos em tempo real
-- [ ] Analytics e relatórios
-- [ ] Integração com banco de dados
-- [ ] Sistema de pagamento com Stripe
-- [ ] Testes unitários e integração
-- [ ] Sistema de cupons e promoções
-- [ ] Notificações push
-- [ ] Geolocalização
-- [ ] Avaliações e comentários
-
-## 🧪 Como Testar o Sistema Multi-Tenant
-
-### 1. **Iniciar o Servidor**
+#### **4. Iniciar aplicação**
 ```bash
 npm run dev
 ```
 
-### 2. **Testar a Loja Pública**
-Acesse: `http://localhost:3000/loja/boteco-do-joao`
-- Visualize o cardápio personalizado
-- Teste o sistema de busca e filtros
-- Observe as cores e visual personalizados
-- Verifique o status da loja (aberta/fechada)
+🎉 **Pronto!** Acesse [http://localhost:3000](http://localhost:3000)
 
-### 3. **Testar o Dashboard Administrativo**
-1. Acesse: `http://localhost:3000/login/lojista`
-2. Use as credenciais de demo:
-   - **Email**: admin@boteco.com
-   - **Senha**: 123456
-   - **Slug**: boteco-do-joao
-3. Explore o dashboard em: `http://localhost:3000/dashboard/boteco-do-joao`
+---
 
-### 4. **Testar as APIs**
+## 👤 **Usuários de Teste**
+
+Após o setup, você terá estes usuários disponíveis:
+
+| Tipo | Email | Senha | Acesso |
+|------|-------|-------|--------|
+| 🔑 **Super Admin** | `superadmin@cardap.io` | `admin123` | [/login/super-admin](http://localhost:3000/login/super-admin) |
+| 👑 **Dev Master** | `dev@cardap.io` | `dev123456` | [/login/super-admin](http://localhost:3000/login/super-admin) |
+| 🏪 **Lojista** | `admin@boteco.com` | `123456` | [/login/lojista](http://localhost:3000/login/lojista) |
+| 👤 **Cliente** | `cliente@teste.com` | `123456` | [/login](http://localhost:3000/login) |
+
+### **🧪 Criar Usuários Adicionais**
 ```bash
-# Buscar configurações da loja
-curl http://localhost:3000/api/stores/boteco-do-joao/config
+# Criar usuário master para desenvolvimento
+npm run create-dev-master
 
-# Atualizar configurações (exemplo: mudar cor primária)
-curl -X PUT http://localhost:3000/api/stores/boteco-do-joao/config \
-  -H "Content-Type: application/json" \
-  -d '{"branding": {"primaryColor": "#ff6b35"}}'
+# Testar fluxo completo + criar usuários de teste
+npm run test-auth
 ```
 
-### 5. **Criar Nova Loja**
-1. Copie `config/stores/boteco-do-joao.json` para `config/stores/sua-loja.json`
-2. Altere o slug e configurações
-3. Acesse `/loja/sua-loja` e `/dashboard/sua-loja`
+### **🏪 URLs da Loja Demo**
+- **Loja Pública:** [/store/boteco-do-joao](http://localhost:3000/store/boteco-do-joao)
+- **Dashboard:** [/dashboard/boteco-do-joao](http://localhost:3000/dashboard/boteco-do-joao)
 
-## 📚 Documentação
+---
 
-### **Para Usuários (Proprietários de Loja):**
-- 🚀 **[Guia de Início](README_START.md)** - Como criar e configurar sua loja
-- 🎨 **[Personalização Visual](README_START.md#-personalização-visual)** - Cores, logo e branding
-- 🍔 **[Gestão de Produtos](README_START.md#-gestão-de-produtos-e-cardápio)** - Cardápio e categorias
-- 🚚 **[Configurações de Entrega](README_START.md#-configurações-de-entrega)** - Áreas e taxas
+## 📊 **Estrutura do Projeto**
 
-### **Para Desenvolvedores:**
-- 🏗️ **[Arquitetura Multi-Tenant](plano_dashboard_multi_tenant.md)** - Estrutura técnica
-- 🚀 **[Deploy em Produção](DEPLOY_MULTI_TENANT.md)** - Guia de deploy
-- 🧪 **[Testes e APIs](README.md#-como-testar-o-sistema-multi-tenant)** - Endpoints e testes
+```
+delivery-app/
+├── 📁 app/                    # Next.js App Router
+│   ├── (api)/api/            # API Routes
+│   ├── (auth)/               # Páginas de autenticação
+│   ├── (dashboard)/          # Dashboard administrativo
+│   ├── (store)/              # Interface pública das lojas
+│   └── (superadmin)/         # Painel super admin
+├── 📁 components/            # Componentes reutilizáveis
+├── 📁 lib/                   # Utilities e configurações
+│   ├── generated/prisma/     # Cliente Prisma gerado
+│   ├── auth.ts              # Configuração NextAuth
+│   └── db.ts                # Conexão banco de dados
+├── 📁 prisma/               # Schema e migrations
+├── 📁 scripts/              # Scripts de setup e migração
+├── 📁 types/                # Definições TypeScript
+├── 📁 config/               # Configurações das lojas
+└── 📁 data/                 # Dados para migração
+```
 
-## 📄 Licença
+---
+
+## 🗄️ **Arquitetura do Banco de Dados**
+
+### **📋 Principais Tabelas**
+
+| Tabela | Descrição | Relacionamentos |
+|--------|-----------|----------------|
+| `users` | Usuários do sistema | Lojas, Pedidos, Estoque |
+| `stores` | Lojas (multi-tenant) | Produtos, Pedidos, Clientes |
+| `products` | Produtos do cardápio | Categoria, Estoque, Pedidos |
+| `categories` | Categorias de produtos | Produtos |
+| `inventory` | Controle de estoque | Produtos, Movimentações |
+| `stock_movements` | Movimentações de estoque | Produtos, Usuários |
+| `customers` | Clientes por loja | Pedidos, Usuários |
+| `orders` | Pedidos realizados | Clientes, Itens |
+| `order_items` | Itens dos pedidos | Pedidos, Produtos |
+
+### **🔐 Sistema de Roles**
+- **SUPER_ADMIN:** Controle total, gestão de todas as lojas
+- **ADMIN:** Lojista, gestão da própria loja
+- **MANAGER:** Gerente da loja
+- **EMPLOYEE:** Funcionário
+- **CLIENTE:** Consumidor final
+
+---
+
+## 🎨 **Personalização por Loja**
+
+Cada loja pode personalizar:
+- 🎨 **Cores:** Primary, secondary, accent
+- 🖼️ **Logo e Favicon**
+- 📝 **Informações de contato**
+- ⏰ **Horários de funcionamento**  
+- 🚚 **Configurações de entrega**
+- 💳 **Métodos de pagamento**
+- 🍔 **Cardápio e produtos**
+
+---
+
+## 📱 **Funcionalidades da Interface**
+
+### **🏪 Loja Pública**
+- ✅ Cardápio personalizado por loja
+- ✅ Sistema de busca e filtros
+- ✅ Carrinho inteligente com customizações
+- ✅ Modal de personalização de produtos
+- ✅ Notificações de ações
+- ✅ Tema dinâmico por loja
+- ✅ Status de funcionamento (aberto/fechado)
+
+### **📊 Dashboard Administrativo**
+- ✅ Visão geral com métricas
+- ✅ Gestão de produtos e categorias
+- ✅ Controle de estoque em tempo real
+- ✅ Gerenciamento de pedidos
+- ✅ Cadastro de clientes
+- ✅ Configurações da loja
+- ✅ Relatórios de vendas
+- ✅ Interface responsiva
+
+### **👑 Painel Super Admin**
+- ✅ Dashboard centralizado
+- ✅ Gestão de todas as lojas
+- ✅ Controle de usuários lojistas
+- ✅ Analytics consolidadas
+- ✅ Configurações globais
+
+---
+
+## 🛠️ **Scripts Disponíveis**
+
+### **Desenvolvimento**
+```bash
+npm run dev          # Servidor de desenvolvimento
+npm run build        # Build de produção
+npm run start        # Servidor de produção
+npm run lint         # Linter ESLint
+```
+
+### **Banco de Dados**
+```bash
+npm run db:setup     # Setup completo (criar tabelas + migrar dados)
+npm run db:migrate   # Apenas migrar dados dos JSONs
+npm run db:reset     # Reset completo e migração
+npm run db:studio    # Interface visual do banco (Prisma Studio)
+```
+
+### **Usuários e Autenticação**
+```bash
+npm run create-dev-master  # Criar usuário master para desenvolvimento
+npm run test-auth          # Testar fluxo de autenticação completo
+```
+
+### **Demo**
+```bash
+npm run demo         # Mostrar URLs e dados de teste
+```
+
+---
+
+## 🚀 **Deploy em Produção**
+
+### **Vercel (Recomendado)**
+```bash
+# 1. Conectar repositório no Vercel
+# 2. Configurar variáveis de ambiente
+# 3. Deploy automático
+
+# Variáveis necessárias:
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="sua-chave-secreta"
+NEXTAUTH_URL="https://seu-dominio.vercel.app"
+```
+
+### **Banco de Dados**
+- **Supabase:** Gratuito até 500MB
+- **Railway:** PostgreSQL gerenciado
+- **PlanetScale:** MySQL serverless
+- **Neon:** PostgreSQL serverless
+
+---
+
+## 📈 **Roadmap de Desenvolvimento**
+
+### **✅ Fase 1: Infraestrutura (CONCLUÍDA)**
+- ✅ Setup Prisma + PostgreSQL
+- ✅ Autenticação com NextAuth
+- ✅ Sistema multi-tenant
+- ✅ Migração de dados
+- ✅ Schema completo do banco
+
+### **🚧 Fase 2: Controle de Estoque (EM DESENVOLVIMENTO)**
+- 🔄 APIs de estoque (CRUD)
+- 🔄 Interface de gestão no dashboard
+- 🔄 Alertas de estoque baixo
+- 🔄 Relatórios de movimentação
+
+### **📅 Fase 3: Gestão de Clientes**
+- 📋 CRUD completo de clientes
+- 📋 Histórico de pedidos por cliente
+- 📋 Segmentação por loja
+- 📋 Sistema de preferências
+
+### **📅 Fase 4: Painel Super Admin**
+- 📋 Dashboard centralizado
+- 📋 Gestão de lojistas
+- 📋 Analytics consolidadas
+- 📋 Configurações globais
+
+### **📅 Fase 5: Funcionalidades Avançadas**
+- 📋 Sistema de pagamento (Stripe)
+- 📋 Notificações push
+- 📋 Geolocalização
+- 📋 Sistema de cupons
+- 📋 Programa de fidelidade
+- 📋 Analytics avançadas
+
+---
+
+## 🧪 **Testes**
+
+### **Executar Testes**
+```bash
+npm run test         # Testes unitários
+npm run test:e2e     # Testes end-to-end
+npm run test:watch   # Modo watch
+```
+
+### **Testar Funcionalidades**
+1. **Loja Pública:** Navegar no cardápio, adicionar ao carrinho
+2. **Dashboard:** Login como lojista, gerenciar produtos
+3. **Super Admin:** Login como admin, visualizar todas as lojas
+4. **Banco de Dados:** `npm run db:studio` para ver dados
+
+---
+
+## 🤝 **Contribuição**
+
+### **Como Contribuir**
+1. Fork o projeto
+2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
+3. Commit: `git commit -m 'Adiciona nova funcionalidade'`
+4. Push: `git push origin feature/nova-funcionalidade`
+5. Abra um Pull Request
+
+### **Padrões de Código**
+- **TypeScript:** Código 100% tipado
+- **ESLint:** Seguir regras configuradas
+- **Prettier:** Formatação automática
+- **Commits:** Conventional Commits
+
+---
+
+## 📚 **Documentação Adicional**
+
+- 📖 **[Configuração do Banco](CONFIGURAR_BANCO.md)** - Setup detalhado PostgreSQL
+- 🚀 **[Guia de Deploy](DEPLOY.md)** - Deploy em produção
+- 🏗️ **[Arquitetura](ARQUITETURA.md)** - Detalhes técnicos
+- 🧪 **[Testes](TESTES.md)** - Guia de testes
+- 📊 **[Fase 1 Concluída](FASE1_CONCLUIDA.md)** - Resumo da implementação
+
+---
+
+## 🆘 **Suporte e Problemas**
+
+### **Problemas Comuns**
+- **Erro de banco:** Verificar credenciais no `.env.local`
+- **Erro de build:** Executar `npm run build` para diagnóstico
+- **Erro de auth:** Verificar `NEXTAUTH_SECRET` configurado
+
+### **Logs e Debug**
+```bash
+# Ver logs do banco
+docker-compose logs postgres
+
+# Debug do Prisma
+DEBUG=prisma:* npm run dev
+
+# Verificar variáveis
+echo $DATABASE_URL
+```
+
+### **Contato**
+- 🐛 **Issues:** Abra uma issue no GitHub
+- 💬 **Discussões:** Use GitHub Discussions
+- 📧 **Email:** suporte@cardap.io
+
+---
+
+## 📄 **Licença**
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## 🤝 Contribuição
+---
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## 🙏 **Agradecimentos**
 
-## 📞 Suporte
+- Next.js team pelo framework incrível
+- Prisma team pela excelente DX
+- Vercel pela plataforma de deploy
+- Comunidade open source
 
-Se você tiver alguma dúvida ou problema, abra uma issue no repositório. 
+---
+
+<div align="center">
+
+**🍕 Feito com ❤️ para revolucionar o delivery de comida**
+
+[⭐ Dar uma estrela](https://github.com/seu-usuario/delivery-app) • [🐛 Reportar Bug](https://github.com/seu-usuario/delivery-app/issues) • [✨ Solicitar Feature](https://github.com/seu-usuario/delivery-app/issues)
+
+</div>

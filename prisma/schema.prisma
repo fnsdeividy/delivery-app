@@ -1,0 +1,402 @@
+// Schema Prisma para Cardap.IO - Sistema Multi-tenant de Delivery
+// Baseado na arquitetura limpa e tipos TypeScript existentes
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== AUTENTICAÇÃO E USUÁRIOS =====
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  
+  // Campos específicos do sistema
+  role          UserRole  @default(CLIENTE)
+  active        Boolean   @default(true)
+  phone         String?
+  
+  // Multi-tenant
+  storeSlug     String?
+  store         Store?    @relation(fields: [storeSlug], references: [slug])
+  
+  // Relacionamentos
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  customerInfo  Customer[]
+  stockMovements StockMovement[]
+  
+  // Auditoria
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLogin     DateTime?
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN      // Lojista/Proprietário
+  MANAGER    // Gerente da loja
+  EMPLOYEE   // Funcionário
+  CLIENTE    // Cliente final
+}
+
+// ===== LOJAS E CONFIGURAÇÕES =====
+
+model Store {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  
+  // Configurações em JSON (baseado no StoreConfig)
+  config      Json     @default("{}")
+  
+  // Status
+  active      Boolean  @default(true)
+  
+  // Relacionamentos
+  users       User[]
+  categories  Category[]
+  products    Product[]
+  orders      Order[]
+  customers   Customer[]
+  inventory   Inventory[]
+  
+  // Auditoria
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("stores")
+}
+
+// ===== PRODUTOS E CARDÁPIO =====
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  order       Int       @default(0)
+  active      Boolean   @default(true)
+  image       String?
+  
+  // Multi-tenant
+  storeSlug   String
+  store       Store     @relation(fields: [storeSlug], references: [slug], onDelete: Cascade)
+  
+  // Relacionamentos
+  products    Product[]
+  
+  // Auditoria
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([storeSlug, name])
+  @@map("categories")
+}
+
+model Product {
+  id                  String              @id @default(cuid())
+  name                String
+  description         String
+  price               Decimal             @db.Decimal(10, 2)
+  originalPrice       Decimal?            @db.Decimal(10, 2)
+  image               String
+  active              Boolean             @default(true)
+  preparationTime     Int?                // em minutos
+  
+  // Relacionamentos
+  categoryId          String
+  category            Category            @relation(fields: [categoryId], references: [id])
+  
+  // Multi-tenant
+  storeSlug           String
+  store               Store               @relation(fields: [storeSlug], references: [slug], onDelete: Cascade)
+  
+  // Dados estruturados
+  ingredients         ProductIngredient[]
+  addons              ProductAddon[]
+  nutritionalInfo     Json?               // NutritionalInfo
+  tags                String[]
+  tagColor            String              @default("#ed7516")
+  
+  // Estoque
+  inventory           Inventory?
+  stockMovements      StockMovement[]
+  
+  // Relacionamentos de pedidos
+  orderItems          OrderItem[]
+  
+  // Auditoria
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@unique([storeSlug, name])
+  @@map("products")
+}
+
+model ProductIngredient {
+  id          String   @id @default(cuid())
+  name        String
+  included    Boolean  @default(true)
+  removable   Boolean  @default(true)
+  
+  // Relacionamento
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("product_ingredients")
+}
+
+model ProductAddon {
+  id          String   @id @default(cuid())
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  category    String?
+  maxQuantity Int?
+  active      Boolean  @default(true)
+  
+  // Relacionamento
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("product_addons")
+}
+
+// ===== CONTROLE DE ESTOQUE =====
+
+model Inventory {
+  id              String          @id @default(cuid())
+  quantity        Int             @default(0)
+  minStock        Int             @default(5)    // Alerta de estoque baixo
+  maxStock        Int?                          // Estoque máximo
+  
+  // Relacionamentos
+  productId       String          @unique
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Multi-tenant
+  storeSlug       String
+  store           Store           @relation(fields: [storeSlug], references: [slug], onDelete: Cascade)
+  
+  // Movimentações
+  movements       StockMovement[]
+  
+  // Auditoria
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("inventory")
+}
+
+model StockMovement {
+  id            String              @id @default(cuid())
+  type          StockMovementType
+  quantity      Int
+  reason        String?
+  reference     String?             // ID de pedido, fornecedor, etc.
+  
+  // Relacionamentos
+  productId     String
+  product       Product             @relation(fields: [productId], references: [id])
+  
+  inventoryId   String
+  inventory     Inventory           @relation(fields: [inventoryId], references: [id])
+  
+  // Usuário responsável
+  userId        String?
+  user          User?               @relation(fields: [userId], references: [id])
+  
+  // Auditoria
+  createdAt     DateTime            @default(now())
+
+  @@map("stock_movements")
+}
+
+enum StockMovementType {
+  ENTRADA       // Compra, reposição
+  SAIDA         // Venda, perda, uso
+  AJUSTE        // Correção de estoque
+  DEVOLUCAO     // Devolução de produto
+}
+
+// ===== CLIENTES =====
+
+model Customer {
+  id            String   @id @default(cuid())
+  name          String
+  email         String?
+  phone         String
+  
+  // Endereço principal (JSON)
+  address       Json?    // Address interface
+  
+  // Multi-tenant
+  storeSlug     String
+  store         Store    @relation(fields: [storeSlug], references: [slug], onDelete: Cascade)
+  
+  // Relacionamentos
+  orders        Order[]
+  
+  // Usuário cadastrado (opcional)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  
+  // Auditoria
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([storeSlug, phone])
+  @@map("customers")
+}
+
+// ===== PEDIDOS =====
+
+model Order {
+  id                    String      @id @default(cuid())
+  orderNumber           String      // Número do pedido amigável
+  
+  // Valores
+  subtotal              Decimal     @db.Decimal(10, 2)
+  deliveryFee           Decimal     @db.Decimal(10, 2) @default(0)
+  discount              Decimal     @db.Decimal(10, 2) @default(0)
+  total                 Decimal     @db.Decimal(10, 2)
+  
+  // Status e tipo
+  status                OrderStatus @default(RECEIVED)
+  type                  OrderType   @default(DELIVERY)
+  
+  // Pagamento
+  paymentMethod         String
+  paymentStatus         PaymentStatus @default(PENDING)
+  
+  // Relacionamentos
+  customerId            String
+  customer              Customer    @relation(fields: [customerId], references: [id])
+  
+  userId                String?     // Cliente logado (opcional)
+  user                  User?       @relation(fields: [userId], references: [id])
+  
+  // Multi-tenant
+  storeSlug             String
+  store                 Store       @relation(fields: [storeSlug], references: [slug], onDelete: Cascade)
+  
+  // Itens do pedido
+  items                 OrderItem[]
+  
+  // Dados adicionais
+  notes                 String?
+  estimatedDeliveryTime DateTime?
+  deliveredAt           DateTime?
+  
+  // Auditoria
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([storeSlug, orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  name            String   // Nome do produto no momento do pedido
+  quantity        Int
+  price           Decimal  @db.Decimal(10, 2) // Preço no momento do pedido
+  
+  // Relacionamentos
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  
+  // Customizações (JSON)
+  customizations  Json     @default("{}")  // removedIngredients, addons, observations
+  
+  // Auditoria
+  createdAt       DateTime @default(now())
+
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  RECEIVED      // Pedido recebido
+  CONFIRMED     // Confirmado pela loja
+  PREPARING     // Em preparo
+  READY         // Pronto para entrega/retirada
+  DELIVERING    // Saiu para entrega
+  DELIVERED     // Entregue
+  CANCELLED     // Cancelado
+}
+
+enum OrderType {
+  DELIVERY      // Entrega
+  PICKUP        // Retirada
+}
+
+enum PaymentStatus {
+  PENDING       // Aguardando pagamento
+  PAID          // Pago
+  FAILED        // Falhou
+  REFUNDED      // Estornado
+}
+
+// ===== ÍNDICES PARA PERFORMANCE =====
+
+// Índices para consultas frequentes
+// Os índices são criados automaticamente pelo Prisma para:
+// - Chaves primárias (@id)
+// - Campos únicos (@unique)
+// - Chaves estrangeiras (relations)
+
+// Índices customizados podem ser adicionados conforme necessário

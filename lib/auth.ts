@@ -1,10 +1,11 @@
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
-import { readFile } from 'fs/promises'
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { join } from 'path'
+import { db } from './db'
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -20,18 +21,21 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Carregar usuários
-          const usersPath = join(process.cwd(), 'data', 'users.json')
-          const usersData = await readFile(usersPath, 'utf-8')
-          const users = JSON.parse(usersData)
+          // Buscar usuário no banco de dados
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+            include: { store: true }
+          })
 
-          // Encontrar usuário
-          const user = users.find((u: any) => u.email === credentials.email)
           if (!user) {
             throw new Error('Usuário não encontrado')
           }
 
           // Verificar senha
+          if (!user.password) {
+            throw new Error('Usuário deve ter senha configurada')
+          }
+
           const isValidPassword = await bcrypt.compare(credentials.password, user.password)
           if (!isValidPassword) {
             throw new Error('Senha incorreta')
@@ -42,11 +46,11 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Validações por role
-          if (credentials.userType === 'lojista' && user.role !== 'admin') {
+          if (credentials.userType === 'lojista' && user.role !== 'ADMIN') {
             throw new Error('Acesso negado - apenas lojistas')
           }
 
-          if (credentials.userType === 'super-admin' && user.role !== 'super_admin') {
+          if (credentials.userType === 'super-admin' && user.role !== 'SUPER_ADMIN') {
             throw new Error('Acesso negado - apenas super admins')
           }
 
@@ -56,12 +60,18 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
+          // Atualizar último login
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() }
+          })
+
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
+            name: user.name || user.email,
             role: user.role,
-            storeSlug: user.storeSlug || null,
+            storeSlug: user.storeSlug || undefined,
             active: user.active
           }
         } catch (error) {
@@ -113,10 +123,10 @@ export function canAccessStore(session: any, storeSlug: string): boolean {
   if (!session?.user) return false
   
   // Super admin pode acessar qualquer loja
-  if (session.user.role === 'super_admin') return true
+  if (session.user.role === 'SUPER_ADMIN') return true
   
   // Lojista só pode acessar sua própria loja
-  if (session.user.role === 'admin') {
+  if (session.user.role === 'ADMIN') {
     return session.user.storeSlug === storeSlug
   }
   
@@ -125,11 +135,11 @@ export function canAccessStore(session: any, storeSlug: string): boolean {
 
 export function getRedirectUrl(role: string, storeSlug?: string): string {
   switch (role) {
-    case 'super_admin':
+    case 'SUPER_ADMIN':
       return '/admin'
-    case 'admin':
+    case 'ADMIN':
       return `/dashboard/${storeSlug}`
-    case 'cliente':
+    case 'CLIENTE':
       return '/'
     default:
       return '/'

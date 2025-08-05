@@ -21,7 +21,7 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     if (status === 'loading') return // Ainda carregando
 
-    if (!session || session.user.role !== 'super_admin') {
+    if (!session || session.user.role !== 'SUPER_ADMIN') {
       router.push('/login/super-admin')
       return
     }
@@ -35,7 +35,7 @@ export default function SuperAdminDashboard() {
     )
   }
 
-  if (!session || session.user.role !== 'super_admin') {
+  if (!session || session.user.role !== 'SUPER_ADMIN') {
     return null // O useEffect já está redirecionando
   }
 
