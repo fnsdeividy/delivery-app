@@ -257,8 +257,8 @@ export default function DashboardOverview() {
                 R$ {stats.todaySales.toFixed(2).replace('.', ',')}
               </p>
             </div>
-            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl">
-              <DollarSign className="h-7 w-7 text-green-600" />
+            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl border border-emerald-200">
+              <DollarSign className="h-7 w-7 text-emerald-600" />
             </div>
           </div>
           <div className="mt-6 flex items-center space-x-2 text-sm">
@@ -278,7 +278,7 @@ export default function DashboardOverview() {
               <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pedidos Hoje</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.todayOrders}</p>
             </div>
-            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl">
+            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl border border-blue-200">
               <ShoppingBag className="h-7 w-7 text-blue-600" />
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function DashboardOverview() {
               <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Tempo Preparo</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.preparationTime}min</p>
             </div>
-            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl">
+            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-orange-50 to-amber-100 rounded-2xl border border-orange-200">
               <Package className="h-7 w-7 text-orange-600" />
             </div>
           </div>
@@ -312,7 +312,7 @@ export default function DashboardOverview() {
               <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Produtos Ativos</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalProducts}</p>
             </div>
-            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-purple-100 to-violet-100 rounded-2xl">
+            <div className="dashboard-metric-icon p-4 bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl border border-purple-200">
               <Package className="h-7 w-7 text-purple-600" />
             </div>
           </div>
@@ -413,7 +413,7 @@ export default function DashboardOverview() {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                       <Users className="h-6 w-6 text-white" />
                     </div>
                     <div>
@@ -543,7 +543,7 @@ export default function DashboardOverview() {
               className="dashboard-quick-action group"
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
                   <Package className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -559,7 +559,7 @@ export default function DashboardOverview() {
                 className="dashboard-quick-action group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                  <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300">
                     <ShoppingBag className="h-6 w-6 text-white" />
                   </div>
                   <div>
