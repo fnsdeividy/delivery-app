@@ -35,10 +35,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const slug = pathParts[2]
   
   // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig = pathname !== '/dashboard' && pathname !== '/dashboard/gerenciar-lojas'
-  const { config, loading } = shouldLoadStoreConfig ? useStoreConfig(slug) : { config: null, loading: false, error: null }
+  const shouldLoadStoreConfig = pathname !== '/dashboard' && pathname !== '/dashboard/gerenciar-lojas' && pathname !== '/dashboard/meus-painel'
+  
+  // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
+  const { config, loading, error } = useStoreConfig(shouldLoadStoreConfig ? slug : '')
 
-  if (loading && shouldLoadStoreConfig) {
+  // Mostrar loading apenas quando estamos carregando configurações de uma loja específica
+  if (loading && shouldLoadStoreConfig && slug) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />
@@ -47,7 +50,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Permitir acesso à página de gerenciar lojas e página raiz do dashboard mesmo sem slug válido
-  if (!config && pathname !== '/dashboard/gerenciar-lojas' && pathname !== '/dashboard') {
+  if (!config && shouldLoadStoreConfig && slug) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -58,7 +61,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
   }
 
-  const navigation = [
+  // Só criar navegação se tivermos um slug válido
+  const navigation = slug ? [
     {
       name: 'Gerenciar Lojas',
       href: '/dashboard/gerenciar-lojas',
@@ -122,10 +126,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
       ]
     }
-  ]
+  ] : []
 
-  // Para a página de gerenciar lojas e página raiz do dashboard, usar layout simplificado
-  if (pathname === '/dashboard/gerenciar-lojas' || pathname === '/dashboard') {
+         // Para a página de gerenciar lojas e página raiz do dashboard, usar layout simplificado
+       if (pathname === '/dashboard/gerenciar-lojas' || pathname === '/dashboard' || pathname === '/dashboard/meus-painel') {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header simples */}
@@ -182,7 +186,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <nav className="mt-6 px-3">
           <div className="space-y-1">
-            {navigation.map((item, index) => (
+            {navigation.length > 0 ? navigation.map((item, index) => (
               <div key={item.name}>
                 <a
                   href={item.href}
@@ -224,7 +228,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 )}
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-500">Navegação não disponível</p>
+              </div>
+            )}
           </div>
         </nav>
 

@@ -35,10 +35,11 @@ export default function DashboardPage() {
         router.push('/dashboard/gerenciar-lojas')
       } else if (userRole === 'ADMIN') {
         // Lojista vai para sua loja específica
-        const storeSlug = (session.user as any).storeSlug
+        const storeSlug = session.user.storeSlug
         if (storeSlug) {
           router.push(`/dashboard/${storeSlug}`)
         } else {
+          // Se não tem storeSlug, pode ser um lojista sem loja ainda
           router.push('/unauthorized')
         }
       } else {

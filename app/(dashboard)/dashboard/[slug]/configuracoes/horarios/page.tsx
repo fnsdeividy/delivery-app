@@ -9,20 +9,21 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../lib/store/useStoreConfig'
+import { useStoreConfig } from '../../../../../../lib/store/useStoreConfig'
 
 interface WorkingHours {
-  [key: string]: {
-    open: string
-    close: string
-    closed: boolean
-  }
+  monday: { open: string; close: string; closed: boolean }
+  tuesday: { open: string; close: string; closed: boolean }
+  wednesday: { open: string; close: string; closed: boolean }
+  thursday: { open: string; close: string; closed: boolean }
+  friday: { open: string; close: string; closed: boolean }
+  saturday: { open: string; close: string; closed: boolean }
+  sunday: { open: string; close: string; closed: boolean }
 }
 
 interface StoreSettings {
   workingHours: WorkingHours
   preparationTime: number
-  autoClose: boolean
   timezone: string
 }
 
@@ -45,7 +46,6 @@ export default function HorariosConfigPage() {
       sunday: { open: '08:00', close: '18:00', closed: true }
     },
     preparationTime: 25,
-    autoClose: true,
     timezone: 'America/Sao_Paulo'
   })
 
@@ -55,9 +55,44 @@ export default function HorariosConfigPage() {
       setSettings(prev => ({
         ...prev,
         preparationTime: config.settings.preparationTime || 25,
-        autoClose: config.settings.autoClose !== false,
-        timezone: config.settings.timezone || 'America/Sao_Paulo',
-        workingHours: config.settings.workingHours || prev.workingHours
+        timezone: config.schedule?.timezone || 'America/Sao_Paulo',
+        workingHours: config.schedule?.workingHours ? {
+          monday: {
+            open: config.schedule.workingHours.monday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.monday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.monday.open
+          },
+          tuesday: {
+            open: config.schedule.workingHours.tuesday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.tuesday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.tuesday.open
+          },
+          wednesday: {
+            open: config.schedule.workingHours.wednesday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.wednesday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.wednesday.open
+          },
+          thursday: {
+            open: config.schedule.workingHours.thursday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.thursday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.thursday.open
+          },
+          friday: {
+            open: config.schedule.workingHours.friday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.friday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.friday.open
+          },
+          saturday: {
+            open: config.schedule.workingHours.saturday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.saturday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.saturday.open
+          },
+          sunday: {
+            open: config.schedule.workingHours.sunday.hours[0]?.start || '08:00',
+            close: config.schedule.workingHours.sunday.hours[0]?.end || '18:00',
+            closed: !config.schedule.workingHours.sunday.open
+          }
+        } : prev.workingHours
       }))
     }
   }, [config])
@@ -81,7 +116,7 @@ export default function HorariosConfigPage() {
     '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
   ]
 
-  const handleDayToggle = (day: string) => {
+  const handleDayToggle = (day: keyof WorkingHours) => {
     setSettings(prev => ({
       ...prev,
       workingHours: {
@@ -94,7 +129,7 @@ export default function HorariosConfigPage() {
     }))
   }
 
-  const handleTimeChange = (day: string, field: 'open' | 'close', value: string) => {
+  const handleTimeChange = (day: keyof WorkingHours, field: 'open' | 'close', value: string) => {
     setSettings(prev => ({
       ...prev,
       workingHours: {
@@ -151,7 +186,8 @@ export default function HorariosConfigPage() {
 
   const getCurrentStatus = () => {
     const now = new Date()
-    const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' })
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const currentDay = dayNames[now.getDay()] as keyof WorkingHours
     const currentTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     
     const todayHours = settings.workingHours[currentDay]
@@ -274,12 +310,12 @@ export default function HorariosConfigPage() {
 
               <div className="space-y-4">
                 {daysOfWeek.map((day) => {
-                  const dayHours = settings.workingHours[day.key]
+                  const dayHours = settings.workingHours[day.key as keyof WorkingHours]
                   return (
                     <div key={day.key} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-3 min-w-0 flex-1">
                         <button
-                          onClick={() => handleDayToggle(day.key)}
+                          onClick={() => handleDayToggle(day.key as keyof WorkingHours)}
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                             dayHours.closed
                               ? 'border-red-300 bg-red-100'
@@ -299,7 +335,7 @@ export default function HorariosConfigPage() {
                         <div className="flex items-center space-x-2">
                           <select
                             value={dayHours.open}
-                            onChange={(e) => handleTimeChange(day.key, 'open', e.target.value)}
+                            onChange={(e) => handleTimeChange(day.key as keyof WorkingHours, 'open', e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                           >
                             {timeSlots.map((time) => (
@@ -309,7 +345,7 @@ export default function HorariosConfigPage() {
                           <span className="text-gray-500">até</span>
                           <select
                             value={dayHours.close}
-                            onChange={(e) => handleTimeChange(day.key, 'close', e.target.value)}
+                            onChange={(e) => handleTimeChange(day.key as keyof WorkingHours, 'close', e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                           >
                             {timeSlots.map((time) => (
@@ -391,22 +427,7 @@ export default function HorariosConfigPage() {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Fechamento Automático</label>
-                    <p className="text-xs text-gray-500">Fechar automaticamente fora do horário</p>
-                  </div>
-                  <button
-                    onClick={() => setSettings(prev => ({ ...prev, autoClose: !prev.autoClose }))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.autoClose ? 'bg-orange-500' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.autoClose ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </button>
-                </div>
+
               </div>
             </div>
 

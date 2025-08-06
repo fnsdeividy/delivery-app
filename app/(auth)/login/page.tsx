@@ -42,8 +42,8 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        // Redirecionar direto para o dashboard
-        router.push('/dashboard')
+        // Redirecionar para o painel do usuário
+        router.push('/dashboard/meus-painel')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login')
