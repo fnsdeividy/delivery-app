@@ -7,6 +7,11 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
+  // Permitir rotas de registro e API
+  if (pathname.startsWith('/register') || pathname.startsWith('/api/auth/register')) {
+    return NextResponse.next()
+  }
+  
   // Obter token JWT do NextAuth
   const token = await getToken({ 
     req: request, 

@@ -33,7 +33,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        userType: 'lojista', // Sempre lojista para dashboard
+        userType: 'lojista', // Para dashboard (ADMIN e SUPER_ADMIN)
         redirect: false
       })
 
@@ -42,8 +42,8 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        // Redirecionar para o painel do usuário
-        router.push('/dashboard/meus-painel')
+        // Redirecionar para o dashboard que fará o redirecionamento baseado no role
+        router.push('/dashboard')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login')

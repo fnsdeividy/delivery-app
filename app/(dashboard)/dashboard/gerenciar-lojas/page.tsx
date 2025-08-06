@@ -1,62 +1,54 @@
 'use client'
 
-import { Plus, Store, Edit, ExternalLink, Trash2 } from 'lucide-react'
+import { Edit, ExternalLink, Eye, Plus, Store, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface StoreData {
+  id: string
   slug: string
   name: string
   description: string
-  branding: {
-    primaryColor: string
-    secondaryColor: string
-    backgroundColor: string
-    textColor: string
-    accentColor: string
-    logo?: string
-  }
-  business: {
-    phone: string
-    email: string
-    address?: string
-    website?: string
-  }
+  active: boolean
   createdAt: string
+  updatedAt: string
+  _count?: {
+    users: number
+  }
 }
 
 export default function GerenciarLojas() {
   const router = useRouter()
   const [stores, setStores] = useState<StoreData[]>([])
+  const [loading, setLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    slug: '',
-    primaryColor: '#e53e3e',
-    secondaryColor: '#c53030',
-    backgroundColor: '#fff5f5',
-    textColor: '#1a202c',
-    accentColor: '#fc8181',
-    phone: '',
-    email: '',
-    address: '',
-    website: ''
+    slug: ''
   })
 
-  // Carregar lojas do localStorage
+  // Carregar lojas do banco de dados
   useEffect(() => {
-    const savedStores = localStorage.getItem('custom-stores')
-    if (savedStores) {
-      setStores(JSON.parse(savedStores))
+    const loadStores = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/stores')
+        if (response.ok) {
+          const data = await response.json()
+          setStores(data.stores || [])
+        } else {
+          console.error('Erro ao carregar lojas')
+        }
+      } catch (error) {
+        console.error('Erro ao carregar lojas:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [])
 
-  // Salvar lojas no localStorage
-  const saveStores = (newStores: StoreData[]) => {
-    localStorage.setItem('custom-stores', JSON.stringify(newStores))
-    setStores(newStores)
-  }
+    loadStores()
+  }, [])
 
   // Gerar slug automaticamente
   const generateSlug = (name: string) => {
@@ -80,446 +72,295 @@ export default function GerenciarLojas() {
       return
     }
 
-    const newStore: StoreData = {
-      slug,
-      name: formData.name,
-      description: formData.description,
-      branding: {
-        primaryColor: formData.primaryColor,
-        secondaryColor: formData.secondaryColor,
-        backgroundColor: formData.backgroundColor,
-        textColor: formData.textColor,
-        accentColor: formData.accentColor
-      },
-      business: {
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        website: formData.website
-      },
-      createdAt: new Date().toISOString()
-    }
-
-    // Criar configuração JSON completa
-    const storeConfig = {
-      slug: newStore.slug,
-      name: newStore.name,
-      description: newStore.description,
-      branding: newStore.branding,
-      business: newStore.business,
-      menu: {
-        categories: [
-          {
-            id: 'principais',
-            name: 'Pratos Principais',
-            description: 'Nossos pratos principais',
-            active: true
-          }
-        ],
-        products: [
-          {
-            id: 'produto-exemplo',
-            name: 'Produto Exemplo',
-            description: 'Este é um produto de exemplo. Edite ou remova conforme necessário.',
-            price: 19.90,
-            image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-            category: 'principais',
-            ingredients: ['Ingrediente 1', 'Ingrediente 2'],
-            tags: ['Novo'],
-            tagColor: 'blue',
-            active: true,
-            preparationTime: 20,
-            customizeIngredients: [],
-            addons: []
-          }
-        ]
-      },
-      delivery: {
-        enabled: true,
-        radius: 5,
-        fee: 5.00,
-        freeDeliveryMinimum: 30.00,
-        estimatedTime: 45,
-        areas: []
-      },
-      payments: {
-        pix: true,
-        cash: true,
-        card: true,
-        online: false,
-        integrations: {}
-      },
-      schedule: {
-        timezone: 'America/Sao_Paulo',
-        workingHours: {
-          monday: { open: false, hours: [] },
-          tuesday: { open: true, hours: [{ start: '18:00', end: '23:00' }] },
-          wednesday: { open: true, hours: [{ start: '18:00', end: '23:00' }] },
-          thursday: { open: true, hours: [{ start: '18:00', end: '23:00' }] },
-          friday: { open: true, hours: [{ start: '18:00', end: '23:30' }] },
-          saturday: { open: true, hours: [{ start: '18:00', end: '23:30' }] },
-          sunday: { open: true, hours: [{ start: '18:00', end: '23:00' }] }
-        },
-        closedMessage: 'Estamos fechados no momento. Horário de funcionamento: Terça a Domingo, 18h às 23h.',
-        specialDates: []
-      },
-      promotions: {
-        coupons: [],
-        loyaltyProgram: {
-          enabled: false,
-          pointsPerReal: 1,
-          pointsToReal: 100
-        }
-      },
-      settings: {
-        whatsappTemplate: `Olá! Gostaria de fazer um pedido na ${newStore.name}. 🍽️`,
-        preparationTime: 30,
-        orderNotifications: {
-          email: true,
-          whatsapp: true,
-          dashboard: true
-        }
-      }
-    }
-
     try {
-      // Salvar via API
-      const response = await fetch('/api/stores/create', {
+      const response = await fetch('/api/stores', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(storeConfig)
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          slug: slug
+        }),
       })
 
       if (response.ok) {
-        // Salvar no localStorage também
-        const updatedStores = [...stores, newStore]
-        saveStores(updatedStores)
+        // Recarregar lojas
+        const storesResponse = await fetch('/api/stores')
+        if (storesResponse.ok) {
+          const data = await storesResponse.json()
+          setStores(data.stores || [])
+        }
         
-        // Resetar formulário
+        // Limpar formulário e fechar modal
         setFormData({
           name: '',
           description: '',
-          slug: '',
-          primaryColor: '#e53e3e',
-          secondaryColor: '#c53030',
-          backgroundColor: '#fff5f5',
-          textColor: '#1a202c',
-          accentColor: '#fc8181',
-          phone: '',
-          email: '',
-          address: '',
-          website: ''
+          slug: ''
         })
-        
         setIsCreateModalOpen(false)
-        alert('Loja criada com sucesso!')
       } else {
-        alert('Erro ao criar loja. Salvando apenas localmente.')
-        const updatedStores = [...stores, newStore]
-        saveStores(updatedStores)
-        setIsCreateModalOpen(false)
+        const error = await response.json()
+        alert(`Erro ao criar loja: ${error.error}`)
       }
     } catch (error) {
       console.error('Erro ao criar loja:', error)
-      // Salvar apenas no localStorage em caso de erro
-      const updatedStores = [...stores, newStore]
-      saveStores(updatedStores)
-      setIsCreateModalOpen(false)
-      alert('Loja salva localmente. Verifique a conexão para sincronizar.')
+      alert('Erro ao criar loja. Tente novamente.')
     }
   }
 
-  // Excluir loja
-  const handleDeleteStore = (slug: string) => {
-    if (confirm('Tem certeza que deseja excluir esta loja?')) {
-      const updatedStores = stores.filter(store => store.slug !== slug)
-      saveStores(updatedStores)
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando lojas...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciar Lojas</h1>
-          <p className="text-gray-600">Crie e gerencie suas lojas de delivery</p>
-        </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Nova Loja
-        </button>
-      </div>
-
-      {/* Lista de lojas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Loja exemplo (Boteco do João) */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                <Store className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Boteco do João</h3>
-                <p className="text-sm text-gray-500">Loja de exemplo</p>
-              </div>
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Gerenciar Lojas</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Gerencie todas as lojas do sistema
+              </p>
             </div>
-          </div>
-          <p className="text-gray-600 text-sm mb-4">
-            Comida caseira e cerveja gelada no coração da cidade
-          </p>
-          <div className="flex items-center space-x-2">
             <button
-              onClick={() => router.push('/dashboard/boteco-do-joao')}
-              className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
             >
-              <Edit className="h-4 w-4 mr-1" />
-              Editar
+              <Plus className="w-5 h-5 mr-2" />
+              Nova Loja
             </button>
-            <a
-              href="/loja/boteco-do-joao"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
           </div>
-        </div>
-
-        {/* Lojas criadas */}
-        {stores.map((store) => (
-          <div key={store.slug} className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: store.branding.primaryColor }}
-                >
-                  <Store className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{store.name}</h3>
-                  <p className="text-sm text-gray-500">/{store.slug}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => handleDeleteStore(store.slug)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">
-              {store.description}
-            </p>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => router.push(`/dashboard/${store.slug}`)}
-                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Editar
-              </button>
-              <a
-                href={`/loja/${store.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-        ))}
-
-        {/* Card para criar nova loja */}
-        <div 
-          className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-gray-400 hover:bg-gray-100 transition-colors"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <Plus className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Criar Nova Loja</h3>
-          <p className="text-gray-500 text-sm">
-            Clique para adicionar uma nova loja ao seu sistema
-          </p>
         </div>
       </div>
 
-      {/* Modal de criação */}
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Store className="w-8 h-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total de Lojas</p>
+                <p className="text-2xl font-bold text-gray-900">{stores.length}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Eye className="w-8 h-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Lojas Ativas</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stores.filter(store => store.active).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Total de Usuários</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stores.reduce((total, store) => total + (store._count?.users || 0), 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stores List */}
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Lojas Cadastradas</h2>
+          </div>
+          
+          {stores.length === 0 ? (
+            <div className="text-center py-12">
+              <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma loja encontrada</h3>
+              <p className="text-gray-500 mb-4">Comece criando sua primeira loja</p>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Criar Primeira Loja
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Loja
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Usuários
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Criada em
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {stores.map((store) => (
+                    <tr key={store.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{store.name}</div>
+                          <div className="text-sm text-gray-500">{store.description}</div>
+                          <div className="text-xs text-gray-400">/{store.slug}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          store.active 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {store.active ? 'Ativa' : 'Inativa'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {store._count?.users || 0} usuários
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(store.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => router.push(`/store/${store.slug}`)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Ver loja"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => router.push(`/dashboard/${store.slug}`)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Acessar dashboard"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Create Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Criar Nova Loja</h2>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Criar Nova Loja</h3>
               
-              <form onSubmit={handleCreateStore} className="space-y-6">
-                {/* Informações básicas */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Informações Básicas</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nome da Loja
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => {
-                          setFormData({ ...formData, name: e.target.value })
-                          if (!formData.slug) {
-                            setFormData(prev => ({ ...prev, slug: generateSlug(e.target.value) }))
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                        placeholder="Ex: Pizzaria do João"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Slug (URL)
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                        placeholder="pizzaria-do-joao"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        URL: /loja/{formData.slug}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Descrição
-                    </label>
-                    <textarea
-                      required
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                      rows={3}
-                      placeholder="Descreva sua loja..."
-                    />
-                  </div>
+              <form onSubmit={handleCreateStore} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nome da Loja *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Ex: Pizzaria do João"
+                  />
                 </div>
 
-                {/* Cores do tema */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Tema Visual</h3>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Cor Primária
-                      </label>
-                      <input
-                        type="color"
-                        value={formData.primaryColor}
-                        onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
-                        className="w-full h-10 rounded-md border border-gray-300"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Cor Secundária
-                      </label>
-                      <input
-                        type="color"
-                        value={formData.secondaryColor}
-                        onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
-                        className="w-full h-10 rounded-md border border-gray-300"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Cor de Destaque
-                      </label>
-                      <input
-                        type="color"
-                        value={formData.accentColor}
-                        onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
-                        className="w-full h-10 rounded-md border border-gray-300"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Descrição
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Descrição da loja..."
+                  />
                 </div>
 
-                {/* Informações de contato */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Contato</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Telefone
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                        placeholder="(11) 99999-9999"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                        placeholder="contato@minhapizzaria.com"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Endereço (opcional)
-                    </label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    URL da Loja
+                  </label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                      cardap.io/store/
+                    </span>
                     <input
                       type="text"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                      placeholder="Rua das Flores, 123, Centro"
+                      name="slug"
+                      value={formData.slug}
+                      onChange={handleInputChange}
+                      className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="pizzaria-do-joao"
                     />
                   </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Deixe em branco para gerar automaticamente
+                  </p>
                 </div>
 
-                {/* Botões */}
-                <div className="flex justify-end space-x-3 pt-6 border-t">
+                <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700"
                   >
                     Criar Loja
                   </button>
