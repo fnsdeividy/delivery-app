@@ -1,5 +1,6 @@
 'use client'
 
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     CheckCircle,
@@ -10,9 +11,8 @@ import {
     Search,
     Trash2
 } from 'lucide-react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../lib/store/useStoreConfig'
 
 interface Product {
   id: string
@@ -39,6 +39,7 @@ interface Category {
 export default function ProdutosPage() {
   const params = useParams()
   const slug = params.slug as string
+  const searchParams = useSearchParams()
   
   const { config, loading } = useStoreConfig(slug)
   
@@ -69,60 +70,50 @@ export default function ProdutosPage() {
     loadCategories()
   }, [slug])
 
+
+
+  // Abrir modal automaticamente quando vier de /produtos/novo
+  useEffect(() => {
+    if (searchParams?.get('new') === '1') {
+      setShowCreateModal(true)
+    }
+  }, [searchParams])
+
   const loadProducts = async () => {
     setLoadingProducts(true)
     try {
-      // Simular carregamento de produtos (em produção viria da API)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Carregar produtos reais da API
+      const res = await fetch(`/api/stores/${slug}/public`, { cache: 'no-store' })
+      if (!res.ok) throw new Error('Falha ao carregar produtos')
       
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          name: 'X-Burger',
-          description: 'Hambúrguer artesanal com queijo, alface e tomate',
-          price: 25.90,
-          category: 'Hambúrgueres',
-          image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop',
-          available: true,
-          featured: true,
-          stock: 50,
-          minStock: 10,
-          createdAt: '2024-01-15T10:00:00Z',
-          updatedAt: '2024-01-20T14:30:00Z'
-        },
-        {
-          id: '2',
-          name: 'Batata Frita',
-          description: 'Porção de batatas fritas crocantes',
-          price: 12.50,
-          category: 'Acompanhamentos',
-          image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=200&h=200&fit=crop',
-          available: true,
-          featured: false,
-          stock: 30,
-          minStock: 5,
-          createdAt: '2024-01-10T09:00:00Z',
-          updatedAt: '2024-01-18T16:45:00Z'
-        },
-        {
-          id: '3',
-          name: 'Refrigerante Cola',
-          description: 'Refrigerante cola 350ml',
-          price: 6.90,
-          category: 'Bebidas',
-          image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=200&h=200&fit=crop',
-          available: false,
-          featured: false,
-          stock: 0,
-          minStock: 20,
-          createdAt: '2024-01-05T11:00:00Z',
-          updatedAt: '2024-01-22T08:15:00Z'
+      const data = await res.json()
+      const apiProducts: Product[] = (data.menu?.products || []).map((p: any) => {
+        // Garantir que a categoria seja uma string válida
+        let categoryName = p.category?.name || 'Sem categoria'
+        if (typeof categoryName === 'number' || !isNaN(Number(categoryName))) {
+          categoryName = 'Sem categoria'
         }
-      ]
+        
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.price,
+          category: categoryName,
+          image: p.image || '',
+          available: !!p.active,
+          featured: false, // TODO: implementar featured
+          stock: p.inventory?.quantity || 0,
+          minStock: p.inventory?.minStock || 0,
+          createdAt: p.createdAt || new Date().toISOString(),
+          updatedAt: p.updatedAt || new Date().toISOString()
+        }
+      })
       
-      setProducts(mockProducts)
+      setProducts(apiProducts)
     } catch (error) {
       console.error('Erro ao carregar produtos:', error)
+      setProducts([])
     } finally {
       setLoadingProducts(false)
     }
@@ -130,60 +121,106 @@ export default function ProdutosPage() {
 
   const loadCategories = async () => {
     try {
-      // Simular carregamento de categorias
-      const mockCategories: Category[] = [
-        { id: '1', name: 'Hambúrgueres', description: 'Hambúrgueres artesanais', active: true },
-        { id: '2', name: 'Acompanhamentos', description: 'Batatas, saladas e outros', active: true },
-        { id: '3', name: 'Bebidas', description: 'Refrigerantes e sucos', active: true },
-        { id: '4', name: 'Sobremesas', description: 'Doces e sobremesas', active: false }
-      ]
-      
-      setCategories(mockCategories)
+      const res = await fetch(`/api/stores/${slug}/public`, { cache: 'no-store' })
+      if (!res.ok) throw new Error('Falha ao carregar categorias')
+      const data = await res.json()
+      const apiCategories: Category[] = (data.menu?.categories || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description || '',
+        active: !!c.active,
+      }))
+      setCategories(apiCategories)
+      // Se não houver categoria selecionada, pré-seleciona a primeira ativa
+      if (!formData.category && apiCategories.length > 0) {
+        const firstActive = apiCategories.find(c => c.active)
+        if (firstActive) {
+          setFormData(prev => ({ ...prev, category: firstActive.name }))
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar categorias:', error)
+      setCategories([])
     }
   }
 
-  // Filtrar produtos
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
-    const matchesAvailability = !showAvailableOnly || product.available
-    
-    return matchesSearch && matchesCategory && matchesAvailability
-  })
-
-  // Estatísticas
-  const stats = {
-    total: products.length,
-    available: products.filter(p => p.available).length,
-    outOfStock: products.filter(p => !p.available).length,
-    lowStock: products.filter(p => p.stock && p.minStock && p.stock <= p.minStock).length
+  const createCategory = async (name: string) => {
+    try {
+      const res = await fetch(`/api/stores/${slug}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description: `Categoria ${name}` }),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Erro ao criar categoria')
+      }
+      await loadCategories()
+      return true
+    } catch (error) {
+      console.error('Erro ao criar categoria:', error)
+      alert(`Erro ao criar categoria: ${error}`)
+      return false
+    }
   }
 
   const handleCreateProduct = async () => {
     try {
-      const newProduct: Product = {
-        id: Date.now().toString(),
+      if (!formData.name || !formData.price || !formData.category) {
+        alert('Preencha Nome, Preço e Categoria')
+        return
+      }
+      
+      // Se não há categorias, criar uma automaticamente
+      if (categories.length === 0) {
+        const created = await createCategory(formData.category)
+        if (!created) return
+      }
+      
+      const activeCategory = categories.find(c => c.name === formData.category && c.active)
+      if (!activeCategory) {
+        // Tentar criar a categoria se não existir
+        const created = await createCategory(formData.category)
+        if (!created) return
+        
+        // Recarregar categorias e tentar novamente
+        await loadCategories()
+        const newActiveCategory = categories.find(c => c.name === formData.category && c.active)
+        if (!newActiveCategory) {
+          alert('Erro ao encontrar categoria criada')
+          return
+        }
+      }
+
+      const productData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        category: formData.category,
+        categoryId: activeCategory?.id || '',
         image: formData.image,
-        available: formData.available,
-        featured: formData.featured,
-        stock: formData.stock ? parseInt(formData.stock) : undefined,
-        minStock: formData.minStock ? parseInt(formData.minStock) : undefined,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        active: formData.available,
+        stock: parseInt(formData.stock) || 0,
+        minStock: parseInt(formData.minStock) || 0
       }
 
-      setProducts(prev => [...prev, newProduct])
+      const res = await fetch(`/api/stores/${slug}/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Erro ao criar produto')
+      }
+
+      alert('Produto criado com sucesso!')
       setShowCreateModal(false)
       resetForm()
+      loadProducts()
     } catch (error) {
       console.error('Erro ao criar produto:', error)
+      alert(`Erro ao criar produto: ${error}`)
     }
   }
 
@@ -191,36 +228,71 @@ export default function ProdutosPage() {
     if (!selectedProduct) return
 
     try {
-      const updatedProduct: Product = {
-        ...selectedProduct,
+      if (!formData.name || !formData.price || !formData.category) {
+        alert('Preencha Nome, Preço e Categoria')
+        return
+      }
+
+      // Encontrar a categoria pelo nome
+      const activeCategory = categories.find(c => c.name === formData.category && c.active)
+      if (!activeCategory) {
+        alert('Categoria não encontrada')
+        return
+      }
+
+      const productData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        category: formData.category,
+        categoryId: activeCategory.id,
         image: formData.image,
-        available: formData.available,
-        featured: formData.featured,
-        stock: formData.stock ? parseInt(formData.stock) : undefined,
-        minStock: formData.minStock ? parseInt(formData.minStock) : undefined,
-        updatedAt: new Date().toISOString()
+        active: formData.available,
+        stock: parseInt(formData.stock) || 0,
+        minStock: parseInt(formData.minStock) || 0
       }
 
-      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? updatedProduct : p))
+      const res = await fetch(`/api/stores/${slug}/products/${selectedProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Erro ao atualizar produto')
+      }
+
+      alert('Produto atualizado com sucesso!')
       setShowEditModal(false)
       setSelectedProduct(null)
       resetForm()
+      loadProducts()
     } catch (error) {
-      console.error('Erro ao editar produto:', error)
+      console.error('Erro ao atualizar produto:', error)
+      alert(`Erro ao atualizar produto: ${error}`)
     }
   }
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este produto?')) return
+    if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
+      return
+    }
 
     try {
-      setProducts(prev => prev.filter(p => p.id !== productId))
+      const res = await fetch(`/api/stores/${slug}/products/${productId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Erro ao excluir produto')
+      }
+
+      alert('Produto excluído com sucesso!')
+      loadProducts()
     } catch (error) {
       console.error('Erro ao excluir produto:', error)
+      alert(`Erro ao excluir produto: ${error}`)
     }
   }
 
@@ -239,12 +311,18 @@ export default function ProdutosPage() {
   }
 
   const openEditModal = (product: Product) => {
+    // Garantir que a categoria seja uma string válida
+    let categoryName = product.category
+    if (typeof categoryName === 'number' || !isNaN(Number(categoryName))) {
+      categoryName = 'Sem categoria'
+    }
+    
     setSelectedProduct(product)
     setFormData({
       name: product.name,
       description: product.description,
       price: product.price.toString(),
-      category: product.category,
+      category: categoryName,
       image: product.image || '',
       available: product.available,
       featured: product.featured,
@@ -252,6 +330,26 @@ export default function ProdutosPage() {
       minStock: product.minStock?.toString() || ''
     })
     setShowEditModal(true)
+  }
+
+  // Filtros e estatísticas
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = !searchTerm || 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
+    
+    const matchesAvailability = !showAvailableOnly || product.available
+    
+    return matchesSearch && matchesCategory && matchesAvailability
+  })
+
+  const stats = {
+    total: products.length,
+    available: products.filter(p => p.available).length,
+    outOfStock: products.filter(p => (p.stock || 0) === 0).length,
+    lowStock: products.filter(p => (p.stock || 0) <= (p.minStock || 0) && (p.stock || 0) > 0).length
   }
 
   if (loading || loadingProducts) {
@@ -550,11 +648,16 @@ export default function ProdutosPage() {
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                     >
-                      <option value="">Selecione</option>
+                      <option value="">Selecione uma categoria</option>
                       {categories.filter(c => c.active).map(category => (
                         <option key={category.id} value={category.name}>{category.name}</option>
                       ))}
                     </select>
+                    {categories.filter(c => c.active).length === 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Carregando categorias...
+                      </p>
+                    )}
                   </div>
                 </div>
                 

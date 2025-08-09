@@ -10,6 +10,7 @@ interface StoreData {
   name: string
   description: string
   active: boolean
+  approved: boolean
   createdAt: string
   updatedAt: string
   _count?: {
@@ -125,6 +126,64 @@ export default function GerenciarLojas() {
     })
   }
 
+  // Aprovar loja
+  const handleApproveStore = async (storeId: string) => {
+    try {
+      const response = await fetch(`/api/stores/${storeId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Recarregar lojas
+        const storesResponse = await fetch('/api/stores')
+        if (storesResponse.ok) {
+          const data = await storesResponse.json()
+          setStores(data.stores || [])
+        }
+        alert('Loja aprovada com sucesso!')
+      } else {
+        alert('Erro ao aprovar loja')
+      }
+    } catch (error) {
+      console.error('Erro ao aprovar loja:', error)
+      alert('Erro ao aprovar loja')
+    }
+  }
+
+  // Rejeitar loja
+  const handleRejectStore = async (storeId: string) => {
+    if (!confirm('Tem certeza que deseja rejeitar esta loja?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/stores/${storeId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Recarregar lojas
+        const storesResponse = await fetch('/api/stores')
+        if (storesResponse.ok) {
+          const data = await storesResponse.json()
+          setStores(data.stores || [])
+        }
+        alert('Loja rejeitada com sucesso!')
+      } else {
+        alert('Erro ao rejeitar loja')
+      }
+    } catch (error) {
+      console.error('Erro ao rejeitar loja:', error)
+      alert('Erro ao rejeitar loja')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -162,7 +221,7 @@ export default function GerenciarLojas() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <Store className="w-8 h-8 text-orange-600" />
@@ -177,9 +236,23 @@ export default function GerenciarLojas() {
             <div className="flex items-center">
               <Eye className="w-8 h-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Lojas Ativas</p>
+                <p className="text-sm font-medium text-gray-500">Lojas Aprovadas</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stores.filter(store => store.active).length}
+                  {stores.filter(store => store.approved).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                <span className="text-yellow-600 text-sm font-bold">⏳</span>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Pendentes</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stores.filter(store => !store.approved).length}
                 </p>
               </div>
             </div>
@@ -250,13 +323,22 @@ export default function GerenciarLojas() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          store.active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {store.active ? 'Ativa' : 'Inativa'}
-                        </span>
+                        <div className="space-y-1">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            store.approved 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {store.approved ? 'Aprovada' : 'Pendente'}
+                          </span>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            store.active 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {store.active ? 'Ativa' : 'Inativa'}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {store._count?.users || 0} usuários
@@ -266,20 +348,42 @@ export default function GerenciarLojas() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => router.push(`/store/${store.slug}`)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Ver loja"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => router.push(`/dashboard/${store.slug}`)}
-                            className="text-green-600 hover:text-green-900"
-                            title="Acessar dashboard"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
+                          {!store.approved && (
+                            <>
+                              <button
+                                onClick={() => handleApproveStore(store.id)}
+                                className="text-green-600 hover:text-green-900"
+                                title="Aprovar loja"
+                              >
+                                <span className="text-sm">✅</span>
+                              </button>
+                              <button
+                                onClick={() => handleRejectStore(store.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Rejeitar loja"
+                              >
+                                <span className="text-sm">❌</span>
+                              </button>
+                            </>
+                          )}
+                          {store.approved && (
+                            <>
+                              <button
+                                onClick={() => router.push(`/store/${store.slug}`)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Ver loja"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => router.push(`/dashboard/${store.slug}`)}
+                                className="text-green-600 hover:text-green-900"
+                                title="Acessar dashboard"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

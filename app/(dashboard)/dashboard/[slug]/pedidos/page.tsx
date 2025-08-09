@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../lib/store/useStoreConfig'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface OrderItem {
   id: string

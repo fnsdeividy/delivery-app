@@ -59,10 +59,23 @@ async function protectDashboardRoute(request: NextRequest, token: any) {
   const pathParts = pathname.split('/')
   const storeSlug = pathParts[2]
   
-      if (storeSlug && token.role === 'ADMIN') {
+  if (storeSlug && token.role === 'ADMIN') {
     // Lojista só pode acessar sua própria loja
     if (token.storeSlug !== storeSlug) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+    
+    // Verificar se a loja está aprovada (apenas para lojistas)
+    try {
+      const storeResponse = await fetch(`${request.nextUrl.origin}/api/stores/${storeSlug}/status`)
+      if (storeResponse.ok) {
+        const storeData = await storeResponse.json()
+        if (!storeData.approved) {
+          return NextResponse.redirect(new URL('/unauthorized?reason=pending_approval', request.url))
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao verificar status da loja:', error)
     }
   }
   

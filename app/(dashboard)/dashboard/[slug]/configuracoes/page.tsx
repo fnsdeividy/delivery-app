@@ -1,5 +1,6 @@
 'use client'
 
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     Bell,
@@ -19,7 +20,6 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../lib/store/useStoreConfig'
 
 interface ConfigSection {
   id: string
@@ -64,10 +64,10 @@ export default function ConfiguracoesPage() {
         isConfigured: true,
         hasVisualConfig: !!(config.branding?.primaryColor),
         hasScheduleConfig: !!(config.schedule?.workingHours),
-        hasPaymentConfig: !!(config.payment?.methods),
-        hasDeliveryConfig: !!(config.delivery?.zones),
-        hasNotificationConfig: !!(config.notifications?.email),
-        hasSecurityConfig: !!(config.security?.twoFactor)
+        hasPaymentConfig: !!(config.payments?.pix || config.payments?.cash || config.payments?.card),
+        hasDeliveryConfig: !!(config.delivery?.enabled),
+        hasNotificationConfig: !!(config.settings?.orderNotifications),
+        hasSecurityConfig: false // Implementar quando necessário
       })
     }
   }, [config])

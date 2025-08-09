@@ -1,19 +1,18 @@
 'use client'
 
 import {
-    BarChart3,
-    Clock,
-    CreditCard,
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    Package,
-    Palette,
-    Settings,
-    ShoppingBag,
-    Store,
-    Truck,
-    X
+  BarChart3,
+  Clock,
+  CreditCard,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Package,
+  Palette,
+  Settings,
+  ShoppingBag,
+  Truck,
+  X
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -63,13 +62,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Só criar navegação se tivermos um slug válido
   const navigation = slug ? [
-    {
-      name: 'Gerenciar Lojas',
-      href: '/dashboard/gerenciar-lojas',
-      icon: Store,
-      current: pathname === '/dashboard/gerenciar-lojas',
-      isGlobal: true // Flag para indicar que não depende do slug
-    },
     {
       name: 'Visão Geral',
       href: `/dashboard/${slug}`,

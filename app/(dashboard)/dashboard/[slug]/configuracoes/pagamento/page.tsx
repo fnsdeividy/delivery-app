@@ -1,5 +1,6 @@
 'use client'
 
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     CheckCircle,
@@ -12,7 +13,6 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../lib/store/useStoreConfig'
 
 interface PaymentMethod {
   id: string
@@ -146,13 +146,61 @@ export default function PagamentoPage() {
 
   // Carregar configuração atual
   useEffect(() => {
-    if (config?.payment) {
+    // Converter estrutura de payments para PaymentConfig
+    if (config?.payments) {
+      const methods: PaymentMethod[] = []
+      
+      // Adicionar métodos baseados na configuração
+      if (config.payments.pix) {
+        methods.push({
+          id: 'pix',
+          name: 'PIX',
+          type: 'pix',
+          enabled: true,
+          fee: 0,
+          feeType: 'percentage',
+          description: 'Pagamento instantâneo via PIX',
+          icon: '💳',
+          minAmount: 0.01,
+          maxAmount: 10000
+        })
+      }
+      
+      if (config.payments.cash) {
+        methods.push({
+          id: 'cash',
+          name: 'Dinheiro',
+          type: 'cash',
+          enabled: true,
+          fee: 0,
+          feeType: 'percentage',
+          description: 'Pagamento em dinheiro',
+          icon: '💵',
+          requiresChange: true,
+          changeAmount: 0
+        })
+      }
+      
+      if (config.payments.card) {
+        methods.push({
+          id: 'credit_card',
+          name: 'Cartão de Crédito',
+          type: 'card',
+          enabled: true,
+          fee: 2.99,
+          feeType: 'percentage',
+          description: 'Visa, Mastercard, Elo e outros',
+          icon: '💳',
+          minAmount: 1,
+          maxAmount: 5000
+        })
+      }
+      
       setPaymentConfig({
-        methods: config.payment.methods || defaultMethods,
-        autoAccept: config.payment.autoAccept || false,
-        requireConfirmation: config.payment.requireConfirmation !== false,
-        allowPartialPayment: config.payment.allowPartialPayment || false,
-        defaultMethod: config.payment.defaultMethod
+        methods: methods.length > 0 ? methods : defaultMethods,
+        autoAccept: false,
+        requireConfirmation: true,
+        allowPartialPayment: false
       })
     } else {
       setPaymentConfig({
@@ -169,13 +217,22 @@ export default function PagamentoPage() {
     setMessage(null)
 
     try {
-      const response = await fetch(`/api/stores/${slug}/config`, {
-        method: 'PATCH',
+      // Converter PaymentConfig para estrutura de payments
+      const paymentsConfig = {
+        pix: paymentConfig.methods.some(m => m.id === 'pix' && m.enabled),
+        cash: paymentConfig.methods.some(m => m.id === 'cash' && m.enabled),
+        card: paymentConfig.methods.some(m => m.id === 'credit_card' && m.enabled),
+        online: paymentConfig.methods.some(m => m.type === 'digital_wallet' && m.enabled),
+        integrations: {}
+      }
+
+      const response = await fetch(`/api/stores/${slug}/sync`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          payment: paymentConfig
+          payments: paymentsConfig
         }),
       })
 

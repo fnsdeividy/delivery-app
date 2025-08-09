@@ -104,6 +104,7 @@ model Store {
   
   // Status
   active      Boolean  @default(true)
+  approved    Boolean  @default(false)  // Aprovação pelo master
   
   // Relacionamentos
   users       User[]

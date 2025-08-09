@@ -26,14 +26,30 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
       setLoading(true)
       setError(null)
 
-      // Tentar carregar o arquivo de configuração específico da loja
-      const response = await fetch(`/api/stores/${slug}/config`)
+      // Usar a nova API pública que sincroniza dados do banco
+      const response = await fetch(`/api/stores/${slug}/public`)
       
       if (!response.ok) {
         throw new Error(`Loja '${slug}' não encontrada`)
       }
 
-      const storeConfig: StoreConfig = await response.json()
+      const publicData = await response.json()
+      
+      // Converter para o formato StoreConfig esperado
+      const storeConfig: StoreConfig = {
+        slug: publicData.store.slug,
+        name: publicData.store.name,
+        description: publicData.store.description,
+        branding: publicData.branding,
+        business: publicData.business,
+        schedule: publicData.schedule,
+        menu: publicData.menu,
+        delivery: publicData.delivery,
+        payments: publicData.payments,
+        settings: publicData.settings,
+        promotions: publicData.promotions
+      }
+      
       setConfig(storeConfig)
 
       // Aplicar configurações visuais ao CSS
@@ -140,6 +156,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
 /**
  * Hook para verificar se a loja está funcionando no momento
+ * Agora usa os dados da API pública que já calcula o status
  */
 export function useStoreStatus(config: StoreConfig | null) {
   const [isOpen, setIsOpen] = useState(false)
@@ -149,41 +166,54 @@ export function useStoreStatus(config: StoreConfig | null) {
   useEffect(() => {
     if (!config) return
 
-    const checkStoreStatus = () => {
-      const now = new Date()
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-      const currentDay = dayNames[now.getDay()] as keyof typeof config.schedule.workingHours
-      const currentTime = now.toTimeString().slice(0, 5) // HH:mm format
-      
-      const todaySchedule = config.schedule.workingHours[currentDay]
-      
-      if (!todaySchedule.open) {
-        setIsOpen(false)
-        setCurrentMessage(config.schedule.closedMessage)
-        return
-      }
-
-      // Verificar se está dentro do horário de funcionamento
-      let isCurrentlyOpen = false
-      
-      for (const timeRange of todaySchedule.hours) {
-        if (currentTime >= timeRange.start && currentTime <= timeRange.end) {
-          isCurrentlyOpen = true
-          break
+    // Usar o status calculado pela API pública
+    const checkStoreStatus = async () => {
+      try {
+        const response = await fetch(`/api/stores/${config.slug}/public`)
+        if (response.ok) {
+          const publicData = await response.json()
+          setIsOpen(publicData.status.isOpen)
+          setCurrentMessage(publicData.status.message)
+          setNextOpenTime(publicData.status.nextOpenTime)
         }
-      }
-
-      setIsOpen(isCurrentlyOpen)
-      
-      if (!isCurrentlyOpen) {
-        setCurrentMessage(config.schedule.closedMessage)
+      } catch (error) {
+        console.error('Erro ao verificar status da loja:', error)
+        // Fallback para cálculo local se a API falhar
+        const now = new Date()
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        const currentDay = dayNames[now.getDay()] as keyof typeof config.schedule.workingHours
+        const currentTime = now.toTimeString().slice(0, 5) // HH:mm format
         
-        // Encontrar próximo horário de abertura
-        const nextOpen = findNextOpenTime(config.schedule.workingHours, now)
-        setNextOpenTime(nextOpen)
-      } else {
-        setCurrentMessage('')
-        setNextOpenTime(null)
+        const todaySchedule = config.schedule.workingHours[currentDay]
+        
+        if (!todaySchedule.open) {
+          setIsOpen(false)
+          setCurrentMessage(config.schedule.closedMessage)
+          return
+        }
+
+        // Verificar se está dentro do horário de funcionamento
+        let isCurrentlyOpen = false
+        
+        for (const timeRange of todaySchedule.hours) {
+          if (currentTime >= timeRange.start && currentTime <= timeRange.end) {
+            isCurrentlyOpen = true
+            break
+          }
+        }
+
+        setIsOpen(isCurrentlyOpen)
+        
+        if (!isCurrentlyOpen) {
+          setCurrentMessage(config.schedule.closedMessage)
+          
+          // Encontrar próximo horário de abertura
+          const nextOpen = findNextOpenTime(config.schedule.workingHours, now)
+          setNextOpenTime(nextOpen)
+        } else {
+          setCurrentMessage('')
+          setNextOpenTime(null)
+        }
       }
     }
 

@@ -28,5 +28,13 @@ services:
       - postgres
     restart: unless-stopped
 
+  # Redis (opcional - cache para busca)
+  redis:
+    image: redis:7-alpine
+    container_name: cardapio-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 volumes:
   postgres_data:

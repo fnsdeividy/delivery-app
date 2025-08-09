@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../../lib/store/useStoreConfig'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface ColorScheme {
   primaryColor: string

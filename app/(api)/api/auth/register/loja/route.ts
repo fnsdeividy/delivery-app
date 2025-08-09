@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
           name: storeName,
           description: description || null,
           active: true,
+          approved: false, // Aguardando aprovação do master
           config: {}
         }
       })

@@ -1,21 +1,40 @@
-import { AlertTriangle, ArrowLeft, Home } from 'lucide-react'
+'use client'
+
+import { AlertTriangle, ArrowLeft, Clock, Home } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function Unauthorized() {
+  const searchParams = useSearchParams()
+  const reason = searchParams.get('reason')
+  
+  const isPendingApproval = reason === 'pending_approval'
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         {/* 403 Icon */}
         <div className="mb-8">
-          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-12 h-12 text-red-500" />
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            isPendingApproval ? 'bg-yellow-100' : 'bg-red-100'
+          }`}>
+            {isPendingApproval ? (
+              <Clock className="w-12 h-12 text-yellow-500" />
+            ) : (
+              <AlertTriangle className="w-12 h-12 text-red-500" />
+            )}
           </div>
-          <h1 className="text-6xl font-bold text-gray-900 mb-2">403</h1>
+          <h1 className="text-6xl font-bold text-gray-900 mb-2">
+            {isPendingApproval ? '⏳' : '403'}
+          </h1>
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-            Acesso Negado
+            {isPendingApproval ? 'Aguardando Aprovação' : 'Acesso Negado'}
           </h2>
           <p className="text-gray-600 mb-8">
-            Você não tem permissão para acessar esta página. Verifique suas credenciais ou entre em contato com o administrador.
+            {isPendingApproval 
+              ? 'Sua loja está em análise pelo administrador. Você receberá uma notificação assim que for aprovada.'
+              : 'Você não tem permissão para acessar esta página. Verifique suas credenciais ou entre em contato com o administrador.'
+            }
           </p>
         </div>
 

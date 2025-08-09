@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
         name: true,
         description: true,
         active: true,
+        approved: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -28,7 +29,9 @@ export async function GET(request: NextRequest) {
       stores,
       total: stores.length,
       active: stores.filter(store => store.active).length,
-      inactive: stores.filter(store => !store.active).length
+      inactive: stores.filter(store => !store.active).length,
+      approved: stores.filter(store => store.approved).length,
+      pending: stores.filter(store => !store.approved).length
     })
 
   } catch (error) {
@@ -71,7 +74,8 @@ export async function POST(request: NextRequest) {
         slug,
         name,
         description: description || null,
-        active: true
+        active: true,
+        approved: false // Aguardando aprovação do master
       },
       select: {
         id: true,
@@ -79,6 +83,7 @@ export async function POST(request: NextRequest) {
         name: true,
         description: true,
         active: true,
+        approved: true,
         createdAt: true,
         updatedAt: true
       }

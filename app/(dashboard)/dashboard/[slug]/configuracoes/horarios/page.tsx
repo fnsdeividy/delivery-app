@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '../../../../../../lib/store/useStoreConfig'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface WorkingHours {
   monday: { open: string; close: string; closed: boolean }
@@ -34,6 +34,7 @@ export default function HorariosConfigPage() {
   const { config, loading, error } = useStoreConfig(slug)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [currentStatus, setCurrentStatus] = useState<{ status: 'open' | 'closed', message: string }>({ status: 'closed', message: 'Carregando...' })
   
   const [settings, setSettings] = useState<StoreSettings>({
     workingHours: {
@@ -97,6 +98,22 @@ export default function HorariosConfigPage() {
     }
   }, [config])
 
+  // Atualizar status quando os horários mudam
+  useEffect(() => {
+    const status = getCurrentStatus()
+    setCurrentStatus(status)
+  }, [settings.workingHours])
+
+  // Atualizar status automaticamente a cada minuto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const status = getCurrentStatus()
+      setCurrentStatus(status)
+    }, 60000) // Atualizar a cada minuto
+
+    return () => clearInterval(interval)
+  }, [settings.workingHours])
+
   const daysOfWeek = [
     { key: 'monday', label: 'Segunda-feira', short: 'Seg' },
     { key: 'tuesday', label: 'Terça-feira', short: 'Ter' },
@@ -157,18 +174,79 @@ export default function HorariosConfigPage() {
     setMessage(null)
     
     try {
-      const response = await fetch(`/api/stores/${slug}/config`, {
-        method: 'PUT',
+      // Preparar configurações para sincronização
+      const scheduleConfig = {
+        schedule: {
+          timezone: settings.timezone,
+          workingHours: {
+            monday: { 
+              open: !settings.workingHours.monday.closed, 
+              hours: settings.workingHours.monday.closed ? [] : [{ 
+                start: settings.workingHours.monday.open, 
+                end: settings.workingHours.monday.close 
+              }]
+            },
+            tuesday: { 
+              open: !settings.workingHours.tuesday.closed, 
+              hours: settings.workingHours.tuesday.closed ? [] : [{ 
+                start: settings.workingHours.tuesday.open, 
+                end: settings.workingHours.tuesday.close 
+              }]
+            },
+            wednesday: { 
+              open: !settings.workingHours.wednesday.closed, 
+              hours: settings.workingHours.wednesday.closed ? [] : [{ 
+                start: settings.workingHours.wednesday.open, 
+                end: settings.workingHours.wednesday.close 
+              }]
+            },
+            thursday: { 
+              open: !settings.workingHours.thursday.closed, 
+              hours: settings.workingHours.thursday.closed ? [] : [{ 
+                start: settings.workingHours.thursday.open, 
+                end: settings.workingHours.thursday.close 
+              }]
+            },
+            friday: { 
+              open: !settings.workingHours.friday.closed, 
+              hours: settings.workingHours.friday.closed ? [] : [{ 
+                start: settings.workingHours.friday.open, 
+                end: settings.workingHours.friday.close 
+              }]
+            },
+            saturday: { 
+              open: !settings.workingHours.saturday.closed, 
+              hours: settings.workingHours.saturday.closed ? [] : [{ 
+                start: settings.workingHours.saturday.open, 
+                end: settings.workingHours.saturday.close 
+              }]
+            },
+            sunday: { 
+              open: !settings.workingHours.sunday.closed, 
+              hours: settings.workingHours.sunday.closed ? [] : [{ 
+                start: settings.workingHours.sunday.open, 
+                end: settings.workingHours.sunday.close 
+              }]
+            }
+          },
+          closedMessage: 'Estamos fechados no momento. Volte em breve!',
+          specialDates: []
+        },
+        settings: {
+          preparationTime: settings.preparationTime
+        }
+      }
+
+      const response = await fetch(`/api/stores/${slug}/sync`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          settings
-        })
+        body: JSON.stringify(scheduleConfig)
       })
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Horários salvos com sucesso!' })
+        setMessage({ type: 'success', text: 'Horários salvos e sincronizados com sucesso!' })
         setTimeout(() => setMessage(null), 3000)
       } else {
         const error = await response.json()
@@ -184,18 +262,25 @@ export default function HorariosConfigPage() {
     }
   }
 
-  const getCurrentStatus = () => {
+  const getCurrentStatus = (): { status: 'open' | 'closed', message: string } => {
     const now = new Date()
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
     const currentDay = dayNames[now.getDay()] as keyof WorkingHours
-    const currentTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    
+    // Converter hora atual para minutos desde meia-noite
+    const currentMinutes = now.getHours() * 60 + now.getMinutes()
     
     const todayHours = settings.workingHours[currentDay]
     if (todayHours.closed) {
       return { status: 'closed', message: 'Loja fechada hoje' }
     }
     
-    const isOpen = currentTime >= todayHours.open && currentTime <= todayHours.close
+    // Converter horários de abertura e fechamento para minutos
+    const openMinutes = parseInt(todayHours.open.split(':')[0]) * 60 + parseInt(todayHours.open.split(':')[1])
+    const closeMinutes = parseInt(todayHours.close.split(':')[0]) * 60 + parseInt(todayHours.close.split(':')[1])
+    
+    const isOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes
+    
     return {
       status: isOpen ? 'open' : 'closed',
       message: isOpen ? 'Loja aberta' : 'Loja fechada'
@@ -225,7 +310,7 @@ export default function HorariosConfigPage() {
     )
   }
 
-  const currentStatus = getCurrentStatus()
+
 
   return (
     <div className="min-h-screen bg-gray-50">

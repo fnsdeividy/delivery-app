@@ -2,11 +2,11 @@
 
 import { Clock, Phone, Search, ShoppingCart, Truck, User } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import LoginModal from '../../../../components/LoginModal'
-import UserProfile from '../../../../components/UserProfile'
 import PromotionsBanner from '../../../../components/PromotionsBanner'
+import UserProfile from '../../../../components/UserProfile'
 import { useAuth } from '../../../../hooks/useAuth'
 import { useStoreConfig, useStoreStatus } from '../../../../lib/store/useStoreConfig'
 import { Product } from '../../../../types/store'
@@ -21,6 +21,8 @@ export default function StorePage() {
   const { isAuthenticated, user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('todos')
+  const [searchResults, setSearchResults] = useState<Product[] | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const [cartItems, setCartItems] = useState<any[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -51,8 +53,8 @@ export default function StorePage() {
   // Filtrar produtos - movido para antes dos returns condicionais
   const filteredProducts = useMemo(() => {
     if (!config?.menu?.products) return []
-    
-    let filtered = config.menu.products.filter(p => p.active)
+    const base = (searchResults ?? config.menu.products).filter(p => p.active)
+    let filtered = base
 
     // Filtrar por categoria
     if (selectedCategory !== 'todos') {
@@ -60,19 +62,36 @@ export default function StorePage() {
     }
 
     // Filtrar por busca
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(query)
-        )
-      )
-    }
+    // quando há resultados de busca por API, já estão filtrados
 
     return filtered
   }, [config?.menu?.products, selectedCategory, searchQuery])
+
+  // Busca com debounce usando API e cache do Redis no backend
+  useEffect(() => {
+    if (!slug) return
+    if (!searchQuery.trim()) {
+      setSearchResults(null)
+      return
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/stores/${slug}/search?q=${encodeURIComponent(searchQuery)}`, { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data.items as Product[])
+        } else {
+          setSearchResults(null)
+        }
+      } catch {
+        setSearchResults(null)
+      }
+    }, 200)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [slug, searchQuery])
 
   const addToCart = (product: Product) => {
     setCartItems(prev => [...prev, { ...product, quantity: 1 }])

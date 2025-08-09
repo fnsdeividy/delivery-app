@@ -58,11 +58,12 @@ async function testAdminCompleteLogin() {
 
     // Verificar se userType 'lojista' aceita SUPER_ADMIN
     if (adminData.userType === 'lojista') {
-      if (admin.role !== 'ADMIN' && admin.role !== 'SUPER_ADMIN') {
-        console.log('❌ SUPER_ADMIN não é aceito com userType lojista')
+      if (admin.role === 'SUPER_ADMIN') {
+        console.log('✅ SUPER_ADMIN é aceito com userType lojista')
+      } else {
+        console.log('❌ Role não é SUPER_ADMIN')
         return
       }
-      console.log('✅ SUPER_ADMIN é aceito com userType lojista')
     }
 
     console.log('✅ Todas as validações passaram!')

@@ -99,6 +99,26 @@ psql delivery_app -c "GRANT ALL PRIVILEGES ON DATABASE delivery_app TO cardapio_
 
 #### **3. Setup automático do banco**
 ```bash
+# Executar migrations e seed inicial
+npm run db:setup
+
+# Ou manualmente:
+npx prisma migrate dev
+npx prisma generate
+```
+
+#### **4. Criar dados de exemplo (opcional)**
+```bash
+# Criar categorias padrão
+npx tsx scripts/create-default-categories.ts
+
+# Adicionar mais categorias específicas
+npx tsx scripts/add-more-categories.ts
+
+# Criar produtos de exemplo
+npx tsx scripts/create-sample-products.ts
+```
+```bash
 # Executar migrations e seed
 npm run db:reset
 npm run db:seed
@@ -112,11 +132,20 @@ npm run dev
 #### **5. Acessar a aplicação**
 - 🌐 **Homepage:** http://localhost:3000
 - 🏪 **Loja Demo:** http://localhost:3000/store/boteco-do-joao
+  - Link curto: http://localhost:3000/boteco-do-joao (redireciona)
 - 🔐 **Login:** http://localhost:3000/login
 - 📊 **Dashboard:** http://localhost:3000/dashboard
 - 👑 **Super Admin:** http://localhost:3000/admin
 
 ## 🔐 **Sistema de Autenticação**
+## 🔎 **Busca por Itens (com Cache)**
+
+- Endpoint: `GET /api/stores/[slug]/search?q=texto`
+- Cache: Redis (TTL 60s)
+- Habilitar Redis (opcional):
+  1. Docker: `docker-compose up -d redis`
+  2. `.env.local`: `REDIS_URL="redis://localhost:6379"`
+
 
 ### **👥 Tipos de Usuário**
 - **👑 Super Admin:** Controle total do sistema
@@ -300,7 +329,9 @@ Cada loja pode personalizar:
 
 ### **Desenvolvimento**
 ```bash
-npm run dev          # Servidor de desenvolvimento
+npm run dev          # Servidor de desenvolvimento + Prisma Studio
+npm run dev:next     # Apenas servidor Next.js
+npm run dev:studio   # Apenas Prisma Studio
 npm run build        # Build de produção
 npm run start        # Servidor de produção
 npm run lint         # Linter ESLint
@@ -315,23 +346,32 @@ npm run db:studio    # Interface visual do banco (Prisma Studio)
 ```
 
 ### **🔍 Prisma Studio - Interface Visual do Banco**
-```bash
-# Abrir interface visual do banco de dados
-npm run db:studio
 
-# Ou usar diretamente
-npx prisma studio
+**🚀 Início Automático:**
+```bash
+npm run dev          # Abre Next.js + Prisma Studio automaticamente
 ```
 
-**Acesse:** http://localhost:5555
+**🔧 Comandos Individuais:**
+```bash
+npm run dev:studio   # Apenas Prisma Studio
+npm run db:studio    # Alternativa
+npx prisma studio    # Comando direto
+```
 
-**Funcionalidades:**
-- 👀 Visualizar todas as tabelas
-- ✏️ Editar dados diretamente
-- 🔍 Fazer consultas
-- 📊 Ver relacionamentos
-- ➕ Adicionar registros
-- 🗑️ Deletar dados
+**🌐 URLs de Acesso:**
+- **Next.js:** http://localhost:3000
+- **Prisma Studio:** http://localhost:5555
+
+**✨ Funcionalidades do Prisma Studio:**
+- 👀 **Visualizar** todas as tabelas
+- ✏️ **Editar** dados diretamente
+- 🔍 **Fazer consultas** SQL
+- 📊 **Ver relacionamentos** entre tabelas
+- ➕ **Adicionar** novos registros
+- 🗑️ **Deletar** dados
+- 🔄 **Atualizar** em tempo real
+- 📋 **Filtrar** e ordenar dados
 
 ### **Usuários e Autenticação**
 ```bash
