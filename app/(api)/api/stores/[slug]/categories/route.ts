@@ -1,5 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../lib/db'
+import { apiClient } from '../../../../../../lib/api-client'
+
+/**
+ * API para gerenciar categorias da loja
+ * GET /api/stores/[slug]/categories - Listar categorias
+ * POST /api/stores/[slug]/categories - Criar categoria
+ */
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const { slug } = params
+    
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Buscar categorias via API Cardap.IO
+    const response = await apiClient.get(`/stores/${slug}/categories`)
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const categories = response as any[] || []
+
+    return NextResponse.json({
+      categories,
+      total: categories.length,
+      active: categories.filter((cat: any) => cat.active).length,
+      inactive: categories.filter((cat: any) => !cat.active).length
+    })
+
+  } catch (error: any) {
+    console.error('Erro ao buscar categorias:', error)
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(
   request: NextRequest,
@@ -7,44 +49,51 @@ export async function POST(
 ) {
   try {
     const { slug } = params
+    
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
+    const { name, description, image, order } = body
 
-    const { name, description = '', order = 0, image = '' } = body || {}
+    // Validações básicas
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Nome da categoria é obrigatório' },
+        { status: 400 }
+      )
+    }
 
-    if (!slug) return NextResponse.json({ error: 'Slug é obrigatório' }, { status: 400 })
-    if (!name || typeof name !== 'string') return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
-
-    // Verificar se a loja existe
-    const store = await db.store.findUnique({ where: { slug } })
-    if (!store) return NextResponse.json({ error: 'Loja não encontrada' }, { status: 404 })
-
-    // Verificar se já existe categoria com este nome
-    const existing = await db.category.findFirst({ where: { storeSlug: slug, name } })
-    if (existing) return NextResponse.json({ error: 'Já existe uma categoria com este nome' }, { status: 409 })
-
-    const created = await db.category.create({
-      data: {
-        name,
-        description,
-        order,
-        image,
-        active: true,
-        storeSlug: slug,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        order: true,
-        image: true,
-        active: true,
-        storeSlug: true,
-      },
+    // Criar categoria via API Cardap.IO
+    const response = await apiClient.post(`/stores/${slug}/categories`, {
+      name,
+      description: description || null,
+      image: image || null,
+      order: order || 0,
+      active: true
     })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const category = response as any
 
-    return NextResponse.json({ category: created }, { status: 201 })
-  } catch (error) {
+    if (!category || !category.id) {
+      throw new Error('Erro ao criar categoria')
+    }
+
+    return NextResponse.json({
+      message: 'Categoria criada com sucesso',
+      category
+    }, { status: 201 })
+
+  } catch (error: any) {
     console.error('Erro ao criar categoria:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
   }
 } 

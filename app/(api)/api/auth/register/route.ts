@@ -1,79 +1,75 @@
-import bcrypt from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../lib/db'
+import { apiClient } from '../../../../../lib/api-client'
 
 /**
- * API para registro de usuários (clientes e lojistas)
- * POST /api/auth/register
+ * API para registro de usuários
+ * POST /api/auth/register - Registrar novo usuário
  */
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password, phone, userType } = body
+    const { name, email, password, role, storeId } = body
 
     // Validações básicas
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !role) {
       return NextResponse.json(
-        { error: 'Nome, email e senha são obrigatórios' },
+        { error: 'Nome, email, senha e role são obrigatórios' },
         { status: 400 }
       )
     }
 
-    if (password.length < 6) {
+    // Validar role
+    const validRoles = ['CLIENT', 'ADMIN', 'SUPER_ADMIN']
+    if (!validRoles.includes(role)) {
       return NextResponse.json(
-        { error: 'A senha deve ter pelo menos 6 caracteres' },
+        { error: 'Role inválido. Use: CLIENT, ADMIN ou SUPER_ADMIN' },
         { status: 400 }
       )
     }
 
-    // Verificar se email já existe
-    const existingUser = await db.user.findUnique({
-      where: { email }
+    // Validar se ADMIN precisa de storeId
+    if (role === 'ADMIN' && !storeId) {
+      return NextResponse.json(
+        { error: 'Lojistas (ADMIN) precisam estar associados a uma loja' },
+        { status: 400 }
+      )
+    }
+
+    // Registrar usuário via API Cardap.IO
+    const response = await apiClient.post('/auth/register', {
+      name,
+      email,
+      password,
+      role,
+      storeId: role === 'ADMIN' ? storeId : null
     })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const user = response as any
 
-    if (existingUser) {
+    if (!user || !user.id) {
+      throw new Error('Erro ao registrar usuário')
+    }
+
+    return NextResponse.json({
+      message: 'Usuário registrado com sucesso',
+      user
+    }, { status: 201 })
+
+  } catch (error: any) {
+    console.error('Erro ao registrar usuário:', error)
+    
+    // Tratar erro de email duplicado
+    if (error.message?.includes('já existe') || error.message?.includes('already exists')) {
       return NextResponse.json(
-        { error: 'Este email já está sendo usado' },
+        { error: 'Já existe um usuário com este email' },
         { status: 409 }
       )
     }
 
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Determinar role baseado no tipo
-    let role = 'CLIENTE'
-    if (userType === 'lojista') {
-      role = 'ADMIN'
-    }
-
-    // Criar usuário
-    const user = await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        phone: phone || null,
-        role: role as any,
-        active: true
-      }
-    })
-
-    // Remover senha da resposta
-    const { password: _, ...userWithoutPassword } = user
-
     return NextResponse.json(
-      { 
-        message: 'Usuário criado com sucesso',
-        user: userWithoutPassword
-      },
-      { status: 201 }
-    )
-
-  } catch (error) {
-    console.error('Erro ao criar usuário:', error)
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

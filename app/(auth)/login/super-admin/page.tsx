@@ -1,13 +1,14 @@
 'use client'
 
 import { ArrowLeft, Crown, Eye, EyeOff } from 'lucide-react'
-import { getSession, signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function SuperAdminLogin() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -15,6 +16,15 @@ export default function SuperAdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Redirecionar se já estiver autenticado como super admin
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      if (session.user.role === 'SUPER_ADMIN') {
+        router.push('/admin')
+      }
+    }
+  }, [status, session, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,7 +40,7 @@ export default function SuperAdminLogin() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        userType: 'super-admin',
+        storeSlug: 'system', // Slug especial para super admin
         redirect: false
       })
 
@@ -39,15 +49,8 @@ export default function SuperAdminLogin() {
       }
 
       if (result?.ok) {
-        // Buscar sessão para verificar role
-        const session = await getSession()
-        
-        if (session?.user?.role === 'SUPER_ADMIN') {
-          // Redirecionar para painel super admin
-          router.push('/admin')
-        } else {
-          throw new Error('Acesso negado - apenas Super Admins')
-        }
+        // O redirecionamento será feito pelo useEffect quando a sessão for atualizada
+        // Não precisamos fazer nada aqui
       }
     } catch (err) {
       console.error('Erro no login:', err)
@@ -62,6 +65,18 @@ export default function SuperAdminLogin() {
       ...prev,
       [e.target.name]: e.target.value
     }))
+  }
+
+  // Mostrar loading enquanto verifica sessão
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando sessão...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -1,14 +1,10 @@
-import { writeFile } from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
-import { join } from 'path'
-import { db } from '../../../../../../lib/db'
+import { apiClient } from '../../../../../../lib/api-client'
 
 /**
- * API para sincronizar configurações do dashboard com o banco de dados
- * POST /api/stores/[slug]/sync - Sincronizar configurações
+ * API para sincronização de dados da loja
+ * POST /api/stores/[slug]/sync - Sincronizar dados com sistema externo
  */
-
-const STORES_CONFIG_PATH = join(process.cwd(), 'config', 'stores')
 
 export async function POST(
   request: NextRequest,
@@ -24,42 +20,101 @@ export async function POST(
       )
     }
 
-    const updates = await request.json()
-    
-    // 1. Atualizar configurações no banco de dados
-    const updatedStore = await db.store.update({
-      where: { slug },
-      data: {
-        config: updates
-      },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        description: true,
-        active: true,
-        config: true,
-        updatedAt: true
-      }
-    })
+    const body = await request.json()
+    const { type, data, force = false } = body
 
-    // 2. Salvar também no arquivo JSON (para compatibilidade)
-    try {
-      const configPath = join(STORES_CONFIG_PATH, `${slug}.json`)
-      await writeFile(configPath, JSON.stringify(updates, null, 2), 'utf-8')
-    } catch (fileError) {
-      console.warn('Erro ao salvar arquivo JSON, mas configuração foi salva no banco:', fileError)
+    if (!type) {
+      return NextResponse.json(
+        { error: 'Tipo de sincronização é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Tipos de sincronização suportados
+    const validTypes = ['products', 'categories', 'orders', 'inventory', 'full']
+    
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: `Tipo de sincronização inválido. Use: ${validTypes.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // Iniciar sincronização via API Cardap.IO
+    const response = await apiClient.post(`/stores/${slug}/sync`, {
+      type,
+      data,
+      force,
+      timestamp: new Date().toISOString()
+    })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const syncResult = response as any
+
+    if (!syncResult || !syncResult.syncId) {
+      throw new Error('Erro ao iniciar sincronização')
     }
 
     return NextResponse.json({
-      message: 'Configurações sincronizadas com sucesso',
-      store: updatedStore
+      message: 'Sincronização iniciada com sucesso',
+      syncId: syncResult.syncId,
+      type,
+      status: 'started',
+      estimatedTime: syncResult.estimatedTime || '5-10 minutos'
     })
 
-  } catch (error) {
-    console.error('Erro ao sincronizar configurações:', error)
+  } catch (error: any) {
+    console.error('Erro ao iniciar sincronização:', error)
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * GET - Verificar status da sincronização
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const { slug } = params
+    const { searchParams } = new URL(request.url)
+    
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    const syncId = searchParams.get('syncId')
+
+    if (!syncId) {
+      return NextResponse.json(
+        { error: 'ID da sincronização é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar status da sincronização via API Cardap.IO
+    const response = await apiClient.get(`/stores/${slug}/sync/${syncId}`)
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const syncStatus = response as any
+
+    if (!syncStatus) {
+      throw new Error('Sincronização não encontrada')
+    }
+
+    return NextResponse.json(syncStatus)
+
+  } catch (error: any) {
+    console.error('Erro ao verificar status da sincronização:', error)
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

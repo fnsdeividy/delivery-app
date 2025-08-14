@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../lib/db'
+import { apiClient } from '../../../../../../lib/api-client'
+
+/**
+ * API para verificar status da loja
+ * GET /api/stores/[slug]/status - Verificar status de aprovação e ativação
+ */
 
 export async function GET(
   request: NextRequest,
@@ -7,37 +12,46 @@ export async function GET(
 ) {
   try {
     const { slug } = params
-
-    // Buscar loja pelo slug
-    const store = await db.store.findUnique({
-      where: { slug },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        active: true,
-        approved: true
-      }
-    })
-
-    if (!store) {
+    
+    if (!slug) {
       return NextResponse.json(
-        { error: 'Loja não encontrada' },
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Buscar status da loja via API Cardap.IO
+    const response = await apiClient.get(`/stores/${slug}`)
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const store = response as any
+
+    if (!store || !store.id) {
+      return NextResponse.json(
+        { error: `Loja '${slug}' não encontrada` },
         { status: 404 }
       )
     }
 
+    // Retornar status da loja
     return NextResponse.json({
       id: store.id,
       slug: store.slug,
       name: store.name,
       active: store.active,
-      approved: store.approved
+      approved: store.approved,
+      createdAt: store.createdAt,
+      updatedAt: store.updatedAt,
+      status: store.approved ? 'approved' : 'pending',
+      message: store.approved 
+        ? 'Loja aprovada e ativa' 
+        : 'Loja aguardando aprovação'
     })
-  } catch (error) {
+
+  } catch (error: any) {
     console.error('Erro ao verificar status da loja:', error)
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

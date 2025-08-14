@@ -1,7 +1,7 @@
 'use client'
 
+import { useCardapioAuth } from '@/hooks'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
-import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
@@ -16,39 +16,25 @@ export default function LoginPage() {
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+
+  const { login, isLoading, error } = useCardapioAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+
+    if (!formData.email || !formData.password) {
+      return
+    }
 
     try {
-      if (!formData.email || !formData.password) {
-        throw new Error('Email e senha são obrigatórios')
-      }
-
-      // Autenticação real com NextAuth
-      const result = await signIn('credentials', {
+      await login({
         email: formData.email,
-        password: formData.password,
-        userType: 'lojista', // Para dashboard (ADMIN e SUPER_ADMIN)
-        redirect: false
+        password: formData.password
       })
-
-      if (result?.error) {
-        throw new Error(result.error)
-      }
-
-      if (result?.ok) {
-        // Redirecionar para o dashboard que fará o redirecionamento baseado no role
-        router.push('/dashboard')
-      }
+      // O redirecionamento é feito automaticamente pelo hook useCardapioAuth
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
-    } finally {
-      setLoading(false)
+      // Erro já tratado pelo hook
+      console.error('Erro no login:', err)
     }
   }
 
@@ -144,16 +130,14 @@ export default function LoginPage() {
               </div>
             )}
 
-
-
             {/* Submit */}
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? 'Entrando...' : 'Entrar'}
               </button>
             </div>
 

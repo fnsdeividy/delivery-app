@@ -1,6 +1,47 @@
-import { Prisma } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../lib/db'
+import { apiClient } from '../../../../../../lib/api-client'
+
+/**
+ * API para gerenciar produtos da loja
+ * GET /api/stores/[slug]/products - Listar produtos
+ * POST /api/stores/[slug]/products - Criar produto
+ */
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const { slug } = params
+    
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Buscar produtos via API Cardap.IO
+    const response = await apiClient.get(`/stores/${slug}/products`)
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const products = response as any[] || []
+
+    return NextResponse.json({
+      products,
+      total: products.length,
+      active: products.filter((prod: any) => prod.active).length,
+      inactive: products.filter((prod: any) => !prod.active).length
+    })
+
+  } catch (error: any) {
+    console.error('Erro ao buscar produtos:', error)
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(
   request: NextRequest,
@@ -8,82 +49,54 @@ export async function POST(
 ) {
   try {
     const { slug } = params
+    
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
+    const { name, description, price, categoryId, image, preparationTime } = body
 
-    const {
+    // Validações básicas
+    if (!name || !price || !categoryId) {
+      return NextResponse.json(
+        { error: 'Nome, preço e categoria são obrigatórios' },
+        { status: 400 }
+      )
+    }
+
+    // Criar produto via API Cardap.IO
+    const response = await apiClient.post(`/stores/${slug}/products`, {
       name,
-      description = '',
-      price,
-      image = '',
+      description: description || null,
+      price: Number(price),
       categoryId,
-      tags = [],
-      tagColor = '#ed7516',
-      preparationTime,
-      active = true,
-      stock,
-      minStock,
-    } = body || {}
-
-    if (!slug) return NextResponse.json({ error: 'Slug é obrigatório' }, { status: 400 })
-    if (!name || typeof name !== 'string') return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
-    if (!categoryId || typeof categoryId !== 'string') return NextResponse.json({ error: 'Categoria é obrigatória' }, { status: 400 })
-    if (price === undefined || Number.isNaN(Number(price))) return NextResponse.json({ error: 'Preço inválido' }, { status: 400 })
-
-    // Garantir que a categoria pertence à loja
-    const category = await db.category.findFirst({ where: { id: categoryId, storeSlug: slug } })
-    if (!category) return NextResponse.json({ error: 'Categoria não encontrada para esta loja' }, { status: 404 })
-
-    const created = await db.product.create({
-      data: {
-        name,
-        description,
-        price: new Prisma.Decimal(Number(price).toFixed(2)),
-        originalPrice: null,
-        image,
-        active,
-        preparationTime: preparationTime ? Number(preparationTime) : null,
-        categoryId: category.id,
-        storeSlug: slug,
-        tags,
-        tagColor,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        price: true,
-        originalPrice: true,
-        image: true,
-        active: true,
-        preparationTime: true,
-        categoryId: true,
-        storeSlug: true,
-        tags: true,
-        tagColor: true,
-      },
+      image: image || null,
+      preparationTime: preparationTime || 30,
+      active: true
     })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const product = response as any
 
-    if (stock !== undefined) {
-      await db.inventory.create({
-        data: {
-          productId: created.id,
-          quantity: Number(stock),
-          minStock: minStock !== undefined ? Number(minStock) : 5,
-          storeSlug: slug,
-        },
-      })
+    if (!product || !product.id) {
+      throw new Error('Erro ao criar produto')
     }
 
     return NextResponse.json({
-      product: {
-        ...created,
-        price: Number(created.price),
-        originalPrice: created.originalPrice ? Number(created.originalPrice) : null,
-      },
+      message: 'Produto criado com sucesso',
+      product
     }, { status: 201 })
-  } catch (error) {
+
+  } catch (error: any) {
     console.error('Erro ao criar produto:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
   }
 }
 

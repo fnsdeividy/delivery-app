@@ -1,15 +1,15 @@
 'use client'
 
 import { Clock, Phone, Search, ShoppingCart, Truck, User } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import LoginModal from '../../../../components/LoginModal'
 import PromotionsBanner from '../../../../components/PromotionsBanner'
 import UserProfile from '../../../../components/UserProfile'
-import { useAuth } from '../../../../hooks/useAuth'
 import { useStoreConfig, useStoreStatus } from '../../../../lib/store/useStoreConfig'
-import { Product } from '../../../../types/store'
+import { Product } from '../../../../types/cardapio-api'
 
 export default function StorePage() {
   const params = useParams()
@@ -18,7 +18,7 @@ export default function StorePage() {
   const { config, loading, error } = useStoreConfig(slug)
   const { isOpen, currentMessage } = useStoreStatus(config)
   
-  const { isAuthenticated, user } = useAuth()
+  const { data: session, status } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('todos')
   const [searchResults, setSearchResults] = useState<Product[] | null>(null)
@@ -53,12 +53,12 @@ export default function StorePage() {
   // Filtrar produtos - movido para antes dos returns condicionais
   const filteredProducts = useMemo(() => {
     if (!config?.menu?.products) return []
-    const base = (searchResults ?? config.menu.products).filter(p => p.active)
+    const base = (searchResults ?? config.menu.products).filter(p => p.isAvailable)
     let filtered = base
 
     // Filtrar por categoria
     if (selectedCategory !== 'todos') {
-      filtered = filtered.filter(product => product.category === selectedCategory)
+      filtered = filtered.filter(product => product.categoryId === selectedCategory)
     }
 
     // Filtrar por busca
@@ -136,8 +136,8 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen" style={{ 
-      backgroundColor: config.branding.backgroundColor,
-      color: config.branding.textColor 
+      backgroundColor: config?.branding?.backgroundColor || '#ffffff',
+      color: config?.branding?.textColor || '#000000'
     }}>
       {/* Promotions Banner */}
       <PromotionsBanner promotions={promotions} />
@@ -148,14 +148,14 @@ export default function StorePage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo e Nome */}
             <div className="flex items-center space-x-4 animate-slide-in-left">
-              {config.branding.logo && (
+              {config?.branding?.logo && (
                 <img 
                   src={config.branding.logo} 
                   alt={config.name}
                   className="h-10 w-auto hover-scale"
                 />
               )}
-              <h1 className="text-2xl font-bold animate-float" style={{ color: config.branding.primaryColor }}>
+              <h1 className="text-2xl font-bold animate-float" style={{ color: config?.branding?.primaryColor || '#000' }}>
                 {config.name}
               </h1>
             </div>
@@ -170,7 +170,7 @@ export default function StorePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white search-focus transition-all duration-300"
-                  style={{ '--tw-ring-color': config.branding.primaryColor } as any}
+                  style={{ '--tw-ring-color': config?.branding?.primaryColor || '#f97316' } as any}
                 />
               </div>
             </div>
@@ -178,23 +178,23 @@ export default function StorePage() {
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
               {/* Login/Profile Button */}
-              {isAuthenticated ? (
+              {status === 'authenticated' && session?.user ? (
                 <button 
                   onClick={() => setIsProfileOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                  style={{ color: config.branding.primaryColor }}
+                  style={{ color: config?.branding?.primaryColor || '#f97316' }}
                   title="Meu Perfil"
                 >
                   <User className="h-5 w-5" />
                   <span className="hidden sm:block">
-                    {user?.name ? user.name.split(' ')[0] : 'Perfil'}
+                    {session.user.name ? session.user.name.split(' ')[0] : 'Perfil'}
                   </span>
                 </button>
               ) : (
                 <button 
                   onClick={() => setIsLoginOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                  style={{ color: config.branding.primaryColor }}
+                  style={{ color: config?.branding?.primaryColor || '#f97316' }}
                   title="Fazer Login"
                 >
                   <User className="h-5 w-5" />
@@ -213,14 +213,14 @@ export default function StorePage() {
                   }
                 }}
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
-                style={{ color: config.branding.primaryColor }}
+                style={{ color: config?.branding?.primaryColor || '#f97316' }}
               >
                 <ShoppingCart className="h-5 w-5 transition-transform" />
                 <span className="hidden sm:block">Carrinho</span>
                 {cartItems.length > 0 && (
                   <span 
                     className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle"
-                    style={{ backgroundColor: config.branding.accentColor }}
+                    style={{ backgroundColor: config?.branding?.accentColor || '#f97316' }}
                   >
                     {cartItems.length}
                   </span>
@@ -232,7 +232,7 @@ export default function StorePage() {
       </header>
 
       {/* Banner */}
-      {config.branding.bannerImage && (
+      {config?.branding?.bannerImage && (
         <div className="relative h-48 md:h-64 overflow-hidden animate-fade-in">
           <img 
             src={config.branding.bannerImage} 
@@ -263,15 +263,17 @@ export default function StorePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">{config.business.phone}</span>
-              </div>
-              {config.delivery.enabled && (
+              {config?.business?.phone && (
+                <div className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">{config.business.phone}</span>
+                </div>
+              )}
+              {config?.delivery?.enabled && (
                 <div className="flex items-center space-x-2">
                   <Truck className="h-4 w-4 text-gray-500" />
                   <span className="text-sm">
-                    Entrega: R$ {config.delivery.fee.toFixed(2).replace('.', ',')}
+                    Entrega: R$ {config.delivery.fee?.toFixed(2).replace('.', ',') || '0,00'}
                     {config.delivery.freeDeliveryMinimum && (
                       <span className="text-green-600">
                         {' '}(Grátis acima de R$ {config.delivery.freeDeliveryMinimum.toFixed(2).replace('.', ',')})
@@ -280,10 +282,12 @@ export default function StorePage() {
                   </span>
                 </div>
               )}
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">{config.delivery.estimatedTime} min</span>
-              </div>
+              {config?.delivery?.estimatedTime && (
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">{config.delivery.estimatedTime} min</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -300,14 +304,14 @@ export default function StorePage() {
                   ? 'text-white animate-glow'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
-              style={selectedCategory === 'todos' ? { backgroundColor: config.branding.primaryColor } : {}}
+              style={selectedCategory === 'todos' ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
             >
               <span className="font-medium">Todos</span>
-              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
+              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.isAvailable).length || 0})</span>
             </button>
             
             {config?.menu?.categories?.filter(c => c.active).map((category) => {
-              const count = config.menu.products.filter(p => p.active && p.category === category.id).length
+              const count = config?.menu?.products?.filter(p => p.isAvailable && p.categoryId === category.id).length || 0
               return (
                 <button
                   key={category.id}
@@ -317,7 +321,7 @@ export default function StorePage() {
                       ? 'text-white animate-glow'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
-                  style={selectedCategory === category.id ? { backgroundColor: config.branding.primaryColor } : {}}
+                  style={selectedCategory === category.id ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
                 >
                   <span className="font-medium">{category.name}</span>
                   <span className="text-sm opacity-75">({count})</span>
@@ -368,15 +372,7 @@ export default function StorePage() {
                     
                     {/* Tags */}
                     <div className="absolute top-3 left-3 flex flex-col space-y-1">
-                      {product.tags.map((tag, tagIndex) => (
-                        <span
-                          key={tagIndex}
-                          className={`px-2 py-1 text-xs font-medium rounded status-badge animate-slide-in-left ${getTagColor(product.tagColor)}`}
-                          style={{ animationDelay: `${(index + tagIndex) * 0.1}s` }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                      {/* Tags removidas - não existem no tipo Product */}
                     </div>
                   </div>
                   
@@ -399,19 +395,7 @@ export default function StorePage() {
                     {/* Ingredients */}
                     <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
-                        {product.ingredients.slice(0, 3).map((ingredient, index) => (
-                          <span
-                            key={index}
-                            className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                          >
-                            {ingredient}
-                          </span>
-                        ))}
-                        {product.ingredients.length > 3 && (
-                          <span className="text-xs text-gray-500 px-2 py-1">
-                            +{product.ingredients.length - 3} mais
-                          </span>
-                        )}
+                        {/* Ingredients removidos - não existem no tipo Product */}
                       </div>
                     </div>
                     
@@ -421,11 +405,7 @@ export default function StorePage() {
                         <span className="text-lg font-bold text-gray-900">
                           R$ {product.price.toFixed(2).replace('.', ',')}
                         </span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">
-                            R$ {product.originalPrice.toFixed(2).replace('.', ',')}
-                          </span>
-                        )}
+                        {/* Preço original removido - não existe no tipo Product */}
                       </div>
                     </div>
                     
@@ -434,7 +414,7 @@ export default function StorePage() {
                       onClick={() => addToCart(product)}
                       disabled={!isOpen}
                       className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                      style={{ backgroundColor: isOpen ? config.branding.primaryColor : '#9ca3af' }}
+                      style={{ backgroundColor: isOpen ? (config?.branding?.primaryColor || '#f97316') : '#9ca3af' }}
                     >
                       {isOpen ? '+ Adicionar ao Carrinho' : 'Loja Fechada'}
                     </button>
@@ -453,21 +433,7 @@ export default function StorePage() {
             <h3 className="text-lg font-semibold mb-2 animate-slide-in-top">{config.name}</h3>
             <p className="text-gray-400 mb-4 animate-slide-in-top animate-delay-200">{config.description}</p>
             <div className="flex justify-center space-x-4 animate-slide-in-top animate-delay-300">
-              {config.business.socialMedia.instagram && (
-                <a href={`https://instagram.com/${config.business.socialMedia.instagram}`} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
-                  Instagram
-                </a>
-              )}
-              {config.business.socialMedia.facebook && (
-                <a href={`https://facebook.com/${config.business.socialMedia.facebook}`} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
-                  Facebook
-                </a>
-              )}
-              {config.business.website && (
-                <a href={config.business.website} className="text-gray-400 hover:text-white transition-all duration-300 hover-lift">
-                  Website
-                </a>
-              )}
+              {/* Social media removido - não existe no tipo business */}
             </div>
           </div>
         </div>
@@ -475,8 +441,12 @@ export default function StorePage() {
 
       {/* User Profile Modal */}
       <UserProfile
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
+        user={session?.user || null}
+        onLogin={() => setIsLoginOpen(true)}
+        onLogout={() => {
+          // Lógica de logout
+          setIsProfileOpen(false)
+        }}
       />
 
       {/* Login Modal */}

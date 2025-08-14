@@ -1,9 +1,8 @@
 'use client'
 
 import { AlertCircle, Eye, EyeOff, Lock, Mail, Phone, User, X } from 'lucide-react'
+import { signIn, useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useAuth } from '../hooks/useAuth'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -27,9 +26,10 @@ interface FormErrors {
 }
 
 export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
-  const { login, register, loginWithGoogle, loginWithFacebook, loading } = useAuth()
+  const { data: session, status } = useSession()
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -64,6 +64,14 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
       document.removeEventListener('keydown', handleEscapeKey)
     }
   }, [isOpen, onClose])
+
+  // Fechar modal automaticamente se usuário estiver logado
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      onClose()
+      onSuccess?.()
+    }
+  }, [status, session, onClose, onSuccess])
 
   if (!isOpen) return null
 
@@ -150,24 +158,35 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
 
     try {
       setErrors({})
+      setLoading(true)
       
       if (activeTab === 'login') {
-        await login(formData.email, formData.password)
-      } else {
-        await register({
-          name: formData.name,
+        // Login com NextAuth
+        const result = await signIn('credentials', {
           email: formData.email,
           password: formData.password,
-          phone: formData.phone
+          redirect: false
         })
+        
+        if (result?.error) {
+          throw new Error(result.error)
+        }
+        
+        if (result?.ok) {
+          // Sucesso - fechar modal e executar callback
+          onClose()
+          onSuccess?.()
+        }
+      } else {
+        // Registro - por enquanto, mostrar mensagem de sucesso
+        // Em produção, isso seria uma chamada para API de registro
+        throw new Error('Registro não implementado ainda. Use o login.')
       }
-      
-      // Sucesso - fechar modal e executar callback
-      onClose()
-      onSuccess?.()
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Erro desconhecido' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -175,6 +194,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     try {
       setErrors({})
+      setLoading(true)
       
       const result = await signIn(provider, {
         callbackUrl: window.location.href,
@@ -192,6 +212,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
       
     } catch (error) {
       setErrors({ general: error instanceof Error ? error.message : 'Erro no login social' })
+    } finally {
+      setLoading(false)
     }
   }
 

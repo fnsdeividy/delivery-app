@@ -1,5 +1,7 @@
 'use client'
 
+import { useCardapioAuth, useCreateStore } from '@/hooks'
+import { CreateStoreDto, CreateUserDto, UserRole } from '@/types/cardapio-api'
 import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -34,8 +36,12 @@ export default function RegisterLojaPage() {
     minimumOrder: '20.00'
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+
+  const { registerMutation, isLoading: isRegistering, error: registerError } = useCardapioAuth()
+  const { mutateAsync: createStore, isLoading: isCreatingStore } = useCreateStore()
+
+  const isLoading = isRegistering || isCreatingStore
+  const error = registerError
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -63,63 +69,67 @@ export default function RegisterLojaPage() {
     // Validações básicas por step
     if (step === 1) {
       if (!formData.ownerName || !formData.ownerEmail || !formData.password) {
-        setError('Preencha todos os campos obrigatórios')
         return
       }
       if (formData.password !== formData.confirmPassword) {
-        setError('As senhas não coincidem')
         return
       }
     }
     
     if (step === 2) {
       if (!formData.storeName || !formData.storeSlug || !formData.category) {
-        setError('Preencha todos os campos obrigatórios')
         return
       }
       if (!formData.address || !formData.city || !formData.state) {
-        setError('Preencha todos os dados de endereço')
         return
       }
     }
     
-    setError('')
     setStep(step + 1)
   }
 
   const handleSubmit = async () => {
-    setLoading(true)
-    setError('')
-
     try {
       // Validações finais
       if (!formData.address || !formData.city || !formData.state) {
-        setError('Preencha todos os dados de endereço')
         return
       }
 
-      // Registrar loja via API
-      const response = await fetch('/api/auth/register/loja', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao criar loja')
+      // 1. Criar usuário proprietário
+      const userData: CreateUserDto = {
+        email: formData.ownerEmail,
+        name: formData.ownerName,
+        password: formData.password,
+        role: UserRole.ADMIN
       }
+
+      const userResponse = await registerMutation.mutateAsync(userData)
+      
+      // 2. Criar loja
+      const storeData: CreateStoreDto = {
+        name: formData.storeName,
+        slug: formData.storeSlug,
+        description: formData.description,
+        address: `${formData.address}, ${formData.city} - ${formData.state} ${formData.zipCode}`,
+        phone: formData.ownerPhone,
+        email: formData.ownerEmail,
+        logo: '',
+        banner: '',
+        category: formData.category,
+        deliveryFee: parseFloat(formData.deliveryFee),
+        minimumOrder: parseFloat(formData.minimumOrder),
+        estimatedDeliveryTime: 30,
+        isActive: true,
+        ownerId: userResponse.user.id
+      }
+
+      await createStore(storeData)
 
       // Sucesso - redirecionar para o dashboard da loja
       router.push(`/dashboard/${formData.storeSlug}?welcome=true&message=Loja criada com sucesso! Configure sua loja.`)
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar loja. Tente novamente.')
-    } finally {
-      setLoading(false)
+      console.error('Erro ao criar loja:', err)
     }
   }
 
@@ -511,10 +521,10 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={isLoading}
                 className="flex-1 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium disabled:opacity-50"
               >
-                {loading ? 'Criando...' : 'Criar Loja'}
+                {isLoading ? 'Criando...' : 'Criar Loja'}
               </button>
             )}
           </div>

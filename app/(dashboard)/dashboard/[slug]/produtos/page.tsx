@@ -1,5 +1,6 @@
 'use client'
 
+import { useCategoriesByStore, useCreateProduct, useDeleteProduct, useProductsByStore, useToggleProductAvailability, useUpdateProduct } from '@/hooks'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
@@ -14,28 +15,6 @@ import {
 import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  image?: string
-  available: boolean
-  featured: boolean
-  stock?: number
-  minStock?: number
-  createdAt: string
-  updatedAt: string
-}
-
-interface Category {
-  id: string
-  name: string
-  description?: string
-  active: boolean
-}
-
 export default function ProdutosPage() {
   const params = useParams()
   const slug = params.slug as string
@@ -43,34 +22,36 @@ export default function ProdutosPage() {
   
   const { config, loading } = useStoreConfig(slug)
   
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loadingProducts, setLoadingProducts] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showAvailableOnly, setShowAvailableOnly] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
-    category: '',
+    categoryId: '',
     image: '',
-    available: true,
+    isAvailable: true,
+    stockQuantity: '',
+    minStock: '',
     featured: false,
-    stock: '',
-    minStock: ''
+    preparationTime: ''
   })
 
-  // Carregar produtos e categorias
-  useEffect(() => {
-    loadProducts()
-    loadCategories()
-  }, [slug])
+  // Hooks da API Cardap.IO
+  const { data: productsData, isLoading: loadingProducts, refetch: refetchProducts } = useProductsByStore(slug)
+  const { data: categoriesData, isLoading: loadingCategories, refetch: refetchCategories } = useCategoriesByStore(slug)
+  
+  const createProductMutation = useCreateProduct()
+  const updateProductMutation = useUpdateProduct()
+  const deleteProductMutation = useDeleteProduct()
+  const toggleAvailabilityMutation = useToggleProductAvailability()
 
-
+  const products = productsData?.data || []
+  const categories = categoriesData?.data || []
 
   // Abrir modal automaticamente quando vier de /produtos/novo
   useEffect(() => {
@@ -79,220 +60,44 @@ export default function ProdutosPage() {
     }
   }, [searchParams])
 
-  const loadProducts = async () => {
-    setLoadingProducts(true)
-    try {
-      // Carregar produtos reais da API
-      const res = await fetch(`/api/stores/${slug}/public`, { cache: 'no-store' })
-      if (!res.ok) throw new Error('Falha ao carregar produtos')
-      
-      const data = await res.json()
-      const apiProducts: Product[] = (data.menu?.products || []).map((p: any) => {
-        // Garantir que a categoria seja uma string válida
-        let categoryName = p.category?.name || 'Sem categoria'
-        if (typeof categoryName === 'number' || !isNaN(Number(categoryName))) {
-          categoryName = 'Sem categoria'
-        }
-        
-        return {
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          category: categoryName,
-          image: p.image || '',
-          available: !!p.active,
-          featured: false, // TODO: implementar featured
-          stock: p.inventory?.quantity || 0,
-          minStock: p.inventory?.minStock || 0,
-          createdAt: p.createdAt || new Date().toISOString(),
-          updatedAt: p.updatedAt || new Date().toISOString()
-        }
-      })
-      
-      setProducts(apiProducts)
-    } catch (error) {
-      console.error('Erro ao carregar produtos:', error)
-      setProducts([])
-    } finally {
-      setLoadingProducts(false)
-    }
+  // Filtrar produtos
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = selectedCategory === 'all' || product.categoryId === selectedCategory
+    const matchesAvailability = !showAvailableOnly || product.isAvailable
+    
+    return matchesSearch && matchesCategory && matchesAvailability
+  })
+
+  const stats = {
+    total: products.length,
+    available: products.filter(p => p.isAvailable).length,
+    outOfStock: products.filter(p => (p.stockQuantity || 0) === 0).length,
+    lowStock: products.filter(p => (p.stockQuantity || 0) <= 5 && (p.stockQuantity || 0) > 0).length
   }
 
-  const loadCategories = async () => {
-    try {
-      const res = await fetch(`/api/stores/${slug}/public`, { cache: 'no-store' })
-      if (!res.ok) throw new Error('Falha ao carregar categorias')
-      const data = await res.json()
-      const apiCategories: Category[] = (data.menu?.categories || []).map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        description: c.description || '',
-        active: !!c.active,
-      }))
-      setCategories(apiCategories)
-      // Se não houver categoria selecionada, pré-seleciona a primeira ativa
-      if (!formData.category && apiCategories.length > 0) {
-        const firstActive = apiCategories.find(c => c.active)
-        if (firstActive) {
-          setFormData(prev => ({ ...prev, category: firstActive.name }))
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao carregar categorias:', error)
-      setCategories([])
-    }
+  // Funções necessárias
+  const openEditModal = (product: any) => {
+    setSelectedProduct(product)
+    setFormData({
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      categoryId: product.categoryId,
+      image: product.image,
+      isAvailable: product.isAvailable,
+      stockQuantity: product.stockQuantity?.toString() || '',
+      minStock: product.minStock?.toString() || '',
+      featured: product.featured,
+      preparationTime: product.preparationTime?.toString() || ''
+    })
+    setShowEditModal(true)
   }
 
-  const createCategory = async (name: string) => {
-    try {
-      const res = await fetch(`/api/stores/${slug}/categories`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description: `Categoria ${name}` }),
-      })
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Erro ao criar categoria')
-      }
-      await loadCategories()
-      return true
-    } catch (error) {
-      console.error('Erro ao criar categoria:', error)
-      alert(`Erro ao criar categoria: ${error}`)
-      return false
-    }
-  }
-
-  const handleCreateProduct = async () => {
-    try {
-      if (!formData.name || !formData.price || !formData.category) {
-        alert('Preencha Nome, Preço e Categoria')
-        return
-      }
-      
-      // Se não há categorias, criar uma automaticamente
-      if (categories.length === 0) {
-        const created = await createCategory(formData.category)
-        if (!created) return
-      }
-      
-      const activeCategory = categories.find(c => c.name === formData.category && c.active)
-      if (!activeCategory) {
-        // Tentar criar a categoria se não existir
-        const created = await createCategory(formData.category)
-        if (!created) return
-        
-        // Recarregar categorias e tentar novamente
-        await loadCategories()
-        const newActiveCategory = categories.find(c => c.name === formData.category && c.active)
-        if (!newActiveCategory) {
-          alert('Erro ao encontrar categoria criada')
-          return
-        }
-      }
-
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        categoryId: activeCategory?.id || '',
-        image: formData.image,
-        active: formData.available,
-        stock: parseInt(formData.stock) || 0,
-        minStock: parseInt(formData.minStock) || 0
-      }
-
-      const res = await fetch(`/api/stores/${slug}/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData),
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Erro ao criar produto')
-      }
-
-      alert('Produto criado com sucesso!')
-      setShowCreateModal(false)
-      resetForm()
-      loadProducts()
-    } catch (error) {
-      console.error('Erro ao criar produto:', error)
-      alert(`Erro ao criar produto: ${error}`)
-    }
-  }
-
-  const handleEditProduct = async () => {
-    if (!selectedProduct) return
-
-    try {
-      if (!formData.name || !formData.price || !formData.category) {
-        alert('Preencha Nome, Preço e Categoria')
-        return
-      }
-
-      // Encontrar a categoria pelo nome
-      const activeCategory = categories.find(c => c.name === formData.category && c.active)
-      if (!activeCategory) {
-        alert('Categoria não encontrada')
-        return
-      }
-
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        categoryId: activeCategory.id,
-        image: formData.image,
-        active: formData.available,
-        stock: parseInt(formData.stock) || 0,
-        minStock: parseInt(formData.minStock) || 0
-      }
-
-      const res = await fetch(`/api/stores/${slug}/products/${selectedProduct.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData),
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Erro ao atualizar produto')
-      }
-
-      alert('Produto atualizado com sucesso!')
-      setShowEditModal(false)
-      setSelectedProduct(null)
-      resetForm()
-      loadProducts()
-    } catch (error) {
-      console.error('Erro ao atualizar produto:', error)
-      alert(`Erro ao atualizar produto: ${error}`)
-    }
-  }
-
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
-      return
-    }
-
-    try {
-      const res = await fetch(`/api/stores/${slug}/products/${productId}`, {
-        method: 'DELETE',
-      })
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Erro ao excluir produto')
-      }
-
-      alert('Produto excluído com sucesso!')
-      loadProducts()
-    } catch (error) {
-      console.error('Erro ao excluir produto:', error)
-      alert(`Erro ao excluir produto: ${error}`)
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Tem certeza que deseja excluir este produto?')) {
+      deleteProductMutation.mutate(productId)
     }
   }
 
@@ -301,55 +106,29 @@ export default function ProdutosPage() {
       name: '',
       description: '',
       price: '',
-      category: '',
+      categoryId: '',
       image: '',
-      available: true,
+      isAvailable: true,
+      stockQuantity: '',
+      minStock: '',
       featured: false,
-      stock: '',
-      minStock: ''
+      preparationTime: ''
     })
   }
 
-  const openEditModal = (product: Product) => {
-    // Garantir que a categoria seja uma string válida
-    let categoryName = product.category
-    if (typeof categoryName === 'number' || !isNaN(Number(categoryName))) {
-      categoryName = 'Sem categoria'
+  const handleCreateProduct = () => {
+    createProductMutation.mutate(formData)
+    setShowCreateModal(false)
+    resetForm()
+  }
+
+  const handleEditProduct = () => {
+    if (selectedProduct) {
+      updateProductMutation.mutate({ id: selectedProduct.id, ...formData })
+      setShowEditModal(false)
+      setSelectedProduct(null)
+      resetForm()
     }
-    
-    setSelectedProduct(product)
-    setFormData({
-      name: product.name,
-      description: product.description,
-      price: product.price.toString(),
-      category: categoryName,
-      image: product.image || '',
-      available: product.available,
-      featured: product.featured,
-      stock: product.stock?.toString() || '',
-      minStock: product.minStock?.toString() || ''
-    })
-    setShowEditModal(true)
-  }
-
-  // Filtros e estatísticas
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = !searchTerm || 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
-    
-    const matchesAvailability = !showAvailableOnly || product.available
-    
-    return matchesSearch && matchesCategory && matchesAvailability
-  })
-
-  const stats = {
-    total: products.length,
-    available: products.filter(p => p.available).length,
-    outOfStock: products.filter(p => (p.stock || 0) === 0).length,
-    lowStock: products.filter(p => (p.stock || 0) <= (p.minStock || 0) && (p.stock || 0) > 0).length
   }
 
   if (loading || loadingProducts) {
@@ -505,11 +284,6 @@ export default function ProdutosPage() {
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
                           {product.name}
-                          {product.featured && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Destaque
-                            </span>
-                          )}
                         </div>
                         <div className="text-sm text-gray-500 truncate max-w-xs">
                           {product.description}
@@ -519,23 +293,18 @@ export default function ProdutosPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {product.category}
+                      {product.categoryId}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     R$ {product.price.toFixed(2).replace('.', ',')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {product.stock !== undefined ? (
+                    {product.stockQuantity !== undefined ? (
                       <div className="text-sm">
-                        <span className={product.stock <= (product.minStock || 0) ? 'text-red-600 font-medium' : 'text-gray-900'}>
-                          {product.stock}
+                        <span className="text-sm text-gray-900">
+                          {product.stockQuantity}
                         </span>
-                        {product.minStock && (
-                          <span className="text-gray-500 text-xs ml-1">
-                            / {product.minStock}
-                          </span>
-                        )}
                       </div>
                     ) : (
                       <span className="text-gray-400 text-sm">-</span>
@@ -543,11 +312,11 @@ export default function ProdutosPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      product.available 
+                      product.isAvailable 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {product.available ? 'Disponível' : 'Indisponível'}
+                      {product.isAvailable ? 'Disponível' : 'Indisponível'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -644,8 +413,8 @@ export default function ProdutosPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Categoria *</label>
                     <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      value={formData.categoryId}
+                      onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                     >
                       <option value="">Selecione uma categoria</option>
@@ -677,8 +446,8 @@ export default function ProdutosPage() {
                     <label className="block text-sm font-medium text-gray-700">Estoque</label>
                     <input
                       type="number"
-                      value={formData.stock}
-                      onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                      value={formData.stockQuantity}
+                      onChange={(e) => setFormData({...formData, stockQuantity: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Quantidade"
                     />
@@ -700,8 +469,8 @@ export default function ProdutosPage() {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      checked={formData.available}
-                      onChange={(e) => setFormData({...formData, available: e.target.checked})}
+                      checked={formData.isAvailable}
+                      onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})}
                       className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                     />
                     <span className="ml-2 text-sm text-gray-700">Disponível</span>

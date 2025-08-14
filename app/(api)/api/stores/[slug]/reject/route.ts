@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../lib/db'
+import { apiClient } from '../../../../../../lib/api-client'
 
-function isLikelyId(value: string): boolean {
-  return value.length >= 20 || value.includes('-')
-}
+/**
+ * API para rejeitar loja
+ * POST /api/stores/[slug]/reject - Rejeitar loja pendente
+ */
 
 export async function POST(
   request: NextRequest,
@@ -11,39 +12,40 @@ export async function POST(
 ) {
   try {
     const { slug } = params
-    const where = isLikelyId(slug) ? { id: slug } : { slug }
-
-    const store = await db.store.findUnique({ where })
-    if (!store) {
+    
+    if (!slug) {
       return NextResponse.json(
-        { error: 'Loja não encontrada' },
-        { status: 404 }
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
       )
     }
 
-    const updatedStore = await db.store.update({
-      where: { id: store.id },
-      data: { approved: false, active: false },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        description: true,
-        active: true,
-        approved: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const body = await request.json()
+    const { reason } = body
+
+    // Rejeitar loja via API Cardap.IO
+    const response = await apiClient.put(`/stores/${slug}`, {
+      approved: false,
+      active: false,
+      rejectionReason: reason || 'Loja rejeitada pelo administrador'
     })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const store = response as any
+
+    if (!store || !store.id) {
+      throw new Error('Erro ao rejeitar loja')
+    }
 
     return NextResponse.json({
       message: 'Loja rejeitada com sucesso',
-      store: updatedStore,
+      store
     })
-  } catch (error) {
+
+  } catch (error: any) {
     console.error('Erro ao rejeitar loja:', error)
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

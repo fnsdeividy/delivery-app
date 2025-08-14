@@ -1,7 +1,7 @@
 'use client'
 
+import { useCardapioAuth } from '@/hooks'
 import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
-import { getSession, signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -9,14 +9,13 @@ import { useEffect, useState } from 'react'
 export default function LojistaLogin() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { login, isLoading, error } = useCardapioAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     storeSlug: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   // Pré-preencher slug se vier da URL e mostrar mensagem
   useEffect(() => {
@@ -35,47 +34,17 @@ export default function LojistaLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
 
-    try {
-      if (!formData.email || !formData.password || !formData.storeSlug) {
-        throw new Error('Todos os campos são obrigatórios')
-      }
-
-      // Fazer login com NextAuth
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        userType: 'lojista',
-        storeSlug: formData.storeSlug,
-        redirect: false
-      })
-
-      if (result?.error) {
-        throw new Error(result.error)
-      }
-
-      if (result?.ok) {
-        // Buscar sessão para verificar role
-        const session = await getSession()
-        
-        if (session?.user?.role === 'ADMIN') {
-          // Redirecionar para dashboard da loja
-          router.push(`/dashboard/${formData.storeSlug}`)
-        } else if (session?.user?.role === 'SUPER_ADMIN') {
-          // Super admin pode acessar qualquer dashboard
-          router.push(`/dashboard/${formData.storeSlug}`)
-        } else {
-          throw new Error('Tipo de usuário inválido para esta área')
-        }
-      }
-    } catch (err) {
-      console.error('Erro no login:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
-    } finally {
-      setLoading(false)
+    if (!formData.email || !formData.password || !formData.storeSlug) {
+      return
     }
+
+    // Fazer login usando o hook unificado
+    login({
+      email: formData.email,
+      password: formData.password,
+      storeSlug: formData.storeSlug
+    })
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +52,18 @@ export default function LojistaLogin() {
       ...prev,
       [e.target.name]: e.target.value
     }))
+  }
+
+  // Mostrar loading enquanto verifica sessão
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando sessão...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -200,20 +181,20 @@ export default function LojistaLogin() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                   <Store className="h-5 w-5 text-orange-500 group-hover:text-orange-400" />
                 </span>
-                {loading ? 'Entrando...' : 'Acessar Dashboard'}
+                {isLoading ? 'Entrando...' : 'Acessar Dashboard'}
               </button>
             </div>
 
             {/* Links */}
             <div className="flex items-center justify-between">
               <Link
-                href="/login"
+                href="/login/lojista"
                 className="text-sm text-orange-600 hover:text-orange-500"
               >
                 Login de cliente
@@ -222,7 +203,7 @@ export default function LojistaLogin() {
                 href="/"
                 className="flex items-center text-sm text-gray-600 hover:text-gray-500"
               >
-                <ArrowLeft className="w-4 h-4 mr-1" />
+                <ArrowLeft className="w-4 w-4 mr-1" />
                 Voltar ao início
               </Link>
             </div>

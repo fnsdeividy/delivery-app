@@ -14,6 +14,9 @@ import { useEffect, useState } from 'react'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface ColorScheme {
+  logo?: string
+  favicon?: string
+  bannerImage?: string
   primaryColor: string
   secondaryColor: string
   backgroundColor: string

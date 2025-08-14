@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../lib/db'
-import { filterProducts } from '../../../../../../lib/menu/search'
-import { redisGet, redisSet } from '../../../../../../lib/redis'
+import { apiClient } from '../../../../../../lib/api-client'
+
+/**
+ * API para busca de produtos na loja
+ * GET /api/stores/[slug]/search - Buscar produtos por termo
+ */
 
 export async function GET(
   request: NextRequest,
@@ -10,65 +13,64 @@ export async function GET(
   try {
     const { slug } = params
     const { searchParams } = new URL(request.url)
-    const q = (searchParams.get('q') || '').trim()
-
+    
     if (!slug) {
-      return NextResponse.json({ error: 'Slug é obrigatório' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Slug da loja é obrigatório' },
+        { status: 400 }
+      )
     }
 
-    if (!q) {
-      return NextResponse.json({ items: [], total: 0 })
+    const query = searchParams.get('q')
+    const category = searchParams.get('category')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const inStock = searchParams.get('inStock')
+
+    if (!query) {
+      return NextResponse.json(
+        { error: 'Termo de busca é obrigatório' },
+        { status: 400 }
+      )
     }
 
-    const cacheKey = `store:${slug}:search:${q.toLowerCase()}`
+    // Construir parâmetros de busca
+    const searchParamsObj: any = {
+      q: query,
+      limit: 50
+    }
 
-    const cached = await redisGet<{ items: any[]; total: number }>(cacheKey)
-    if (cached) return NextResponse.json(cached)
+    if (category) searchParamsObj.category = category
+    if (minPrice) searchParamsObj.minPrice = minPrice
+    if (maxPrice) searchParamsObj.maxPrice = maxPrice
+    if (inStock) searchParamsObj.inStock = inStock === 'true'
 
-    // Buscar produtos ativos da loja com campos essenciais
-    const products = await db.product.findMany({
-      where: { storeSlug: slug, active: true },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        price: true,
-        originalPrice: true,
-        image: true,
-        preparationTime: true,
-        categoryId: true,
-        tags: true,
-        tagColor: true,
-        ingredients: { select: { name: true } },
-      },
-      orderBy: { name: 'asc' },
-      take: 2000, // limite de segurança
+    // Buscar produtos via API Cardap.IO
+    const response = await apiClient.get(`/stores/${slug}/products/search`, {
+      params: searchParamsObj
+    })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const products = response as any[] || []
+
+    return NextResponse.json({
+      query,
+      results: products,
+      total: products.length,
+      filters: {
+        category,
+        minPrice: minPrice ? Number(minPrice) : null,
+        maxPrice: maxPrice ? Number(maxPrice) : null,
+        inStock: inStock === 'true'
+      }
     })
 
-    const normalized = products.map(p => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: Number(p.price),
-      originalPrice: p.originalPrice ? Number(p.originalPrice) : undefined,
-      image: p.image,
-      category: p.categoryId,
-      ingredients: p.ingredients.map(i => i.name),
-      tags: p.tags || [],
-      tagColor: p.tagColor,
-      active: true,
-      preparationTime: p.preparationTime ?? undefined,
-    }))
-
-    const items = filterProducts(q, normalized)
-    const payload = { items, total: items.length }
-
-    await redisSet(cacheKey, payload, 60) // 60s de cache
-
-    return NextResponse.json(payload)
-  } catch (error) {
-    console.error('Erro na busca:', error)
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Erro na busca de produtos:', error)
+    return NextResponse.json(
+      { error: error.message || 'Erro interno do servidor' },
+      { status: 500 }
+    )
   }
 }
 

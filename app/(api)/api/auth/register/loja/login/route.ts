@@ -1,91 +1,94 @@
-import bcrypt from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../../../../lib/db'
+import { apiClient } from '../../../../../../../lib/api-client'
 
 /**
- * API para login automático após criação de loja
- * POST /api/auth/register/loja/login
+ * API para login de lojistas
+ * POST /api/auth/register/loja/login - Login de usuário administrador
  */
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, storeSlug } = body
+    const { email, password } = body
 
     // Validações básicas
-    if (!email || !password || !storeSlug) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email, senha e slug da loja são obrigatórios' },
+        { error: 'Email e senha são obrigatórios' },
         { status: 400 }
       )
     }
 
-    // Buscar usuário no banco
-    const user = await db.user.findUnique({
-      where: { email },
-      include: { store: true }
+    // Fazer login via API Cardap.IO
+    const response = await apiClient.post('/auth/login', {
+      email,
+      password
+    })
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const { user, access_token } = response as any
+
+    if (!user || !access_token) {
+      throw new Error('Credenciais inválidas')
+    }
+
+    // Verificar se o usuário é um administrador
+    if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json(
+        { error: 'Acesso negado. Apenas administradores podem fazer login.' },
+        { status: 403 }
+      )
+    }
+
+    // Verificar se o usuário está ativo
+    if (!user.active) {
+      return NextResponse.json(
+        { error: 'Usuário inativo. Entre em contato com o suporte.' },
+        { status: 403 }
+      )
+    }
+
+    // Se for ADMIN, verificar se a loja está aprovada
+    if (user.role === 'ADMIN' && user.storeSlug) {
+      try {
+        const storeResponse = await apiClient.get(`/stores/${user.storeSlug}`)
+        if (!(storeResponse as any).approved) {
+          return NextResponse.json(
+            { error: 'Sua loja ainda está aguardando aprovação. Entre em contato com o suporte.' },
+            { status: 403 }
+          )
+        }
+      } catch (storeError) {
+        console.error('Erro ao verificar status da loja:', storeError)
+      }
+    }
+
+    return NextResponse.json({
+      message: 'Login realizado com sucesso',
+              user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          storeSlug: user.storeSlug,
+          active: user.active
+        },
+        access_token
     })
 
-    if (!user) {
+  } catch (error: any) {
+    console.error('Erro no login:', error)
+    
+    // Tratar erros específicos
+    if (error.message?.includes('Credenciais inválidas') || error.message?.includes('Invalid credentials')) {
       return NextResponse.json(
-        { error: 'Usuário não encontrado' },
-        { status: 404 }
-      )
-    }
-
-    // Verificar senha
-    if (!user.password) {
-      return NextResponse.json(
-        { error: 'Usuário deve ter senha configurada' },
-        { status: 400 }
-      )
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password)
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { error: 'Senha incorreta' },
+        { error: 'Email ou senha incorretos' },
         { status: 401 }
       )
     }
 
-    // Verificar se usuário está ativo
-    if (!user.active) {
-      return NextResponse.json(
-        { error: 'Conta desativada' },
-        { status: 403 }
-      )
-    }
-
-    // Verificar se usuário tem acesso à loja
-    if (user.storeSlug !== storeSlug) {
-      return NextResponse.json(
-        { error: 'Acesso negado para esta loja' },
-        { status: 403 }
-      )
-    }
-
-    // Atualizar último login
-    await db.user.update({
-      where: { id: user.id },
-      data: { lastLogin: new Date() }
-    })
-
-    // Retornar dados do usuário (sem senha)
-    const { password: _, ...userWithoutPassword } = user
-
     return NextResponse.json(
-      { 
-        message: 'Login realizado com sucesso',
-        user: userWithoutPassword,
-        storeSlug
-      },
-      { status: 200 }
-    )
-
-  } catch (error) {
-    console.error('Erro no login automático:', error)
-    return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

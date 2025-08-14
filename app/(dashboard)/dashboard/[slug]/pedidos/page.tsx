@@ -1,5 +1,8 @@
 'use client'
 
+import { useOrdersByStore, useUpdateOrderStatus } from '@/hooks'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
+import { OrderStatus, PaymentStatus } from '@/types/cardapio-api'
 import {
     CheckCircle,
     Clock,
@@ -15,44 +18,7 @@ import {
     XCircle
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { useStoreConfig } from '@/lib/store/useStoreConfig'
-
-interface OrderItem {
-  id: string
-  productId: string
-  productName: string
-  quantity: number
-  price: number
-  total: number
-  notes?: string
-}
-
-interface Customer {
-  id: string
-  name: string
-  email: string
-  phone: string
-  address: string
-}
-
-interface Order {
-  id: string
-  customer: Customer
-  items: OrderItem[]
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled'
-  total: number
-  deliveryFee: number
-  subtotal: number
-  paymentMethod: 'cash' | 'card' | 'pix'
-  paymentStatus: 'pending' | 'paid' | 'failed'
-  deliveryType: 'delivery' | 'pickup' | 'waiter'
-  deliveryAddress?: string
-  notes?: string
-  createdAt: string
-  updatedAt: string
-  estimatedDelivery?: string
-}
+import { useState } from 'react'
 
 export default function PedidosPage() {
   const params = useParams()
@@ -60,235 +26,73 @@ export default function PedidosPage() {
   
   const { config, loading } = useStoreConfig(slug)
   
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loadingOrders, setLoadingOrders] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('all')
   const [showOrderDetails, setShowOrderDetails] = useState(false)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<any>(null)
 
-  // Carregar pedidos
-  useEffect(() => {
-    loadOrders()
-  }, [slug])
+  // Hooks da API Cardap.IO
+  const { data: ordersData, isLoading: loadingOrders, refetch: refetchOrders } = useOrdersByStore(slug)
+  const updateStatusMutation = useUpdateOrderStatus()
 
-  const loadOrders = async () => {
-    setLoadingOrders(true)
-    try {
-      // Simular carregamento de pedidos (em produção viria da API)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          customer: {
-            id: '1',
-            name: 'João Silva',
-            email: 'joao@email.com',
-            phone: '(11) 99999-9999',
-            address: 'Rua das Flores, 123, Centro - São Paulo/SP'
-          },
-          items: [
-            {
-              id: '1',
-              productId: '1',
-              productName: 'X-Burger',
-              quantity: 2,
-              price: 25.90,
-              total: 51.80,
-              notes: 'Sem cebola'
-            },
-            {
-              id: '2',
-              productId: '2',
-              productName: 'Batata Frita',
-              quantity: 1,
-              price: 12.50,
-              total: 12.50
-            }
-          ],
-          status: 'preparing',
-          total: 69.30,
-          deliveryFee: 5.00,
-          subtotal: 64.30,
-          paymentMethod: 'card',
-          paymentStatus: 'paid',
-          deliveryType: 'delivery',
-          deliveryAddress: 'Rua das Flores, 123, Centro - São Paulo/SP',
-          notes: 'Entregar no portão',
-          createdAt: '2024-01-22T18:30:00Z',
-          updatedAt: '2024-01-22T18:35:00Z',
-          estimatedDelivery: '2024-01-22T19:00:00Z'
-        },
-        {
-          id: '2',
-          customer: {
-            id: '2',
-            name: 'Maria Santos',
-            email: 'maria@email.com',
-            phone: '(11) 88888-8888',
-            address: 'Av. Paulista, 1000, Bela Vista - São Paulo/SP'
-          },
-          items: [
-            {
-              id: '3',
-              productId: '3',
-              productName: 'Refrigerante Cola',
-              quantity: 3,
-              price: 6.90,
-              total: 20.70
-            }
-          ],
-          status: 'pending',
-          total: 20.70,
-          deliveryFee: 0,
-          subtotal: 20.70,
-          paymentMethod: 'pix',
-          paymentStatus: 'pending',
-          deliveryType: 'pickup',
-          notes: 'Retirar no balcão',
-          createdAt: '2024-01-22T18:45:00Z',
-          updatedAt: '2024-01-22T18:45:00Z'
-        },
-        {
-          id: '3',
-          customer: {
-            id: '3',
-            name: 'Pedro Costa',
-            email: 'pedro@email.com',
-            phone: '(11) 77777-7777',
-            address: 'Rua Augusta, 500, Consolação - São Paulo/SP'
-          },
-          items: [
-            {
-              id: '4',
-              productId: '1',
-              productName: 'X-Burger',
-              quantity: 1,
-              price: 25.90,
-              total: 25.90
-            }
-          ],
-          status: 'delivered',
-          total: 30.90,
-          deliveryFee: 5.00,
-          subtotal: 25.90,
-          paymentMethod: 'cash',
-          paymentStatus: 'paid',
-          deliveryType: 'delivery',
-          deliveryAddress: 'Rua Augusta, 500, Consolação - São Paulo/SP',
-          createdAt: '2024-01-22T17:00:00Z',
-          updatedAt: '2024-01-22T17:45:00Z'
-        },
-        {
-          id: '4',
-          customer: {
-            id: '4',
-            name: 'Ana Oliveira',
-            email: 'ana@email.com',
-            phone: '(11) 66666-6666',
-            address: 'Rua Oscar Freire, 200, Jardins - São Paulo/SP'
-          },
-          items: [
-            {
-              id: '5',
-              productId: '2',
-              productName: 'Batata Frita',
-              quantity: 2,
-              price: 12.50,
-              total: 25.00
-            }
-          ],
-          status: 'cancelled',
-          total: 25.00,
-          deliveryFee: 0,
-          subtotal: 25.00,
-          paymentMethod: 'card',
-          paymentStatus: 'failed',
-          deliveryType: 'pickup',
-          notes: 'Cliente cancelou',
-          createdAt: '2024-01-22T16:30:00Z',
-          updatedAt: '2024-01-22T16:45:00Z'
-        }
-      ]
-      
-      setOrders(mockOrders)
-    } catch (error) {
-      console.error('Erro ao carregar pedidos:', error)
-    } finally {
-      setLoadingOrders(false)
-    }
-  }
+  const orders = ordersData?.data || []
 
   // Filtrar pedidos
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.phone.includes(searchTerm) ||
-      order.id.includes(searchTerm)
+      order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer?.phone?.includes(searchTerm)
+    
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus
     const matchesPaymentStatus = selectedPaymentStatus === 'all' || order.paymentStatus === selectedPaymentStatus
     
     return matchesSearch && matchesStatus && matchesPaymentStatus
   })
 
+  // Atualizar status do pedido
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      await updateStatusMutation.mutateAsync({ id: orderId, status: newStatus })
+      refetchOrders()
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      alert('Erro ao atualizar status do pedido')
+    }
+  }
+
   // Estatísticas
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
-    ready: orders.filter(o => o.status === 'ready').length,
-    delivering: orders.filter(o => o.status === 'delivering').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-    totalRevenue: orders.filter(o => o.paymentStatus === 'paid').reduce((sum, o) => sum + o.total, 0)
-  }
-
-  // Funções de atualização de status
-  const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
-    try {
-      setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-          : order
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-    }
-  }
-
-  const updatePaymentStatus = async (orderId: string, newPaymentStatus: Order['paymentStatus']) => {
-    try {
-      setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, paymentStatus: newPaymentStatus, updatedAt: new Date().toISOString() }
-          : order
-      ))
-    } catch (error) {
-      console.error('Erro ao atualizar status de pagamento:', error)
-    }
+    pending: orders.filter(o => o.status === OrderStatus.PENDING).length,
+    preparing: orders.filter(o => o.status === OrderStatus.PREPARING).length,
+    ready: orders.filter(o => o.status === OrderStatus.READY).length,
+    delivering: orders.filter(o => o.status === OrderStatus.DELIVERING).length,
+    delivered: orders.filter(o => o.status === OrderStatus.DELIVERED).length,
+    cancelled: orders.filter(o => o.status === OrderStatus.CANCELLED).length
   }
 
   // Funções auxiliares
-  const getStatusInfo = (status: Order['status']) => {
+  const getStatusInfo = (status: OrderStatus) => {
     const statusMap = {
-      pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      confirmed: { label: 'Confirmado', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-      preparing: { label: 'Preparando', color: 'bg-orange-100 text-orange-800', icon: Package },
-      ready: { label: 'Pronto', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      delivering: { label: 'Entregando', color: 'bg-purple-100 text-purple-800', icon: Truck },
-      delivered: { label: 'Entregue', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800', icon: XCircle }
+      [OrderStatus.PENDING]: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      [OrderStatus.CONFIRMED]: { label: 'Confirmado', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+      [OrderStatus.PREPARING]: { label: 'Preparando', color: 'bg-orange-100 text-orange-800', icon: Package },
+      [OrderStatus.READY]: { label: 'Pronto', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      [OrderStatus.DELIVERING]: { label: 'Entregando', color: 'bg-purple-100 text-purple-800', icon: Truck },
+      [OrderStatus.DELIVERED]: { label: 'Entregue', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      [OrderStatus.CANCELLED]: { label: 'Cancelado', color: 'bg-red-100 text-red-800', icon: XCircle }
     }
     return statusMap[status]
   }
 
-  const getPaymentStatusInfo = (status: Order['paymentStatus']) => {
+  const getPaymentStatusInfo = (status: PaymentStatus) => {
     const statusMap = {
-      pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-      paid: { label: 'Pago', color: 'bg-green-100 text-green-800' },
-      failed: { label: 'Falhou', color: 'bg-red-100 text-red-800' }
+      [PaymentStatus.PENDING]: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
+      [PaymentStatus.PAID]: { label: 'Pago', color: 'bg-green-100 text-green-800' },
+      [PaymentStatus.FAILED]: { label: 'Falhou', color: 'bg-red-100 text-red-800' },
+      [PaymentStatus.REFUNDED]: { label: 'Reembolsado', color: 'bg-gray-100 text-gray-800' }
     }
     return statusMap[status]
   }
@@ -328,7 +132,7 @@ export default function PedidosPage() {
           <p className="text-gray-600">Gerencie os pedidos da sua loja</p>
         </div>
         <button
-          onClick={loadOrders}
+          onClick={refetchOrders}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2"
         >
           <RefreshCw className="h-4 w-4" />
@@ -373,7 +177,7 @@ export default function PedidosPage() {
             <DollarSign className="h-8 w-8 text-green-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Receita</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(orders.filter(o => o.paymentStatus === PaymentStatus.PAID).reduce((sum, o) => sum + o.total, 0))}</p>
             </div>
           </div>
         </div>
@@ -466,14 +270,14 @@ export default function PedidosPage() {
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
-                    <p className="text-xs text-gray-500">{order.customer.email}</p>
+                    <p className="text-sm font-medium text-gray-900">{order.customer?.name}</p>
+                    <p className="text-xs text-gray-500">{order.customer?.email}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">{order.customer.phone}</span>
+                  <span className="text-sm text-gray-900">{order.customer?.phone}</span>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -489,24 +293,24 @@ export default function PedidosPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-600">
-                      {order.items.length} item{order.items.length > 1 ? 's' : ''} • {formatCurrency(order.total)}
+                      {order.items?.length || 0} item{order.items?.length > 1 ? 's' : ''} • {formatCurrency(order.total || 0)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {order.items.map(item => `${item.quantity}x ${item.productName}`).join(', ')}
+                      {order.items?.map(item => `${item.quantity}x ${item.productName}`).join(', ')}
                     </p>
                   </div>
                   
                   <div className="flex space-x-2">
-                    {order.status === 'pending' && (
+                    {order.status === OrderStatus.PENDING && (
                       <>
                         <button
-                          onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                          onClick={() => handleStatusUpdate(order.id, OrderStatus.CONFIRMED)}
                           className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                         >
                           Confirmar
                         </button>
                         <button
-                          onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                          onClick={() => handleStatusUpdate(order.id, OrderStatus.CANCELLED)}
                           className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
                         >
                           Cancelar
@@ -514,45 +318,45 @@ export default function PedidosPage() {
                       </>
                     )}
                     
-                    {order.status === 'confirmed' && (
+                    {order.status === OrderStatus.CONFIRMED && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'preparing')}
+                        onClick={() => handleStatusUpdate(order.id, OrderStatus.PREPARING)}
                         className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
                       >
                         Preparar
                       </button>
                     )}
                     
-                    {order.status === 'preparing' && (
+                    {order.status === OrderStatus.PREPARING && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'ready')}
+                        onClick={() => handleStatusUpdate(order.id, OrderStatus.READY)}
                         className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                       >
                         Pronto
                       </button>
                     )}
                     
-                    {order.status === 'ready' && order.deliveryType === 'delivery' && (
+                    {order.status === OrderStatus.READY && order.deliveryType === 'delivery' && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'delivering')}
+                        onClick={() => handleStatusUpdate(order.id, OrderStatus.DELIVERING)}
                         className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
                       >
                         Entregar
                       </button>
                     )}
                     
-                    {order.status === 'ready' && order.deliveryType !== 'delivery' && (
+                    {order.status === OrderStatus.READY && order.deliveryType !== 'delivery' && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'delivered')}
+                        onClick={() => handleStatusUpdate(order.id, OrderStatus.DELIVERED)}
                         className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                       >
                         Entregue
                       </button>
                     )}
                     
-                    {order.status === 'delivering' && (
+                    {order.status === OrderStatus.DELIVERING && (
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'delivered')}
+                        onClick={() => handleStatusUpdate(order.id, OrderStatus.DELIVERED)}
                         className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                       >
                         Entregue
@@ -603,9 +407,9 @@ export default function PedidosPage() {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Cliente</h4>
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm"><strong>Nome:</strong> {selectedOrder.customer.name}</p>
-                    <p className="text-sm"><strong>Email:</strong> {selectedOrder.customer.email}</p>
-                    <p className="text-sm"><strong>Telefone:</strong> {selectedOrder.customer.phone}</p>
+                    <p className="text-sm"><strong>Nome:</strong> {selectedOrder.customer?.name}</p>
+                    <p className="text-sm"><strong>Email:</strong> {selectedOrder.customer?.email}</p>
+                    <p className="text-sm"><strong>Telefone:</strong> {selectedOrder.customer?.phone}</p>
                     {selectedOrder.deliveryAddress && (
                       <p className="text-sm"><strong>Endereço:</strong> {selectedOrder.deliveryAddress}</p>
                     )}
@@ -616,7 +420,7 @@ export default function PedidosPage() {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Itens</h4>
                   <div className="space-y-2">
-                    {selectedOrder.items.map((item) => (
+                    {selectedOrder.items?.map((item: any) => (
                       <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                         <div>
                           <p className="text-sm font-medium">{item.productName}</p>
@@ -637,17 +441,17 @@ export default function PedidosPage() {
                   <div className="bg-gray-50 p-3 rounded-lg space-y-1">
                     <div className="flex justify-between">
                       <span className="text-sm">Subtotal:</span>
-                      <span className="text-sm">{formatCurrency(selectedOrder.subtotal)}</span>
+                      <span className="text-sm">{formatCurrency(selectedOrder.subtotal || 0)}</span>
                     </div>
                     {selectedOrder.deliveryFee > 0 && (
                       <div className="flex justify-between">
                         <span className="text-sm">Taxa de entrega:</span>
-                        <span className="text-sm">{formatCurrency(selectedOrder.deliveryFee)}</span>
+                        <span className="text-sm">{formatCurrency(selectedOrder.deliveryFee || 0)}</span>
                       </div>
                     )}
                     <div className="flex justify-between border-t pt-1">
                       <span className="text-sm font-medium">Total:</span>
-                      <span className="text-sm font-medium">{formatCurrency(selectedOrder.total)}</span>
+                      <span className="text-sm font-medium">{formatCurrency(selectedOrder.total || 0)}</span>
                     </div>
                   </div>
                 </div>

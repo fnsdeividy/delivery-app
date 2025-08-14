@@ -1,43 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '../../../../lib/db'
+import { apiClient } from '../../../../lib/api-client'
 
 export async function GET(request: NextRequest) {
   try {
-    // Buscar todas as lojas com contagem de usuários
-    const stores = await db.store.findMany({
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        description: true,
-        active: true,
-        approved: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            users: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-
+    // Buscar todas as lojas via API Cardap.IO
+    const response = await apiClient.get('/stores')
+    
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const stores = response as any[] || []
+    
     return NextResponse.json({
       stores,
       total: stores.length,
-      active: stores.filter(store => store.active).length,
-      inactive: stores.filter(store => !store.active).length,
-      approved: stores.filter(store => store.approved).length,
-      pending: stores.filter(store => !store.approved).length
+      active: stores.filter((store: any) => store.active).length,
+      inactive: stores.filter((store: any) => !store.active).length,
+      approved: stores.filter((store: any) => store.approved).length,
+      pending: stores.filter((store: any) => !store.approved).length
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar lojas:', error)
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }
@@ -56,48 +40,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar se slug já existe
-    const existingStore = await db.store.findUnique({
-      where: { slug }
+    // Criar loja via API Cardap.IO
+    const response = await apiClient.post('/stores', {
+      name,
+      description: description || null,
+      slug,
+      active: true,
+      approved: false // Aguardando aprovação do master
     })
 
-    if (existingStore) {
-      return NextResponse.json(
-        { error: 'Já existe uma loja com este slug' },
-        { status: 409 }
-      )
+    // A resposta da API não tem estrutura ApiResponse, é direta
+    const store = response as any
+
+    if (!store || !store.id) {
+      throw new Error('Erro ao criar loja')
     }
-
-    // Criar loja
-    const store = await db.store.create({
-      data: {
-        slug,
-        name,
-        description: description || null,
-        active: true,
-        approved: false // Aguardando aprovação do master
-      },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        description: true,
-        active: true,
-        approved: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    })
 
     return NextResponse.json({
       message: 'Loja criada com sucesso',
       store
     }, { status: 201 })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar loja:', error)
+    
+    // Tratar erro de slug duplicado
+    if (error.message?.includes('já existe') || error.message?.includes('already exists')) {
+      return NextResponse.json(
+        { error: 'Já existe uma loja com este slug' },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     )
   }

@@ -292,7 +292,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Welcome Notification */}
-      <WelcomeNotification storeName={config?.name} />
+      <WelcomeNotification />
     </div>
   )
 }

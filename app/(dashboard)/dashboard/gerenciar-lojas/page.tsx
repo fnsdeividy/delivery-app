@@ -1,55 +1,31 @@
 'use client'
 
+import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useUpdateStore } from '@/hooks'
+import { CreateStoreDto } from '@/types/cardapio-api'
 import { Edit, ExternalLink, Eye, Plus, Store, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-
-interface StoreData {
-  id: string
-  slug: string
-  name: string
-  description: string
-  active: boolean
-  approved: boolean
-  createdAt: string
-  updatedAt: string
-  _count?: {
-    users: number
-  }
-}
+import { useState } from 'react'
 
 export default function GerenciarLojas() {
   const router = useRouter()
-  const [stores, setStores] = useState<StoreData[]>([])
-  const [loading, setLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingStore, setEditingStore] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     slug: ''
   })
 
-  // Carregar lojas do banco de dados
-  useEffect(() => {
-    const loadStores = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/stores')
-        if (response.ok) {
-          const data = await response.json()
-          setStores(data.stores || [])
-        } else {
-          console.error('Erro ao carregar lojas')
-        }
-      } catch (error) {
-        console.error('Erro ao carregar lojas:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Hooks da API Cardap.IO
+  const { data: storesData, isLoading, refetch } = useStores()
+  const createStoreMutation = useCreateStore()
+  const updateStoreMutation = useUpdateStore()
+  const deleteStoreMutation = useDeleteStore()
+  const approveStoreMutation = useApproveStore()
+  const rejectStoreMutation = useRejectStore()
 
-    loadStores()
-  }, [])
+  const stores = storesData?.data || []
+  const loading = isLoading
 
   // Gerar slug automaticamente
   const generateSlug = (name: string) => {
@@ -74,37 +50,35 @@ export default function GerenciarLojas() {
     }
 
     try {
-      const response = await fetch('/api/stores', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          slug: slug
-        }),
-      })
-
-      if (response.ok) {
-        // Recarregar lojas
-        const storesResponse = await fetch('/api/stores')
-        if (storesResponse.ok) {
-          const data = await storesResponse.json()
-          setStores(data.stores || [])
-        }
-        
-        // Limpar formulário e fechar modal
-        setFormData({
-          name: '',
-          description: '',
-          slug: ''
-        })
-        setIsCreateModalOpen(false)
-      } else {
-        const error = await response.json()
-        alert(`Erro ao criar loja: ${error.error}`)
+      const storeData: CreateStoreDto = {
+        name: formData.name,
+        description: formData.description,
+        slug: slug,
+        address: 'Endereço a ser configurado',
+        phone: 'Telefone a ser configurado',
+        email: 'email@loja.com',
+        logo: '',
+        banner: '',
+        category: 'Outros',
+        deliveryFee: 5,
+        minimumOrder: 20,
+        estimatedDeliveryTime: 30,
+        isActive: true,
+        ownerId: 'temp-owner-id' // Será atualizado quando o usuário for criado
       }
+
+      await createStoreMutation.mutateAsync(storeData)
+      
+      // Limpar formulário e fechar modal
+      setFormData({
+        name: '',
+        description: '',
+        slug: ''
+      })
+      setIsCreateModalOpen(false)
+      
+      // Recarregar dados
+      refetch()
     } catch (error) {
       console.error('Erro ao criar loja:', error)
       alert('Erro ao criar loja. Tente novamente.')
@@ -129,24 +103,9 @@ export default function GerenciarLojas() {
   // Aprovar loja
   const handleApproveStore = async (storeId: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        // Recarregar lojas
-        const storesResponse = await fetch('/api/stores')
-        if (storesResponse.ok) {
-          const data = await storesResponse.json()
-          setStores(data.stores || [])
-        }
-        alert('Loja aprovada com sucesso!')
-      } else {
-        alert('Erro ao aprovar loja')
-      }
+      await approveStoreMutation.mutateAsync(storeId)
+      alert('Loja aprovada com sucesso!')
+      refetch()
     } catch (error) {
       console.error('Erro ao aprovar loja:', error)
       alert('Erro ao aprovar loja')
@@ -160,24 +119,9 @@ export default function GerenciarLojas() {
     }
 
     try {
-      const response = await fetch(`/api/stores/${storeId}/reject`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        // Recarregar lojas
-        const storesResponse = await fetch('/api/stores')
-        if (storesResponse.ok) {
-          const data = await storesResponse.json()
-          setStores(data.stores || [])
-        }
-        alert('Loja rejeitada com sucesso!')
-      } else {
-        alert('Erro ao rejeitar loja')
-      }
+      await rejectStoreMutation.mutateAsync(storeId)
+      alert('Loja rejeitada com sucesso!')
+      refetch()
     } catch (error) {
       console.error('Erro ao rejeitar loja:', error)
       alert('Erro ao rejeitar loja')

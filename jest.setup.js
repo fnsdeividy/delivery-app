@@ -26,12 +26,28 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/',
 }))
 
-// Mock do bcrypt
-jest.mock('bcryptjs', () => ({
-  hash: jest.fn(),
-  compare: jest.fn(),
-}))
+// Mock do bcrypt (removido - não necessário para testes atuais)
 
 // Configurar variáveis de ambiente para testes
 process.env.NEXTAUTH_SECRET = 'test-secret'
-process.env.NEXTAUTH_URL = 'http://localhost:3000' 
+process.env.NEXTAUTH_URL = 'http://localhost:3000'
+
+// Mock do React Query DevTools
+jest.mock('@tanstack/react-query-devtools', () => ({
+  ReactQueryDevtools: () => null,
+}))
+
+// Mock do window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+}) 
