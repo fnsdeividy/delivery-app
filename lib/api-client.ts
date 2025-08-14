@@ -6,7 +6,7 @@ class ApiClient {
   private baseURL: string
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_CARDAPIO_API_URL || 'http://localhost:3000/api/v1'
+    this.baseURL = process.env.NEXT_PUBLIC_CARDAPIO_API_URL || 'http://localhost:3000/api'
     
     this.client = axios.create({
       baseURL: this.baseURL,

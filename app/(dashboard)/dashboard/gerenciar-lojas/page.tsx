@@ -326,6 +326,13 @@ export default function GerenciarLojas() {
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
+                              <button
+                                onClick={() => router.push(`/dashboard/editar-loja/${store.id}`)}
+                                className="text-orange-600 hover:text-orange-900"
+                                title="Editar loja"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
                             </>
                           )}
                         </div>

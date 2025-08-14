@@ -3,6 +3,8 @@ import { OrderStatus, PaymentStatus } from '@/types/cardapio-api';
 // Hooks da API Cardap.IO
 export * from './useCardapioAuth';
 export * from './useCreateStore';
+export * from './useStore';
+export * from './useUpdateStore';
 
 // Hooks temporários para permitir build
 export const useOrdersByStore = (slug: string) => ({ 
@@ -102,11 +104,6 @@ export const useStores = () => ({
   isLoading: false, 
   error: null,
   refetch: () => Promise.resolve()
-});
-export const useUpdateStore = () => ({ 
-  mutate: (data: any) => {}, 
-  mutateAsync: async (data: any) => Promise.resolve(),
-  isLoading: false 
 });
 export const useDeleteStore = () => ({ 
   mutate: (data: any) => {}, 
