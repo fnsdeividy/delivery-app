@@ -1,4 +1,5 @@
 // Tipos e interfaces para a API Cardap.IO Delivery API
+// Alinhados com o schema Prisma do backend
 
 export interface LoginDto {
   email: string
@@ -12,6 +13,7 @@ export interface CreateUserDto {
   password: string
   role: UserRole
   storeSlug?: string
+  phone?: string
 }
 
 export interface UpdateUserDto {
@@ -20,12 +22,27 @@ export interface UpdateUserDto {
   role?: UserRole
   active?: boolean
   storeSlug?: string
+  phone?: string
 }
 
 export interface CreateStoreDto {
   name: string
   slug: string
   description?: string
+  config: StoreConfig
+  active: boolean
+  approved: boolean
+}
+
+export interface UpdateStoreDto {
+  name?: string
+  description?: string
+  config?: Partial<StoreConfig>
+  active?: boolean
+  approved?: boolean
+}
+
+export interface StoreConfig {
   address: string
   phone: string
   email: string
@@ -35,76 +52,110 @@ export interface CreateStoreDto {
   deliveryFee: number
   minimumOrder: number
   estimatedDeliveryTime: number
-  isActive: boolean
-  ownerId: string
+  businessHours: BusinessHours
+  paymentMethods: PaymentMethod[]
 }
 
-export interface UpdateStoreDto {
-  name?: string
-  description?: string
-  address?: string
-  phone?: string
-  email?: string
-  logo?: string
-  banner?: string
-  category?: string
-  deliveryFee?: number
-  minimumOrder?: number
-  estimatedDeliveryTime?: number
-  isActive?: boolean
+export interface BusinessHours {
+  monday: DaySchedule
+  tuesday: DaySchedule
+  wednesday: DaySchedule
+  thursday: DaySchedule
+  friday: DaySchedule
+  saturday: DaySchedule
+  sunday: DaySchedule
+}
+
+export interface DaySchedule {
+  open: boolean
+  openTime?: string // HH:mm
+  closeTime?: string // HH:mm
+  breakStart?: string // HH:mm
+  breakEnd?: string // HH:mm
 }
 
 export interface CreateProductDto {
   name: string
   description: string
   price: number
-  categoryId: string
-  storeId: string
-  image?: string
-  isAvailable: boolean
-  stockQuantity?: number
+  originalPrice?: number
+  image: string
+  active: boolean
   preparationTime?: number
-  allergens?: string[]
+  categoryId: string
+  storeSlug: string
+  ingredients: ProductIngredientDto[]
+  addons: ProductAddonDto[]
   nutritionalInfo?: NutritionalInfo
+  tags: string[]
+  tagColor?: string
 }
 
 export interface UpdateProductDto {
   name?: string
   description?: string
   price?: number
-  categoryId?: string
+  originalPrice?: number
   image?: string
-  isAvailable?: boolean
-  stockQuantity?: number
+  active?: boolean
   preparationTime?: number
-  allergens?: string[]
+  categoryId?: string
+  ingredients?: ProductIngredientDto[]
+  addons?: ProductAddonDto[]
   nutritionalInfo?: NutritionalInfo
+  tags?: string[]
+  tagColor?: string
+}
+
+export interface ProductIngredientDto {
+  name: string
+  included: boolean
+  removable: boolean
+}
+
+export interface ProductAddonDto {
+  name: string
+  price: number
+  category?: string
+  maxQuantity?: number
+  active: boolean
 }
 
 export interface CreateOrderDto {
   customerId: string
-  storeId: string
+  storeSlug: string
   items: OrderItemDto[]
-  deliveryAddress: string
-  deliveryInstructions?: string
-  paymentMethod: PaymentMethod
-  totalAmount: number
+  type: OrderType
+  deliveryAddress?: string
+  notes?: string
+  paymentMethod: string
+  subtotal: number
   deliveryFee: number
-  estimatedDeliveryTime?: number
+  discount: number
+  total: number
+  estimatedDeliveryTime?: Date
 }
 
 export interface UpdateOrderDto {
   status?: OrderStatus
-  deliveryInstructions?: string
+  notes?: string
   paymentStatus?: PaymentStatus
-  assignedTo?: string
+  estimatedDeliveryTime?: Date
+  deliveredAt?: Date
 }
 
 export interface OrderItemDto {
   productId: string
+  name: string
   quantity: number
-  unitPrice: number
-  specialInstructions?: string
+  price: number
+  customizations: OrderItemCustomizations
+}
+
+export interface OrderItemCustomizations {
+  removedIngredients: string[]
+  addons: Array<{ name: string; price: number; quantity: number }>
+  observations?: string
 }
 
 export interface NutritionalInfo {
@@ -116,6 +167,48 @@ export interface NutritionalInfo {
   sodium?: number
 }
 
+export interface CreateCategoryDto {
+  name: string
+  description?: string
+  order: number
+  active: boolean
+  image?: string
+  storeSlug: string
+}
+
+export interface UpdateCategoryDto {
+  name?: string
+  description?: string
+  order?: number
+  active?: boolean
+  image?: string
+}
+
+export interface CreateInventoryDto {
+  productId: string
+  storeSlug: string
+  quantity: number
+  minStock: number
+  maxStock?: number
+}
+
+export interface UpdateInventoryDto {
+  quantity?: number
+  minStock?: number
+  maxStock?: number
+}
+
+export interface CreateStockMovementDto {
+  productId: string
+  inventoryId: string
+  type: StockMovementType
+  quantity: number
+  reason?: string
+  reference?: string
+  userId?: string
+}
+
+// Tipos de resposta da API
 export interface ApiResponse<T> {
   success: boolean
   data: T
@@ -133,39 +226,45 @@ export interface PaginatedResponse<T> {
   }
 }
 
-// Enums
+// Enums alinhados com o backend
 export enum UserRole {
-  ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
-  CLIENTE = 'CLIENTE'
+  ADMIN = 'ADMIN',        // Lojista/Proprietário
+  MANAGER = 'MANAGER',    // Gerente da loja
+  EMPLOYEE = 'EMPLOYEE',  // Funcionário
+  CLIENTE = 'CLIENTE'     // Cliente final
 }
 
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  PREPARING = 'PREPARING',
-  READY = 'READY',
-  DELIVERING = 'DELIVERING',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+  RECEIVED = 'RECEIVED',      // Pedido recebido
+  CONFIRMED = 'CONFIRMED',    // Confirmado pela loja
+  PREPARING = 'PREPARING',    // Em preparo
+  READY = 'READY',            // Pronto para entrega/retirada
+  DELIVERING = 'DELIVERING',  // Saiu para entrega
+  DELIVERED = 'DELIVERED',    // Entregue
+  CANCELLED = 'CANCELLED'     // Cancelado
+}
+
+export enum OrderType {
+  DELIVERY = 'DELIVERY',      // Entrega
+  PICKUP = 'PICKUP'           // Retirada
 }
 
 export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  FAILED = 'FAILED',
-  REFUNDED = 'REFUNDED'
+  PENDING = 'PENDING',        // Aguardando pagamento
+  PAID = 'PAID',              // Pago
+  FAILED = 'FAILED',          // Falhou
+  REFUNDED = 'REFUNDED'       // Estornado
 }
 
-export enum PaymentMethod {
-  CASH = 'CASH',
-  CREDIT_CARD = 'CREDIT_CARD',
-  DEBIT_CARD = 'DEBIT_CARD',
-  PIX = 'PIX',
-  BANK_TRANSFER = 'BANK_TRANSFER'
+export enum StockMovementType {
+  ENTRADA = 'ENTRADA',        // Compra, reposição
+  SAIDA = 'SAIDA',            // Venda, perda, uso
+  AJUSTE = 'AJUSTE',          // Correção de estoque
+  DEVOLUCAO = 'DEVOLUCAO'     // Devolução de produto
 }
 
-// Tipos de resposta da API
+// Interfaces de resposta da API
 export interface AuthResponse {
   user: {
     id: string
@@ -174,26 +273,19 @@ export interface AuthResponse {
     role: UserRole
     storeSlug?: string
     active: boolean
+    phone?: string
   }
   access_token: string
 }
 
 export interface Store {
   id: string
-  name: string
   slug: string
+  name: string
   description?: string
-  address: string
-  phone: string
-  email: string
-  logo?: string
-  banner?: string
-  category: string
-  deliveryFee: number
-  minimumOrder: number
-  estimatedDeliveryTime: number
-  isActive: boolean
-  ownerId: string
+  config: StoreConfig
+  active: boolean
+  approved: boolean
   createdAt: string
   updatedAt: string
 }
@@ -203,43 +295,132 @@ export interface Product {
   name: string
   description: string
   price: number
-  categoryId: string
-  storeId: string
-  image?: string
-  isAvailable: boolean
-  stockQuantity?: number
+  originalPrice?: number
+  image: string
+  active: boolean
   preparationTime?: number
-  allergens?: string[]
+  categoryId: string
+  category: Category
+  storeSlug: string
+  ingredients: ProductIngredient[]
+  addons: ProductAddon[]
   nutritionalInfo?: NutritionalInfo
+  tags: string[]
+  tagColor: string
+  inventory?: Inventory
   createdAt: string
   updatedAt: string
 }
 
+export interface ProductIngredient {
+  id: string
+  name: string
+  included: boolean
+  removable: boolean
+}
+
+export interface ProductAddon {
+  id: string
+  name: string
+  price: number
+  category?: string
+  maxQuantity?: number
+  active: boolean
+}
+
+export interface Category {
+  id: string
+  name: string
+  description?: string
+  order: number
+  active: boolean
+  image?: string
+  storeSlug: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Inventory {
+  id: string
+  quantity: number
+  minStock: number
+  maxStock?: number
+  productId: string
+  storeSlug: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StockMovement {
+  id: string
+  type: StockMovementType
+  quantity: number
+  reason?: string
+  reference?: string
+  productId: string
+  inventoryId: string
+  userId?: string
+  createdAt: string
+}
+
 export interface Order {
   id: string
-  customerId: string
-  storeId: string
-  items: OrderItem[]
-  deliveryAddress: string
-  deliveryInstructions?: string
-  paymentMethod: PaymentMethod
-  totalAmount: number
+  orderNumber: string
+  subtotal: number
   deliveryFee: number
-  estimatedDeliveryTime?: number
+  discount: number
+  total: number
   status: OrderStatus
+  type: OrderType
+  paymentMethod: string
   paymentStatus: PaymentStatus
-  assignedTo?: string
+  customerId: string
+  customer: Customer
+  userId?: string
+  storeSlug: string
+  items: OrderItem[]
+  notes?: string
+  estimatedDeliveryTime?: string
+  deliveredAt?: string
   createdAt: string
   updatedAt: string
 }
 
 export interface OrderItem {
   id: string
+  name: string
+  quantity: number
+  price: number
   productId: string
   product: Product
-  quantity: number
-  unitPrice: number
-  specialInstructions?: string
+  customizations: OrderItemCustomizations
+  createdAt: string
+}
+
+export interface Customer {
+  id: string
+  name: string
+  email?: string
+  phone: string
+  address?: Address
+  storeSlug: string
+  userId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Address {
+  street: string
+  number: string
+  complement?: string
+  neighborhood: string
+  city: string
+  state: string
+  zipCode: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
 }
 
 export interface User {
@@ -249,18 +430,10 @@ export interface User {
   role: UserRole
   storeSlug?: string
   active: boolean
+  phone?: string
   createdAt: string
   updatedAt: string
-}
-
-export interface Category {
-  id: string
-  name: string
-  description?: string
-  storeId: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  lastLogin?: string
 }
 
 export interface StoreStats {
@@ -269,6 +442,7 @@ export interface StoreStats {
   averageOrderValue: number
   totalProducts: number
   activeProducts: number
+  totalCustomers: number
 }
 
 export interface OrderStats {
@@ -276,6 +450,7 @@ export interface OrderStats {
   ordersByStatus: Record<OrderStatus, number>
   totalRevenue: number
   averageOrderValue: number
+  ordersByType: Record<OrderType, number>
 }
 
 export interface AnalyticsData {

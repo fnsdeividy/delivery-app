@@ -3,7 +3,19 @@ import { CreateStoreDto, Store } from '@/types/cardapio-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 
-export function useCreateStore() {
+interface CreateStoreHookReturn {
+  mutateAsync: (data: CreateStoreDto) => Promise<Store>
+  mutate: (data: CreateStoreDto) => void
+  isLoading: boolean
+  isPending: boolean
+  isError: boolean
+  error: Error | null
+  isSuccess: boolean
+  data: Store | undefined
+  reset: () => void
+}
+
+export function useCreateStore(): CreateStoreHookReturn {
   const queryClient = useQueryClient()
   const router = useRouter()
 
@@ -30,10 +42,12 @@ export function useCreateStore() {
     }
   })
 
+  // Retornar um objeto com a interface esperada
   return {
     mutateAsync: createStoreMutation.mutateAsync,
     mutate: createStoreMutation.mutate,
-    isLoading: createStoreMutation.isPending,
+    isLoading: createStoreMutation.isPending, // Alias para compatibilidade
+    isPending: createStoreMutation.isPending,
     isError: createStoreMutation.isError,
     error: createStoreMutation.error,
     isSuccess: createStoreMutation.isSuccess,

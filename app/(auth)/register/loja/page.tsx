@@ -38,7 +38,7 @@ export default function RegisterLojaPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const { registerMutation, isLoading: isRegistering, error: registerError } = useCardapioAuth()
-  const { mutateAsync: createStore, isLoading: isCreatingStore } = useCreateStore()
+  const { mutateAsync: createStore, isPending: isCreatingStore } = useCreateStore()
 
   const isLoading = isRegistering || isCreatingStore
   const error = registerError
@@ -110,17 +110,29 @@ export default function RegisterLojaPage() {
         name: formData.storeName,
         slug: formData.storeSlug,
         description: formData.description,
-        address: `${formData.address}, ${formData.city} - ${formData.state} ${formData.zipCode}`,
-        phone: formData.ownerPhone,
-        email: formData.ownerEmail,
-        logo: '',
-        banner: '',
-        category: formData.category,
-        deliveryFee: parseFloat(formData.deliveryFee),
-        minimumOrder: parseFloat(formData.minimumOrder),
-        estimatedDeliveryTime: 30,
-        isActive: true,
-        ownerId: userResponse.user.id
+        config: {
+          address: `${formData.address}, ${formData.city} - ${formData.state} ${formData.zipCode}`,
+          phone: formData.ownerPhone,
+          email: formData.ownerEmail,
+          logo: '',
+          banner: '',
+          category: formData.category,
+          deliveryFee: parseFloat(formData.deliveryFee),
+          minimumOrder: parseFloat(formData.minimumOrder),
+          estimatedDeliveryTime: 30,
+          businessHours: {
+            monday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            tuesday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            wednesday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            thursday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            friday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            saturday: { open: true, openTime: '08:00', closeTime: '18:00' },
+            sunday: { open: false }
+          },
+          paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
+        },
+        active: true,
+        approved: false
       }
 
       await createStore(storeData)
