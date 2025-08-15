@@ -8,7 +8,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 export function useStores(page = 1, limit = 10) {
   return useQuery({
     queryKey: ['stores', page, limit],
-    queryFn: () => apiClient.getStores(page, limit),
+    queryFn: async () => {
+      console.log('🔍 useStores: Iniciando busca de lojas...')
+      try {
+        const response = await apiClient.getStores(page, limit)
+        console.log('✅ useStores: Resposta recebida:', response)
+        return response
+      } catch (error) {
+        console.error('❌ useStores: Erro ao buscar lojas:', error)
+        throw error
+      }
+    },
   })
 }
 
@@ -27,6 +37,18 @@ export function useCreateStore() {
     mutationFn: (storeData: CreateStoreDto) => apiClient.createStore(storeData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stores'] })
+    },
+    onError: (error: Error) => {
+      console.error('❌ Erro na criação da loja:', error.message)
+      
+      // Log específico para diferentes tipos de erro
+      if (error.message.includes('Conflito')) {
+        console.warn('🚫 Conflito detectado - possivelmente slug duplicado')
+      } else if (error.message.includes('Validação')) {
+        console.warn('⚠️ Erro de validação - verificar dados enviados')
+      } else if (error.message.includes('Não autorizado')) {
+        console.error('🔒 Erro de autenticação - verificar token')
+      }
     },
   })
 }

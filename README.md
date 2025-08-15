@@ -18,6 +18,20 @@ O frontend está totalmente integrado com a API backend Cardap.IO Delivery, forn
 - **Melhorias**: Implementada validação robusta de tokens JWT e fallback para dados de usuário
 - **Testes**: Adicionados testes unitários abrangentes para o hook de autenticação
 
+### 🔧 Correção de Visualização da Loja (Janeiro 2025)
+- **Problema**: Usuário ADMIN conseguia criar loja mas não conseguia visualizá-la após criação
+- **Causa**: Falha na sincronização do `storeSlug` e redirecionamento após criação da loja
+- **Solução**: 
+  - Implementada sincronização automática do contexto de autenticação após criar loja
+  - Corrigida lógica de redirecionamento baseada em roles (SUPER_ADMIN, ADMIN, CLIENTE)
+  - Adicionado método `updateStoreContext` no API Client para atualizar contexto da loja
+  - Melhorada lógica de fallback e tratamento de erros
+- **Arquivos Afetados**: 
+  - `hooks/useCardapioAuth.ts` - Lógica de autenticação e redirecionamento
+  - `hooks/useCreateStore.ts` - Criação da loja e sincronização
+  - `lib/api-client.ts` - Métodos de contexto da loja
+- **Testes**: Todos os testes unitários passando (11/11 useCardapioAuth, 6/6 useCreateStore)
+
 ## 🏗️ Arquitetura
 
 ### Stack Tecnológica

@@ -47,8 +47,11 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         const token = this.getAuthToken()
+        console.log('🔑 Interceptor Request: Token encontrado:', !!token)
+        console.log('🔑 Interceptor Request: URL:', config.url)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
+          console.log('🔑 Interceptor Request: Token adicionado aos headers')
         }
         return config
       },
@@ -60,11 +63,24 @@ class ApiClient {
     // Interceptor para tratamento de respostas
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
+        console.log('✅ Interceptor Response: Resposta recebida:', {
+          status: response.status,
+          url: response.config.url,
+          data: response.data
+        })
         return response
       },
       (error) => {
+        console.error('❌ Interceptor Response: Erro na resposta:', {
+          status: error.response?.status,
+          url: error.config?.url,
+          message: error.message,
+          data: error.response?.data
+        })
+        
         if (error.response?.status === 401) {
           // Token expirado ou inválido
+          console.warn('🔒 Token expirado ou inválido, redirecionando para login')
           this.clearAuthToken()
           window.location.href = '/login'
         }
@@ -145,6 +161,21 @@ class ApiClient {
       throw new Error(`Status inesperado: ${response.status}`)
     } catch (error) {
       console.error('❌ Erro na requisição POST:', error)
+      
+      // Tratamento específico para erro 409 (Conflict)
+      if (error.response?.status === 409) {
+        const errorMessage = error.response.data?.message || 'Conflito detectado. Verifique se os dados já existem.'
+        console.error('🚫 Erro de conflito (409):', errorMessage)
+        throw new Error(`Conflito: ${errorMessage}`)
+      }
+      
+      // Tratamento específico para erro 400 (Bad Request)
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.message || 'Dados inválidos. Verifique as informações enviadas.'
+        console.error('⚠️ Erro de validação (400):', errorMessage)
+        throw new Error(`Validação: ${errorMessage}`)
+      }
+      
       throw this.handleError(error)
     }
   }
@@ -259,6 +290,89 @@ class ApiClient {
     return this.getAuthToken()
   }
 
+  // Método para obter o storeSlug atual do contexto
+  getCurrentStoreSlug(): string | null {
+    try {
+      // 1. Tentar obter do localStorage primeiro
+      const storedStoreSlug = localStorage.getItem('currentStoreSlug')
+      if (storedStoreSlug) {
+        return storedStoreSlug
+      }
+      
+      // 2. Tentar obter do token JWT
+      const currentToken = this.getAuthToken()
+      if (currentToken) {
+        const tokenParts = currentToken.split('.')
+        if (tokenParts.length === 3) {
+          try {
+            const payload = JSON.parse(atob(tokenParts[1]))
+            return payload.storeSlug || null
+          } catch (decodeError) {
+            console.warn('⚠️ Erro ao decodificar token para obter storeSlug:', decodeError)
+          }
+        }
+      }
+      
+      return null
+    } catch (error) {
+      console.error('❌ Erro ao obter storeSlug atual:', error)
+      return null
+    }
+  }
+
+  // Método para atualizar contexto da loja no token
+  async updateStoreContext(storeSlug: string): Promise<void> {
+    try {
+      console.log('🔄 Atualizando contexto da loja:', storeSlug)
+      
+      // Verificar se há um token atual
+      const currentToken = this.getAuthToken()
+      if (!currentToken) {
+        console.warn('⚠️ Nenhum token encontrado para atualizar contexto')
+        return
+      }
+
+      // Decodificar o token atual para obter informações do usuário
+      const tokenParts = currentToken.split('.')
+      if (tokenParts.length !== 3) {
+        console.warn('⚠️ Token JWT inválido, não é possível atualizar contexto')
+        return
+      }
+
+      try {
+        const payload = JSON.parse(atob(tokenParts[1]))
+        console.log('🔍 Payload do token atual:', { 
+          email: payload.email, 
+          role: payload.role, 
+          currentStoreSlug: payload.storeSlug 
+        })
+
+        // Se o storeSlug já estiver correto, não fazer nada
+        if (payload.storeSlug === storeSlug) {
+          console.log('✅ StoreSlug já está correto no token')
+          return
+        }
+
+        // Armazenar o novo storeSlug no localStorage para uso futuro
+        localStorage.setItem('currentStoreSlug', storeSlug)
+        console.log('💾 StoreSlug atualizado no localStorage:', storeSlug)
+
+        // Invalidar queries relacionadas para forçar refresh
+        // Nota: Isso será feito pelo hook que chama este método
+        
+      } catch (decodeError) {
+        console.warn('⚠️ Erro ao decodificar token, continuando...', decodeError)
+        // Fallback: armazenar no localStorage
+        localStorage.setItem('currentStoreSlug', storeSlug)
+        console.log('💾 StoreSlug armazenado no localStorage (fallback):', storeSlug)
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar contexto da loja:', error)
+      throw new Error('Falha ao atualizar contexto da loja')
+    }
+  }
+
   // ===== USUÁRIOS =====
   
   async getUsers(page = 1, limit = 10): Promise<PaginatedResponse<User>> {
@@ -284,7 +398,15 @@ class ApiClient {
   // ===== LOJAS =====
   
   async getStores(page = 1, limit = 10): Promise<PaginatedResponse<Store>> {
-    return this.get<PaginatedResponse<Store>>(`/stores?page=${page}&limit=${limit}`)
+    console.log('🔍 API Client: Buscando lojas...', { page, limit })
+    try {
+      const response = await this.get<PaginatedResponse<Store>>(`/stores?page=${page}&limit=${limit}`)
+      console.log('✅ API Client: Lojas recebidas:', response)
+      return response
+    } catch (error) {
+      console.error('❌ API Client: Erro ao buscar lojas:', error)
+      throw error
+    }
   }
 
   async getStoreBySlug(slug: string): Promise<Store> {
@@ -411,20 +533,56 @@ class ApiClient {
 
   // ===== UTILITÁRIOS =====
 
-  // Tratamento de erros
+  // Método para tratar erros de forma padronizada
   private handleError(error: any): Error {
-    if (error.response) {
-      // Erro da API com resposta
-      const message = error.response.data?.message || error.response.data?.error || 'Erro na requisição'
-      const status = error.response.status
-      return new Error(`[${status}] ${message}`)
-    } else if (error.request) {
-      // Erro de rede
-      return new Error('Erro de conexão. Verifique sua internet.')
-    } else {
-      // Erro genérico
-      return new Error(error.message || 'Erro desconhecido')
+    console.error('🔍 Analisando erro:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      code: error.code
+    })
+
+    // Se já é um Error personalizado, retornar como está
+    if (error instanceof Error && !error.message.includes('Request failed')) {
+      return error
     }
+
+    // Tratamento específico para erros HTTP
+    if (error.response) {
+      const { status, data } = error.response
+      
+      switch (status) {
+        case 400:
+          return new Error(data?.message || 'Dados inválidos. Verifique as informações enviadas.')
+        case 401:
+          return new Error('Não autorizado. Faça login novamente.')
+        case 403:
+          return new Error('Acesso negado. Você não tem permissão para esta ação.')
+        case 404:
+          return new Error('Recurso não encontrado.')
+        case 409:
+          return new Error(data?.message || 'Conflito detectado. Verifique se os dados já existem.')
+        case 422:
+          return new Error(data?.message || 'Dados inválidos. Verifique a validação.')
+        case 500:
+          return new Error('Erro interno do servidor. Tente novamente mais tarde.')
+        default:
+          return new Error(data?.message || `Erro ${status}: ${data?.error || 'Erro desconhecido'}`)
+      }
+    }
+
+    // Tratamento para erros de rede
+    if (error.code === 'ECONNABORTED') {
+      return new Error('Tempo limite da requisição excedido. Verifique sua conexão.')
+    }
+
+    if (error.code === 'ERR_NETWORK') {
+      return new Error('Erro de conexão. Verifique sua internet e tente novamente.')
+    }
+
+    // Erro genérico
+    return new Error(error.message || 'Erro desconhecido ocorreu.')
   }
 
   // Método para verificar saúde da API

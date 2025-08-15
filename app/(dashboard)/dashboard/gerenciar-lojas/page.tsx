@@ -17,12 +17,18 @@ export default function GerenciarLojas() {
   })
 
   // Hooks da API Cardap.IO
-  const { data: storesData, isLoading, refetch } = useStores()
+  const { data: storesData, isLoading, refetch, error } = useStores()
   const createStoreMutation = useCreateStore()
   const updateStoreMutation = useUpdateStore()
   const deleteStoreMutation = useDeleteStore()
   const approveStoreMutation = useApproveStore()
   const rejectStoreMutation = useRejectStore()
+
+  // Logs de debug
+  console.log('🔍 GerenciarLojas: storesData:', storesData)
+  console.log('🔍 GerenciarLojas: isLoading:', isLoading)
+  console.log('🔍 GerenciarLojas: error:', error)
+  console.log('🔍 GerenciarLojas: stores:', storesData?.data || [])
 
   const stores = storesData?.data || []
   const loading = isLoading
@@ -43,16 +49,33 @@ export default function GerenciarLojas() {
     
     const slug = formData.slug || generateSlug(formData.name)
     
+    // Validação preventiva mais robusta
+    if (!formData.name.trim()) {
+      alert('Nome da loja é obrigatório')
+      return
+    }
+    
+    if (slug.length < 2) {
+      alert('Slug deve ter pelo menos 2 caracteres')
+      return
+    }
+    
     // Verificar se slug já existe
     if (stores.some(store => store.slug === slug)) {
-      alert('Já existe uma loja com este slug. Escolha outro nome.')
+      alert(`Já existe uma loja com o slug "${slug}". Escolha outro nome.`)
+      return
+    }
+    
+    // Validar formato do slug
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      alert('Slug deve conter apenas letras minúsculas, números e hífens')
       return
     }
 
     try {
       const storeData: CreateStoreDto = {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         slug: slug,
         config: {
           address: 'Endereço a ser configurado',
@@ -90,9 +113,27 @@ export default function GerenciarLojas() {
       
       // Recarregar dados
       refetch()
+      
+      // Feedback de sucesso
+      alert('Loja criada com sucesso!')
+      
     } catch (error) {
       console.error('Erro ao criar loja:', error)
-      alert('Erro ao criar loja. Tente novamente.')
+      
+      // Mensagem de erro mais específica
+      let errorMessage = 'Erro ao criar loja. Tente novamente.'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Conflito')) {
+          errorMessage = error.message
+        } else if (error.message.includes('Validação')) {
+          errorMessage = error.message
+        } else if (error.message.includes('Não autorizado')) {
+          errorMessage = 'Sessão expirada. Faça login novamente.'
+        }
+      }
+      
+      alert(errorMessage)
     }
   }
 
