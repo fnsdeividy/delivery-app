@@ -425,12 +425,15 @@ class ApiClient {
     return this.delete<void>(`/stores/${slug}`)
   }
 
-  async approveStore(slug: string): Promise<Store> {
-    return this.patch<Store>(`/stores/${slug}/approve`, { approved: true })
+  async approveStore(id: string): Promise<Store> {
+    return this.patch<Store>(`/v1/stores/${id}/approve`, { approved: true })
   }
 
-  async rejectStore(slug: string): Promise<Store> {
-    return this.patch<Store>(`/stores/${slug}/reject`, { approved: false })
+  async rejectStore(id: string, reason?: string): Promise<Store> {
+    return this.patch<Store>(`/v1/stores/${id}/reject`, { 
+      approved: false, 
+      reason: reason || 'Rejeitada pelo administrador' 
+    })
   }
 
   async getStoreStats(slug: string): Promise<StoreStats> {

@@ -240,3 +240,61 @@ export function useFormValidation<T>(schema: ValidationSchema) {
     isValid: (data: T) => validate(data).isValid
   }
 } 
+
+// Validações para operações de lojas
+export interface StoreApprovalValidation {
+  storeId: string
+  userId: string
+  userRole: string
+}
+
+export interface StoreRejectionValidation extends StoreApprovalValidation {
+  reason?: string
+}
+
+export function validateStoreApproval(data: StoreApprovalValidation): { isValid: boolean; errors: string[] } {
+  const errors: string[] = []
+
+  if (!data.storeId || data.storeId.trim() === '') {
+    errors.push('ID da loja é obrigatório')
+  }
+
+  if (!data.userId || data.userId.trim() === '') {
+    errors.push('ID do usuário é obrigatório')
+  }
+
+  if (!data.userRole || data.userRole !== 'super_admin') {
+    errors.push('Usuário deve ter permissão de super administrador')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validateStoreRejection(data: StoreRejectionValidation): { isValid: boolean; errors: string[] } {
+  const errors: string[] = []
+
+  if (!data.storeId || data.storeId.trim() === '') {
+    errors.push('ID da loja é obrigatório')
+  }
+
+  if (!data.userId || data.userId.trim() === '') {
+    errors.push('ID do usuário é obrigatório')
+  }
+
+  if (!data.userRole || data.userRole !== 'super_admin') {
+    errors.push('Usuário deve ter permissão de super administrador')
+  }
+
+  // Motivo da rejeição é opcional, mas se fornecido deve ter pelo menos 3 caracteres
+  if (data.reason && data.reason.trim().length < 3) {
+    errors.push('Motivo da rejeição deve ter pelo menos 3 caracteres')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+} 

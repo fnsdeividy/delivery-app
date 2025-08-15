@@ -28,10 +28,18 @@ export default function GerenciarLojas() {
   console.log('🔍 GerenciarLojas: storesData:', storesData)
   console.log('🔍 GerenciarLojas: isLoading:', isLoading)
   console.log('🔍 GerenciarLojas: error:', error)
+  console.log('🔍 GerenciarLojas: storesData?.data:', storesData?.data)
+  console.log('🔍 GerenciarLojas: storesData?.data type:', typeof storesData?.data)
+  console.log('🔍 GerenciarLojas: storesData?.data isArray:', Array.isArray(storesData?.data))
   console.log('🔍 GerenciarLojas: stores:', storesData?.data || [])
 
+  // Simplificar a lógica para debug
   const stores = storesData?.data || []
   const loading = isLoading
+  
+  // Log adicional para debug
+  console.log('🔍 GerenciarLojas: stores final:', stores)
+  console.log('🔍 GerenciarLojas: stores length:', stores.length)
 
   // Gerar slug automaticamente
   const generateSlug = (name: string) => {
@@ -154,29 +162,55 @@ export default function GerenciarLojas() {
 
   // Aprovar loja
   const handleApproveStore = async (storeId: string) => {
+    if (!confirm('Tem certeza que deseja aprovar esta loja?')) {
+      return
+    }
+
     try {
       await approveStoreMutation.mutateAsync(storeId)
       alert('Loja aprovada com sucesso!')
       refetch()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao aprovar loja:', error)
-      alert('Erro ao aprovar loja')
+      
+      // Feedback específico baseado no tipo de erro
+      if (error.message?.includes('401')) {
+        alert('Erro de autenticação. Faça login novamente.')
+      } else if (error.message?.includes('403')) {
+        alert('Você não tem permissão para aprovar lojas.')
+      } else if (error.message?.includes('404')) {
+        alert('Loja não encontrada. Tente atualizar a página.')
+      } else {
+        alert('Erro ao aprovar loja. Tente novamente.')
+      }
     }
   }
 
   // Rejeitar loja
   const handleRejectStore = async (storeId: string) => {
+    const reason = prompt('Informe o motivo da rejeição (opcional):')
+    
     if (!confirm('Tem certeza que deseja rejeitar esta loja?')) {
       return
     }
 
     try {
-      await rejectStoreMutation.mutateAsync(storeId)
+      await rejectStoreMutation.mutateAsync({ id: storeId, reason })
       alert('Loja rejeitada com sucesso!')
       refetch()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao rejeitar loja:', error)
-      alert('Erro ao rejeitar loja')
+      
+      // Feedback específico baseado no tipo de erro
+      if (error.message?.includes('401')) {
+        alert('Erro de autenticação. Faça login novamente.')
+      } else if (error.message?.includes('403')) {
+        alert('Você não tem permissão para rejeitar lojas.')
+      } else if (error.message?.includes('404')) {
+        alert('Loja não encontrada. Tente atualizar a página.')
+      } else {
+        alert('Erro ao rejeitar loja. Tente novamente.')
+      }
     }
   }
 

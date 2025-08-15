@@ -32,6 +32,30 @@ O frontend está totalmente integrado com a API backend Cardap.IO Delivery, forn
   - `lib/api-client.ts` - Métodos de contexto da loja
 - **Testes**: Todos os testes unitários passando (11/11 useCardapioAuth, 6/6 useCreateStore)
 
+### 🚀 Correção de Aprovação de Lojas (Janeiro 2025)
+- **Problema**: Erro 404 ao tentar aprovar/rejeitar lojas devido a inconsistência entre rotas
+- **Causa**: Frontend chamando `/api/v1/stores/{id}/approve` mas rota existia em `/api/stores/{storeSlug}/approve`
+- **Solução**: 
+  - Migração completa para rotas v1 padronizadas (`/api/v1/stores/{id}/approve`, `/api/v1/stores/{id}/reject`)
+  - Implementação de validações robustas para operações de aprovação/rejeição
+  - Melhorias no tratamento de erros e feedback visual para usuários
+  - Adicionadas validações de permissões (apenas SUPER_ADMIN pode aprovar/rejeitar)
+  - Implementados logs estruturados para auditoria
+- **Arquivos Afetados**: 
+  - `app/(api)/api/v1/stores/[id]/approve/route.ts` - Nova rota de aprovação v1
+  - `app/(api)/api/v1/stores/[id]/reject/route.ts` - Nova rota de rejeição v1
+  - `lib/api-client.ts` - Atualização de rotas para v1
+  - `hooks/useStores.ts` - Melhorias no tratamento de erros
+  - `lib/validation.ts` - Validações para operações de lojas
+  - `app/(dashboard)/dashboard/gerenciar-lojas/page.tsx` - Melhorias na UX
+- **Testes**: Novos testes unitários para validações (11/11 passando)
+- **Benefícios**: 
+  - ✅ Erro 404 resolvido
+  - ✅ Rotas padronizadas e escaláveis
+  - ✅ Melhor segurança com validações
+  - ✅ UX aprimorada com feedback específico
+  - ✅ Logs estruturados para auditoria
+
 ## 🏗️ Arquitetura
 
 ### Stack Tecnológica

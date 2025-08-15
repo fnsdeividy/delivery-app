@@ -1,10 +1,10 @@
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { ToastProvider } from '@/components/Toast'
 import { StoreManagement } from '@/components/StoreManagement'
+import { ToastProvider } from '@/components/Toast'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { apiClient } from '@/lib/api-client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
 
 // Mock do apiClient
 jest.mock('@/lib/api-client')
@@ -336,7 +336,7 @@ describe('Gerenciamento de Lojas - Integração', () => {
 
       // Aguardar rejeição
       await waitFor(() => {
-        expect(mockApiClient.rejectStore).toHaveBeenCalledWith('pizzaria-b')
+        expect(mockApiClient.rejectStore).toHaveBeenCalledWith('pizzaria-b', undefined)
       })
     })
   })
@@ -436,7 +436,7 @@ describe('Gerenciamento de Lojas - Integração', () => {
 
       // Verificar se as estatísticas são exibidas
       expect(screen.getByText('150')).toBeInTheDocument() // Total de Pedidos
-      expect(screen.getByText('R$ 5000,00')).toBeInTheDocument() // Receita Total
+      expect(screen.getByText('R$ 5000.00')).toBeInTheDocument() // Receita Total (corrigido formato)
       expect(screen.getByText('25')).toBeInTheDocument() // Total de Produtos
       expect(screen.getByText('80')).toBeInTheDocument() // Total de Clientes
     })

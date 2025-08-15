@@ -81,10 +81,23 @@ export function useApproveStore() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (slug: string) => apiClient.approveStore(slug),
-    onSuccess: (_, slug) => {
-      queryClient.invalidateQueries({ queryKey: ['store', slug] })
+    mutationFn: (id: string) => apiClient.approveStore(id),
+    onSuccess: (_, id) => {
+      console.log(`✅ Loja ${id} aprovada com sucesso`)
+      queryClient.invalidateQueries({ queryKey: ['store', id] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
+    },
+    onError: (error: Error) => {
+      console.error(`❌ Erro ao aprovar loja:`, error.message)
+      
+      // Log específico para diferentes tipos de erro
+      if (error.message.includes('401')) {
+        console.warn('🔒 Erro de autenticação - verificar token')
+      } else if (error.message.includes('403')) {
+        console.warn('🚫 Erro de permissão - usuário não tem acesso')
+      } else if (error.message.includes('404')) {
+        console.warn('🔍 Loja não encontrada - verificar ID')
+      }
     },
   })
 }
@@ -93,10 +106,24 @@ export function useRejectStore() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (slug: string) => apiClient.rejectStore(slug),
-    onSuccess: (_, slug) => {
-      queryClient.invalidateQueries({ queryKey: ['store', slug] })
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => 
+      apiClient.rejectStore(id, reason),
+    onSuccess: (_, { id }) => {
+      console.log(`✅ Loja ${id} rejeitada com sucesso`)
+      queryClient.invalidateQueries({ queryKey: ['store', id] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
+    },
+    onError: (error: Error) => {
+      console.error(`❌ Erro ao rejeitar loja:`, error.message)
+      
+      // Log específico para diferentes tipos de erro
+      if (error.message.includes('401')) {
+        console.warn('🔒 Erro de autenticação - verificar token')
+      } else if (error.message.includes('403')) {
+        console.warn('🚫 Erro de permissão - usuário não tem acesso')
+      } else if (error.message.includes('404')) {
+        console.warn('🔍 Loja não encontrada - verificar ID')
+      }
     },
   })
 }

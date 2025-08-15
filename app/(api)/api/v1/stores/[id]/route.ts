@@ -69,8 +69,22 @@ export async function PATCH(
     const { id } = params
     const body = await request.json()
     
-    console.log(`🔧 API: Atualizando loja com ID: ${id}`)
-    console.log(`📝 API: Dados para atualização:`, body)
+    console.log(`🔧 API v1: Atualizando loja com ID: ${id}`)
+    console.log(`📝 API v1: Dados para atualização:`, body)
+    
+    // Verificar se é uma operação de aprovação/rejeição
+    if (body.hasOwnProperty('approved')) {
+      console.log(`🔄 API v1: Operação de aprovação/rejeição detectada para loja ${id}`)
+      
+      // Redirecionar para rotas específicas
+      if (body.approved === true) {
+        console.log(`✅ API v1: Redirecionando para rota de aprovação`)
+        // TODO: Implementar lógica de aprovação aqui ou redirecionar
+      } else {
+        console.log(`❌ API v1: Redirecionando para rota de rejeição`)
+        // TODO: Implementar lógica de rejeição aqui ou redirecionar
+      }
+    }
     
     // TODO: Implementar atualização real na API Cardap.IO
     // Por enquanto, retornar sucesso mock para desenvolvimento
@@ -88,18 +102,18 @@ export async function PATCH(
       minimumOrder: body.minimumOrder || 25.00,
       estimatedDeliveryTime: body.estimatedDeliveryTime || 30,
       isActive: body.isActive !== undefined ? body.isActive : true,
-      approved: true,
+      approved: body.approved !== undefined ? body.approved : true,
       ownerId: `user-${id}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
     
-    console.log(`✅ API: Loja atualizada com sucesso: ${updatedStore.name}`)
+    console.log(`✅ API v1: Loja atualizada com sucesso: ${updatedStore.name}`)
     
     return NextResponse.json(updatedStore)
     
   } catch (error) {
-    console.error('❌ API: Erro ao atualizar loja:', error)
+    console.error('❌ API v1: Erro ao atualizar loja:', error)
     
     return NextResponse.json(
       { 
