@@ -19,7 +19,7 @@ import {
     UpdateProductDto
 } from '@/types/cardapio-api'
 import React, { useState } from 'react'
-import { LoadingSpinner } from './LoadingSpinner'
+import LoadingSpinner from './LoadingSpinner'
 import { CategoryModal, ProductModal } from './ProductModals'
 
 interface ProductManagementProps {
@@ -63,10 +63,10 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
     nutritionalInfo: {
       calories: 0,
       protein: 0,
-      carbs: 0,
+      carbohydrates: 0,
       fat: 0,
       fiber: 0,
-      sugar: 0
+      sodium: 0
     },
     tags: [],
     tagColor: '#3B82F6'
@@ -78,6 +78,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
     description: '',
     storeSlug: storeSlug,
     active: true,
+    order: 0,
     image: ''
   })
 
@@ -147,7 +148,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
       try {
-        await deleteProductMutation.mutateAsync(productId)
+        await deleteProductMutation.mutateAsync({ id: productId, storeSlug })
       } catch (error) {
         console.error('Erro ao excluir produto:', error)
       }
@@ -195,7 +196,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
   const handleDeleteCategory = async (categoryId: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta categoria?')) {
       try {
-        await deleteCategoryMutation.mutateAsync(categoryId)
+        await deleteCategoryMutation.mutateAsync({ id: categoryId, storeSlug })
       } catch (error) {
         console.error('Erro ao excluir categoria:', error)
       }
@@ -219,10 +220,10 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
       nutritionalInfo: product.nutritionalInfo || {
         calories: 0,
         protein: 0,
-        carbs: 0,
+        carbohydrates: 0,
         fat: 0,
         fiber: 0,
-        sugar: 0
+        sodium: 0
       },
       tags: product.tags || [],
       tagColor: product.tagColor || '#3B82F6'
@@ -237,6 +238,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
       description: category.description || '',
       storeSlug: category.storeSlug,
       active: category.active,
+      order: category.order,
       image: category.image || ''
     })
   }
@@ -257,10 +259,10 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
       nutritionalInfo: {
         calories: 0,
         protein: 0,
-        carbs: 0,
+        carbohydrates: 0,
         fat: 0,
         fiber: 0,
-        sugar: 0
+        sodium: 0
       },
       tags: [],
       tagColor: '#3B82F6'
@@ -274,6 +276,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
       description: '',
       storeSlug: storeSlug,
       active: true,
+      order: 0,
       image: ''
     })
   }
@@ -423,7 +426,7 @@ export function ProductManagement({ storeSlug }: ProductManagementProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div>R$ {product.price.toFixed(2)}</div>
-                    {product.originalPrice > product.price && (
+                    {product.originalPrice && product.originalPrice > product.price && (
                       <div className="text-sm text-gray-500 line-through">
                         R$ {product.originalPrice.toFixed(2)}
                       </div>

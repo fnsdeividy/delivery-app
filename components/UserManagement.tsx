@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks'
 import { User, UserRole, CreateUserDto, UpdateUserDto } from '@/types/cardapio-api'
-import { LoadingSpinner } from './LoadingSpinner'
+import LoadingSpinner from './LoadingSpinner'
 
 interface UserManagementProps {
   storeSlug?: string

@@ -53,7 +53,7 @@ export default function StorePage() {
   // Filtrar produtos - movido para antes dos returns condicionais
   const filteredProducts = useMemo(() => {
     if (!config?.menu?.products) return []
-    const base = (searchResults ?? config.menu.products).filter(p => p.isAvailable)
+    const base = (searchResults ?? config.menu.products).filter(p => p.active)
     let filtered = base
 
     // Filtrar por categoria
@@ -307,11 +307,11 @@ export default function StorePage() {
               style={selectedCategory === 'todos' ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
             >
               <span className="font-medium">Todos</span>
-              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.isAvailable).length || 0})</span>
+              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
             </button>
             
             {config?.menu?.categories?.filter(c => c.active).map((category) => {
-              const count = config?.menu?.products?.filter(p => p.isAvailable && p.categoryId === category.id).length || 0
+              const count = config?.menu?.products?.filter(p => p.active && p.categoryId === category.id).length || 0
               return (
                 <button
                   key={category.id}

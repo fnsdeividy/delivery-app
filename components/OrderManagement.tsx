@@ -14,7 +14,7 @@ import {
     UpdateOrderDto
 } from '@/types/cardapio-api'
 import { useState } from 'react'
-import { LoadingSpinner } from './LoadingSpinner'
+import LoadingSpinner from './LoadingSpinner'
 
 interface OrderManagementProps {
   storeSlug: string
@@ -184,11 +184,11 @@ export function OrderManagement({ storeSlug }: OrderManagementProps) {
             <div className="text-sm text-gray-600">Receita Total</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-2xl font-bold text-yellow-600">{orderStats.pendingOrders}</div>
+            <div className="text-2xl font-bold text-yellow-600">{orderStats.ordersByStatus.RECEIVED || 0}</div>
             <div className="text-sm text-gray-600">Pedidos Pendentes</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-2xl font-bold text-purple-600">{orderStats.deliveredOrders}</div>
+            <div className="text-2xl font-bold text-purple-600">{orderStats.ordersByStatus.DELIVERED || 0}</div>
             <div className="text-sm text-gray-600">Pedidos Entregues</div>
           </div>
         </div>

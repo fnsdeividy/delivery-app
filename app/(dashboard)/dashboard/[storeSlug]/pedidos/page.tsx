@@ -65,7 +65,7 @@ export default function PedidosPage() {
   // Estatísticas
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === OrderStatus.PENDING).length,
+    pending: orders.filter(o => o.status === OrderStatus.RECEIVED).length,
     preparing: orders.filter(o => o.status === OrderStatus.PREPARING).length,
     ready: orders.filter(o => o.status === OrderStatus.READY).length,
     delivering: orders.filter(o => o.status === OrderStatus.DELIVERING).length,
@@ -76,7 +76,7 @@ export default function PedidosPage() {
   // Funções auxiliares
   const getStatusInfo = (status: OrderStatus) => {
     const statusMap = {
-      [OrderStatus.PENDING]: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      [OrderStatus.RECEIVED]: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
       [OrderStatus.CONFIRMED]: { label: 'Confirmado', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
       [OrderStatus.PREPARING]: { label: 'Preparando', color: 'bg-orange-100 text-orange-800', icon: Package },
       [OrderStatus.READY]: { label: 'Pronto', color: 'bg-green-100 text-green-800', icon: CheckCircle },
@@ -232,8 +232,8 @@ export default function PedidosPage() {
       {/* Lista de Pedidos */}
       <div className="space-y-4">
         {filteredOrders.map((order) => {
-          const statusInfo = getStatusInfo(order.status)
-          const paymentStatusInfo = getPaymentStatusInfo(order.paymentStatus)
+          const statusInfo = getStatusInfo(order.status as OrderStatus)
+          const paymentStatusInfo = getPaymentStatusInfo(order.paymentStatus as PaymentStatus)
           const StatusIcon = statusInfo.icon
           
           return (
@@ -301,7 +301,7 @@ export default function PedidosPage() {
                   </div>
                   
                   <div className="flex space-x-2">
-                    {order.status === OrderStatus.PENDING && (
+                    {order.status === OrderStatus.RECEIVED && (
                       <>
                         <button
                           onClick={() => handleStatusUpdate(order.id, OrderStatus.CONFIRMED)}

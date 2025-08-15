@@ -1,7 +1,9 @@
 import { apiClient } from '@/lib/api-client'
 import {
     CreateProductDto,
-    UpdateProductDto
+    UpdateProductDto,
+    CreateCategoryDto,
+    UpdateCategoryDto
 } from '@/types/cardapio-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -49,9 +51,8 @@ export function useUpdateProduct() {
       apiClient.updateProduct(id, productData),
     onSuccess: (_, { id, productData }) => {
       queryClient.invalidateQueries({ queryKey: ['product', id] })
-      if (productData.storeSlug) {
-        queryClient.invalidateQueries({ queryKey: ['products', productData.storeSlug] })
-      }
+      // Invalidar todas as queries de produtos para garantir atualização
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })
 }

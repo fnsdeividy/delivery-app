@@ -1,6 +1,7 @@
 'use client'
 
 import { useCategoriesByStore, useCreateProduct, useDeleteProduct, useProductsByStore, useToggleProductAvailability, useUpdateProduct } from '@/hooks'
+import { CreateProductDto, UpdateProductDto } from '@/types/cardapio-api'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
@@ -97,7 +98,7 @@ export default function ProdutosPage() {
 
   const handleDeleteProduct = (productId: string) => {
     if (confirm('Tem certeza que deseja excluir este produto?')) {
-      deleteProductMutation.mutate(productId)
+      deleteProductMutation.mutate({ id: productId, storeSlug: slug })
     }
   }
 
@@ -117,14 +118,39 @@ export default function ProdutosPage() {
   }
 
   const handleCreateProduct = () => {
-    createProductMutation.mutate(formData)
+    const productData: CreateProductDto = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price) || 0,
+      image: formData.image,
+      active: formData.isAvailable,
+      preparationTime: formData.preparationTime ? parseInt(formData.preparationTime) : undefined,
+      categoryId: formData.categoryId,
+      storeSlug: slug,
+      ingredients: [], // Campo obrigatório, mas pode ser vazio
+      addons: [], // Campo obrigatório, mas pode ser vazio
+      tags: [], // Campo obrigatório, mas pode ser vazio
+      tagColor: '#ed7516' // Valor padrão
+    }
+    
+    createProductMutation.mutate(productData)
     setShowCreateModal(false)
     resetForm()
   }
 
   const handleEditProduct = () => {
     if (selectedProduct) {
-      updateProductMutation.mutate({ id: selectedProduct.id, ...formData })
+      const productData: UpdateProductDto = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price) || 0,
+        image: formData.image,
+        active: formData.isAvailable,
+        preparationTime: formData.preparationTime ? parseInt(formData.preparationTime) : undefined,
+        categoryId: formData.categoryId
+      }
+      
+      updateProductMutation.mutate({ id: selectedProduct.id, productData })
       setShowEditModal(false)
       setSelectedProduct(null)
       resetForm()

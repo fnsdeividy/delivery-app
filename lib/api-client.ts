@@ -124,15 +124,27 @@ class ApiClient {
   // Método para fazer requisições POST
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
+      console.log('📤 Enviando POST para:', url, 'com dados:', data)
+      
       const response = await this.client.post<T>(url, data, config)
+      
+      console.log('📥 Resposta POST recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        dataType: typeof response.data
+      })
       
       // Aceitar tanto 200 quanto 201 como sucesso
       if (response.status === 200 || response.status === 201) {
+        console.log('✅ Status de sucesso, retornando dados:', response.data)
         return response.data
       }
       
+      console.error('❌ Status inesperado:', response.status)
       throw new Error(`Status inesperado: ${response.status}`)
     } catch (error) {
+      console.error('❌ Erro na requisição POST:', error)
       throw this.handleError(error)
     }
   }
@@ -190,17 +202,31 @@ class ApiClient {
   // Método para autenticação e armazenamento do token
   async authenticate(email: string, password: string, storeSlug?: string): Promise<AuthResponse> {
     try {
+      console.log('🔐 Iniciando autenticação no apiClient')
+      
       const loginData: LoginDto = { email, password }
       if (storeSlug) {
         loginData.storeSlug = storeSlug
       }
       
+      console.log('📋 Dados de login:', loginData)
+      
       const response = await this.post<AuthResponse>('/auth/login', loginData)
       
+      console.log('🔑 Resposta de autenticação recebida:', response)
+      console.log('🔍 Tipo da resposta:', typeof response)
+      console.log('🔍 Estrutura da resposta:', Object.keys(response || {}))
+      
       const token = response.access_token
+      console.log('🎫 Token extraído:', token)
+      console.log('🔍 Tipo do token:', typeof token)
+      
       this.setAuthToken(token)
+      console.log('💾 Token armazenado no localStorage')
+      
       return response
     } catch (error) {
+      console.error('❌ Erro na autenticação:', error)
       throw this.handleError(error)
     }
   }

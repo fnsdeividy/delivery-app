@@ -17,16 +17,67 @@ export function useCardapioAuth() {
       setError(null)
       
       try {
-        const token = await apiClient.authenticate(credentials.email, credentials.password, credentials.storeSlug)
+        console.log('🔍 Iniciando autenticação com credenciais:', { email: credentials.email, storeSlug: credentials.storeSlug })
+        
+        const response = await apiClient.authenticate(credentials.email, credentials.password, credentials.storeSlug)
+        
+        console.log('📡 Resposta da API recebida:', response)
+        console.log('🔍 Tipo da resposta:', typeof response)
+        console.log('🔍 Estrutura da resposta:', Object.keys(response || {}))
+        
+        // Validar se a resposta contém o token
+        if (!response || typeof response !== 'object') {
+          console.error('❌ Resposta inválida:', response)
+          throw new Error('Resposta inválida da API')
+        }
+        
+        if (!response.access_token || typeof response.access_token !== 'string') {
+          console.error('❌ Token inválido:', { 
+            hasAccessToken: !!response.access_token, 
+            tokenType: typeof response.access_token,
+            tokenValue: response.access_token 
+          })
+          throw new Error('Token de acesso inválido ou ausente na resposta')
+        }
+        
+        console.log('🔑 Token extraído:', response.access_token)
+        console.log('🔍 Tipo do token:', typeof response.access_token)
+        
+        // Validar se o token tem o formato JWT correto (3 partes separadas por ponto)
+        const tokenParts = response.access_token.split('.')
+        console.log('🔍 Partes do token JWT:', tokenParts)
+        console.log('🔍 Número de partes:', tokenParts.length)
+        
+        if (tokenParts.length !== 3) {
+          console.error('❌ Formato JWT inválido:', tokenParts)
+          throw new Error('Formato de token JWT inválido')
+        }
         
         // Decodificar o token JWT para obter informações do usuário
-        const payload = JSON.parse(atob(token.split('.')[1]))
+        let payload: any
+        try {
+          payload = JSON.parse(atob(tokenParts[1]))
+        } catch (decodeError) {
+          console.warn('Erro ao decodificar JWT, usando dados da resposta:', decodeError)
+          // Fallback: usar dados do usuário da resposta da API
+          if (response.user) {
+            payload = {
+              sub: response.user.id,
+              email: response.user.email,
+              name: response.user.name,
+              role: response.user.role,
+              storeSlug: response.user.storeSlug
+            }
+          } else {
+            throw new Error('Não foi possível obter informações do usuário')
+          }
+        }
         
         // Invalidar queries relacionadas ao usuário
         queryClient.invalidateQueries({ queryKey: ['user'] })
         queryClient.invalidateQueries({ queryKey: ['stores'] })
         
-        // Retornar dados do usuário do token
+        // Retornar dados do usuário do token ou da resposta da API
         return {
           user: {
             id: payload.sub,
@@ -37,8 +88,9 @@ export function useCardapioAuth() {
           }
         }
       } catch (err: any) {
-        setError(err.message)
-        throw err
+        const errorMessage = err.message || 'Erro desconhecido durante o login'
+        setError(errorMessage)
+        throw new Error(errorMessage)
       } finally {
         setIsLoading(false)
       }
@@ -96,8 +148,9 @@ export function useCardapioAuth() {
         const response = await apiClient.post<AuthResponse>('/auth/register', userData)
         return response
       } catch (err: any) {
-        setError(err.message)
-        throw err
+        const errorMessage = err.message || 'Erro desconhecido durante o registro'
+        setError(errorMessage)
+        throw new Error(errorMessage)
       } finally {
         setIsLoading(false)
       }

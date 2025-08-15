@@ -130,9 +130,8 @@ export default function RegisterLojaPage() {
             sunday: { open: false }
           },
           paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
-        },
-        active: true,
-        approved: false
+        }
+        // active e approved são definidos pelo backend com valores padrão
       }
 
       await createStore(storeData)

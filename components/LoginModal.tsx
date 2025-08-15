@@ -7,10 +7,11 @@ import React, { useState } from 'react'
 interface LoginModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
   storeSlug?: string
 }
 
-export function LoginModal({ isOpen, onClose, storeSlug }: LoginModalProps) {
+export function LoginModal({ isOpen, onClose, onSuccess, storeSlug }: LoginModalProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -51,6 +52,11 @@ export function LoginModal({ isOpen, onClose, storeSlug }: LoginModalProps) {
       setPassword('')
       setName('')
       setRole(UserRole.CLIENTE)
+      
+      // Chamar callback de sucesso se fornecido
+      if (onSuccess) {
+        onSuccess()
+      }
       
       // Fechar modal
       onClose()

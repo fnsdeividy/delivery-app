@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Product } from '@/types/cardapio-api'
+import { useEffect, useState } from 'react'
 
 interface StoreConfig {
   id: string
@@ -121,9 +121,9 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
                 description: 'Descrição do produto 1',
                 price: 25.90, 
                 categoryId: '1',
-                storeId: 'temp-id',
+                storeSlug: slug,
                 image: 'https://via.placeholder.com/40x40?text=?',
-                isAvailable: true, 
+                active: true, 
                 stockQuantity: 10,
                 preparationTime: 15,
                 allergens: [],
@@ -136,9 +136,9 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
                 description: 'Descrição do produto 2',
                 price: 32.50, 
                 categoryId: '2',
-                storeId: 'temp-id',
+                storeSlug: slug,
                 image: 'https://via.placeholder.com/40x40?text=?',
-                isAvailable: true, 
+                active: true, 
                 stockQuantity: 15,
                 preparationTime: 20,
                 allergens: [],
@@ -151,9 +151,9 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
                 description: 'Descrição do produto 3',
                 price: 18.75, 
                 categoryId: '1',
-                storeId: 'temp-id',
+                storeSlug: slug,
                 image: 'https://via.placeholder.com/40x40?text=?',
-                isAvailable: true, 
+                active: true, 
                 stockQuantity: 8,
                 preparationTime: 12,
                 allergens: [],

@@ -1,9 +1,9 @@
 'use client'
 
+import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useStoreStats, useUpdateStore } from '@/hooks'
+import { CreateStoreDto, Store, UpdateStoreDto } from '@/types/cardapio-api'
 import React, { useState } from 'react'
-import { useStores, useCreateStore, useUpdateStore, useDeleteStore, useApproveStore, useRejectStore, useStoreStats } from '@/hooks'
-import { Store, CreateStoreDto, UpdateStoreDto, StoreConfig, BusinessHours, DaySchedule } from '@/types/cardapio-api'
-import { LoadingSpinner } from './LoadingSpinner'
+import LoadingSpinner from './LoadingSpinner'
 
 interface StoreManagementProps {
   showPendingOnly?: boolean
@@ -50,9 +50,8 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
         sunday: { open: false }
       },
       paymentMethods: ['CASH', 'CREDIT_CARD', 'PIX']
-    },
-    active: true,
-    approved: false
+    }
+    // active e approved são definidos pelo backend com valores padrão
   })
 
   // Filtrar lojas
@@ -90,9 +89,8 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
       const updateData: UpdateStoreDto = {
         name: formData.name,
         description: formData.description,
-        config: formData.config,
-        active: formData.active,
-        approved: formData.approved
+        config: formData.config
+        // active e approved são gerenciados separadamente pelo backend
       }
 
       await updateStoreMutation.mutateAsync({
@@ -143,9 +141,7 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
       name: store.name,
       slug: store.slug,
       description: store.description || '',
-      config: store.config,
-      active: store.active,
-      approved: store.approved
+      config: store.config
     })
   }
 
@@ -179,8 +175,7 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
         },
         paymentMethods: ['CASH', 'CREDIT_CARD', 'PIX']
       },
-      active: true,
-      approved: false
+
     })
   }
 
@@ -256,7 +251,7 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 disabled={isLoading}
               />
             </div>
@@ -378,28 +373,14 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
             </div>
 
             <div className="flex items-center space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.active}
-                  onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  disabled={isLoading}
-                />
-                <span className="ml-2 text-sm text-gray-700">Loja Ativa</span>
-              </label>
-
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Status:</span> A loja será criada como ativa por padrão
+              </div>
+              
               {!isEditing && (
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.approved}
-                    onChange={(e) => setFormData({ ...formData, approved: e.target.checked })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    disabled={isLoading}
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Aprovada</span>
-                </label>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Aprovação:</span> A loja precisará ser aprovada por um administrador
+                </div>
               )}
             </div>
 

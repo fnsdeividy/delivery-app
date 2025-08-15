@@ -30,8 +30,9 @@ export interface CreateStoreDto {
   slug: string
   description?: string
   config: StoreConfig
-  active: boolean
-  approved: boolean
+  // active e approved são definidos pelo backend com valores padrão
+  // active: boolean (padrão: true)
+  // approved: boolean (padrão: false)
 }
 
 export interface UpdateStoreDto {

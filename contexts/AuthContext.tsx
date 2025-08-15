@@ -64,7 +64,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string, storeSlug?: string): Promise<AuthResponse> => {
     try {
       const response = await apiClient.authenticate(email, password, storeSlug)
-      setUser(response.user)
+      setUser({
+        ...response.user,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
       return response
     } catch (error) {
       throw error
@@ -74,7 +78,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const register = async (userData: any): Promise<AuthResponse> => {
     try {
       const response = await apiClient.register(userData)
-      setUser(response.user)
+      setUser({
+        ...response.user,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
       return response
     } catch (error) {
       throw error

@@ -16,14 +16,25 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
   const [formData, setFormData] = useState<UpdateStoreDto>({
     name: '',
     description: '',
-    address: '',
-    phone: '',
-    email: '',
-    category: '',
-    deliveryFee: 0,
-    minimumOrder: 0,
-    estimatedDeliveryTime: 0,
-    isActive: true
+    config: {
+      address: '',
+      phone: '',
+      email: '',
+      category: '',
+      deliveryFee: 0,
+      minimumOrder: 0,
+      estimatedDeliveryTime: 30,
+      businessHours: {
+        monday: { open: true, openTime: '09:00', closeTime: '18:00' },
+        tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+        wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+        thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
+        friday: { open: true, openTime: '09:00', closeTime: '18:00' },
+        saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
+        sunday: { open: false }
+      },
+      paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
+    }
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -40,14 +51,25 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
       setFormData({
         name: storeData.name || '',
         description: storeData.description || '',
-        address: storeData.address || '',
-        phone: storeData.phone || '',
-        email: storeData.email || '',
-        category: storeData.category || '',
-        deliveryFee: storeData.deliveryFee || 0,
-        minimumOrder: storeData.minimumOrder || 0,
-        estimatedDeliveryTime: storeData.estimatedDeliveryTime || 0,
-        isActive: storeData.isActive ?? true
+        config: storeData.config || {
+          address: '',
+          phone: '',
+          email: '',
+          category: '',
+          deliveryFee: 0,
+          minimumOrder: 0,
+          estimatedDeliveryTime: 30,
+          businessHours: {
+            monday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            friday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
+            sunday: { open: false }
+          },
+          paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
+        }
       })
     }
   }, [initialData, storeData])
@@ -56,16 +78,29 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
     const { name, value, type } = e.target
     const parsedValue = type === 'number' ? parseFloat(value) || 0 : value
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: parsedValue
-    }))
+    // Lidar com campos aninhados (ex: config.address)
+    if (name.includes('.')) {
+      const [parentKey, childKey] = name.split('.')
+      setFormData(prev => ({
+        ...prev,
+        [parentKey]: {
+          ...(prev[parentKey as keyof typeof prev] as any),
+          [childKey]: parsedValue
+        }
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parsedValue
+      }))
+    }
 
     // Limpar erro do campo
-    if (errors[name]) {
+    const errorKey = name.includes('.') ? name.split('.')[1] : name
+    if (errors[errorKey]) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [errorKey]: ''
       }))
     }
   }
@@ -77,29 +112,29 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
       newErrors.name = 'Nome da loja é obrigatório'
     }
 
-    if (!formData.address?.trim()) {
+    if (!formData.config?.address?.trim()) {
       newErrors.address = 'Endereço é obrigatório'
     }
 
-    if (!formData.phone?.trim()) {
+    if (!formData.config?.phone?.trim()) {
       newErrors.phone = 'Telefone é obrigatório'
     }
 
-    if (!formData.email?.trim()) {
+    if (!formData.config?.email?.trim()) {
       newErrors.email = 'Email é obrigatório'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.config.email)) {
       newErrors.email = 'Email inválido'
     }
 
-    if ((formData.deliveryFee ?? 0) < 0) {
+    if ((formData.config?.deliveryFee ?? 0) < 0) {
       newErrors.deliveryFee = 'Taxa de entrega não pode ser negativa'
     }
 
-    if ((formData.minimumOrder ?? 0) < 0) {
+    if ((formData.config?.minimumOrder ?? 0) < 0) {
       newErrors.minimumOrder = 'Pedido mínimo não pode ser negativo'
     }
 
-    if ((formData.estimatedDeliveryTime ?? 0) < 0) {
+    if ((formData.config?.estimatedDeliveryTime ?? 0) < 0) {
       newErrors.estimatedDeliveryTime = 'Tempo estimado não pode ser negativo'
     }
 
@@ -116,7 +151,7 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
 
     try {
       await updateStoreMutation.mutateAsync({
-        storeId,
+        slug: storeId,
         storeData: formData
       })
 
@@ -169,8 +204,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             </label>
             <select
               id="category"
-              name="category"
-              value={formData.category}
+              name="config.category"
+              value={formData.config?.category || ''}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
@@ -196,7 +231,7 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             value={formData.description}
             onChange={handleInputChange}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black"
             placeholder="Descreva sua loja..."
           />
         </div>
@@ -215,8 +250,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="text"
               id="address"
-              name="address"
-              value={formData.address}
+              name="config.address"
+              value={formData.config?.address || ''}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                 errors.address ? 'border-red-500' : 'border-gray-300'
@@ -234,8 +269,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="tel"
               id="phone"
-              name="phone"
-              value={formData.phone}
+              name="config.phone"
+              value={formData.config?.phone || ''}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                 errors.phone ? 'border-red-500' : 'border-gray-300'
@@ -253,8 +288,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="email"
               id="email"
-              name="email"
-              value={formData.email}
+              name="config.email"
+              value={formData.config?.email || ''}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
@@ -279,8 +314,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="number"
               id="deliveryFee"
-              name="deliveryFee"
-              value={formData.deliveryFee}
+              name="config.deliveryFee"
+              value={formData.config?.deliveryFee || 0}
               onChange={handleInputChange}
               min="0"
               step="0.01"
@@ -300,8 +335,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="number"
               id="minimumOrder"
-              name="minimumOrder"
-              value={formData.minimumOrder}
+              name="config.minimumOrder"
+              value={formData.config?.minimumOrder || 0}
               onChange={handleInputChange}
               min="0"
               step="0.01"
@@ -321,8 +356,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             <input
               type="number"
               id="estimatedDeliveryTime"
-              name="estimatedDeliveryTime"
-              value={formData.estimatedDeliveryTime}
+              name="config.estimatedDeliveryTime"
+              value={formData.config?.estimatedDeliveryTime || 30}
               onChange={handleInputChange}
               min="0"
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
@@ -344,8 +379,8 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             type="checkbox"
             id="isActive"
             name="isActive"
-            checked={formData.isActive}
-            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+            checked={formData.active || false}
+            onChange={(e) => setFormData(prev => ({ ...prev, active: e.target.checked }))}
             className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
           />
           <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
@@ -367,15 +402,15 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
         
         <button
           type="submit"
-          disabled={updateStoreMutation.isLoading}
+          disabled={updateStoreMutation.isPending}
           className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {updateStoreMutation.isLoading ? (
+                      {updateStoreMutation.isPending ? (
             <Loader2 className="w-4 h-4 inline mr-2 animate-spin" />
           ) : (
             <Save className="w-4 h-4 inline mr-2" />
           )}
-          {updateStoreMutation.isLoading ? 'Salvando...' : 'Salvar Alterações'}
+          {updateStoreMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
         </button>
       </div>
 

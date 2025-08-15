@@ -37,10 +37,10 @@ export const createQueryClient = () => {
         refetchOnMount: true,
         
         // Suspender queries (útil para SSR)
-        suspense: false,
+        // suspense: false, // Removido na versão mais recente do React Query
         
         // Mostrar dados antigos enquanto re-fetch
-        keepPreviousData: true,
+        // keepPreviousData: true, // Substituído por placeholderData na versão mais recente
         
         // Tempo máximo para uma query
         networkMode: 'online',

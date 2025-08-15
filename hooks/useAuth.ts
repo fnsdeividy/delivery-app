@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client'
-import { AuthResponse, CreateUserDto, LoginDto } from '@/types/cardapio-api'
+import { AuthResponse, CreateUserDto, LoginDto, UpdateUserDto } from '@/types/cardapio-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export function useAuth() {

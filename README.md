@@ -13,6 +13,11 @@ O frontend está totalmente integrado com a API backend Cardap.IO Delivery, forn
 - Cache inteligente com React Query
 - Tratamento de erros centralizado
 
+### 🐛 Correções Recentes
+- **Bug Fix**: Corrigido erro `token.split is not a function` no hook `useCardapioAuth`
+- **Melhorias**: Implementada validação robusta de tokens JWT e fallback para dados de usuário
+- **Testes**: Adicionados testes unitários abrangentes para o hook de autenticação
+
 ## 🏗️ Arquitetura
 
 ### Stack Tecnológica

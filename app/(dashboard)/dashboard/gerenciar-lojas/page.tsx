@@ -54,17 +54,28 @@ export default function GerenciarLojas() {
         name: formData.name,
         description: formData.description,
         slug: slug,
-        address: 'Endereço a ser configurado',
-        phone: 'Telefone a ser configurado',
-        email: 'email@loja.com',
-        logo: '',
-        banner: '',
-        category: 'Outros',
-        deliveryFee: 5,
-        minimumOrder: 20,
-        estimatedDeliveryTime: 30,
-        isActive: true,
-        ownerId: 'temp-owner-id' // Será atualizado quando o usuário for criado
+        config: {
+          address: 'Endereço a ser configurado',
+          phone: 'Telefone a ser configurado',
+          email: 'email@loja.com',
+          logo: '',
+          banner: '',
+          category: 'Outros',
+          deliveryFee: 5,
+          minimumOrder: 20,
+          estimatedDeliveryTime: 30,
+          businessHours: {
+            monday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            friday: { open: true, openTime: '09:00', closeTime: '18:00' },
+            saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
+            sunday: { open: false }
+          },
+          paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
+        }
+        // active e approved são definidos pelo backend com valores padrão
       }
 
       await createStoreMutation.mutateAsync(storeData)
@@ -208,7 +219,7 @@ export default function GerenciarLojas() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total de Usuários</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stores.reduce((total, store) => total + (store._count?.users || 0), 0)}
+                  {stores.length}
                 </p>
               </div>
             </div>
@@ -285,7 +296,7 @@ export default function GerenciarLojas() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {store._count?.users || 0} usuários
+                        N/A
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(store.createdAt)}
@@ -364,7 +375,7 @@ export default function GerenciarLojas() {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                     placeholder="Ex: Pizzaria do João"
                   />
                 </div>
@@ -378,7 +389,7 @@ export default function GerenciarLojas() {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                     placeholder="Descrição da loja..."
                   />
                 </div>
@@ -396,7 +407,7 @@ export default function GerenciarLojas() {
                       name="slug"
                       value={formData.slug}
                       onChange={handleInputChange}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                      className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
                       placeholder="pizzaria-do-joao"
                     />
                   </div>
