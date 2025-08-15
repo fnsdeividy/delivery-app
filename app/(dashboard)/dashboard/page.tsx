@@ -1,7 +1,8 @@
 'use client'
 
 import { useCardapioAuth } from '@/hooks'
-import { ArrowRight, Plus, Settings, Store, Users } from 'lucide-react'
+import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { ArrowRight, Package, Plus, Settings, ShoppingBag, Store, TrendingUp, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -11,6 +12,9 @@ export default function DashboardAdmin() {
   const { isAuthenticated, getCurrentToken } = useCardapioAuth()
   const [userRole, setUserRole] = useState<string | null>(null)
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
+  
+  // Buscar estatísticas do dashboard
+  const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats(userRole, storeSlug)
 
   useEffect(() => {
     // Verificar autenticação e extrair informações do token
@@ -171,30 +175,89 @@ export default function DashboardAdmin() {
               <Plus className="w-4 h-4 mr-2" />
               Criar Nova Loja
             </Link>
-            <button className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            <Link
+              href="/dashboard/gerenciar-lojas"
+              className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              role="link"
+              aria-label="Ver todas as lojas cadastradas no sistema"
+            >
               <Store className="w-4 h-4 mr-2" />
               Ver Todas as Lojas
-            </button>
+            </Link>
           </div>
         </div>
 
-        {/* Status */}
+        {/* Status do Sistema */}
         <div className="mt-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Status do Sistema</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">0</div>
-              <div className="text-sm text-gray-600">Lojas Ativas</div>
+          
+          {statsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+              <span className="ml-3 text-gray-600">Carregando estatísticas...</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">0</div>
-              <div className="text-sm text-gray-600">Produtos</div>
+          ) : statsError ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <p className="text-red-600">Erro ao carregar estatísticas</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-2 text-sm text-orange-600 hover:text-orange-700 underline"
+              >
+                Tentar novamente
+              </button>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">0</div>
-              <div className="text-sm text-gray-600">Pedidos</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Lojas */}
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Store className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-2xl font-bold text-blue-600">{stats?.totalStores || 0}</div>
+                <div className="text-sm text-gray-600">Total de Lojas</div>
+                {stats?.pendingStores > 0 && (
+                  <div className="text-xs text-orange-600 mt-1">
+                    {stats.pendingStores} pendentes
+                  </div>
+                )}
+              </div>
+              
+              {/* Lojas Ativas */}
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-green-600">{stats?.activeStores || 0}</div>
+                <div className="text-sm text-gray-600">Lojas Ativas</div>
+              </div>
+              
+              {/* Produtos */}
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Package className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="text-2xl font-bold text-purple-600">{stats?.totalProducts || 0}</div>
+                <div className="text-sm text-gray-600">Produtos</div>
+              </div>
+              
+              {/* Pedidos */}
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <ShoppingBag className="w-6 h-6 text-orange-600" />
+                </div>
+                <div className="text-2xl font-bold text-orange-600">{stats?.totalOrders || 0}</div>
+                <div className="text-sm text-gray-600">Pedidos</div>
+                {stats?.totalRevenue > 0 && (
+                  <div className="text-xs text-green-600 mt-1">
+                    R$ {stats.totalRevenue.toFixed(2)}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

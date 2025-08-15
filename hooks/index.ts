@@ -21,6 +21,9 @@ export {
 // Hooks existentes (manter compatibilidade)
 export { useCardapioAuth } from './useCardapioAuth'
 
+// Hooks para dashboard
+export { useDashboardStats } from './useDashboardStats'
+
 // Hooks temporários para permitir build
 export const useOrdersByStore = (slug: string) => ({ 
   data: { 

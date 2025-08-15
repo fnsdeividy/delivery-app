@@ -56,6 +56,23 @@ O frontend está totalmente integrado com a API backend Cardap.IO Delivery, forn
   - ✅ UX aprimorada com feedback específico
   - ✅ Logs estruturados para auditoria
 
+### 🔧 Correção do Botão "Ver Todas as Lojas" (Janeiro 2025)
+- **Problema**: Botão "Ver Todas as Lojas" no Dashboard Administrativo não funcionava
+- **Causa**: Botão implementado como `<button>` simples sem funcionalidade de navegação
+- **Solução**: 
+  - Substituição do `<button>` por `<Link>` do Next.js com navegação para `/dashboard/gerenciar-lojas`
+  - Adição de atributos de acessibilidade (`role="link"`, `aria-label`)
+  - Manutenção do estilo visual consistente com outros botões de ação
+- **Arquivos Afetados**: 
+  - `app/(dashboard)/dashboard/page.tsx` - Correção do botão de navegação
+  - `__tests__/dashboard-navigation.test.tsx` - Novos testes unitários para funcionalidade
+- **Testes**: Testes unitários abrangentes para navegação (7/7 passando)
+- **Benefícios**: 
+  - ✅ Navegação funcional para gerenciamento de lojas
+  - ✅ Melhor acessibilidade com atributos semânticos
+  - ✅ Consistência visual mantida
+  - ✅ UX aprimorada para administradores
+
 ## 🏗️ Arquitetura
 
 ### Stack Tecnológica
