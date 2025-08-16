@@ -11,6 +11,7 @@ declare module 'next-auth' {
       storeSlug?: string
       active: boolean
     }
+    accessToken?: string
   }
 
   interface User {
@@ -21,6 +22,7 @@ declare module 'next-auth' {
     storeId?: string
     storeSlug?: string
     active: boolean
+    accessToken?: string
   }
 }
 
@@ -30,5 +32,6 @@ declare module 'next-auth/jwt' {
     storeId?: string
     storeSlug?: string
     active: boolean
+    accessToken?: string
   }
 }

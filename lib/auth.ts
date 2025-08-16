@@ -11,47 +11,58 @@ export const authOptions: NextAuthOptions = {
         storeSlug: { label: 'Store Slug', type: 'text' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.storeSlug) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
 
         try {
-          // Simulação de autenticação - em produção, isso seria uma chamada à API
-          if (credentials.email === 'admin@boteco.com' && credentials.password === '123456') {
-            return {
-              id: '1',
+          console.log('🔐 NextAuth: Tentando autenticar via backend NestJS')
+          
+          // Usar o apiClient para autenticar com o backend
+          const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
               email: credentials.email,
-              name: 'Admin Boteco',
-              role: 'ADMIN',
-              storeSlug: credentials.storeSlug,
-              active: true
-            }
+              password: credentials.password,
+              storeSlug: credentials.storeSlug
+            }),
+          })
+
+          if (!response.ok) {
+            console.error('❌ NextAuth: Falha na autenticação:', response.status)
+            return null
           }
 
-          if (credentials.email === 'vnn2006@gmail.com' && credentials.password === '123456') {
-            return {
-              id: '3',
-              email: credentials.email,
-              name: 'Vitor',
-              role: 'ADMIN',
-              storeSlug: credentials.storeSlug,
-              active: true
-            }
-          }
+          const authData = await response.json()
+          console.log('✅ NextAuth: Autenticação bem-sucedida:', { 
+            email: authData.user?.email,
+            role: authData.user?.role 
+          })
 
-          if (credentials.email === 'superadmin@cardap.io' && credentials.password === 'admin123') {
+          if (authData.access_token && authData.user) {
+            // Armazenar o token JWT do backend
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('cardapio_token', authData.access_token)
+              document.cookie = `cardapio_token=${authData.access_token}; path=/; max-age=86400; SameSite=Strict`
+            }
+
             return {
-              id: '2',
-              email: credentials.email,
-              name: 'Super Admin',
-              role: 'SUPER_ADMIN',
-              active: true
+              id: authData.user.id,
+              email: authData.user.email,
+              name: authData.user.name,
+              role: authData.user.role,
+              storeSlug: authData.user.storeSlug || credentials.storeSlug,
+              active: authData.user.active,
+              accessToken: authData.access_token
             }
           }
 
           return null
         } catch (error) {
-          console.error('Erro na autenticação:', error)
+          console.error('❌ NextAuth: Erro na autenticação:', error)
           return null
         }
       }
@@ -67,6 +78,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role
         token.storeSlug = user.storeSlug
         token.active = user.active
+        token.accessToken = user.accessToken
       }
       return token
     },
@@ -75,6 +87,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role
         session.user.storeSlug = token.storeSlug
         session.user.active = token.active
+        session.accessToken = token.accessToken
       }
       return session
     },

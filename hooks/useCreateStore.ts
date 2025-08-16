@@ -58,14 +58,34 @@ export function useCreateStore(): CreateStoreHookReturn {
         // 3. Aguardar um momento para garantir que as queries foram invalidadas
         await new Promise(resolve => setTimeout(resolve, 100))
         
-        // 4. Redirecionar para o dashboard da loja criada
+        // 4. Verificar se o usuário está autenticado antes de redirecionar
+        const isAuthenticated = apiClient.isAuthenticated()
+        console.log('🔐 Usuário autenticado:', isAuthenticated)
+        
+        if (!isAuthenticated) {
+          console.warn('⚠️ Usuário não autenticado, redirecionando para login')
+          router.push('/login/lojista')
+          return
+        }
+        
+        // 5. Redirecionar para o dashboard da loja criada
         const dashboardUrl = `/dashboard/${data.slug}?welcome=true&message=Loja criada com sucesso!`
         console.log('🚀 Redirecionando para:', dashboardUrl)
+        
+        // Aguardar um momento adicional antes do redirecionamento
+        await new Promise(resolve => setTimeout(resolve, 200))
         
         // Verificar se o redirecionamento foi bem-sucedido
         try {
           router.push(dashboardUrl)
           console.log('✅ Redirecionamento executado com sucesso')
+          
+          // Aguardar um momento para verificar se o redirecionamento funcionou
+          setTimeout(() => {
+            console.log('🔍 Verificando se redirecionamento foi bem-sucedido...')
+            console.log('📍 URL atual:', window.location.pathname)
+          }, 1000)
+          
         } catch (redirectError) {
           console.error('❌ Erro no redirecionamento:', redirectError)
           // Fallback: tentar redirecionar para dashboard geral

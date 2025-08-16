@@ -43,10 +43,36 @@ async function protectDashboardRoute(request: NextRequest) {
   
   console.log(`🔐 Middleware: Protegendo rota do dashboard ${pathname}`)
   
-  // Por enquanto, permitir acesso a todas as rotas do dashboard
-  // A autenticação será feita no lado do cliente
-  console.log(`✅ Middleware: Permitindo acesso ao dashboard (autenticação no cliente)`)
-  return NextResponse.next()
+  // Verificar token JWT nos cookies ou headers
+  const token = request.cookies.get('cardapio_token')?.value || 
+                request.headers.get('authorization')?.replace('Bearer ', '')
+  
+  if (!token) {
+    console.log(`🚫 Middleware: Token não encontrado, redirecionando para login`)
+    return NextResponse.redirect(new URL('/login/lojista', request.url))
+  }
+  
+  try {
+    // Verificar se o token é válido fazendo uma chamada ao backend
+    const response = await fetch('http://localhost:3001/api/v1/stores', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      console.log(`🚫 Middleware: Token inválido (${response.status}), redirecionando para login`)
+      return NextResponse.redirect(new URL('/login/lojista', request.url))
+    }
+    
+    console.log(`✅ Middleware: Token válido, permitindo acesso ao dashboard`)
+    return NextResponse.next()
+    
+  } catch (error) {
+    console.error(`❌ Middleware: Erro ao validar token`, error)
+    return NextResponse.redirect(new URL('/login/lojista', request.url))
+  }
 }
 
 /**

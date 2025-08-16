@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client'
-import { AuthResponse, CreateUserDto, LoginDto } from '@/types/cardapio-api'
+import { CreateUserDto, LoginDto } from '@/types/cardapio-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -179,10 +179,19 @@ export function useCardapioAuth() {
       setError(null)
       
       try {
-        const response = await apiClient.post<AuthResponse>('/auth/register', userData)
+        console.log('📝 Registrando usuário:', userData.email)
+        const response = await apiClient.register(userData)
+        console.log('✅ Usuário registrado com sucesso:', response)
+        
+        // O apiClient.register já armazena o token automaticamente
+        if (response.access_token) {
+          console.log('🔑 Token de registro armazenado automaticamente')
+        }
+        
         return response
       } catch (err: any) {
         const errorMessage = err.message || 'Erro desconhecido durante o registro'
+        console.error('❌ Erro no registro:', errorMessage)
         setError(errorMessage)
         throw new Error(errorMessage)
       } finally {
@@ -190,13 +199,17 @@ export function useCardapioAuth() {
       }
     },
     onSuccess: (data, variables) => {
-      // Após registro bem-sucedido, fazer login automático
-      loginMutation.mutate({
-        email: variables.email,
-        password: variables.password,
-      })
+      console.log('🎉 Registro bem-sucedido, token já armazenado')
+      
+      // Invalidar queries para atualizar estado da aplicação
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      
+      // Não fazer login automático pois o registro já retorna o token
+      // O token já foi armazenado pelo apiClient.register()
     },
     onError: (err: any) => {
+      console.error('❌ Erro na mutation de registro:', err.message)
       setError(err.message)
     },
   })

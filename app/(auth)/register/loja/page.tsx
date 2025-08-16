@@ -90,12 +90,16 @@ export default function RegisterLojaPage() {
 
   const handleSubmit = async () => {
     try {
+      console.log('🚀 Iniciando processo de criação de conta e loja...')
+      
       // Validações finais
       if (!formData.address || !formData.city || !formData.state) {
+        console.error('❌ Campos obrigatórios não preenchidos')
         return
       }
 
       // 1. Criar usuário proprietário
+      console.log('👤 Criando usuário proprietário...')
       const userData: CreateUserDto = {
         email: formData.ownerEmail,
         name: formData.ownerName,
@@ -104,8 +108,13 @@ export default function RegisterLojaPage() {
       }
 
       const userResponse = await registerMutation.mutateAsync(userData)
+      console.log('✅ Usuário criado com sucesso:', userResponse)
       
-      // 2. Criar loja
+      // 2. Aguardar um momento para garantir que o token foi armazenado
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // 3. Criar loja
+      console.log('🏪 Criando loja...')
       const storeData: CreateStoreDto = {
         name: formData.storeName,
         slug: formData.storeSlug,
@@ -131,16 +140,17 @@ export default function RegisterLojaPage() {
           },
           paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
         }
-        // active e approved são definidos pelo backend com valores padrão
       }
 
-      await createStore(storeData)
+      const storeResponse = await createStore(storeData)
+      console.log('✅ Loja criada com sucesso:', storeResponse)
 
-      // Sucesso - redirecionar para o dashboard da loja
-      router.push(`/dashboard/${formData.storeSlug}?welcome=true&message=Loja criada com sucesso! Configure sua loja.`)
+      // 4. O redirecionamento será feito automaticamente pelo hook useCreateStore
+      console.log('🚀 Redirecionamento automático via useCreateStore...')
       
     } catch (err) {
-      console.error('Erro ao criar loja:', err)
+      console.error('❌ Erro ao criar loja:', err)
+      // Em caso de erro, mostrar erro mas não redirecionar automaticamente
     }
   }
 
