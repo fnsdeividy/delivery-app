@@ -5,11 +5,14 @@ import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useToast } from '@/components/Toast'
+import { FormValidation, useFormValidation } from '@/components/FormValidation'
 
 export default function LojistaLogin() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login, isLoading, error } = useCardapioAuth()
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,29 +20,76 @@ export default function LojistaLogin() {
   })
   const [showPassword, setShowPassword] = useState(false)
 
+  // Validação de formulário
+  const { errors, validateForm, clearErrors, getFieldError, isFieldTouched, markFieldAsTouched } = useFormValidation()
+
   // Pré-preencher slug se vier da URL e mostrar mensagem
   useEffect(() => {
     const slug = searchParams.get('slug')
     const message = searchParams.get('message')
-    
+
     if (slug) {
       setFormData(prev => ({ ...prev, storeSlug: slug }))
     }
-    
+
     if (message) {
-      // Mostrar mensagem de sucesso temporariamente
-      console.log('Mensagem:', message)
+      addToast({
+        type: 'info',
+        title: 'Informação',
+        message: message
+      })
     }
-  }, [searchParams])
+  }, [searchParams, addToast])
+
+  // Mostrar erro de login como toast
+  useEffect(() => {
+    if (error) {
+      addToast({
+        type: 'error',
+        title: 'Erro no Login',
+        message: error
+      })
+    }
+  }, [error, addToast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.email || !formData.password || !formData.storeSlug) {
+    // Limpar erros anteriores
+    clearErrors()
+
+    // Validação usando o hook de validação
+    const validationRules = {
+      email: [
+        { required: true, fieldName: 'Email' },
+        {
+          pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+          fieldName: 'Email',
+          message: 'Email deve ter um formato válido'
+        }
+      ],
+      password: [
+        { required: true, fieldName: 'Senha' },
+        { minLength: 6, fieldName: 'Senha' }
+      ],
+      storeSlug: [
+        { required: true, fieldName: 'Slug da Loja' },
+        { minLength: 2, fieldName: 'Slug da Loja' }
+      ]
+    }
+
+    const isValid = validateForm(formData, validationRules)
+    if (!isValid) {
+      addToast({
+        type: 'error',
+        title: 'Erro de Validação',
+        message: 'Por favor, corrija os campos obrigatórios'
+      })
       return
     }
 
     // Fazer login usando o hook unificado
+    // O hook irá lidar com o redirecionamento em caso de sucesso
     login({
       email: formData.email,
       password: formData.password,
@@ -88,7 +138,7 @@ export default function LojistaLogin() {
             {/* Slug da Loja */}
             <div>
               <label htmlFor="storeSlug" className="block text-sm font-medium text-gray-700">
-                Slug da Loja
+                Slug da Loja <span className="text-red-500">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -98,10 +148,17 @@ export default function LojistaLogin() {
                   required
                   value={formData.storeSlug}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  onBlur={() => markFieldAsTouched('storeSlug')}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black ${isFieldTouched('storeSlug') && getFieldError('storeSlug')
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300'
+                    }`}
                   placeholder="ex: minha-loja"
                 />
               </div>
+              {isFieldTouched('storeSlug') && getFieldError('storeSlug') && (
+                <p className="mt-1 text-xs text-red-600">{getFieldError('storeSlug')?.message}</p>
+              )}
               <p className="mt-1 text-xs text-gray-500">
                 Identificador único da sua loja (ex: boteco-do-joao)
               </p>
@@ -110,7 +167,7 @@ export default function LojistaLogin() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email do Lojista
+                Email do Lojista <span className="text-red-500">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -121,16 +178,23 @@ export default function LojistaLogin() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  onBlur={() => markFieldAsTouched('email')}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black ${isFieldTouched('email') && getFieldError('email')
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300'
+                    }`}
                   placeholder="seu@email.com"
                 />
               </div>
+              {isFieldTouched('email') && getFieldError('email') && (
+                <p className="mt-1 text-xs text-red-600">{getFieldError('email')?.message}</p>
+              )}
             </div>
 
             {/* Senha */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Senha
+                Senha <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -141,7 +205,11 @@ export default function LojistaLogin() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  onBlur={() => markFieldAsTouched('password')}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black ${isFieldTouched('password') && getFieldError('password')
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300'
+                    }`}
                   placeholder="••••••••"
                 />
                 <button
@@ -156,14 +224,13 @@ export default function LojistaLogin() {
                   )}
                 </button>
               </div>
+              {isFieldTouched('password') && getFieldError('password') && (
+                <p className="mt-1 text-xs text-red-600">{getFieldError('password')?.message}</p>
+              )}
             </div>
 
-            {/* Erro */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            )}
+            {/* Validação de Formulário */}
+            <FormValidation errors={errors} onClearErrors={clearErrors} />
 
             {/* Demo credentials */}
             <div className="bg-blue-50 border border-blue-200 rounded-md p-3">

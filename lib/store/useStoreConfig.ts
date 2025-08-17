@@ -70,6 +70,10 @@ interface StoreConfig {
     email: string
     address: string
   }
+  status: {
+    isOpen: boolean
+    reason: string
+  }
 }
 
 interface UseStoreConfigReturn {
@@ -89,135 +93,119 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
       return
     }
 
-    const fetchConfig = async () => {
+    const fetchConfig = async (slug: string): Promise<StoreConfig> => {
+      try {
+        // Buscar dados da loja via API
+        const response = await fetch(`/api/store-public/${slug}`)
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Loja não encontrada')
+          } else if (response.status === 403) {
+            throw new Error('Loja inativa')
+          } else {
+            throw new Error('Erro ao buscar dados da loja')
+          }
+        }
+
+        const data = await response.json()
+
+        // Mapear resposta da API para StoreConfig
+        return {
+          store: {
+            id: data.store.id,
+            name: data.store.name,
+            slug: data.store.slug,
+            description: data.store.description,
+            active: data.store.active,
+            approved: data.store.approved || false,
+            createdAt: data.store.createdAt,
+            updatedAt: data.store.updatedAt
+          },
+          categories: data.categories || [],
+          products: data.products || [],
+          config: data.config || {},
+          status: data.status || { isOpen: false, reason: 'Indisponível' }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar configuração da loja:', error)
+        throw error
+      }
+    }
+
+    const loadConfig = async () => {
       try {
         setLoading(true)
         setError(null)
-        
-        // Simular busca da configuração da loja
-        // Em produção, isso seria uma chamada à API
-        const mockConfig: StoreConfig = {
-          id: 'temp-id',
-          slug,
-          name: `Loja ${slug}`,
-          description: 'Descrição da loja',
-          config: {
-            theme: 'default',
-            colors: {
-              primary: '#3B82F6',
-              secondary: '#6B7280'
-            }
-          },
-          active: true,
-          approved: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // Adicionar propriedades necessárias para o dashboard
+
+        const storeConfig = await fetchConfig(slug)
+
+        // Transformar dados da API para o formato esperado
+        const transformedConfig: StoreConfig = {
+          id: storeConfig.store.id,
+          slug: storeConfig.store.slug,
+          name: storeConfig.store.name,
+          description: storeConfig.store.description,
+          config: storeConfig.config,
+          active: storeConfig.store.active,
+          approved: storeConfig.store.approved,
+          createdAt: storeConfig.store.createdAt,
+          updatedAt: storeConfig.store.updatedAt,
           menu: {
-            products: [
-              { 
-                id: '1', 
-                name: 'Produto 1', 
-                description: 'Descrição do produto 1',
-                price: 25.90, 
-                categoryId: '1',
-                storeSlug: slug,
-                image: 'https://via.placeholder.com/40x40?text=?',
-                active: true, 
-                stockQuantity: 10,
-                preparationTime: 15,
-                allergens: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              },
-              { 
-                id: '2', 
-                name: 'Produto 2', 
-                description: 'Descrição do produto 2',
-                price: 32.50, 
-                categoryId: '2',
-                storeSlug: slug,
-                image: 'https://via.placeholder.com/40x40?text=?',
-                active: true, 
-                stockQuantity: 15,
-                preparationTime: 20,
-                allergens: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              },
-              { 
-                id: '3', 
-                name: 'Produto 3', 
-                description: 'Descrição do produto 3',
-                price: 18.75, 
-                categoryId: '1',
-                storeSlug: slug,
-                image: 'https://via.placeholder.com/40x40?text=?',
-                active: true, 
-                stockQuantity: 8,
-                preparationTime: 12,
-                allergens: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
-            ],
-            categories: [
-              { id: '1', name: 'Categoria 1', active: true },
-              { id: '2', name: 'Categoria 2', active: true }
-            ]
+            products: storeConfig.products || [],
+            categories: storeConfig.categories || []
           },
           settings: {
-            preparationTime: 25,
-            orderNotifications: true
+            preparationTime: storeConfig.config?.preparationTime || 30,
+            orderNotifications: storeConfig.config?.orderNotifications !== false
           },
           delivery: {
-            fee: 5.00,
-            freeDeliveryMinimum: 30.00,
-            estimatedTime: 45,
-            enabled: true
+            fee: storeConfig.config?.deliveryFee || 0,
+            freeDeliveryMinimum: storeConfig.config?.minimumOrder || 0,
+            estimatedTime: storeConfig.config?.estimatedDeliveryTime || 30,
+            enabled: storeConfig.config?.deliveryEnabled !== false
           },
           payments: {
-            pix: true,
-            cash: true,
-            card: true
+            pix: storeConfig.config?.paymentMethods?.includes('PIX') || false,
+            cash: storeConfig.config?.paymentMethods?.includes('DINHEIRO') || false,
+            card: storeConfig.config?.paymentMethods?.includes('CARTÃO') || false
           },
           promotions: {
-            coupons: [
-              { id: '1', name: 'DESCONTO10', active: true, discount: 10 }
-            ]
+            coupons: storeConfig.config?.coupons || []
           },
           branding: {
-            primaryColor: '#3B82F6',
-            secondaryColor: '#6B7280'
+            logo: storeConfig.config?.logo || '',
+            favicon: storeConfig.config?.favicon || '',
+            bannerImage: storeConfig.config?.banner || '',
+            primaryColor: storeConfig.config?.primaryColor || '#f97316',
+            secondaryColor: storeConfig.config?.secondaryColor || '#ea580c',
+            backgroundColor: storeConfig.config?.backgroundColor || '#ffffff',
+            textColor: storeConfig.config?.textColor || '#000000',
+            accentColor: storeConfig.config?.accentColor || '#f59e0b'
           },
           schedule: {
             timezone: 'America/Sao_Paulo',
-            workingHours: {
-              monday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              tuesday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              wednesday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              thursday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              friday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              saturday: { open: true, hours: [{ start: '08:00', end: '18:00' }] },
-              sunday: { open: false, hours: [] }
-            }
+            workingHours: storeConfig.config?.businessHours || {}
           },
           business: {
-            phone: '(11) 99999-9999',
-            email: 'contato@loja.com',
-            address: 'Rua Exemplo, 123 - São Paulo, SP'
-          }
+            phone: storeConfig.config?.phone || '',
+            email: storeConfig.config?.email || '',
+            address: storeConfig.config?.address || ''
+          },
+          status: storeConfig.status
         }
-        
-        setConfig(mockConfig)
+
+        setConfig(transformedConfig)
+
       } catch (err: any) {
-        setError(err.message || 'Erro ao carregar configuração da loja')
+        console.error('Erro ao buscar configuração da loja:', err)
+        setError(err.message || 'Erro ao carregar dados da loja')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchConfig()
+    loadConfig()
   }, [slug])
 
   return { config, loading, error }
@@ -232,8 +220,8 @@ export function useStoreStatus(config: StoreConfig | null) {
       // Simular status da loja
       setIsOpen(config.active && config.approved)
       setCurrentMessage(
-        config.approved 
-          ? 'Loja aberta e funcionando normalmente' 
+        config.approved
+          ? 'Loja aberta e funcionando normalmente'
           : 'Loja aguardando aprovação'
       )
     }

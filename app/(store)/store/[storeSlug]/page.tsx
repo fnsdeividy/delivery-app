@@ -1,6 +1,7 @@
 'use client'
 
-import { Clock, Phone, Search, ShoppingCart, Truck, User } from 'lucide-react'
+import { Clock, Phone, Search, ShoppingCart, Truck, User, Store } from 'lucide-react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -14,10 +15,10 @@ import { Product } from '../../../../types/cardapio-api'
 export default function StorePage() {
   const params = useParams()
   const slug = params.slug as string
-  
+
   const { config, loading, error } = useStoreConfig(slug)
   const { isOpen, currentMessage } = useStoreStatus(config)
-  
+
   const { data: session, status } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('todos')
@@ -107,6 +108,44 @@ export default function StorePage() {
     }
   }
 
+  // Mostrar erro se a loja não for encontrada
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Store className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Loja não encontrada
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {error === `Loja '${slug}' não encontrada`
+              ? `A loja "${slug}" não foi encontrada ou não está mais disponível.`
+              : error === 'Loja inativa ou não aprovada'
+                ? 'Esta loja está temporariamente indisponível.'
+                : 'Ocorreu um erro ao carregar os dados da loja.'
+            }
+          </p>
+          <div className="space-y-3">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Voltar ao início
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Acessar Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -123,7 +162,7 @@ export default function StorePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Loja não encontrada</h1>
           <p className="text-gray-600 mb-4">{error || 'Esta loja não existe ou está temporariamente indisponível.'}</p>
-          <button 
+          <button
             onClick={() => window.location.href = '/'}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -135,13 +174,13 @@ export default function StorePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ 
+    <div className="min-h-screen" style={{
       backgroundColor: config?.branding?.backgroundColor || '#ffffff',
       color: config?.branding?.textColor || '#000000'
     }}>
       {/* Promotions Banner */}
       <PromotionsBanner promotions={promotions} />
-      
+
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50 animate-slide-in-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,8 +188,8 @@ export default function StorePage() {
             {/* Logo e Nome */}
             <div className="flex items-center space-x-4 animate-slide-in-left">
               {config?.branding?.logo && (
-                <img 
-                  src={config.branding.logo} 
+                <img
+                  src={config.branding.logo}
                   alt={config.name}
                   className="h-10 w-auto hover-scale"
                 />
@@ -159,7 +198,7 @@ export default function StorePage() {
                 {config.name}
               </h1>
             </div>
-            
+
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
               <div className="relative">
@@ -174,12 +213,12 @@ export default function StorePage() {
                 />
               </div>
             </div>
-            
+
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
               {/* Login/Profile Button */}
               {status === 'authenticated' && session?.user ? (
-                <button 
+                <button
                   onClick={() => setIsProfileOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
                   style={{ color: config?.branding?.primaryColor || '#f97316' }}
@@ -191,7 +230,7 @@ export default function StorePage() {
                   </span>
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => setIsLoginOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
                   style={{ color: config?.branding?.primaryColor || '#f97316' }}
@@ -201,9 +240,9 @@ export default function StorePage() {
                   <span className="hidden sm:block">Login</span>
                 </button>
               )}
-              
+
               {/* Cart Button */}
-              <button 
+              <button
                 onClick={() => {
                   if (cartItems.length > 0) {
                     setIsCartOpen(true)
@@ -218,7 +257,7 @@ export default function StorePage() {
                 <ShoppingCart className="h-5 w-5 transition-transform" />
                 <span className="hidden sm:block">Carrinho</span>
                 {cartItems.length > 0 && (
-                  <span 
+                  <span
                     className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle"
                     style={{ backgroundColor: config?.branding?.accentColor || '#f97316' }}
                   >
@@ -234,8 +273,8 @@ export default function StorePage() {
       {/* Banner */}
       {config?.branding?.bannerImage && (
         <div className="relative h-48 md:h-64 overflow-hidden animate-fade-in">
-          <img 
-            src={config.branding.bannerImage} 
+          <img
+            src={config.branding.bannerImage}
             alt={config.name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
@@ -248,7 +287,7 @@ export default function StorePage() {
         </div>
       )}
 
-      {/* Status da Loja */}
+      {/* Status da Loja
       {!isOpen && (
         <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 text-center animate-slide-in-top animate-shake">
           <div className="flex items-center justify-center space-x-2">
@@ -256,7 +295,7 @@ export default function StorePage() {
             <span>{currentMessage}</span>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Info da Loja */}
       <div className="bg-white border-b">
@@ -299,28 +338,26 @@ export default function StorePage() {
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory('todos')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${
-                selectedCategory === 'todos'
-                  ? 'text-white animate-glow'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${selectedCategory === 'todos'
+                ? 'text-white animate-glow'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               style={selectedCategory === 'todos' ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
             >
               <span className="font-medium">Todos</span>
               <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
             </button>
-            
+
             {config?.menu?.categories?.filter(c => c.active).map((category) => {
               const count = config?.menu?.products?.filter(p => p.active && p.categoryId === category.id).length || 0
               return (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${
-                    selectedCategory === category.id
-                      ? 'text-white animate-glow'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${selectedCategory === category.id
+                    ? 'text-white animate-glow'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                   style={selectedCategory === category.id ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
                 >
                   <span className="font-medium">{category.name}</span>
@@ -357,8 +394,8 @@ export default function StorePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredProducts.map((product, index) => (
-                <div 
-                  key={product.id} 
+                <div
+                  key={product.id}
                   className="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover stagger-item"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -369,13 +406,13 @@ export default function StorePage() {
                       alt={product.name}
                       className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
                     />
-                    
+
                     {/* Tags */}
                     <div className="absolute top-3 left-3 flex flex-col space-y-1">
                       {/* Tags removidas - não existem no tipo Product */}
                     </div>
                   </div>
-                  
+
                   {/* Product Info */}
                   <div className="p-4">
                     {/* Name and Rating */}
@@ -388,17 +425,17 @@ export default function StorePage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Description */}
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                    
+
                     {/* Ingredients */}
                     <div className="mb-3">
                       <div className="flex flex-wrap gap-1">
                         {/* Ingredients removidos - não existem no tipo Product */}
                       </div>
                     </div>
-                    
+
                     {/* Price */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
@@ -408,9 +445,9 @@ export default function StorePage() {
                         {/* Preço original removido - não existe no tipo Product */}
                       </div>
                     </div>
-                    
+
                     {/* Action Button */}
-                    <button 
+                    <button
                       onClick={() => addToCart(product)}
                       disabled={!isOpen}
                       className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"

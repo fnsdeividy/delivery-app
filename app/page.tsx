@@ -463,7 +463,6 @@ export default function HomePage() {
             <div>
               <h6 className="font-semibold mb-4">Sistema</h6>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/login/super-admin" className="hover:text-white">Super Admin</Link></li>
                 <li><a href="#" className="hover:text-white">Documentação</a></li>
                 <li><a href="#" className="hover:text-white">Suporte</a></li>
               </ul>

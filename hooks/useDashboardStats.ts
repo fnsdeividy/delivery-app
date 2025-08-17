@@ -16,8 +16,10 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
     queryKey: ['dashboard', 'stats', userRole, storeSlug],
     queryFn: async (): Promise<DashboardStats> => {
       try {
-        console.log('📊 Dashboard: Buscando estatísticas para role:', userRole, 'storeSlug:', storeSlug)
-        
+        console.log('useDashboardStats - Iniciando busca de estatísticas')
+        console.log('userRole:', userRole)
+        console.log('storeSlug:', storeSlug)
+
         let stats: DashboardStats = {
           totalStores: 0,
           activeStores: 0,
@@ -29,84 +31,113 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
         }
 
         if (userRole === 'SUPER_ADMIN') {
-          // Super admin vê todas as estatísticas
-          console.log('👑 Dashboard: Super admin - buscando todas as estatísticas')
-          
-          // Buscar todas as lojas
-          const storesResponse = await apiClient.getStores(1, 1000)
-          const stores = storesResponse.data || []
-          
-          stats.totalStores = stores.length
-          stats.activeStores = stores.filter(store => store.active).length
-          stats.pendingStores = stores.filter(store => !store.approved).length
-          
-          // Calcular produtos e pedidos totais
-          let totalProducts = 0
-          let totalOrders = 0
-          let totalRevenue = 0
-          
-          for (const store of stores) {
-            try {
-              // Buscar produtos da loja
-              const productsResponse = await apiClient.getProducts(store.slug, 1, 1000)
-              totalProducts += (productsResponse.data || []).length
-              
-              // Buscar pedidos da loja
-              const ordersResponse = await apiClient.getOrders(store.slug, 1, 1000)
-              const orders = ordersResponse.data || []
-              totalOrders += orders.length
-              
-              // Calcular receita (assumindo que cada pedido tem um valor)
-              totalRevenue += orders.reduce((sum, order) => sum + (order.total || 0), 0)
-            } catch (error) {
-              console.warn(`⚠️ Dashboard: Erro ao buscar dados da loja ${store.slug}:`, error)
+          console.log('Buscando estatísticas para SUPER_ADMIN - Todas as lojas do sistema')
+
+          // Super admin vê todas as estatísticas do sistema
+          const storesStatsResponse = await apiClient.get('/api/v1/stores/stats')
+          console.log('Resposta da API /api/v1/stores/stats:', storesStatsResponse)
+          const storesStats = storesStatsResponse as any
+
+          stats.totalStores = storesStats.total || 0
+          stats.activeStores = storesStats.active || 0
+          stats.pendingStores = storesStats.pending || 0
+
+          // Para super admin, buscar estatísticas gerais de produtos e pedidos
+          try {
+            // Buscar todas as lojas para calcular produtos e pedidos totais
+            const allStoresResponse = await apiClient.get('/api/v1/stores')
+            const allStores = (allStoresResponse as any).data || []
+
+            let totalProducts = 0
+            let totalOrders = 0
+            let totalRevenue = 0
+
+            // Para cada loja, buscar produtos e pedidos
+            for (const store of allStores) {
+              try {
+                // Buscar produtos da loja
+                const productsResponse = await apiClient.get(`/api/v1/stores/${store.slug}/products`)
+                const products = (productsResponse as any).data || []
+                totalProducts += products.length
+
+                // Buscar pedidos da loja
+                const ordersResponse = await apiClient.get(`/api/v1/stores/${store.slug}/orders`)
+                const orders = (ordersResponse as any).data || []
+                totalOrders += orders.length
+
+                // Calcular receita total
+                totalRevenue += orders.reduce((sum: number, order: any) => {
+                  return sum + (parseFloat(order.total) || 0)
+                }, 0)
+              } catch (error) {
+                console.warn(`Erro ao buscar dados da loja ${store.slug}:`, error)
+              }
             }
+
+            stats.totalProducts = totalProducts
+            stats.totalOrders = totalOrders
+            stats.totalRevenue = totalRevenue
+
+          } catch (error) {
+            console.warn('Erro ao buscar estatísticas gerais:', error)
           }
-          
-          stats.totalProducts = totalProducts
-          stats.totalOrders = totalOrders
-          stats.totalRevenue = totalRevenue
-          
+
+          console.log('Estatísticas calculadas para SUPER_ADMIN:', stats)
+
         } else if (userRole === 'ADMIN' && storeSlug) {
+          console.log('Buscando estatísticas para ADMIN da loja:', storeSlug)
+
           // ADMIN vê estatísticas apenas da sua loja
-          console.log('🏪 Dashboard: ADMIN - buscando estatísticas da loja:', storeSlug)
-          
           try {
             // Buscar dados da loja específica
-            const store = await apiClient.getStore(storeSlug)
-            stats.totalStores = 1
-            stats.activeStores = store.active ? 1 : 0
-            stats.pendingStores = store.approved ? 0 : 1
-            
-            // Buscar produtos da loja
-            const productsResponse = await apiClient.getProducts(storeSlug, 1, 1000)
-            stats.totalProducts = (productsResponse.data || []).length
-            
-            // Buscar pedidos da loja
-            const ordersResponse = await apiClient.getOrders(storeSlug, 1, 1000)
-            const orders = ordersResponse.data || []
-            stats.totalOrders = orders.length
-            
-            // Calcular receita
-            stats.totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0)
-            
+            const store = await apiClient.getStoreBySlug(storeSlug)
+            console.log('Dados da loja:', store)
+
+            if (store) {
+              stats.totalStores = 1
+              stats.activeStores = store.active ? 1 : 0
+              stats.pendingStores = store.approved ? 0 : 1
+
+              // Buscar produtos da loja
+              try {
+                const productsResponse = await apiClient.getProducts(storeSlug, 1, 1000)
+                stats.totalProducts = (productsResponse.data || []).length
+              } catch (error) {
+                console.warn('Erro ao buscar produtos da loja:', error)
+                stats.totalProducts = 0
+              }
+
+              // Buscar pedidos da loja
+              try {
+                const ordersResponse = await apiClient.getOrders(storeSlug, 1, 1000)
+                const orders = ordersResponse.data || []
+                stats.totalOrders = orders.length
+
+                // Calcular receita
+                stats.totalRevenue = orders.reduce((sum: number, order: any) => {
+                  return sum + (parseFloat(order.total) || 0)
+                }, 0)
+              } catch (error) {
+                console.warn('Erro ao buscar pedidos da loja:', error)
+                stats.totalOrders = 0
+                stats.totalRevenue = 0
+              }
+            }
           } catch (error) {
-            console.error('❌ Dashboard: Erro ao buscar dados da loja:', error)
+            console.error('Erro ao buscar dados da loja:', error)
           }
-        } else {
-          console.log('ℹ️ Dashboard: Usuário sem permissões ou role não reconhecido')
         }
-        
-        console.log('✅ Dashboard: Estatísticas calculadas:', stats)
+
+        console.log('Estatísticas finais retornadas:', stats)
         return stats
-        
+
       } catch (error) {
-        console.error('❌ Dashboard: Erro ao buscar estatísticas:', error)
+        console.error('Erro ao buscar estatísticas:', error)
         throw error
       }
     },
     enabled: !!userRole, // Só executa quando userRole estiver disponível
     staleTime: 5 * 60 * 1000, // 5 minutos
-    cacheTime: 10 * 60 * 1000, // 10 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   })
 } 

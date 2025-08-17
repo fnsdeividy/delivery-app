@@ -501,7 +501,6 @@ export default function RegisterLojaPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <h4 className="font-medium text-blue-800 mb-2">Próximos passos</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>✅ Sua loja será criada no banco de dados</li>
                   <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
                   <li>🎨 Personalizar cores e logo da loja</li>
                   <li>📱 Configurar horários de funcionamento</li>

@@ -5,16 +5,26 @@ import { CreateStoreDto } from '@/types/cardapio-api'
 import { Edit, ExternalLink, Eye, Plus, Store, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useToast } from '@/components/Toast'
+import { RejectStoreModal } from '@/components/RejectStoreModal'
+import { ApproveStoreModal } from '@/components/ApproveStoreModal'
+import { FormValidation, useFormValidation } from '@/components/FormValidation'
 
 export default function GerenciarLojas() {
   const router = useRouter()
+  const { addToast } = useToast()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingStore, setEditingStore] = useState<string | null>(null)
+  const [rejectingStore, setRejectingStore] = useState<{ id: string; name: string } | null>(null)
+  const [approvingStore, setApprovingStore] = useState<{ id: string; name: string } | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     slug: ''
   })
+
+  // Validação de formulário
+  const { errors, validateForm, clearErrors, getFieldError, isFieldTouched, markFieldAsTouched } = useFormValidation()
 
   // Hooks da API Cardap.IO
   const { data: storesData, isLoading, refetch, error } = useStores()
@@ -36,7 +46,7 @@ export default function GerenciarLojas() {
   // Simplificar a lógica para debug
   const stores = storesData?.data || []
   const loading = isLoading
-  
+
   // Log adicional para debug
   console.log('🔍 GerenciarLojas: stores final:', stores)
   console.log('🔍 GerenciarLojas: stores length:', stores.length)
@@ -54,29 +64,48 @@ export default function GerenciarLojas() {
   // Criar nova loja
   const handleCreateStore = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
+    // Limpar erros anteriores
+    clearErrors()
+
     const slug = formData.slug || generateSlug(formData.name)
-    
-    // Validação preventiva mais robusta
-    if (!formData.name.trim()) {
-      alert('Nome da loja é obrigatório')
+
+    // Validação usando o hook de validação
+    const validationRules = {
+      name: [
+        { required: true, fieldName: 'Nome da loja' },
+        { minLength: 2, fieldName: 'Nome da loja' },
+        { maxLength: 100, fieldName: 'Nome da loja' }
+      ],
+      slug: [
+        { required: true, fieldName: 'Slug' },
+        { minLength: 2, fieldName: 'Slug' },
+        { maxLength: 50, fieldName: 'Slug' },
+        {
+          pattern: /^[a-z0-9-]+$/,
+          fieldName: 'Slug',
+          message: 'Slug deve conter apenas letras minúsculas, números e hífens'
+        }
+      ]
+    }
+
+    const isValid = validateForm(formData, validationRules)
+    if (!isValid) {
+      addToast({
+        type: 'error',
+        title: 'Erro de Validação',
+        message: 'Por favor, corrija os campos obrigatórios'
+      })
       return
     }
-    
-    if (slug.length < 2) {
-      alert('Slug deve ter pelo menos 2 caracteres')
-      return
-    }
-    
+
     // Verificar se slug já existe
     if (stores.some(store => store.slug === slug)) {
-      alert(`Já existe uma loja com o slug "${slug}". Escolha outro nome.`)
-      return
-    }
-    
-    // Validar formato do slug
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      alert('Slug deve conter apenas letras minúsculas, números e hífens')
+      addToast({
+        type: 'error',
+        title: 'Slug Duplicado',
+        message: `Já existe uma loja com o slug "${slug}". Escolha outro nome.`
+      })
       return
     }
 
@@ -106,11 +135,10 @@ export default function GerenciarLojas() {
           },
           paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
         }
-        // active e approved são definidos pelo backend com valores padrão
       }
 
-      await createStoreMutation.mutateAsync(storeData)
-      
+      const createdStore = await createStoreMutation.mutateAsync(storeData)
+
       // Limpar formulário e fechar modal
       setFormData({
         name: '',
@@ -118,19 +146,28 @@ export default function GerenciarLojas() {
         slug: ''
       })
       setIsCreateModalOpen(false)
-      
+
       // Recarregar dados
       refetch()
-      
+
       // Feedback de sucesso
-      alert('Loja criada com sucesso!')
-      
+      addToast({
+        type: 'success',
+        title: 'Loja Criada!',
+        message: 'Loja criada com sucesso!'
+      })
+
+      // Aguardar um momento e redirecionar para o dashboard da loja
+      setTimeout(() => {
+        router.push(`/dashboard/${createdStore.slug}?welcome=true&message=Loja criada com sucesso!`)
+      }, 1000)
+
     } catch (error) {
       console.error('Erro ao criar loja:', error)
-      
+
       // Mensagem de erro mais específica
       let errorMessage = 'Erro ao criar loja. Tente novamente.'
-      
+
       if (error instanceof Error) {
         if (error.message.includes('Conflito')) {
           errorMessage = error.message
@@ -140,8 +177,12 @@ export default function GerenciarLojas() {
           errorMessage = 'Sessão expirada. Faça login novamente.'
         }
       }
-      
-      alert(errorMessage)
+
+      addToast({
+        type: 'error',
+        title: 'Erro ao Criar Loja',
+        message: errorMessage
+      })
     }
   }
 
@@ -162,56 +203,49 @@ export default function GerenciarLojas() {
 
   // Aprovar loja
   const handleApproveStore = async (storeId: string) => {
-    if (!confirm('Tem certeza que deseja aprovar esta loja?')) {
-      return
-    }
-
-    try {
-      await approveStoreMutation.mutateAsync(storeId)
-      alert('Loja aprovada com sucesso!')
-      refetch()
-    } catch (error: any) {
-      console.error('Erro ao aprovar loja:', error)
-      
-      // Feedback específico baseado no tipo de erro
-      if (error.message?.includes('401')) {
-        alert('Erro de autenticação. Faça login novamente.')
-      } else if (error.message?.includes('403')) {
-        alert('Você não tem permissão para aprovar lojas.')
-      } else if (error.message?.includes('404')) {
-        alert('Loja não encontrada. Tente atualizar a página.')
-      } else {
-        alert('Erro ao aprovar loja. Tente novamente.')
-      }
-    }
+    setApprovingStore({
+      id: storeId,
+      name: stores.find(store => store.id === storeId)?.name || 'Loja'
+    })
   }
 
   // Rejeitar loja
-  const handleRejectStore = async (storeId: string) => {
-    const reason = prompt('Informe o motivo da rejeição (opcional):')
-    
-    if (!confirm('Tem certeza que deseja rejeitar esta loja?')) {
-      return
-    }
-
+  const handleRejectStore = async (storeId: string, reason?: string) => {
     try {
       await rejectStoreMutation.mutateAsync({ id: storeId, reason })
-      alert('Loja rejeitada com sucesso!')
+      addToast({
+        type: 'success',
+        title: 'Loja Rejeitada',
+        message: 'Loja rejeitada com sucesso!'
+      })
       refetch()
     } catch (error: any) {
       console.error('Erro ao rejeitar loja:', error)
-      
-      // Feedback específico baseado no tipo de erro
+
+      let errorMessage = 'Erro ao rejeitar loja. Tente novamente.'
+
       if (error.message?.includes('401')) {
-        alert('Erro de autenticação. Faça login novamente.')
+        errorMessage = 'Erro de autenticação. Faça login novamente.'
       } else if (error.message?.includes('403')) {
-        alert('Você não tem permissão para rejeitar lojas.')
+        errorMessage = 'Você não tem permissão para rejeitar lojas.'
       } else if (error.message?.includes('404')) {
-        alert('Loja não encontrada. Tente atualizar a página.')
-      } else {
-        alert('Erro ao rejeitar loja. Tente novamente.')
+        errorMessage = 'Loja não encontrada. Tente atualizar a página.'
       }
+
+      addToast({
+        type: 'error',
+        title: 'Erro ao Rejeitar Loja',
+        message: errorMessage
+      })
     }
+  }
+
+  // Abrir modal de reprovação
+  const openRejectModal = (store: any) => {
+    setRejectingStore({
+      id: store.id,
+      name: store.name
+    })
   }
 
   if (loading) {
@@ -261,7 +295,7 @@ export default function GerenciarLojas() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <Eye className="w-8 h-8 text-green-600" />
@@ -273,7 +307,7 @@ export default function GerenciarLojas() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -287,7 +321,7 @@ export default function GerenciarLojas() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600" />
@@ -306,7 +340,7 @@ export default function GerenciarLojas() {
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-medium text-gray-900">Lojas Cadastradas</h2>
           </div>
-          
+
           {stores.length === 0 ? (
             <div className="text-center py-12">
               <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -354,18 +388,16 @@ export default function GerenciarLojas() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-1">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            store.approved 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.approved
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {store.approved ? 'Aprovada' : 'Pendente'}
                           </span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            store.active 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.active
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
+                            }`}>
                             {store.active ? 'Ativa' : 'Inativa'}
                           </span>
                         </div>
@@ -388,7 +420,7 @@ export default function GerenciarLojas() {
                                 <span className="text-sm">✅</span>
                               </button>
                               <button
-                                onClick={() => handleRejectStore(store.id)}
+                                onClick={() => openRejectModal(store)}
                                 className="text-red-600 hover:text-red-900"
                                 title="Rejeitar loja"
                               >
@@ -438,7 +470,7 @@ export default function GerenciarLojas() {
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Criar Nova Loja</h3>
-              
+
               <form onSubmit={handleCreateStore} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -510,6 +542,36 @@ export default function GerenciarLojas() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Reject Store Modal */}
+      {rejectingStore && (
+        <RejectStoreModal
+          isOpen={!!rejectingStore}
+          onClose={() => setRejectingStore(null)}
+          onConfirm={async (reason) => {
+            await handleRejectStore(rejectingStore.id, reason);
+            setRejectingStore(null);
+          }}
+        />
+      )}
+
+      {/* Approve Store Modal */}
+      {approvingStore && (
+        <ApproveStoreModal
+          isOpen={!!approvingStore}
+          onClose={() => setApprovingStore(null)}
+          onConfirm={async () => {
+            await approveStoreMutation.mutateAsync(approvingStore.id);
+            setApprovingStore(null);
+            refetch();
+            addToast({
+              type: 'success',
+              title: 'Loja Aprovada!',
+              message: 'Loja aprovada com sucesso!'
+            });
+          }}
+        />
       )}
     </div>
   )

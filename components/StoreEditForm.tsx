@@ -370,7 +370,7 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
         </div>
       </div>
 
-      {/* Status */}
+      {/* Status
       <div className="bg-white rounded-lg p-6 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Status da Loja</h3>
         
@@ -387,7 +387,7 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
             Loja ativa e disponível para pedidos
           </label>
         </div>
-      </div>
+      </div> */}
 
       {/* Botões */}
       <div className="flex justify-end space-x-4">

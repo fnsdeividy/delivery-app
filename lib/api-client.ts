@@ -1,29 +1,29 @@
 import {
-    AnalyticsData,
-    AuthResponse,
-    Category,
-    CreateCategoryDto,
-    CreateOrderDto,
-    CreateProductDto,
-    CreateStockMovementDto,
-    CreateStoreDto,
-    CreateUserDto,
-    Inventory,
-    LoginDto,
-    Order,
-    OrderStats,
-    PaginatedResponse,
-    Product,
-    StockMovement,
-    Store,
-    StoreStats,
-    UpdateCategoryDto,
-    UpdateInventoryDto,
-    UpdateOrderDto,
-    UpdateProductDto,
-    UpdateStoreDto,
-    UpdateUserDto,
-    User
+  AnalyticsData,
+  AuthResponse,
+  Category,
+  CreateCategoryDto,
+  CreateOrderDto,
+  CreateProductDto,
+  CreateStockMovementDto,
+  CreateStoreDto,
+  CreateUserDto,
+  Inventory,
+  LoginDto,
+  Order,
+  OrderStats,
+  PaginatedResponse,
+  Product,
+  StockMovement,
+  Store,
+  StoreStats,
+  UpdateCategoryDto,
+  UpdateInventoryDto,
+  UpdateOrderDto,
+  UpdateProductDto,
+  UpdateStoreDto,
+  UpdateUserDto,
+  User
 } from '@/types/cardapio-api'
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
@@ -31,10 +31,12 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 class ApiClient {
   private client: AxiosInstance
   private baseURL: string
+  private isDev: boolean
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_CARDAPIO_API_URL || 'http://localhost:3001/api/v1'
-    
+    this.isDev = process.env.NODE_ENV === 'development'
+
     this.client = axios.create({
       baseURL: this.baseURL,
       timeout: 10000,
@@ -47,11 +49,15 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         const token = this.getAuthToken()
-        console.log('🔑 Interceptor Request: Token encontrado:', !!token)
-        console.log('🔑 Interceptor Request: URL:', config.url)
+        if (this.isDev) {
+          console.log('🔑 Interceptor Request: Token encontrado:', !!token)
+          console.log('🔑 Interceptor Request: URL:', config.url)
+        }
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
-          console.log('🔑 Interceptor Request: Token adicionado aos headers')
+          if (this.isDev) {
+            console.log('🔑 Interceptor Request: Token adicionado aos headers')
+          }
         }
         return config
       },
@@ -63,11 +69,13 @@ class ApiClient {
     // Interceptor para tratamento de respostas
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        console.log('✅ Interceptor Response: Resposta recebida:', {
-          status: response.status,
-          url: response.config.url,
-          data: response.data
-        })
+        if (this.isDev) {
+          console.log('✅ Interceptor Response: Resposta recebida:', {
+            status: response.status,
+            url: response.config.url,
+            data: response.data
+          })
+        }
         return response
       },
       (error) => {
@@ -77,14 +85,14 @@ class ApiClient {
           message: error.message,
           data: error.response?.data
         })
-        
+
         if (error.response?.status === 401) {
           // Token expirado ou inválido
           console.warn('🔒 Token expirado ou inválido, redirecionando para login')
           this.clearAuthToken()
           window.location.href = '/login'
         }
-        
+
         // Processar erro com o ErrorHandler se disponível
         if (typeof window !== 'undefined') {
           import('./error-handler').then(({ ErrorHandler }) => {
@@ -95,7 +103,7 @@ class ApiClient {
             console.error('Error handler not available')
           })
         }
-        
+
         return Promise.reject(error)
       }
     )
@@ -112,7 +120,7 @@ class ApiClient {
   private setAuthToken(token: string): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cardapio_token', token)
-      
+
       // Também armazenar em cookie para o middleware acessar
       document.cookie = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Strict`
     }
@@ -121,7 +129,7 @@ class ApiClient {
   private clearAuthToken(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('cardapio_token')
-      
+
       // Remover cookie também
       document.cookie = 'cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
@@ -141,41 +149,41 @@ class ApiClient {
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
       console.log('📤 Enviando POST para:', url, 'com dados:', data)
-      
+
       const response = await this.client.post<T>(url, data, config)
-      
+
       console.log('📥 Resposta POST recebida:', {
         status: response.status,
         statusText: response.statusText,
         data: response.data,
         dataType: typeof response.data
       })
-      
+
       // Aceitar tanto 200 quanto 201 como sucesso
       if (response.status === 200 || response.status === 201) {
         console.log('✅ Status de sucesso, retornando dados:', response.data)
         return response.data
       }
-      
+
       console.error('❌ Status inesperado:', response.status)
       throw new Error(`Status inesperado: ${response.status}`)
     } catch (error) {
       console.error('❌ Erro na requisição POST:', error)
-      
+
       // Tratamento específico para erro 409 (Conflict)
       if (error.response?.status === 409) {
         const errorMessage = error.response.data?.message || 'Conflito detectado. Verifique se os dados já existem.'
         console.error('🚫 Erro de conflito (409):', errorMessage)
         throw new Error(`Conflito: ${errorMessage}`)
       }
-      
+
       // Tratamento específico para erro 400 (Bad Request)
       if (error.response?.status === 400) {
         const errorMessage = error.response.data?.message || 'Dados inválidos. Verifique as informações enviadas.'
         console.error('⚠️ Erro de validação (400):', errorMessage)
         throw new Error(`Validação: ${errorMessage}`)
       }
-      
+
       throw this.handleError(error)
     }
   }
@@ -215,7 +223,7 @@ class ApiClient {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      
+
       const response = await this.client.post<T>(url, formData, {
         ...config,
         headers: {
@@ -229,32 +237,32 @@ class ApiClient {
   }
 
   // ===== AUTENTICAÇÃO =====
-  
+
   // Método para autenticação e armazenamento do token
   async authenticate(email: string, password: string, storeSlug?: string): Promise<AuthResponse> {
     try {
       console.log('🔐 Iniciando autenticação no apiClient')
-      
+
       const loginData: LoginDto = { email, password }
       if (storeSlug) {
         loginData.storeSlug = storeSlug
       }
-      
+
       console.log('📋 Dados de login:', loginData)
-      
+
       const response = await this.post<AuthResponse>('/auth/login', loginData)
-      
+
       console.log('🔑 Resposta de autenticação recebida:', response)
       console.log('🔍 Tipo da resposta:', typeof response)
       console.log('🔍 Estrutura da resposta:', Object.keys(response || {}))
-      
+
       const token = response.access_token
       console.log('🎫 Token extraído:', token)
       console.log('🔍 Tipo do token:', typeof token)
-      
+
       this.setAuthToken(token)
       console.log('💾 Token armazenado no localStorage')
-      
+
       return response
     } catch (error) {
       console.error('❌ Erro na autenticação:', error)
@@ -266,7 +274,7 @@ class ApiClient {
   async register(userData: CreateUserDto): Promise<AuthResponse> {
     try {
       const response = await this.post<AuthResponse>('/auth/register', userData)
-      
+
       const token = response.access_token
       this.setAuthToken(token)
       return response
@@ -298,7 +306,7 @@ class ApiClient {
       if (storedStoreSlug) {
         return storedStoreSlug
       }
-      
+
       // 2. Tentar obter do token JWT
       const currentToken = this.getAuthToken()
       if (currentToken) {
@@ -312,7 +320,7 @@ class ApiClient {
           }
         }
       }
-      
+
       return null
     } catch (error) {
       console.error('❌ Erro ao obter storeSlug atual:', error)
@@ -324,7 +332,7 @@ class ApiClient {
   async updateStoreContext(storeSlug: string): Promise<void> {
     try {
       console.log('🔄 Atualizando contexto da loja:', storeSlug)
-      
+
       // Verificar se há um token atual
       const currentToken = this.getAuthToken()
       if (!currentToken) {
@@ -341,10 +349,10 @@ class ApiClient {
 
       try {
         const payload = JSON.parse(atob(tokenParts[1]))
-        console.log('🔍 Payload do token atual:', { 
-          email: payload.email, 
-          role: payload.role, 
-          currentStoreSlug: payload.storeSlug 
+        console.log('🔍 Payload do token atual:', {
+          email: payload.email,
+          role: payload.role,
+          currentStoreSlug: payload.storeSlug
         })
 
         // Se o storeSlug já estiver correto, não fazer nada
@@ -359,14 +367,14 @@ class ApiClient {
 
         // Invalidar queries relacionadas para forçar refresh
         // Nota: Isso será feito pelo hook que chama este método
-        
+
       } catch (decodeError) {
         console.warn('⚠️ Erro ao decodificar token, continuando...', decodeError)
         // Fallback: armazenar no localStorage
         localStorage.setItem('currentStoreSlug', storeSlug)
         console.log('💾 StoreSlug armazenado no localStorage (fallback):', storeSlug)
       }
-      
+
     } catch (error) {
       console.error('❌ Erro ao atualizar contexto da loja:', error)
       throw new Error('Falha ao atualizar contexto da loja')
@@ -374,7 +382,7 @@ class ApiClient {
   }
 
   // ===== USUÁRIOS =====
-  
+
   async getUsers(page = 1, limit = 10): Promise<PaginatedResponse<User>> {
     return this.get<PaginatedResponse<User>>(`/users?page=${page}&limit=${limit}`)
   }
@@ -396,12 +404,10 @@ class ApiClient {
   }
 
   // ===== LOJAS =====
-  
+
   async getStores(page = 1, limit = 10): Promise<PaginatedResponse<Store>> {
-    console.log('🔍 API Client: Buscando lojas...', { page, limit })
     try {
       const response = await this.get<PaginatedResponse<Store>>(`/stores?page=${page}&limit=${limit}`)
-      console.log('✅ API Client: Lojas recebidas:', response)
       return response
     } catch (error) {
       console.error('❌ API Client: Erro ao buscar lojas:', error)
@@ -426,13 +432,13 @@ class ApiClient {
   }
 
   async approveStore(id: string): Promise<Store> {
-    return this.patch<Store>(`/v1/stores/${id}/approve`, { approved: true })
+    return this.post<Store>(`/stores/${id}/approve`, { approved: true })
   }
 
   async rejectStore(id: string, reason?: string): Promise<Store> {
-    return this.patch<Store>(`/v1/stores/${id}/reject`, { 
-      approved: false, 
-      reason: reason || 'Rejeitada pelo administrador' 
+    return this.post<Store>(`/stores/${id}/reject`, {
+      approved: false,
+      reason: reason || 'Rejeitada pelo administrador'
     })
   }
 
@@ -441,7 +447,7 @@ class ApiClient {
   }
 
   // ===== CATEGORIAS =====
-  
+
   async getCategories(storeSlug: string): Promise<Category[]> {
     return this.get<Category[]>(`/stores/${storeSlug}/categories`)
   }
@@ -459,7 +465,7 @@ class ApiClient {
   }
 
   // ===== PRODUTOS =====
-  
+
   async getProducts(storeSlug: string, page = 1, limit = 10): Promise<PaginatedResponse<Product>> {
     return this.get<PaginatedResponse<Product>>(`/stores/${storeSlug}/products?page=${page}&limit=${limit}`)
   }
@@ -485,7 +491,7 @@ class ApiClient {
   }
 
   // ===== ESTOQUE =====
-  
+
   async getInventory(storeSlug: string): Promise<Inventory[]> {
     return this.get<Inventory[]>(`/stores/${storeSlug}/inventory`)
   }
@@ -503,7 +509,7 @@ class ApiClient {
   }
 
   // ===== PEDIDOS =====
-  
+
   async getOrders(storeSlug: string, page = 1, limit = 10): Promise<PaginatedResponse<Order>> {
     return this.get<PaginatedResponse<Order>>(`/stores/${storeSlug}/orders?page=${page}&limit=${limit}`)
   }
@@ -529,7 +535,7 @@ class ApiClient {
   }
 
   // ===== ANALYTICS =====
-  
+
   async getAnalytics(storeSlug: string, period: 'daily' | 'weekly' | 'monthly' = 'daily'): Promise<AnalyticsData> {
     return this.get<AnalyticsData>(`/stores/${storeSlug}/analytics?period=${period}`)
   }
@@ -554,7 +560,7 @@ class ApiClient {
     // Tratamento específico para erros HTTP
     if (error.response) {
       const { status, data } = error.response
-      
+
       switch (status) {
         case 400:
           return new Error(data?.message || 'Dados inválidos. Verifique as informações enviadas.')

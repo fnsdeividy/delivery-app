@@ -3,35 +3,35 @@ export { useAuth, useCreateUser, useDeleteUser, useUpdateUser, useUser, useUsers
 
 // Hooks para lojas
 export {
-    useApproveStore, useApprovedStores, useCreateStore, useDeleteStore, usePendingStores, useRejectStore, useStore, useStoreStats, useStores, useUpdateStore
+  useApproveStore, useApprovedStores, useCreateStore, useDeleteStore, usePendingStores, useRejectStore, useStore, useStoreStats, useStores, useUpdateStore
 } from './useStores'
 
 // Hooks para produtos e categorias
 export {
-    useActiveProducts, useCategories, useCreateCategory, useCreateProduct, useDeleteCategory, useDeleteProduct, useProduct, useProducts, useProductsByCategory, useSearchProducts, useUpdateCategory, useUpdateProduct
+  useActiveProducts, useCategories, useCreateCategory, useCreateProduct, useDeleteCategory, useDeleteProduct, useProduct, useProducts, useProductsByCategory, useSearchProducts, useUpdateCategory, useUpdateProduct
 } from './useProducts'
 
 // Hooks para pedidos
 export {
-    useCancelOrder, useCancelledOrders, useCreateOrder, useDeliveredOrders, useDeliveringOrders, useDeliveryOrders, useOrder,
-    useOrderStats, useOrders, useOrdersByPeriod, useOrdersByStatus, useOrdersByType, usePendingOrders, usePickupOrders, usePreparingOrders,
-    useReadyOrders, useUpdateOrder
+  useCancelOrder, useCancelledOrders, useCreateOrder, useDeliveredOrders, useDeliveringOrders, useDeliveryOrders, useOrder,
+  useOrderStats, useOrders, useOrdersByPeriod, useOrdersByStatus, useOrdersByType, usePendingOrders, usePickupOrders, usePreparingOrders,
+  useReadyOrders, useUpdateOrder
 } from './useOrders'
 
 // Hooks existentes (manter compatibilidade)
 export { useCardapioAuth } from './useCardapioAuth'
 
 // Hooks para dashboard
-export { useDashboardStats } from './useDashboardStats'
+export { useDashboardStats, type DashboardStats } from './useDashboardStats'
 
 // Hooks temporários para permitir build
-export const useOrdersByStore = (slug: string) => ({ 
-  data: { 
+export const useOrdersByStore = (slug: string) => ({
+  data: {
     data: [
       {
         id: '1',
-        customer: { 
-          name: 'Cliente Teste', 
+        customer: {
+          name: 'Cliente Teste',
           phone: '11999999999',
           email: 'cliente@teste.com'
         },
@@ -47,21 +47,21 @@ export const useOrdersByStore = (slug: string) => ({
         total: 25.90,
         createdAt: new Date().toISOString()
       }
-    ] 
-  }, 
-  isLoading: false, 
+    ]
+  },
+  isLoading: false,
   error: null,
   refetch: () => Promise.resolve()
 });
 
-export const useUpdateOrderStatus = () => ({ 
-  mutate: (data: any) => {}, 
+export const useUpdateOrderStatus = () => ({
+  mutate: (data: any) => { },
   mutateAsync: async (data: any) => Promise.resolve(),
-  isLoading: false 
+  isLoading: false
 });
 
-export const useProductsByStore = (slug: string) => ({ 
-  data: { 
+export const useProductsByStore = (slug: string) => ({
+  data: {
     data: [
       {
         id: '1',
@@ -78,30 +78,30 @@ export const useProductsByStore = (slug: string) => ({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
-    ] 
-  }, 
-  isLoading: false, 
+    ]
+  },
+  isLoading: false,
   error: null,
   refetch: () => Promise.resolve()
 });
 
-export const useCategoriesByStore = (slug: string) => ({ 
-  data: { 
+export const useCategoriesByStore = (slug: string) => ({
+  data: {
     data: [
       {
         id: '1',
         name: 'Categoria Teste',
         active: true
       }
-    ] 
-  }, 
-  isLoading: false, 
+    ]
+  },
+  isLoading: false,
   error: null,
   refetch: () => Promise.resolve()
 });
 
-export const useToggleProductAvailability = () => ({ 
-  mutate: (data: any) => {}, 
-  isLoading: false 
+export const useToggleProductAvailability = () => ({
+  mutate: (data: any) => { },
+  isLoading: false
 });
 

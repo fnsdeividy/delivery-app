@@ -1,35 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiClient } from '../../../../../../lib/api-client'
+import { apiClient } from '../../../../../lib/api-client'
 
 /**
  * API para dados públicos da loja
- * GET /api/stores/[slug]/public - Buscar dados públicos da loja
+ * GET /api/store-public/[slug] - Buscar dados públicos da loja
  * Inclui: configurações, produtos, categorias, horários, etc.
  */
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { storeSlug: string } }
 ) {
   try {
-    const { slug } = params
-    
-    if (!slug) {
+    const { storeSlug } = params
+
+    console.log('API Public Store - Slug recebido:', storeSlug)
+
+    if (!storeSlug) {
       return NextResponse.json(
         { error: 'Slug da loja é obrigatório' },
         { status: 400 }
       )
     }
 
+    // Validar se o slug não é uma rota especial
+    if (storeSlug === 'editar-loja' || storeSlug === 'gerenciar-lojas' || storeSlug === 'meus-painel') {
+      return NextResponse.json(
+        { error: 'Slug inválido' },
+        { status: 400 }
+      )
+    }
+
     // Buscar dados da loja via API Cardap.IO
-    const storeResponse = await apiClient.get(`/stores/${slug}`)
-    
+    console.log('Buscando loja com slug:', storeSlug)
+    const storeResponse = await apiClient.getStoreBySlug(storeSlug)
+
     // A resposta da API não tem estrutura ApiResponse, é direta
     const store = storeResponse as any
 
+    console.log('Resposta da API:', store)
+
     if (!store || !store.id) {
       return NextResponse.json(
-        { error: `Loja '${slug}' não encontrada` },
+        { error: `Loja '${storeSlug}' não encontrada` },
         { status: 404 }
       )
     }
@@ -42,15 +55,15 @@ export async function GET(
     }
 
     // Buscar categorias da loja
-    const categoriesResponse = await apiClient.get(`/stores/${slug}/categories`)
+    const categoriesResponse = await apiClient.get(`/stores/${storeSlug}/categories`)
     const categories = categoriesResponse as any[] || []
 
     // Buscar produtos da loja
-    const productsResponse = await apiClient.get(`/stores/${slug}/products`)
+    const productsResponse = await apiClient.get(`/stores/${storeSlug}/products`)
     const products = productsResponse as any[] || []
 
     // Buscar configurações da loja
-    const configResponse = await apiClient.get(`/stores/${slug}/config`)
+    const configResponse = await apiClient.get(`/stores/${storeSlug}/config`)
     const storeConfig = configResponse as any || {}
 
     // Calcular status da loja baseado nos horários
@@ -69,16 +82,16 @@ export async function GET(
         createdAt: store.createdAt,
         updatedAt: store.updatedAt
       },
-      
+
       // Categorias ativas
       categories: categories.filter((cat: any) => cat.active),
-      
+
       // Produtos ativos
       products: products.filter((prod: any) => prod.active),
-      
+
       // Configurações da loja
       config: storeConfig,
-      
+
       // Status atual da loja
       status: storeStatus
     }
@@ -107,7 +120,7 @@ function calculateStoreStatus(workingHours: any) {
   const currentTime = now.getHours() * 60 + now.getMinutes() // Tempo em minutos
 
   // Encontrar horário do dia atual
-  const todaySchedule = workingHours.find((schedule: any) => 
+  const todaySchedule = workingHours.find((schedule: any) =>
     schedule.dayOfWeek === currentDay
   )
 
@@ -122,7 +135,7 @@ function calculateStoreStatus(workingHours: any) {
   if (openTime && closeTime) {
     const [openHour, openMin] = openTime.split(':').map(Number)
     const [closeHour, closeMin] = closeTime.split(':').map(Number)
-    
+
     const openMinutes = openHour * 60 + openMin
     const closeMinutes = closeHour * 60 + closeMin
 
@@ -134,4 +147,4 @@ function calculateStoreStatus(workingHours: any) {
   }
 
   return { isOpen: false, reason: 'Horários não configurados corretamente' }
-} 
+}
