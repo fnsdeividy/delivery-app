@@ -418,24 +418,24 @@ export default function GerenciarLojas() {
                             <>
                               <button
                                 onClick={() => router.push(`/store/${store.slug}`)}
-                                className="text-blue-600 hover:text-blue-900"
+                                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                                 title="Ver loja"
                               >
-                                <ExternalLink className="w-4 h-4" />
+                                Ver Loja
                               </button>
                               <button
                                 onClick={() => router.push(`/dashboard/${store.slug}`)}
-                                className="text-green-600 hover:text-green-900"
+                                className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                                 title="Acessar dashboard"
                               >
-                                <Edit className="w-4 h-4" />
+                                Dashboard
                               </button>
                               <button
                                 onClick={() => router.push(`/dashboard/editar-loja/${store.id}`)}
-                                className="text-orange-600 hover:text-orange-900"
+                                className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
                                 title="Editar loja"
                               >
-                                <Edit className="w-4 h-4" />
+                                Editar
                               </button>
                             </>
                           )}

@@ -96,7 +96,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
         // Buscar dados da loja via API
-        const response = await fetch(`/api/store-public/${slug}`)
+        const response = await fetch(`http://localhost:3001/api/v1/stores/${slug}/public`)
 
         if (!response.ok) {
           if (response.status === 404) {

@@ -98,6 +98,32 @@ npm run dev
 - **Solução**: 
   - Substituição do `<button>` por `<Link>` do Next.js com navegação para `/dashboard/gerenciar-lojas`
   - Adição de atributos de acessibilidade (`role="link"`, `aria-label`)
+
+### 🎨 Melhoria de Usabilidade: Substituição de Ícones por Botões Descritivos (Janeiro 2025)
+- **Objetivo**: Melhorar usabilidade e acessibilidade substituindo ícones de ações por botões com texto descritivo
+- **Implementação**: 
+  - **Gerenciamento de Lojas**: Ícones → Botões "Ver Loja", "Dashboard", "Editar"
+  - **Configurações de Pagamento**: Ícones → Botões "Editar", "Excluir"
+  - **Filtros Avançados**: Ícone → Botão "Limpar"
+  - **Paginação**: Ícones → Botões "Primeira", "Anterior", "Próxima", "Última"
+  - **Pedidos da Loja**: Ícone → Botão "Ver Detalhes"
+- **Padrão de Estilo**: 
+  - Botões primários: `bg-blue-600 text-white rounded hover:bg-blue-700`
+  - Botões de ação: `bg-green-600 text-white rounded hover:bg-green-700`
+  - Botões de exclusão: `bg-red-600 text-white rounded hover:bg-red-700`
+  - Botões de navegação: `text-gray-600 hover:text-gray-900 hover:bg-gray-100`
+- **Benefícios**: 
+  - ✅ Interface mais clara e intuitiva
+  - ✅ Melhor acessibilidade para leitores de tela
+  - ✅ Redução de confusão sobre ações disponíveis
+  - ✅ Consistência visual em todo o sistema
+- **Arquivos Modificados**: 
+  - `app/(dashboard)/dashboard/gerenciar-lojas/page.tsx`
+  - `app/(dashboard)/dashboard/[storeSlug]/configuracoes/pagamento/page.tsx`
+  - `components/AdvancedFilters.tsx`
+  - `components/Pagination.tsx`
+  - `app/(dashboard)/dashboard/[storeSlug]/pedidos/page.tsx`
+- **Testes**: Todos os testes unitários passando (52/52) ✅
   - Manutenção do estilo visual consistente com outros botões de ação
 - **Arquivos Afetados**: 
   - `app/(dashboard)/dashboard/page.tsx` - Correção do botão de navegação

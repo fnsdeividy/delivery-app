@@ -99,20 +99,20 @@ export function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100"
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100 transition-colors"
             aria-label="Primeira página"
           >
-            <ChevronDoubleLeftIcon className="w-4 h-4" />
+            Primeira
           </button>
 
           {/* Página anterior */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100"
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100 transition-colors"
             aria-label="Página anterior"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            Anterior
           </button>
 
           {/* Números de página */}
@@ -141,20 +141,20 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100"
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100 transition-colors"
             aria-label="Próxima página"
           >
-            <ChevronRightIcon className="w-4 h-4" />
+            Próxima
           </button>
 
           {/* Última página */}
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100"
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-md hover:bg-gray-100 transition-colors"
             aria-label="Última página"
           >
-            <ChevronDoubleRightIcon className="w-4 h-4" />
+            Última
           </button>
         </nav>
       </div>

@@ -1,18 +1,18 @@
 'use client'
 
 import {
-  BarChart3,
-  Clock,
-  CreditCard,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Package,
-  Palette,
-  Settings,
-  ShoppingBag,
-  Truck,
-  X
+    BarChart3,
+    Clock,
+    CreditCard,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    Package,
+    Palette,
+    Settings,
+    ShoppingBag,
+    Truck,
+    X
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -29,12 +29,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
-  // Extrair slug da URL
+  // Extrair slug da URL - considerar rotas especiais
   const pathParts = pathname.split('/')
-  const slug = pathParts[2]
+  let slug = ''
+  
+  // Para rotas especiais, não extrair slug
+  if (pathname.startsWith('/dashboard/editar-loja/') || 
+      pathname.startsWith('/dashboard/gerenciar-lojas') ||
+      pathname.startsWith('/dashboard/meus-painel') ||
+      pathname === '/dashboard') {
+    slug = ''
+  } else if (pathParts.length > 2) {
+    // Filtrar partes vazias e encontrar o primeiro slug válido
+    const validParts = pathParts.filter(part => part && part.trim() !== '')
+    if (validParts.length > 1) {
+      const possibleSlug = validParts[1] // [0] é 'dashboard', [1] é o slug
+      if (!['editar-loja', 'gerenciar-lojas', 'meus-painel', 'admin'].includes(possibleSlug)) {
+        slug = possibleSlug
+      }
+    }
+  }
   
   // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig = pathname !== '/dashboard' && pathname !== '/dashboard/gerenciar-lojas' && pathname !== '/dashboard/meus-painel'
+  const shouldLoadStoreConfig = slug && slug !== 'editar-loja' && slug !== 'gerenciar-lojas' && slug !== 'meus-painel'
   
   // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
   const { config, loading, error } = useStoreConfig(shouldLoadStoreConfig ? slug : '')

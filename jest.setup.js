@@ -8,6 +8,20 @@ if (typeof global.fetch === 'undefined') {
   })
 }
 
+// Mock do Response global para testes de API
+if (typeof global.Response === 'undefined') {
+  global.Response = function Response(body, init) {
+    this.status = (init && init.status) || 200
+    this.statusText = (init && init.statusText) || 'OK'
+    this.headers = (init && init.headers) || new Map()
+    this.body = body || ''
+    
+    this.text = function() {
+      return Promise.resolve(this.body)
+    }
+  }
+}
+
 // Mock do NextAuth
 jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),

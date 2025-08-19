@@ -259,9 +259,9 @@ export default function PedidosPage() {
                       setSelectedOrder(order)
                       setShowOrderDetails(true)
                     }}
-                    className="text-orange-600 hover:text-orange-900"
+                    className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
                   >
-                    <Eye className="h-4 w-4" />
+                    Ver Detalhes
                   </button>
                 </div>
               </div>

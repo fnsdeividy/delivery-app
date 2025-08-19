@@ -182,9 +182,8 @@ export function AdvancedFilters({
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
               >
-                <XMarkIcon className="w-4 h-4" />
                 Limpar
               </button>
             )}

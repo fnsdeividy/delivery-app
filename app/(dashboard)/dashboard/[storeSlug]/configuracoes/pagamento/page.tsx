@@ -528,16 +528,16 @@ export default function PagamentoPage() {
                     </button>
                     <button
                       onClick={() => openEditModal(method)}
-                      className="p-2 text-gray-400 hover:text-gray-600"
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
-                      <Edit className="h-4 w-4" />
+                      Editar
                     </button>
                     {method.id.startsWith('custom_') && (
                       <button
                         onClick={() => handleDeleteMethod(method.id)}
-                        className="p-2 text-red-400 hover:text-red-600"
+                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Excluir
                       </button>
                     )}
                   </div>
