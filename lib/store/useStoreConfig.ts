@@ -112,19 +112,56 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
         // Mapear resposta da API para StoreConfig
         return {
-          store: {
-            id: data.store.id,
-            name: data.store.name,
-            slug: data.store.slug,
-            description: data.store.description,
-            active: data.store.active,
-            approved: data.store.approved || false,
-            createdAt: data.store.createdAt,
-            updatedAt: data.store.updatedAt
-          },
-          categories: data.categories || [],
-          products: data.products || [],
+          id: data.store.id,
+          name: data.store.name,
+          slug: data.store.slug,
+          description: data.store.description,
+          active: data.store.active,
+          approved: data.store.approved || false,
+          createdAt: data.store.createdAt,
+          updatedAt: data.store.updatedAt,
           config: data.config || {},
+          menu: {
+            products: data.products || [],
+            categories: data.categories || []
+          },
+          settings: {
+            preparationTime: data.config?.preparationTime || 30,
+            orderNotifications: data.config?.orderNotifications !== false
+          },
+          delivery: {
+            fee: data.config?.deliveryFee || 0,
+            freeDeliveryMinimum: data.config?.minimumOrder || 0,
+            estimatedTime: data.config?.estimatedDeliveryTime || 30,
+            enabled: data.config?.deliveryEnabled !== false
+          },
+          payments: {
+            pix: data.config?.paymentMethods?.includes('PIX') || false,
+            cash: data.config?.paymentMethods?.includes('DINHEIRO') || false,
+            card: data.config?.paymentMethods?.includes('CARTÃO') || false
+          },
+          promotions: {
+            coupons: data.config?.coupons || []
+          },
+          branding: {
+            logo: data.config?.logo || '',
+            favicon: data.config?.favicon || '',
+            bannerImage: data.config?.banner || '',
+            primaryColor: data.config?.primaryColor || '#f97316',
+            secondaryColor: data.config?.secondaryColor || '#ea580c',
+            backgroundColor: data.config?.backgroundColor || '#ffffff',
+            textColor: data.config?.textColor || '#000000',
+            accentColor: data.config?.accentColor || '#f59e0b'
+          },
+          schedule: {
+            timezone: 'America/Sao_Paulo',
+            workingHours: data.config?.businessHours || {}
+          },
+          business: {
+            phone: data.config?.phone || '',
+            email: data.config?.email || '',
+            address: data.config?.address || ''
+          },
           status: data.status || { isOpen: false, reason: 'Indisponível' }
         }
       } catch (error) {
@@ -142,55 +179,55 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
         // Transformar dados da API para o formato esperado
         const transformedConfig: StoreConfig = {
-          id: storeConfig.store.id,
-          slug: storeConfig.store.slug,
-          name: storeConfig.store.name,
-          description: storeConfig.store.description,
+          id: storeConfig.id,
+          slug: storeConfig.slug,
+          name: storeConfig.name,
+          description: storeConfig.description,
           config: storeConfig.config,
-          active: storeConfig.store.active,
-          approved: storeConfig.store.approved,
-          createdAt: storeConfig.store.createdAt,
-          updatedAt: storeConfig.store.updatedAt,
+          active: storeConfig.active,
+          approved: storeConfig.approved,
+          createdAt: storeConfig.createdAt,
+          updatedAt: storeConfig.updatedAt,
           menu: {
-            products: storeConfig.products || [],
-            categories: storeConfig.categories || []
+            products: storeConfig.menu?.products || [],
+            categories: storeConfig.menu?.categories || []
           },
           settings: {
-            preparationTime: storeConfig.config?.preparationTime || 30,
-            orderNotifications: storeConfig.config?.orderNotifications !== false
+            preparationTime: storeConfig.settings?.preparationTime || 30,
+            orderNotifications: storeConfig.settings?.orderNotifications !== false
           },
           delivery: {
-            fee: storeConfig.config?.deliveryFee || 0,
-            freeDeliveryMinimum: storeConfig.config?.minimumOrder || 0,
-            estimatedTime: storeConfig.config?.estimatedDeliveryTime || 30,
-            enabled: storeConfig.config?.deliveryEnabled !== false
+            fee: storeConfig.delivery?.fee || 0,
+            freeDeliveryMinimum: storeConfig.delivery?.freeDeliveryMinimum || 0,
+            estimatedTime: storeConfig.delivery?.estimatedTime || 30,
+            enabled: storeConfig.delivery?.enabled !== false
           },
           payments: {
-            pix: storeConfig.config?.paymentMethods?.includes('PIX') || false,
-            cash: storeConfig.config?.paymentMethods?.includes('DINHEIRO') || false,
-            card: storeConfig.config?.paymentMethods?.includes('CARTÃO') || false
+            pix: storeConfig.payments?.pix || false,
+            cash: storeConfig.payments?.cash || false,
+            card: storeConfig.payments?.card || false
           },
           promotions: {
-            coupons: storeConfig.config?.coupons || []
+            coupons: storeConfig.promotions?.coupons || []
           },
           branding: {
-            logo: storeConfig.config?.logo || '',
-            favicon: storeConfig.config?.favicon || '',
-            bannerImage: storeConfig.config?.banner || '',
-            primaryColor: storeConfig.config?.primaryColor || '#f97316',
-            secondaryColor: storeConfig.config?.secondaryColor || '#ea580c',
-            backgroundColor: storeConfig.config?.backgroundColor || '#ffffff',
-            textColor: storeConfig.config?.textColor || '#000000',
-            accentColor: storeConfig.config?.accentColor || '#f59e0b'
+            logo: storeConfig.branding?.logo || '',
+            favicon: storeConfig.branding?.favicon || '',
+            bannerImage: storeConfig.branding?.bannerImage || '',
+            primaryColor: storeConfig.branding?.primaryColor || '#f97316',
+            secondaryColor: storeConfig.branding?.secondaryColor || '#ea580c',
+            backgroundColor: storeConfig.branding?.backgroundColor || '#ffffff',
+            textColor: storeConfig.branding?.textColor || '#000000',
+            accentColor: storeConfig.branding?.accentColor || '#f59e0b'
           },
           schedule: {
             timezone: 'America/Sao_Paulo',
-            workingHours: storeConfig.config?.businessHours || {}
+            workingHours: storeConfig.schedule?.workingHours || {}
           },
           business: {
-            phone: storeConfig.config?.phone || '',
-            email: storeConfig.config?.email || '',
-            address: storeConfig.config?.address || ''
+            phone: storeConfig.business?.phone || '',
+            email: storeConfig.business?.email || '',
+            address: storeConfig.business?.address || ''
           },
           status: storeConfig.status
         }

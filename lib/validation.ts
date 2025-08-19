@@ -39,7 +39,7 @@ export class Validator {
   /**
    * Valida um campo específico
    */
-  private static validateField(value: any, rules: ValidationRule, fieldName: string): string | null {
+  static validateField(value: any, rules: ValidationRule, fieldName: string): string | null {
     // Validação de campo obrigatório
     if (rules.required && (value === undefined || value === null || value === '')) {
       return `${this.getFieldLabel(fieldName)} é obrigatório`

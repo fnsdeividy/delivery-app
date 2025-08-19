@@ -1,5 +1,5 @@
+import { apiClient } from '@/lib/api-client'
 import { NextRequest, NextResponse } from 'next/server'
-import { apiClient } from '../../../../../../lib/api-client'
 
 /**
  * API para dados públicos da loja

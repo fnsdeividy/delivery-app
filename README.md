@@ -131,9 +131,9 @@ delivery-app/
 ## 🔌 Integração com a API
 
 ### Endpoints Principais
-- **Base URL**: `http://localhost:3000/api/v1`
-- **Swagger**: `http://localhost:3000/api/docs`
-- **Health Check**: `http://localhost:3000/api/v1/health`
+- **Base URL**: `http://localhost:3001/api/v1`
+- **Swagger**: `http://localhost:3001/api/docs`
+- **Health Check**: `http://localhost:3001/api/v1/health`
 
 ### Recursos Integrados
 - **Autenticação**: `/api/v1/auth` (login, registro, refresh)
@@ -154,7 +154,7 @@ delivery-app/
 ### Pré-requisitos
 - Node.js 18+ 
 - npm ou yarn
-- API Cardap.IO Delivery rodando em `http://localhost:3000`
+- API Cardap.IO Delivery rodando em `http://localhost:3001`
 
 ### Instalação
 ```bash
@@ -176,7 +176,7 @@ npm run dev
 ### Variáveis de Ambiente
 ```bash
 # API Configuration
-NEXT_PUBLIC_CARDAPIO_API_URL=http://localhost:3000/api/v1
+NEXT_PUBLIC_CARDAPIO_API_URL=http://localhost:3001/api/v1
 
 # Next.js Configuration
 NEXTAUTH_URL=http://localhost:3001
@@ -318,7 +318,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 🆘 Suporte
 
 ### Problemas Comuns
-- **API não responde**: Verificar se o backend está rodando em `http://localhost:3000`
+- **API não responde**: Verificar se o backend está rodando em `http://localhost:3001`
 - **Erro de autenticação**: Verificar se o token JWT está válido
 - **Testes falhando**: Executar `npm install` e verificar configurações
 

@@ -38,7 +38,6 @@ export async function fetchExternalAPI(
   const url = `${API_CONFIG.BASE_URL}${endpoint}`
   
   const defaultOptions: RequestInit = {
-    headers: API_CONFIG.DEFAULT_HEADERS,
     ...options,
     headers: {
       ...API_CONFIG.DEFAULT_HEADERS,

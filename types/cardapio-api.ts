@@ -54,7 +54,7 @@ export interface StoreConfig {
   minimumOrder: number
   estimatedDeliveryTime: number
   businessHours: BusinessHours
-  paymentMethods: PaymentMethod[]
+  paymentMethods: string[]
 }
 
 export interface BusinessHours {

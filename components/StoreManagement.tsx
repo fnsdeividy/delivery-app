@@ -128,7 +128,7 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
   // Rejeitar loja
   const handleRejectStore = async (slug: string) => {
     try {
-      await rejectStoreMutation.mutateAsync(slug)
+      await rejectStoreMutation.mutateAsync({ id: slug })
     } catch (error) {
       console.error('Erro ao rejeitar loja:', error)
     }

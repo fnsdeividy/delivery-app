@@ -11,7 +11,7 @@ describe('Cardap.IO API Integration', () => {
       expect((response as any).status).toBe('ok')
     } catch (error) {
       // Se a API não estiver rodando, o teste deve falhar
-      throw new Error('API não está respondendo. Verifique se está rodando em http://localhost:3000')
+      throw new Error('API não está respondendo. Verifique se está rodando em http://localhost:3001')
     }
   }, 10000) // Timeout de 10 segundos
 
