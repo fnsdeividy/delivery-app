@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Middleware para proteção de rotas e autenticação
- * Protege rotas do dashboard e super admin usando JWT customizado
+ * Middleware simplificado para proteção de rotas
+ * Protege rotas do dashboard e super admin
  */
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
   
   // Rotas públicas que não precisam de autenticação
   if (pathname === '/' || 
@@ -25,11 +24,6 @@ export async function middleware(request: NextRequest) {
     return await protectDashboardRoute(request)
   }
   
-  // Proteger rotas de loja específica
-  if (pathname.startsWith('/store/')) {
-    return validateStoreRoute(request)
-  }
-  
   // Permitir acesso a outras rotas
   return NextResponse.next()
 }
@@ -38,55 +32,17 @@ export async function middleware(request: NextRequest) {
  * Protege rotas do dashboard - apenas usuários autenticados
  */
 async function protectDashboardRoute(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  
-  
-  
   // Verificar token JWT nos cookies ou headers
   const token = request.cookies.get('cardapio_token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '')
   
   if (!token) {
-    
+    // Redirecionar para login se não houver token
     return NextResponse.redirect(new URL('/login/lojista', request.url))
   }
   
-  try {
-    // Verificar se o token é válido fazendo uma chamada ao backend
-    const response = await fetch('http://localhost:3001/api/v1/stores', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    if (!response.ok) {
-      
-      return NextResponse.redirect(new URL('/login/lojista', request.url))
-    }
-    
-    
-    return NextResponse.next()
-    
-  } catch (error) {
-            
-    return NextResponse.redirect(new URL('/login/lojista', request.url))
-  }
-}
-
-/**
- * Valida se a loja existe para rotas públicas
- */
-function validateStoreRoute(request: NextRequest) {
-  const pathParts = request.nextUrl.pathname.split('/')
-  const storeSlug = pathParts[2]
-  
-  if (!storeSlug) {
-    return NextResponse.redirect(new URL('/not-found', request.url))
-  }
-  
-  // TODO: Verificar se loja existe via API Cardap.IO
-  // Por enquanto, permitir todas as rotas
+  // Por enquanto, permitir acesso se houver token
+  // A validação completa será feita no componente do dashboard
   return NextResponse.next()
 }
 
@@ -97,4 +53,4 @@ export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ]
-}
+} 

@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start -p 3000",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "demo": "echo '🏪 CARDAP.IO DEMO:' && echo '🌐 Homepage: http://localhost:3001' && echo '🏪 Loja Demo: http://localhost:3001/store/boteco-do-joao' && echo '📊 Dashboard: http://localhost:3001/login/lojista' && echo '👑 Super Admin: http://localhost:3001/login/super-admin' && echo '' && echo '📋 DADOS PARA TESTE:' && echo '✅ Lojista: admin@boteco.com / 123456' && echo '✅ Super Admin: superadmin@cardap.io / admin123' && echo '✅ Loja Slug: boteco-do-joao'"
+    "test:backend": "node scripts/test-backend-connection.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

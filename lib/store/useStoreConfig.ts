@@ -164,9 +164,21 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           status: data.status || { isOpen: false, reason: 'Indisponível' }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao buscar configuração da loja:', error)
-        throw error
+        
+        // Tratar diferentes tipos de erro
+        if (error.message?.includes('Loja não encontrada')) {
+          throw new Error('Loja não encontrada')
+        } else if (error.message?.includes('Loja inativa')) {
+          throw new Error('Loja inativa')
+        } else if (error.message?.includes('timeout')) {
+          throw new Error('Timeout na conexão')
+        } else if (error.message?.includes('API indisponível')) {
+          throw new Error('Serviço temporariamente indisponível')
+        } else {
+          throw new Error('Erro ao buscar dados da loja')
+        }
       }
     }
 
@@ -236,7 +248,23 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
       } catch (err: any) {
         console.error('Erro ao buscar configuração da loja:', err)
-        setError(err.message || 'Erro ao carregar dados da loja')
+        
+        // Mapear mensagens de erro para mensagens mais amigáveis
+        let userMessage = 'Erro ao carregar dados da loja'
+        
+        if (err.message?.includes('Loja não encontrada')) {
+          userMessage = 'Loja não encontrada'
+        } else if (err.message?.includes('Loja inativa')) {
+          userMessage = 'Loja temporariamente indisponível'
+        } else if (err.message?.includes('timeout')) {
+          userMessage = 'Conexão lenta, tente novamente'
+        } else if (err.message?.includes('API indisponível')) {
+          userMessage = 'Serviço temporariamente indisponível'
+        } else if (err.message?.includes('não encontrada')) {
+          userMessage = 'Loja não encontrada'
+        }
+        
+        setError(userMessage)
       } finally {
         setLoading(false)
       }

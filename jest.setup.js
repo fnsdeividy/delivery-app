@@ -37,7 +37,7 @@ jest.mock('next/navigation', () => ({
 
 // Configurar variáveis de ambiente para testes
 process.env.NEXTAUTH_SECRET = 'test-secret'
-process.env.NEXTAUTH_URL = 'http://localhost:3000'
+process.env.NEXTAUTH_URL = 'http://localhost:3001'
 
 // Mock do React Query DevTools
 jest.mock('@tanstack/react-query-devtools', () => ({

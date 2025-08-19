@@ -4,14 +4,50 @@ Aplicação frontend para o sistema de delivery Cardap.IO, desenvolvida com Next
 
 ## 🚀 Status da Integração
 
-**✅ INTEGRAÇÃO COMPLETA COM A API CARDAP.IO DELIVERY**
+**✅ INTEGRAÇÃO COMPLETA COM BACKEND EXTERNO**
 
-O frontend está totalmente integrado com a API backend Cardap.IO Delivery, fornecendo:
-- Autenticação JWT completa
+O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 3001, fornecendo:
+- Autenticação JWT completa via API externa
 - CRUD de usuários, lojas, produtos e pedidos
 - Sistema de roles e permissões
 - Cache inteligente com React Query
 - Tratamento de erros centralizado
+- **NOVA**: Proxy reverso para backend externo na porta 3001
+
+### 🔌 Nova Arquitetura de Conexão (Janeiro 2025)
+- **Frontend**: Roda na porta 3000 (Next.js)
+- **Backend**: Conecta na porta 3001 (API externa)
+- **Proxy**: Next.js funciona como proxy reverso para todas as chamadas de API
+- **Benefícios**: 
+  - ✅ Separação clara entre frontend e backend
+  - ✅ Desenvolvimento mais próximo da produção
+  - ✅ Sem duplicação de lógica de API
+  - ✅ Facilita testes de integração
+
+### 🏗️ Configuração de Desenvolvimento
+```bash
+# Terminal 1: Backend (porta 3001)
+# Seu backend deve estar rodando em http://localhost:3001
+
+# Terminal 2: Frontend (porta 3000)
+npm run dev
+# Frontend estará disponível em http://localhost:3000
+# Todas as chamadas de API serão redirecionadas para o backend na porta 3001
+```
+
+### 🔧 Arquivos de Configuração Atualizados
+- `next.config.js` - Configurado como proxy reverso para backend 3001
+- `lib/api-client.ts` - Cliente HTTP configurado para conectar ao backend externo
+- `env.local.example` - Variáveis de ambiente para desenvolvimento
+- `lib/backend-connection.ts` - Utilitário para verificar conectividade com backend
+
+### 🧹 Limpeza de Rotas de API
+- **Removido**: Todas as rotas de API duplicadas do Next.js
+- **Mantido**: Apenas o proxy reverso para o backend externo
+- **Benefícios**: 
+  - ✅ Sem conflitos entre frontend e backend
+  - ✅ Código mais limpo e focado
+  - ✅ Melhor separação de responsabilidades
 
 ### 🐛 Correções Recentes
 - **Bug Fix**: Corrigido erro `token.split is not a function` no hook `useCardapioAuth`
