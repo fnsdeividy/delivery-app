@@ -118,7 +118,7 @@ describe('useCardapioAuth', () => {
         expect(result.current.isLoading).toBe(false)
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+      expect(mockPush).toHaveBeenCalledWith('/dashboard/gerenciar-lojas')
     })
 
     it('deve fazer login com sucesso para ADMIN usando storeSlug do localStorage', async () => {

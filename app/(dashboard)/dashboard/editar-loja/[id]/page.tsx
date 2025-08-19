@@ -77,7 +77,7 @@ export default function EditarLojaPage() {
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
             <li className="inline-flex items-center">
               <Link
-                href="/dashboard"
+                href="/dashboard/gerenciar-lojas"
                 className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-orange-600"
               >
                 Dashboard

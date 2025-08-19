@@ -112,8 +112,8 @@ export function useCardapioAuth() {
           // Executar redirecionamento
           router.push(dashboardUrl)
         } else {
-          // ADMIN sem loja específica - redirecionar para dashboard administrativo
-          router.push('/dashboard')
+          // ADMIN sem loja específica - redirecionar para nova Dashboard principal
+          router.push('/dashboard/gerenciar-lojas')
         }
       }
     },

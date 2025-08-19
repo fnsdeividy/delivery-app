@@ -10,6 +10,7 @@ jest.mock('@/lib/api-client', () => ({
     post: jest.fn(),
     getCurrentToken: jest.fn(),
     updateStoreContext: jest.fn(),
+    createStore: jest.fn(),
   },
 }))
 
@@ -98,7 +99,7 @@ describe('useCreateStore', () => {
 
   it('deve criar uma loja com sucesso e redirecionar', async () => {
     // Arrange
-    mockApiClient.post.mockResolvedValue(mockStoreResponse)
+    mockApiClient.createStore.mockResolvedValue(mockStoreResponse)
     mockApiClient.getCurrentToken.mockReturnValue('mock-token')
     mockApiClient.updateStoreContext.mockResolvedValue()
 
@@ -112,15 +113,15 @@ describe('useCreateStore', () => {
       expect(result.current.isSuccess).toBe(true)
     })
 
-    expect(mockApiClient.post).toHaveBeenCalledWith('/stores', mockStoreData)
-    expect(mockApiClient.updateStoreContext).toHaveBeenCalledWith('test-store')
+    expect(mockApiClient.createStore).toHaveBeenCalledWith(mockStoreData)
+    expect(mockApiClient.updateStoreContext).toHaveBeenCalledWith(mockStoreResponse)
     expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store?welcome=true&message=Loja criada com sucesso!')
   })
 
   it('deve lidar com erro na criação da loja', async () => {
     // Arrange
     const errorMessage = 'Erro ao criar loja'
-    mockApiClient.post.mockRejectedValue(new Error(errorMessage))
+    mockApiClient.createStore.mockRejectedValue(new Error(errorMessage))
 
     const { result } = renderHook(() => useCreateStore(), { wrapper })
 
@@ -133,12 +134,12 @@ describe('useCreateStore', () => {
     })
 
     expect(result.current.error?.message).toBe(errorMessage)
-    expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/gerenciar-lojas')
   })
 
   it('deve lidar com erro no updateStoreContext', async () => {
     // Arrange
-    mockApiClient.post.mockResolvedValue(mockStoreResponse)
+    mockApiClient.createStore.mockResolvedValue(mockStoreResponse)
     mockApiClient.getCurrentToken.mockReturnValue('mock-token')
     mockApiClient.updateStoreContext.mockRejectedValue(new Error('Erro ao atualizar contexto'))
 
@@ -158,7 +159,7 @@ describe('useCreateStore', () => {
 
   it('deve funcionar sem token de autenticação', async () => {
     // Arrange
-    mockApiClient.post.mockResolvedValue(mockStoreResponse)
+    mockApiClient.createStore.mockResolvedValue(mockStoreResponse)
     mockApiClient.getCurrentToken.mockReturnValue(null)
 
     const { result } = renderHook(() => useCreateStore(), { wrapper })
@@ -178,7 +179,7 @@ describe('useCreateStore', () => {
 
   it('deve invalidar queries relacionadas após sucesso', async () => {
     // Arrange
-    mockApiClient.post.mockResolvedValue(mockStoreResponse)
+    mockApiClient.createStore.mockResolvedValue(mockStoreResponse)
     mockApiClient.getCurrentToken.mockReturnValue('mock-token')
     mockApiClient.updateStoreContext.mockResolvedValue()
 
@@ -199,7 +200,7 @@ describe('useCreateStore', () => {
 
   it('deve fornecer dados da loja criada', async () => {
     // Arrange
-    mockApiClient.post.mockResolvedValue(mockStoreResponse)
+    mockApiClient.createStore.mockResolvedValue(mockStoreResponse)
     mockApiClient.getCurrentToken.mockReturnValue('mock-token')
     mockApiClient.updateStoreContext.mockResolvedValue()
 

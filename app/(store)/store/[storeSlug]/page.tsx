@@ -135,7 +135,7 @@ export default function StorePage() {
               Voltar ao início
             </Link>
             <Link
-              href="/dashboard"
+              href="/dashboard/gerenciar-lojas"
               className="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Acessar Dashboard

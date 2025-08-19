@@ -128,7 +128,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-xl font-bold text-gray-900">Dashboard Principal</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">Sistema Multi-Tenant</span>
@@ -266,6 +266,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Breadcrumb */}
               <nav className="breadcrumb">
                 <span className="breadcrumb-item">Dashboard</span>
+                {slug && slug !== 'gerenciar-lojas' && (
+                  <span className="breadcrumb-item">{slug}</span>
+                )}
               </nav>
               
               {slug && slug !== 'gerenciar-lojas' && (
