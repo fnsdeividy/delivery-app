@@ -14,7 +14,7 @@ export async function GET(
   try {
     const { storeSlug } = params
 
-    console.log('API Public Store - Slug recebido:', storeSlug)
+
 
     if (!storeSlug) {
       return NextResponse.json(
@@ -32,13 +32,12 @@ export async function GET(
     }
 
     // Buscar dados da loja via API Cardap.IO
-    console.log('Buscando loja com slug:', storeSlug)
     const storeResponse = await apiClient.getStoreBySlug(storeSlug)
 
     // A resposta da API não tem estrutura ApiResponse, é direta
     const store = storeResponse as any
 
-    console.log('Resposta da API:', store)
+
 
     if (!store || !store.id) {
       return NextResponse.json(
@@ -99,7 +98,7 @@ export async function GET(
     return NextResponse.json(publicData)
 
   } catch (error: any) {
-    console.error('Erro ao buscar dados públicos da loja:', error)
+
     return NextResponse.json(
       { error: error.message || 'Erro interno do servidor' },
       { status: 500 }

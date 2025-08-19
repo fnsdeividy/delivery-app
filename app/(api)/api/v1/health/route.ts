@@ -8,7 +8,7 @@ import { API_CONFIG, fetchExternalAPI } from '../config'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🏥 Verificando saúde da API externa:', API_BASE_URL)
+
 
     // Fazer requisição para a API externa
     const response = await fetchExternalAPI(API_CONFIG.ENDPOINTS.HEALTH, {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
-      console.error('❌ API externa não está respondendo:', response.status)
+
       return NextResponse.json({
         status: 'error',
         message: 'API externa não está respondendo',
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     const healthData = await response.json()
-    console.log('✅ API externa está funcionando:', healthData)
+
 
     return NextResponse.json({
       status: 'healthy',
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error: any) {
-    console.error('❌ Erro ao verificar saúde da API:', error)
+
     
     return NextResponse.json({
       status: 'error',

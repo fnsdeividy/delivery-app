@@ -90,7 +90,6 @@ export default function RegisterLojaPage() {
 
   const handleSubmit = async () => {
     try {
-      console.log('🚀 Iniciando processo de criação de conta e loja...')
       
       // Validações finais
       if (!formData.address || !formData.city || !formData.state) {
@@ -99,7 +98,6 @@ export default function RegisterLojaPage() {
       }
 
       // 1. Criar usuário proprietário
-      console.log('👤 Criando usuário proprietário...')
       const userData: CreateUserDto = {
         email: formData.ownerEmail,
         name: formData.ownerName,
@@ -108,13 +106,11 @@ export default function RegisterLojaPage() {
       }
 
       const userResponse = await registerMutation.mutateAsync(userData)
-      console.log('✅ Usuário criado com sucesso:', userResponse)
       
       // 2. Aguardar um momento para garantir que o token foi armazenado
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // 3. Criar loja
-      console.log('🏪 Criando loja...')
       const storeData: CreateStoreDto = {
         name: formData.storeName,
         slug: formData.storeSlug,
@@ -143,13 +139,10 @@ export default function RegisterLojaPage() {
       }
 
       const storeResponse = await createStore(storeData)
-      console.log('✅ Loja criada com sucesso:', storeResponse)
 
       // 4. O redirecionamento será feito automaticamente pelo hook useCreateStore
-      console.log('🚀 Redirecionamento automático via useCreateStore...')
       
     } catch (err) {
-      console.error('❌ Erro ao criar loja:', err)
       // Em caso de erro, mostrar erro mas não redirecionar automaticamente
     }
   }

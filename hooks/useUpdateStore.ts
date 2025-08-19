@@ -23,8 +23,6 @@ export function useUpdateStore() {
       queryClient.invalidateQueries({ queryKey: ['store', data.slug] })
       queryClient.invalidateQueries({ queryKey: ['store', variables.storeId] })
       
-      // Mostrar mensagem de sucesso
-      console.log('✅ Loja atualizada com sucesso:', data.name)
     },
     onError: (error: any) => {
       console.error('Erro na atualização da loja:', error)

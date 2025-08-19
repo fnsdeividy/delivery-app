@@ -131,19 +131,15 @@ export function useCardapioAuth() {
       setError(null)
 
       try {
-        console.log('📝 Registrando usuário:', userData.email)
         const response = await apiClient.register(userData)
-        console.log('✅ Usuário registrado com sucesso:', response)
 
         // O apiClient.register já armazena o token automaticamente
         if (response.access_token) {
-          console.log('🔑 Token de registro armazenado automaticamente')
         }
 
         return response
       } catch (err: any) {
         const errorMessage = err.message || 'Erro desconhecido durante o registro'
-        console.error('❌ Erro no registro:', errorMessage)
         setError(errorMessage)
         throw new Error(errorMessage)
       } finally {
@@ -151,7 +147,6 @@ export function useCardapioAuth() {
       }
     },
     onSuccess: (data, variables) => {
-      console.log('🎉 Registro bem-sucedido, token já armazenado')
 
       // Invalidar queries para atualizar estado da aplicação
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -161,7 +156,6 @@ export function useCardapioAuth() {
       // O token já foi armazenado pelo apiClient.register()
     },
     onError: (err: any) => {
-      console.error('❌ Erro na mutation de registro:', err.message)
       setError(err.message)
     },
   })

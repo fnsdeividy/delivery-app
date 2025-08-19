@@ -73,6 +73,37 @@ O frontend está totalmente integrado com a API backend Cardap.IO Delivery, forn
   - ✅ Consistência visual mantida
   - ✅ UX aprimorada para administradores
 
+### 🧹 Limpeza de Código - Console Logs (Janeiro 2025)
+- **Implementação**: Remoção de todos os `console.log` e `console.error` das rotas de API
+- **Arquivos Limpos**:
+  - `app/(api)/api/v1/auth/login/route.ts` - Rota de autenticação
+  - `app/(api)/api/v1/health/route.ts` - Rota de health check
+  - `app/(api)/api/v1/stores/[storeSlug]/public/route.ts` - Rota pública de lojas
+- **Benefícios**:
+  - ✅ Código limpo e profissional
+  - ✅ Sem logs desnecessários em produção
+  - ✅ Melhor performance
+  - ✅ Manutenibilidade aprimorada
+
+### 🔧 Refatoração do ApiClient (Janeiro 2025)
+- **Implementação**: Refatoração completa do cliente HTTP para melhorar estrutura, tipagem e manutenibilidade
+- **Principais Mudanças**:
+  - ✅ Correção de erros de TypeScript (tipagem de erros)
+  - ✅ Separação de interceptors em métodos privados
+  - ✅ Implementação de sistema de logging condicional
+  - ✅ Melhoria no tratamento de erros com interfaces tipadas
+  - ✅ Organização do código por funcionalidade
+  - ✅ Redução de duplicação de código
+- **Arquivos Afetados**:
+  - `lib/api-client.ts` - Refatoração completa da classe ApiClient
+- **Benefícios**:
+  - ✅ Código mais legível e manutenível
+  - ✅ Tratamento de erros mais robusto
+  - ✅ Performance otimizada com logging condicional
+  - ✅ Tipagem TypeScript mais robusta
+  - ✅ Facilidade para adicionar novas funcionalidades
+  - ✅ Todos os testes unitários passando
+
 ## 🏗️ Arquitetura
 
 ### Stack Tecnológica

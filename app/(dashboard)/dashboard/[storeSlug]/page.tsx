@@ -19,14 +19,10 @@ export default function DashboardPage() {
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
-    console.log('🏪 Dashboard: Página carregada com slug:', slug)
-    console.log('🔑 Dashboard: Verificando autenticação...')
-    
     const checkAuth = async () => {
       try {
         // Verificar se está autenticado
         if (!isAuthenticated()) {
-          console.log('❌ Dashboard: Usuário não autenticado, redirecionando para login')
           router.push('/login/lojista')
           return
         }
@@ -34,14 +30,12 @@ export default function DashboardPage() {
         // Obter token e decodificar
         const token = getCurrentToken()
         if (!token) {
-          console.log('❌ Dashboard: Token não encontrado, redirecionando para login')
           router.push('/login/lojista')
           return
         }
 
         // Decodificar token JWT
         const payload = JSON.parse(atob(token.split('.')[1]))
-        console.log('🔓 Dashboard: Token decodificado:', payload)
         
         setUserRole(payload.role)
         setUserStoreSlug(payload.storeSlug)
@@ -49,32 +43,26 @@ export default function DashboardPage() {
         // Verificar permissões
         if (payload.role === 'SUPER_ADMIN') {
           // Super admin pode acessar qualquer dashboard
-          console.log('✅ Dashboard: Super admin - acesso permitido')
           setHasAccess(true)
         } else if (payload.role === 'ADMIN') {
           // ADMIN pode acessar apenas sua própria loja
           if (payload.storeSlug === slug) {
-            console.log('✅ Dashboard: ADMIN acessando sua própria loja - permitido')
             setHasAccess(true)
           } else if (payload.storeSlug === null) {
             // ADMIN sem loja específica - redirecionar para gerenciar lojas
-            console.log('🔄 Dashboard: ADMIN sem loja específica - redirecionando para gerenciar-lojas')
             router.push('/dashboard/gerenciar-lojas')
             return
           } else {
             // ADMIN tentando acessar loja diferente
-            console.log('❌ Dashboard: ADMIN tentando acessar loja diferente - Sua:', payload.storeSlug, 'Tentando:', slug)
             router.push('/unauthorized')
             return
           }
         } else {
           // Usuário sem permissão
-          console.log('❌ Dashboard: Usuário sem permissão - Role:', payload.role)
           router.push('/unauthorized')
           return
         }
       } catch (error) {
-        console.error('❌ Dashboard: Erro ao verificar autenticação:', error)
         router.push('/login/lojista')
         return
       } finally {

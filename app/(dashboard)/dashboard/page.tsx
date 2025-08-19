@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuthContext } from '@/contexts/AuthContext'
-import { useDashboardStats, DashboardStats } from '@/hooks/useDashboardStats'
+import { DashboardStats, useDashboardStats } from '@/hooks/useDashboardStats'
 import { ArrowRight, Package, Plus, Settings, ShoppingBag, Store, TrendingUp, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -16,40 +16,25 @@ export default function DashboardAdmin() {
   // Buscar estatísticas do dashboard
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats(userRole, storeSlug)
 
-  console.log('Dashboard - Renderizando com:')
-  console.log('Dashboard - userRole:', userRole)
-  console.log('Dashboard - storeSlug:', storeSlug)
-  console.log('Dashboard - stats:', stats)
-  console.log('Dashboard - statsLoading:', statsLoading)
-  console.log('Dashboard - statsError:', statsError)
 
   useEffect(() => {
-    console.log('Dashboard - useEffect executando')
-    console.log('Dashboard - isAuthenticated:', isAuthenticated)
-    console.log('Dashboard - user:', user)
-    console.log('Dashboard - authLoading:', authLoading)
-
     // Verificar autenticação e extrair informações do usuário
     if (isAuthenticated && user) {
-      console.log('Dashboard - Usuário autenticado, configurando role e storeSlug')
       setUserRole(user.role)
       setStoreSlug(user.storeSlug || null)
 
       // Se usuário tem loja específica, redirecionar para dashboard da loja
       if (user.role === 'ADMIN' && user.storeSlug) {
-        console.log('Dashboard - Redirecionando ADMIN para dashboard da loja:', user.storeSlug)
         router.push(`/dashboard/${user.storeSlug}`)
         return
       }
 
       // Se é super admin, redirecionar para painel admin
       if (user.role === 'SUPER_ADMIN') {
-        console.log('Dashboard - Redirecionando SUPER_ADMIN para painel admin')
         router.push('/admin')
         return
       }
     } else if (!authLoading && !isAuthenticated) {
-      console.log('Dashboard - Usuário não autenticado, redirecionando para login')
       // Não autenticado, redirecionar para login
       router.push('/login/lojista')
     }

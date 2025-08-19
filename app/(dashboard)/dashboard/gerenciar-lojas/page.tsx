@@ -1,14 +1,14 @@
 'use client'
 
+import { ApproveStoreModal } from '@/components/ApproveStoreModal'
+import { useFormValidation } from '@/components/FormValidation'
+import { RejectStoreModal } from '@/components/RejectStoreModal'
+import { useToast } from '@/components/Toast'
 import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useUpdateStore } from '@/hooks'
 import { CreateStoreDto } from '@/types/cardapio-api'
 import { Edit, ExternalLink, Eye, Plus, Store, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useToast } from '@/components/Toast'
-import { RejectStoreModal } from '@/components/RejectStoreModal'
-import { ApproveStoreModal } from '@/components/ApproveStoreModal'
-import { FormValidation, useFormValidation } from '@/components/FormValidation'
 
 export default function GerenciarLojas() {
   const router = useRouter()
@@ -34,22 +34,8 @@ export default function GerenciarLojas() {
   const approveStoreMutation = useApproveStore()
   const rejectStoreMutation = useRejectStore()
 
-  // Logs de debug
-  console.log('🔍 GerenciarLojas: storesData:', storesData)
-  console.log('🔍 GerenciarLojas: isLoading:', isLoading)
-  console.log('🔍 GerenciarLojas: error:', error)
-  console.log('🔍 GerenciarLojas: storesData?.data:', storesData?.data)
-  console.log('🔍 GerenciarLojas: storesData?.data type:', typeof storesData?.data)
-  console.log('🔍 GerenciarLojas: storesData?.data isArray:', Array.isArray(storesData?.data))
-  console.log('🔍 GerenciarLojas: stores:', storesData?.data || [])
-
-  // Simplificar a lógica para debug
   const stores = storesData?.data || []
   const loading = isLoading
-
-  // Log adicional para debug
-  console.log('🔍 GerenciarLojas: stores final:', stores)
-  console.log('🔍 GerenciarLojas: stores length:', stores.length)
 
   // Gerar slug automaticamente
   const generateSlug = (name: string) => {
@@ -548,6 +534,7 @@ export default function GerenciarLojas() {
       {rejectingStore && (
         <RejectStoreModal
           isOpen={!!rejectingStore}
+          storeName={rejectingStore.name}
           onClose={() => setRejectingStore(null)}
           onConfirm={async (reason) => {
             await handleRejectStore(rejectingStore.id, reason);
@@ -560,6 +547,7 @@ export default function GerenciarLojas() {
       {approvingStore && (
         <ApproveStoreModal
           isOpen={!!approvingStore}
+          storeName={approvingStore.name}
           onClose={() => setApprovingStore(null)}
           onConfirm={async () => {
             await approveStoreMutation.mutateAsync(approvingStore.id);

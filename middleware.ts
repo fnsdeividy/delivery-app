@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  console.log(`🔒 Middleware: Processando rota ${pathname}`)
   
   // Rotas públicas que não precisam de autenticação
   if (pathname === '/' || 
@@ -17,7 +16,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/store') ||
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api')) {
-    console.log(`✅ Middleware: Rota pública ${pathname} - permitindo acesso`)
+    
     return NextResponse.next()
   }
   
@@ -41,14 +40,14 @@ export async function middleware(request: NextRequest) {
 async function protectDashboardRoute(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  console.log(`🔐 Middleware: Protegendo rota do dashboard ${pathname}`)
+  
   
   // Verificar token JWT nos cookies ou headers
   const token = request.cookies.get('cardapio_token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '')
   
   if (!token) {
-    console.log(`🚫 Middleware: Token não encontrado, redirecionando para login`)
+    
     return NextResponse.redirect(new URL('/login/lojista', request.url))
   }
   
@@ -62,15 +61,15 @@ async function protectDashboardRoute(request: NextRequest) {
     })
     
     if (!response.ok) {
-      console.log(`🚫 Middleware: Token inválido (${response.status}), redirecionando para login`)
+      
       return NextResponse.redirect(new URL('/login/lojista', request.url))
     }
     
-    console.log(`✅ Middleware: Token válido, permitindo acesso ao dashboard`)
+    
     return NextResponse.next()
     
   } catch (error) {
-    console.error(`❌ Middleware: Erro ao validar token`, error)
+            
     return NextResponse.redirect(new URL('/login/lojista', request.url))
   }
 }

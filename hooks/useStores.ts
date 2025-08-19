@@ -1,7 +1,7 @@
 import { apiClient } from '@/lib/api-client'
 import {
-    CreateStoreDto,
-    UpdateStoreDto
+  CreateStoreDto,
+  UpdateStoreDto
 } from '@/types/cardapio-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -9,13 +9,10 @@ export function useStores(page = 1, limit = 10) {
   return useQuery({
     queryKey: ['stores', page, limit],
     queryFn: async () => {
-      console.log('🔍 useStores: Iniciando busca de lojas...')
       try {
         const response = await apiClient.getStores(page, limit)
-        console.log('✅ useStores: Resposta recebida:', response)
         return response
       } catch (error) {
-        console.error('❌ useStores: Erro ao buscar lojas:', error)
         throw error
       }
     },
@@ -83,7 +80,6 @@ export function useApproveStore() {
   return useMutation({
     mutationFn: (id: string) => apiClient.approveStore(id),
     onSuccess: (_, id) => {
-      console.log(`✅ Loja ${id} aprovada com sucesso`)
       queryClient.invalidateQueries({ queryKey: ['store', id] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
     },
@@ -109,7 +105,6 @@ export function useRejectStore() {
     mutationFn: ({ id, reason }: { id: string; reason?: string }) => 
       apiClient.rejectStore(id, reason),
     onSuccess: (_, { id }) => {
-      console.log(`✅ Loja ${id} rejeitada com sucesso`)
       queryClient.invalidateQueries({ queryKey: ['store', id] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
     },

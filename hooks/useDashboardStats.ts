@@ -16,10 +16,6 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
     queryKey: ['dashboard', 'stats', userRole, storeSlug],
     queryFn: async (): Promise<DashboardStats> => {
       try {
-        console.log('useDashboardStats - Iniciando busca de estatísticas')
-        console.log('userRole:', userRole)
-        console.log('storeSlug:', storeSlug)
-
         let stats: DashboardStats = {
           totalStores: 0,
           activeStores: 0,
@@ -31,20 +27,15 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
         }
 
         if (userRole === 'SUPER_ADMIN') {
-          console.log('Buscando estatísticas para SUPER_ADMIN - Todas as lojas do sistema')
-
           // Super admin vê todas as estatísticas do sistema
           const storesStatsResponse = await apiClient.get('/api/v1/stores/stats')
-          console.log('Resposta da API /api/v1/stores/stats:', storesStatsResponse)
           const storesStats = storesStatsResponse as any
 
           stats.totalStores = storesStats.total || 0
           stats.activeStores = storesStats.active || 0
           stats.pendingStores = storesStats.pending || 0
 
-          // Para super admin, buscar estatísticas gerais de produtos e pedidos
           try {
-            // Buscar todas as lojas para calcular produtos e pedidos totais
             const allStoresResponse = await apiClient.get('/api/v1/stores')
             const allStores = (allStoresResponse as any).data || []
 
@@ -82,16 +73,13 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
             console.warn('Erro ao buscar estatísticas gerais:', error)
           }
 
-          console.log('Estatísticas calculadas para SUPER_ADMIN:', stats)
 
         } else if (userRole === 'ADMIN' && storeSlug) {
-          console.log('Buscando estatísticas para ADMIN da loja:', storeSlug)
 
           // ADMIN vê estatísticas apenas da sua loja
           try {
             // Buscar dados da loja específica
             const store = await apiClient.getStoreBySlug(storeSlug)
-            console.log('Dados da loja:', store)
 
             if (store) {
               stats.totalStores = 1
@@ -128,7 +116,6 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
           }
         }
 
-        console.log('Estatísticas finais retornadas:', stats)
         return stats
 
       } catch (error) {

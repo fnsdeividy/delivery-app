@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('🔐 Tentando autenticar usuário:', { email, storeSlug })
+
 
     // Fazer requisição para a API externa
     const response = await fetchExternalAPI(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      console.error('❌ Erro na API externa:', response.status, errorData)
+
       
       // Mapear códigos de erro HTTP
       switch (response.status) {
@@ -61,10 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     const authData = await response.json()
-    console.log('✅ Autenticação bem-sucedida:', { 
-      email: authData.user?.email,
-      role: authData.user?.role 
-    })
+
 
     // Retornar dados de autenticação
     return NextResponse.json({
@@ -74,7 +71,7 @@ export async function POST(request: NextRequest) {
     }, { status: 200 })
 
   } catch (error: any) {
-    console.error('❌ Erro interno no login:', error)
+
     
     return NextResponse.json(
       { error: 'Erro interno do servidor' },

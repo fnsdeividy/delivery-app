@@ -43,7 +43,6 @@ describe('Cardap.IO API Integration', () => {
     } catch (error: any) {
       // Se falhar, pode ser que as credenciais de teste não existam
       // ou a API não esteja rodando
-      console.log('Teste de autenticação falhou:', error.message)
       // Não falhar o teste, apenas logar o erro
     }
   })

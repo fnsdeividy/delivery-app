@@ -205,8 +205,7 @@ export function useErrorHandler() {
         addToast({
           type: 'error',
           title: 'Erro',
-          message: error.message,
-          persistent: ErrorHandler.isAuthError(error)
+          message: error.message
         })
       } catch {
         // Fallback para console se o toast não estiver disponível

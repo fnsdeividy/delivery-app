@@ -28,18 +28,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log('AuthContext - Verificando autenticação...')
         if (apiClient.isAuthenticated()) {
-          console.log('AuthContext - API Client está autenticado')
           // Aqui você pode implementar uma chamada para obter dados do usuário atual
           // Por enquanto, vamos apenas verificar se o token existe
           const token = apiClient.getCurrentToken()
           if (token) {
-            console.log('AuthContext - Token encontrado, decodificando...')
             // Decodificar o token JWT para obter informações básicas do usuário
             // Em produção, você deve implementar um endpoint /me para obter dados completos
             const tokenData = parseJwt(token)
-            console.log('AuthContext - Token decodificado:', tokenData)
             if (tokenData) {
               const userData = {
                 id: tokenData.sub,
@@ -51,7 +47,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               }
-              console.log('AuthContext - Dados do usuário criados:', userData)
               setUser(userData)
 
               // Persistir dados do usuário no localStorage
@@ -59,22 +54,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           }
         } else {
-          console.log('AuthContext - API Client não está autenticado, tentando localStorage...')
           // Tentar recuperar dados do usuário do localStorage
           const savedUser = localStorage.getItem('user')
           if (savedUser) {
             try {
               const userData = JSON.parse(savedUser)
-              console.log('AuthContext - Usuário recuperado do localStorage:', userData)
               setUser(userData)
             } catch (e) {
-              console.error('AuthContext - Erro ao parsear usuário do localStorage:', e)
               localStorage.removeItem('user')
             }
           }
         }
       } catch (error) {
-        console.error('AuthContext - Erro ao verificar autenticação:', error)
         apiClient.logout()
         localStorage.removeItem('user')
       } finally {
@@ -87,25 +78,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string, storeSlug?: string): Promise<AuthResponse> => {
     try {
-      console.log('AuthContext - Login iniciado para:', email, 'storeSlug:', storeSlug)
       const response = await apiClient.authenticate(email, password, storeSlug)
-      console.log('AuthContext - Resposta da autenticação:', response)
 
       const userData = {
         ...response.user,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
-      console.log('AuthContext - Dados do usuário configurados:', userData)
       setUser(userData)
 
       // Persistir dados do usuário no localStorage
       localStorage.setItem('user', JSON.stringify(userData))
-      console.log('AuthContext - Usuário salvo no localStorage')
 
       return response
     } catch (error) {
-      console.error('AuthContext - Erro no login:', error)
       throw error
     }
   }
@@ -179,7 +165,7 @@ function parseJwt(token: string) {
     )
     return JSON.parse(jsonPayload)
   } catch (error) {
-    console.error('Erro ao decodificar JWT:', error)
+
     return null
   }
 } 

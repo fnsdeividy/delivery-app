@@ -16,7 +16,6 @@ export function useHybridAuth() {
     mutationFn: ({ email, password, storeSlug }: LoginDto) =>
       apiClient.authenticate(email, password, storeSlug),
     onSuccess: (data: AuthResponse) => {
-      console.log('✅ Login direto bem-sucedido:', data)
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
     },
@@ -28,7 +27,6 @@ export function useHybridAuth() {
   // Login via NextAuth (híbrido - usa backend mas mantém sessão NextAuth)
   const nextAuthLoginMutation = useMutation({
     mutationFn: async ({ email, password, storeSlug }: LoginDto) => {
-      console.log('🔐 Fazendo login via NextAuth híbrido...')
       
       const result = await signIn('credentials', {
         email,
@@ -44,7 +42,6 @@ export function useHybridAuth() {
       return result
     },
     onSuccess: () => {
-      console.log('✅ Login NextAuth híbrido bem-sucedido')
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
     },
@@ -57,7 +54,6 @@ export function useHybridAuth() {
   const registerMutation = useMutation({
     mutationFn: (userData: CreateUserDto) => apiClient.register(userData),
     onSuccess: (data: AuthResponse) => {
-      console.log('✅ Registro bem-sucedido:', data)
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
     },
@@ -75,7 +71,6 @@ export function useHybridAuth() {
       return Promise.resolve()
     },
     onSuccess: () => {
-      console.log('✅ Logout híbrido bem-sucedido')
       queryClient.clear()
     },
   })
