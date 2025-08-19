@@ -1,6 +1,13 @@
 // Configuração do Jest para testes
 require('@testing-library/jest-dom')
 
+// Polyfill para fetch no Jest (usando implementação nativa do Node 18+)
+if (typeof global.fetch === 'undefined') {
+  global.fetch = globalThis.fetch || (() => {
+    throw new Error('fetch não está disponível no ambiente de teste')
+  })
+}
+
 // Mock do NextAuth
 jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),

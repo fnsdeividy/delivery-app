@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
           console.log('🔐 NextAuth: Tentando autenticar via backend NestJS')
           
           // Usar o apiClient para autenticar com o backend
-          const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+          const response = await fetch('http://localhost:3001/api/v1', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
