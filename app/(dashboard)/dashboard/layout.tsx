@@ -5,12 +5,14 @@ import {
   Clock,
   CreditCard,
   Gear,
+  House,
   Layout,
   List,
   Package,
   Palette,
   ShoppingBag,
   SignOut,
+  Storefront,
   Truck,
   X
 } from '@phosphor-icons/react'
@@ -19,11 +21,20 @@ import { useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import { UserStoreStatus } from '../../../components/UserStoreStatus'
 import WelcomeNotification from '../../../components/WelcomeNotification'
+import { useStores } from '../../../hooks'
 import { useStoreConfig } from '../../../lib/store/useStoreConfig'
 import './dashboard.css'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
+}
+
+interface NavigationItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  current: boolean
+  children?: NavigationItem[]
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -57,6 +68,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
   const { config, loading, error } = useStoreConfig(shouldLoadStoreConfig ? slug : '')
 
+  // Buscar lojas do usuário para navegação
+  const { data: storesData } = useStores()
+  const userStores = storesData?.data || []
+
   // Mostrar loading apenas quando estamos carregando configurações de uma loja específica
   if (loading && shouldLoadStoreConfig && slug) {
     return (
@@ -78,8 +93,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
   }
 
-  // Só criar navegação se tivermos um slug válido
-  const navigation = slug ? [
+  // Navegação principal sempre disponível
+  const mainNavigation: NavigationItem[] = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: Layout,
+      current: pathname === '/dashboard'
+    },
+    {
+      name: 'Minhas Lojas',
+      href: '/dashboard/meus-painel',
+      icon: House,
+      current: pathname === '/dashboard/meus-painel'
+    },
+    {
+      name: 'Gerenciar Lojas',
+      href: '/dashboard/gerenciar-lojas',
+      icon: Storefront,
+      current: pathname === '/dashboard/gerenciar-lojas'
+    }
+  ]
+
+  // Navegação por loja específica
+  const storeNavigation: NavigationItem[] = slug ? [
     {
       name: 'Visão Geral',
       href: `/dashboard/${slug}`,
@@ -138,29 +175,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   ] : []
 
-         // Para a página de gerenciar lojas e página raiz do dashboard, usar layout simplificado
-       if (pathname === '/dashboard/gerenciar-lojas' || pathname === '/dashboard' || pathname === '/dashboard/meus-painel') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header simples */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-gray-900">Dashboard Principal</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Sistema Multi-Tenant</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Main content */}
-        <main className="p-6">
-          {children}
-        </main>
-      </div>
-    )
-  }
+  // Navegação completa
+  const navigation = [...mainNavigation, ...storeNavigation]
 
   return (
     <div className="dashboard-layout">
@@ -175,12 +191,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/60">
           <div className="flex items-center space-x-3">
-            {config?.branding?.logo && (
+            {config?.branding?.logo ? (
               <img 
                 src={config.branding.logo} 
                 alt={config.name || 'Logo'}
                 className="h-8 w-auto hover-scale"
               />
+            ) : (
+              <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Storefront className="h-5 w-5 text-white" />
+              </div>
             )}
             <h2 className="text-lg font-semibold text-gray-900 truncate">
               {config?.name || 'Dashboard'}
@@ -244,6 +264,40 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             )}
           </div>
+
+          {/* Seletor de Loja Ativa */}
+          {userStores.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-gray-200/60">
+              <div className="px-3 mb-3">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Lojas Disponíveis
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {userStores.slice(0, 5).map((store) => (
+                  <a
+                    key={store.slug}
+                    href={`/dashboard/${store.slug}`}
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      pathname === `/dashboard/${store.slug}`
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Storefront className="mr-3 h-4 w-4 text-gray-400" />
+                    <span className="truncate">{store.name}</span>
+                  </a>
+                ))}
+                {userStores.length > 5 && (
+                  <div className="px-3 py-2">
+                    <p className="text-xs text-gray-500">
+                      +{userStores.length - 5} mais lojas
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* User section */}
@@ -262,7 +316,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
               title="Sair"
             >
-                              <SignOut className="h-5 w-5" />
+              <SignOut className="h-5 w-5" />
             </button>
           </div>
         </div>

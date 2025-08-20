@@ -1,51 +1,57 @@
 'use client'
 
-import { ArrowRight, Gear, ShoppingCart, Storefront, Users } from '@phosphor-icons/react'
-// import { useSession } from 'next-auth/react'
+import { useStores } from '@/hooks'
+import { Storefront, Package, ShoppingBag, ChartBar, Gear, ArrowRight, Plus } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import LoadingSpinner from '../../../../components/LoadingSpinner'
+import { useState } from 'react'
 
-export default function MeusPainelPage() {
+export default function MinhasLojas() {
   const router = useRouter()
-  // const { data: session, status } = useSession()
-  const status: 'unauthenticated' | 'authenticated' | 'loading' = 'unauthenticated'
-  const [loading, setLoading] = useState(true)
+  const { data: storesData, isLoading, error } = useStores()
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const stores = storesData?.data || []
+  const filteredStores = stores.filter(store => 
+    store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    store.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-      return
-    }
-
-    // Simular carregamento concluído quando autenticado
-    if (status === 'authenticated') {
-      setLoading(false)
-    }
-  }, [status, router])
-
-  const handleAccessStore = (storeSlug: string) => {
+  const handleStoreClick = (storeSlug: string) => {
     router.push(`/dashboard/${storeSlug}`)
   }
 
-  const handleManageStores = () => {
+  const handleCreateStore = () => {
     router.push('/dashboard/gerenciar-lojas')
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner />
-          <p className="mt-4 text-gray-600">Carregando seu painel...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando suas lojas...</p>
         </div>
       </div>
     )
   }
 
-
-
-  const user = { name: 'Usuário', email: 'user@example.com', role: 'LOJISTA', storeSlug: undefined as string | undefined }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Erro ao carregar lojas</h1>
+          <p className="text-gray-600 mb-4">Não foi possível carregar suas lojas. Tente novamente.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,154 +60,149 @@ export default function MeusPainelPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-                              <Storefront className="h-6 w-6 text-orange-500" />
-              <h1 className="text-xl font-semibold text-gray-900">Meu Painel</h1>
+              <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Storefront className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Minhas Lojas</h1>
+                <p className="text-sm text-gray-500">Gerencie e acesse suas lojas</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Olá, {user.name}</span>
-            </div>
+            <button
+              onClick={handleCreateStore}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Loja
+            </button>
           </div>
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Informações do Usuário */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <Users className="h-6 w-6 text-orange-600" />
+        {/* Search and Stats */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar lojas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Storefront className="h-5 w-5 text-gray-400" />
+                </div>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{user.name}</h2>
-              <p className="text-sm text-gray-600">{user.email}</p>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                user.role === 'SUPER_ADMIN' 
-                  ? 'bg-purple-100 text-purple-800' 
-                  : 'bg-blue-100 text-blue-800'
-              }`}>
-                {user.role === 'SUPER_ADMIN' ? 'Super Administrador' : 'Lojista'}
-              </span>
+            <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <span>{filteredStores.length} loja{filteredStores.length !== 1 ? 's' : ''} encontrada{filteredStores.length !== 1 ? 's' : ''}</span>
             </div>
           </div>
         </div>
 
-        {/* Ações Baseadas no Role */}
-        {user.role === 'SUPER_ADMIN' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Gerenciar Lojas */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Storefront className="h-5 w-5 text-purple-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Gerenciar Lojas</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Visualize e gerencie todas as lojas do sistema
-              </p>
+        {/* Stores Grid */}
+        {filteredStores.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">🏪</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm ? 'Nenhuma loja encontrada' : 'Você ainda não tem lojas'}
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm 
+                ? 'Tente ajustar os termos de busca.'
+                : 'Comece criando sua primeira loja para gerenciar produtos e pedidos.'
+              }
+            </p>
+            {!searchTerm && (
               <button
-                onClick={handleManageStores}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                onClick={handleCreateStore}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
-                <span>Acessar</span>
-                <ArrowRight className="h-4 w-4" />
+                <Plus className="h-5 w-5 mr-2" />
+                Criar Primeira Loja
               </button>
-            </div>
-
-            {/* Estatísticas Gerais */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <ShoppingCart className="h-5 w-5 text-green-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Pedidos</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Visualize pedidos de todas as lojas
-              </p>
-              <div className="text-2xl font-bold text-green-600">0</div>
-              <p className="text-xs text-gray-500">Pedidos hoje</p>
-            </div>
-
-            {/* Configurações do Sistema */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Gear className="h-5 w-5 text-gray-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Configurações</h3>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Configure o sistema global
-              </p>
-              <button
-                disabled
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-              >
-                <span>Em breve</span>
-              </button>
-            </div>
+            )}
           </div>
         ) : (
-          // Lojista - Acesso direto à sua loja
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            {user.storeSlug ? (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Storefront className="h-8 w-8 text-orange-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStores.map((store) => (
+              <div
+                key={store.slug}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                onClick={() => handleStoreClick(store.slug)}
+              >
+                <div className="p-6">
+                  {/* Store Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {store.name}
+                      </h3>
+                      {store.description && (
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {store.description}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  </div>
+
+                  {/* Store Stats */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <Package className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+                      <p className="text-xs text-gray-500">Produtos</p>
+                      <p className="text-sm font-semibold text-gray-900">-</p>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <ShoppingBag className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+                      <p className="text-xs text-gray-500">Pedidos</p>
+                      <p className="text-sm font-semibold text-gray-900">-</p>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/dashboard/${store.slug}/produtos`)
+                      }}
+                      className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      <Package className="h-3 w-3 mr-1" />
+                      Produtos
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/dashboard/${store.slug}/pedidos`)
+                      }}
+                      className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
+                    >
+                      <ShoppingBag className="h-3 w-3 mr-1" />
+                      Pedidos
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/dashboard/${store.slug}/configuracoes`)
+                      }}
+                      className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                    >
+                      <Gear className="h-3 w-3 mr-1" />
+                      Config
+                    </button>
+                  </div>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Sua Loja</h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Acesse o painel de controle da sua loja
-                </p>
-                <button
-                  onClick={() => handleAccessStore(user.storeSlug!)}
-                  className="flex items-center justify-center space-x-2 px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors mx-auto"
-                >
-                  <span>Acessar Painel</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
               </div>
-            ) : (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Storefront className="h-8 w-8 text-gray-400" />
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma Loja Encontrada</h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Você ainda não possui uma loja cadastrada
-                </p>
-                <button
-                  onClick={() => router.push('/register/loja')}
-                  className="flex items-center justify-center space-x-2 px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors mx-auto"
-                >
-                  <span>Criar Nova Loja</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            )}
+            ))}
           </div>
         )}
-
-        {/* Informações Adicionais */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">💡 Como usar o painel</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            {user.role === 'SUPER_ADMIN' ? (
-              <>
-                <li>• Use "Gerenciar Lojas" para ver todas as lojas do sistema</li>
-                <li>• Monitore pedidos e estatísticas gerais</li>
-                <li>• Configure o sistema global quando necessário</li>
-              </>
-            ) : (
-              <>
-                <li>• Acesse seu painel para gerenciar produtos, pedidos e configurações</li>
-                <li>• Personalize a aparência da sua loja</li>
-                <li>• Configure horários de funcionamento</li>
-              </>
-            )}
-          </ul>
-        </div>
       </div>
     </div>
   )

@@ -14,6 +14,15 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - Tratamento de erros centralizado
 - **NOVA**: Configuração centralizada da API backend
 - **NOVA**: Sistema de logging configurável por ambiente
+- **NOVA**: Menu lateral do dashboard habilitado com navegação completa
+
+### 🎯 Menu Lateral do Dashboard (Janeiro 2025)
+- **Navegação Principal**: Dashboard, Minhas Lojas, Gerenciar Lojas
+- **Navegação por Loja**: Visão Geral, Produtos, Pedidos, Analytics, Configurações
+- **Seletor de Lojas**: Lista de lojas disponíveis para acesso rápido
+- **Breadcrumbs Dinâmicos**: Navegação hierárquica com contexto da página atual
+- **Responsivo**: Menu adaptável para dispositivos móveis e desktop
+- **Integração**: Funciona com todas as páginas do dashboard
 
 ### 🔌 Configuração da API Backend (Janeiro 2025)
 - **URL Base**: `http://localhost:3001/api/v1`
