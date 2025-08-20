@@ -1,18 +1,18 @@
 'use client'
 
 import {
-    ChartBar,
-    Clock,
-    CreditCard,
-    Gear,
-    Layout,
-    List,
-    Package,
-    Palette,
-    ShoppingBag,
-    SignOut,
-    Truck,
-    X
+  ChartBar,
+  Clock,
+  CreditCard,
+  Gear,
+  Layout,
+  List,
+  Package,
+  Palette,
+  ShoppingBag,
+  SignOut,
+  Truck,
+  X
 } from '@phosphor-icons/react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
