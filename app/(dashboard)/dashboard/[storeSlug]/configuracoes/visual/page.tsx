@@ -1,5 +1,7 @@
 'use client'
 
+import { apiClient } from '@/lib/api-client'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     CheckCircle,
@@ -11,7 +13,6 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface ColorScheme {
   logo?: string
@@ -161,23 +162,21 @@ export default function VisualConfigPage() {
     setMessage(null)
     
     try {
-      const response = await fetch(`/api/stores/${slug}/config`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          branding
-        })
+      // Usar apiClient para salvar configurações visuais via API backend
+      await apiClient.patch(`/stores/${slug}`, {
+        config: {
+          logo: branding.logo,
+          banner: branding.bannerImage,
+          primaryColor: branding.primaryColor,
+          secondaryColor: branding.secondaryColor,
+          backgroundColor: branding.backgroundColor,
+          textColor: branding.textColor,
+          accentColor: branding.accentColor
+        }
       })
 
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' })
-        setTimeout(() => setMessage(null), 3000)
-      } else {
-        const error = await response.json()
-        throw new Error(error.error || 'Erro ao salvar configurações')
-      }
+      setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' })
+      setTimeout(() => setMessage(null), 3000)
     } catch (error) {
       setMessage({ 
         type: 'error', 

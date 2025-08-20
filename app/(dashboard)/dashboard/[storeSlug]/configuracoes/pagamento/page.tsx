@@ -1,14 +1,13 @@
 'use client'
 
+import { apiClient } from '@/lib/api-client'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     CheckCircle,
     CreditCard,
-    Edit,
     Plus,
     Save,
-    Trash2,
     X
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
@@ -226,21 +225,16 @@ export default function PagamentoPage() {
         integrations: {}
       }
 
-      const response = await fetch(`/api/stores/${slug}/sync`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          payments: paymentsConfig
-        }),
+      // Usar apiClient para sincronizar configurações de pagamento via API backend
+      await apiClient.patch(`/stores/${slug}`, {
+        config: {
+          paymentMethods: paymentConfig.methods
+            .filter(m => m.enabled)
+            .map(m => m.id)
+        }
       })
 
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Configurações de pagamento salvas com sucesso!' })
-      } else {
-        throw new Error('Erro ao salvar configurações')
-      }
+      setMessage({ type: 'success', text: 'Configurações de pagamento salvas com sucesso!' })
     } catch (error) {
       setMessage({ type: 'error', text: 'Erro ao salvar configurações de pagamento' })
     } finally {

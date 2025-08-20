@@ -1,5 +1,7 @@
 'use client'
 
+import { apiClient } from '@/lib/api-client'
+import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
     AlertCircle,
     CheckCircle,
@@ -9,7 +11,6 @@ import {
 } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useStoreConfig } from '@/lib/store/useStoreConfig'
 
 interface WorkingHours {
   monday: { open: string; close: string; closed: boolean }
@@ -237,21 +238,23 @@ export default function HorariosConfigPage() {
         }
       }
 
-      const response = await fetch(`/api/stores/${slug}/sync`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(scheduleConfig)
+      // Usar apiClient para sincronizar horários via API backend
+      await apiClient.patch(`/stores/${slug}`, {
+        config: {
+          businessHours: {
+            monday: { open: !settings.workingHours.monday.closed, openTime: settings.workingHours.monday.open, closeTime: settings.workingHours.monday.close },
+            tuesday: { open: !settings.workingHours.tuesday.closed, openTime: settings.workingHours.tuesday.open, closeTime: settings.workingHours.tuesday.close },
+            wednesday: { open: !settings.workingHours.wednesday.closed, openTime: settings.workingHours.wednesday.open, closeTime: settings.workingHours.wednesday.close },
+            thursday: { open: !settings.workingHours.thursday.closed, openTime: settings.workingHours.thursday.open, closeTime: settings.workingHours.thursday.close },
+            friday: { open: !settings.workingHours.friday.closed, openTime: settings.workingHours.friday.open, closeTime: settings.workingHours.friday.close },
+            saturday: { open: !settings.workingHours.saturday.closed, openTime: settings.workingHours.saturday.open, closeTime: settings.workingHours.saturday.close },
+            sunday: { open: !settings.workingHours.sunday.closed, openTime: settings.workingHours.sunday.open, closeTime: settings.workingHours.sunday.close }
+          }
+        }
       })
 
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Horários salvos e sincronizados com sucesso!' })
-        setTimeout(() => setMessage(null), 3000)
-      } else {
-        const error = await response.json()
-        throw new Error(error.error || 'Erro ao salvar horários')
-      }
+      setMessage({ type: 'success', text: 'Horários salvos e sincronizados com sucesso!' })
+      setTimeout(() => setMessage(null), 3000)
     } catch (error) {
       setMessage({ 
         type: 'error', 

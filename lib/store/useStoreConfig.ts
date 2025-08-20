@@ -95,9 +95,9 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
-        // Buscar dados da loja via API
-        const response = await fetch(`http://localhost:3001/api/v1/stores/${slug}/public`)
-
+        // Buscar dados da loja via endpoint público
+        const response = await fetch(`/api/store-public/${slug}`)
+        
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('Loja não encontrada')
@@ -107,7 +107,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             throw new Error('Erro ao buscar dados da loja')
           }
         }
-
+        
         const data = await response.json()
 
         // Mapear resposta da API para StoreConfig

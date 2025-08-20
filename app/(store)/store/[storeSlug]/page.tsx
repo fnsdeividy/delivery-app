@@ -1,14 +1,15 @@
 'use client'
 
-import { Clock, Phone, Search, ShoppingCart, Truck, User, Store } from 'lucide-react'
-import Link from 'next/link'
+import { Clock, Phone, Search, ShoppingCart, Store, Truck, User } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import LoginModal from '../../../../components/LoginModal'
 import PromotionsBanner from '../../../../components/PromotionsBanner'
 import UserProfile from '../../../../components/UserProfile'
+import { apiClient } from '../../../../lib/api-client'
 import { useStoreConfig, useStoreStatus } from '../../../../lib/store/useStoreConfig'
 import { Product } from '../../../../types/cardapio-api'
 
@@ -78,13 +79,9 @@ export default function StorePage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/stores/${slug}/search?q=${encodeURIComponent(searchQuery)}`, { cache: 'no-store' })
-        if (res.ok) {
-          const data = await res.json()
-          setSearchResults(data.items as Product[])
-        } else {
-          setSearchResults(null)
-        }
+        // Usar apiClient para buscar produtos via API backend
+        const data = await apiClient.searchProducts(slug, searchQuery)
+        setSearchResults(data)
       } catch {
         setSearchResults(null)
       }

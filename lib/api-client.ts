@@ -26,6 +26,7 @@ import {
   User
 } from '@/types/cardapio-api'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { appConfig } from './config'
 
 // Interfaces para tipagem de erros
 interface ApiErrorResponse {
@@ -47,12 +48,12 @@ class ApiClient {
   private isDev: boolean
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_CARDAPIO_API_URL || 'http://localhost:3001/api/v1'
-    this.isDev = process.env.NODE_ENV === 'development'
+    this.baseURL = appConfig.api.baseURL
+    this.isDev = appConfig.env.isDevelopment
 
     this.client = axios.create({
       baseURL: this.baseURL,
-      timeout: 10000,
+      timeout: appConfig.api.timeout,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -73,7 +74,7 @@ class ApiClient {
       (config) => {
         const token = this.getAuthToken()
         
-        if (this.isDev) {
+        if (appConfig.api.logRequests) {
           this.log('🔑 Request Interceptor', { 
             hasToken: !!token, 
             url: config.url 
@@ -82,9 +83,9 @@ class ApiClient {
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
-          if (this.isDev) {
-            this.log('🔑 Token adicionado aos headers')
-          }
+                  if (appConfig.api.logRequests) {
+          this.log('🔑 Token adicionado aos headers')
+        }
         }
         
         return config
@@ -96,13 +97,13 @@ class ApiClient {
   private setupResponseInterceptor(): void {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        if (this.isDev) {
-          this.log('✅ Response Interceptor', {
-            status: response.status,
-            url: response.config.url,
-            dataType: typeof response.data
-          })
-        }
+              if (appConfig.api.logResponses) {
+        this.log('✅ Response Interceptor', {
+          status: response.status,
+          url: response.config.url,
+          dataType: typeof response.data
+        })
+      }
         return response
       },
       (error: AxiosError) => {
@@ -135,7 +136,9 @@ class ApiClient {
         const apiError = ErrorHandler.handleApiError(error)
         ErrorHandler.logError(error, 'API Client')
       }).catch(() => {
-        this.log('Error handler não disponível')
+        if (appConfig.api.debug) {
+          this.log('Error handler não disponível')
+        }
       })
     }
   }
@@ -182,14 +185,18 @@ class ApiClient {
 
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
-      this.log('📤 Enviando POST', { url, dataType: typeof data })
+      if (appConfig.api.logRequests) {
+        this.log('📤 Enviando POST', { url, dataType: typeof data })
+      }
 
       const response = await this.client.post<T>(url, data, config)
 
-      this.log('📥 Resposta POST', {
-        status: response.status,
-        dataType: typeof response.data
-      })
+      if (appConfig.api.logResponses) {
+        this.log('📥 Resposta POST', {
+          status: response.status,
+          dataType: typeof response.data
+        })
+      }
 
       if (response.status === 200 || response.status === 201) {
         return response.data
@@ -197,7 +204,9 @@ class ApiClient {
 
       throw new Error(`Status inesperado: ${response.status}`)
     } catch (error) {
-      this.log('❌ Erro na requisição POST', { error })
+      if (appConfig.api.debug) {
+        this.log('❌ Erro na requisição POST', { error })
+      }
       throw this.createApiError(error)
     }
   }
@@ -250,7 +259,9 @@ class ApiClient {
 
   async authenticate(email: string, password: string, storeSlug?: string): Promise<AuthResponse> {
     try {
-      this.log('🔐 Iniciando autenticação')
+      if (appConfig.api.logRequests) {
+        this.log('🔐 Iniciando autenticação')
+      }
 
       const loginData: LoginDto = { email, password }
       if (storeSlug) {
@@ -261,11 +272,15 @@ class ApiClient {
       const token = response.access_token
 
       this.setAuthToken(token)
-      this.log('💾 Token armazenado')
+      if (appConfig.api.logResponses) {
+        this.log('💾 Token armazenado')
+      }
 
       return response
     } catch (error) {
-      this.log('❌ Erro na autenticação', { error })
+      if (appConfig.api.debug) {
+        this.log('❌ Erro na autenticação', { error })
+      }
       throw this.createApiError(error)
     }
   }
@@ -310,31 +325,41 @@ class ApiClient {
             const payload = JSON.parse(atob(tokenParts[1]))
             return payload.storeSlug || null
           } catch (decodeError) {
+            if (appConfig.api.debug) {
             this.log('⚠️ Erro ao decodificar token', { decodeError })
+          }
           }
         }
       }
 
       return null
     } catch (error) {
-      this.log('❌ Erro ao obter storeSlug atual', { error })
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao obter storeSlug atual', { error })
+      }
       return null
     }
   }
 
   async updateStoreContext(storeSlug: string): Promise<void> {
     try {
-      this.log('🔄 Atualizando contexto da loja', { storeSlug })
+      if (appConfig.api.logRequests) {
+        this.log('🔄 Atualizando contexto da loja', { storeSlug })
+      }
 
       const currentToken = this.getAuthToken()
       if (!currentToken) {
-        this.log('⚠️ Nenhum token encontrado para atualizar contexto')
+        if (appConfig.api.debug) {
+          this.log('⚠️ Nenhum token encontrado para atualizar contexto')
+        }
         return
       }
 
       const tokenParts = currentToken.split('.')
       if (tokenParts.length !== 3) {
-        this.log('⚠️ Token JWT inválido')
+        if (appConfig.api.debug) {
+          this.log('⚠️ Token JWT inválido')
+        }
         return
       }
 
@@ -342,21 +367,31 @@ class ApiClient {
         const payload = JSON.parse(atob(tokenParts[1]))
         
         if (payload.storeSlug === storeSlug) {
-          this.log('✅ StoreSlug já está correto no token')
+          if (appConfig.api.logResponses) {
+            this.log('✅ StoreSlug já está correto no token')
+          }
           return
         }
 
         localStorage.setItem('currentStoreSlug', storeSlug)
-        this.log('💾 StoreSlug atualizado no localStorage', { storeSlug })
+        if (appConfig.api.logResponses) {
+          this.log('💾 StoreSlug atualizado no localStorage', { storeSlug })
+        }
 
       } catch (decodeError) {
-        this.log('⚠️ Erro ao decodificar token, continuando...', { decodeError })
-        localStorage.setItem('currentStoreSlug', storeSlug)
-        this.log('💾 StoreSlug armazenado no localStorage (fallback)', { storeSlug })
+                  if (appConfig.api.debug) {
+            this.log('⚠️ Erro ao decodificar token, continuando...', { decodeError })
+          }
+          localStorage.setItem('currentStoreSlug', storeSlug)
+          if (appConfig.api.logResponses) {
+            this.log('💾 StoreSlug armazenado no localStorage (fallback)', { storeSlug })
+          }
       }
 
     } catch (error) {
-      this.log('❌ Erro ao atualizar contexto da loja', { error })
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao atualizar contexto da loja', { error })
+      }
       throw new Error('Falha ao atualizar contexto da loja')
     }
   }
@@ -389,7 +424,9 @@ class ApiClient {
     try {
       return await this.get<PaginatedResponse<Store>>(`/stores?page=${page}&limit=${limit}`)
     } catch (error) {
-      this.log('❌ Erro ao buscar lojas', { error })
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao buscar lojas', { error })
+      }
       throw error
     }
   }
@@ -522,7 +559,7 @@ class ApiClient {
   // ===== UTILITÁRIOS =====
 
   private log(message: string, data?: any): void {
-    if (this.isDev) {
+    if (appConfig.api.debug) {
       console.log(message, data)
     }
   }
