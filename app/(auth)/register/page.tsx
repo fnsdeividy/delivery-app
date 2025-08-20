@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Store } from 'lucide-react'
+import { ArrowLeft, Storefront } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -20,7 +20,7 @@ export default function RegisterPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-            <Store className="w-6 h-6 text-white" />
+            <Storefront className="w-6 h-6 text-white" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
@@ -42,7 +42,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <div className="mb-6">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Store className="w-8 h-8 text-orange-600" />
+                <Storefront className="w-8 h-8 text-orange-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Registre sua loja
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                   </div>
                 ) : (
                   <>
-                    <Store className="w-4 h-4 mr-2" />
+                    <Storefront className="w-4 h-4 mr-2" />
                     Cadastrar minha loja
                   </>
                 )}

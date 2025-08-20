@@ -2,7 +2,7 @@
 
 import { useCardapioAuth, useCreateStore } from '@/hooks'
 import { CreateStoreDto, CreateUserDto, UserRole } from '@/types/cardapio-api'
-import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
+import { ArrowLeft, Eye, EyeSlash, Storefront } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -167,7 +167,7 @@ export default function RegisterLojaPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-            <Store className="w-6 h-6 text-white" />
+            <Storefront className="w-6 h-6 text-white" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
@@ -270,7 +270,7 @@ export default function RegisterLojaPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeSlash className="h-4 w-4 text-gray-400" />
                     ) : (
                       <Eye className="h-4 w-4 text-gray-400" />
                     )}

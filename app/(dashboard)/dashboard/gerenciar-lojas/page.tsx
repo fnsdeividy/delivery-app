@@ -6,7 +6,7 @@ import { RejectStoreModal } from '@/components/RejectStoreModal'
 import { useToast } from '@/components/Toast'
 import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useUpdateStore } from '@/hooks'
 import { CreateStoreDto } from '@/types/cardapio-api'
-import { Edit, ExternalLink, Eye, Plus, Store, Users } from 'lucide-react'
+import { Eye, Plus, Storefront, Users } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -274,7 +274,7 @@ export default function GerenciarLojas() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <Store className="w-8 h-8 text-orange-600" />
+                              <Storefront className="w-8 h-8 text-orange-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total de Lojas</p>
                 <p className="text-2xl font-bold text-gray-900">{stores.length}</p>
@@ -329,7 +329,7 @@ export default function GerenciarLojas() {
 
           {stores.length === 0 ? (
             <div className="text-center py-12">
-              <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <Storefront className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma loja encontrada</h3>
               <p className="text-gray-500 mb-4">Comece criando sua primeira loja</p>
               <button

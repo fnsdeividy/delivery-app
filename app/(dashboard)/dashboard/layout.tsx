@@ -1,22 +1,23 @@
 'use client'
 
 import {
-    BarChart3,
+    ChartBar,
     Clock,
     CreditCard,
-    LayoutDashboard,
-    LogOut,
-    Menu,
+    Gear,
+    Layout,
+    List,
     Package,
     Palette,
-    Settings,
     ShoppingBag,
+    SignOut,
     Truck,
     X
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import { UserStoreStatus } from '../../../components/UserStoreStatus'
 import WelcomeNotification from '../../../components/WelcomeNotification'
 import { useStoreConfig } from '../../../lib/store/useStoreConfig'
 import './dashboard.css'
@@ -82,7 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       name: 'Visão Geral',
       href: `/dashboard/${slug}`,
-      icon: LayoutDashboard,
+      icon: Layout,
       current: pathname === `/dashboard/${slug}`
     },
     {
@@ -100,13 +101,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       name: 'Analytics',
       href: `/dashboard/${slug}/analytics`,
-      icon: BarChart3,
+      icon: ChartBar,
       current: pathname.startsWith(`/dashboard/${slug}/analytics`)
     },
     {
       name: 'Configurações',
       href: `/dashboard/${slug}/configuracoes`,
-      icon: Settings,
+      icon: Gear,
       current: pathname.startsWith(`/dashboard/${slug}/configuracoes`),
       children: [
         {
@@ -261,7 +262,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
               title="Sair"
             >
-              <LogOut className="h-5 w-5" />
+                              <SignOut className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -276,7 +277,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200"
             >
-              <Menu className="h-6 w-6" />
+              <List className="h-6 w-6" />
             </button>
 
             <div className="flex items-center space-x-4">
@@ -299,6 +300,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   Ver Loja
                 </a>
               )}
+
+              {/* Status do usuário e loja atual */}
+              <UserStoreStatus />
             </div>
           </div>
         </div>

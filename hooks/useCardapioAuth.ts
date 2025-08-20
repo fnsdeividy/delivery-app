@@ -12,12 +12,12 @@ export function useCardapioAuth() {
 
   // Mutation para login
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginDto & { storeSlug?: string }) => {
+    mutationFn: async (credentials: LoginDto) => {
       setIsLoading(true)
       setError(null)
 
       try {
-        const response = await apiClient.authenticate(credentials.email, credentials.password, credentials.storeSlug)
+        const response = await apiClient.authenticate(credentials.email, credentials.password)
 
         // Validar se a resposta contém o token
         if (!response || typeof response !== 'object') {
@@ -60,7 +60,7 @@ export function useCardapioAuth() {
             email: payload.email,
             name: payload.name || payload.email.split('@')[0],
             role: response.user?.role || payload.role,
-            storeSlug: credentials.storeSlug || response.user?.storeSlug || payload.storeSlug || null
+            storeSlug: response.user?.storeSlug || payload.storeSlug || null
           }
         }
       } catch (err: any) {
@@ -71,7 +71,7 @@ export function useCardapioAuth() {
         setIsLoading(false)
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // Invalidar queries para atualizar estado da aplicação
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['stores'] })
@@ -84,36 +84,45 @@ export function useCardapioAuth() {
         router.push('/')
         return
       } else if (data.user.role === 'ADMIN') {
-        // Para ADMIN, usar lógica inteligente de redirecionamento
-        let storeSlug = variables.storeSlug
-
-        // Se não houver nas variáveis, verificar no usuário retornado
-        if (!storeSlug && data.user.storeSlug) {
-          storeSlug = data.user.storeSlug
-        }
-
-        // Se ainda não houver, verificar no localStorage
-        if (!storeSlug) {
-          const storedStoreSlug = localStorage.getItem('currentStoreSlug')
-          if (storedStoreSlug) {
-            storeSlug = storedStoreSlug
+        // Para ADMIN, implementar redirecionamento inteligente
+        try {
+          // Consultar /users/me para obter lojas do usuário
+          const userInfo = await apiClient.getCurrentUser()
+          
+          if (userInfo && userInfo.stores && Array.isArray(userInfo.stores)) {
+            const userStores = userInfo.stores
+            
+            if (userStores.length === 0) {
+              // Usuário não possui lojas - redirecionar para criar loja
+              router.push('/register/loja')
+            } else if (userStores.length === 1) {
+              // Usuário possui apenas uma loja - redirecionar diretamente
+              const storeSlug = userStores[0].storeSlug
+              router.push(`/dashboard/${storeSlug}`)
+            } else {
+              // Usuário possui múltiplas lojas - redirecionar para gerenciar lojas
+              router.push('/dashboard/gerenciar-lojas')
+            }
+          } else {
+            // Fallback: se não conseguir obter informações, usar lógica antiga
+            const storeSlug = data.user.storeSlug || localStorage.getItem('currentStoreSlug')
+            
+            if (storeSlug && storeSlug.trim() !== '') {
+              router.push(`/dashboard/${storeSlug}`)
+            } else {
+              router.push('/dashboard/gerenciar-lojas')
+            }
           }
-        }
-
-        // Verificar se o storeSlug é válido
-        if (storeSlug && storeSlug.trim() !== '') {
-          // ADMIN com loja específica - redirecionar para dashboard da loja
-          const dashboardUrl = `/dashboard/${storeSlug}`
-
-          // Invalidar queries relacionadas
-          queryClient.invalidateQueries({ queryKey: ['store', storeSlug] })
-          queryClient.invalidateQueries({ queryKey: ['stores'] })
-
-          // Executar redirecionamento
-          router.push(dashboardUrl)
-        } else {
-          // ADMIN sem loja específica - redirecionar para nova Dashboard principal
-          router.push('/dashboard/gerenciar-lojas')
+        } catch (error) {
+          console.warn('Erro ao obter informações do usuário, usando fallback:', error)
+          // Fallback em caso de erro na API
+          const storeSlug = data.user.storeSlug || localStorage.getItem('currentStoreSlug')
+          
+          if (storeSlug && storeSlug.trim() !== '') {
+            router.push(`/dashboard/${storeSlug}`)
+          } else {
+            router.push('/dashboard/gerenciar-lojas')
+          }
         }
       }
     },

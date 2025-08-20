@@ -2,7 +2,7 @@
 
 import { useStore, useUpdateStore } from '@/hooks'
 import { UpdateStoreDto } from '@/types/cardapio-api'
-import { Loader2, Save, X } from 'lucide-react'
+import { Spinner, FloppyDisk, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 
 interface StoreEditFormProps {
@@ -165,7 +165,7 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
   if (isLoadingStore) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <Spinner className="h-8 w-8 animate-spin text-orange-500" />
         <span className="ml-2 text-gray-600">Carregando dados da loja...</span>
       </div>
     )
@@ -406,9 +406,9 @@ export function StoreEditForm({ storeId, onSuccess, onCancel, initialData }: Sto
           className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
                       {updateStoreMutation.isPending ? (
-            <Loader2 className="w-4 h-4 inline mr-2 animate-spin" />
+            <Spinner className="w-4 h-4 inline mr-2 animate-spin" />
           ) : (
-            <Save className="w-4 h-4 inline mr-2" />
+                          <FloppyDisk className="w-4 h-4 inline mr-2" />
           )}
           {updateStoreMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
         </button>

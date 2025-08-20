@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode } from 'react'
-import { X, CheckCircle, AlertCircle, Info, XCircle } from 'lucide-react'
+import { X, CheckCircle, WarningCircle, Info, XCircle } from '@phosphor-icons/react'
 
 export type ToastType = 'success' | 'error' | 'info'
 

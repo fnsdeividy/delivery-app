@@ -1,18 +1,18 @@
 'use client'
 
 import { useCategoriesByStore, useCreateProduct, useDeleteProduct, useProductsByStore, useToggleProductAvailability, useUpdateProduct } from '@/hooks'
-import { CreateProductDto, UpdateProductDto } from '@/types/cardapio-api'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
+import { CreateProductDto, UpdateProductDto } from '@/types/cardapio-api'
 import {
-    AlertCircle,
     CheckCircle,
     Clock,
-    Edit,
+    MagnifyingGlass,
     Package,
+    PencilSimple,
     Plus,
-    Search,
-    Trash2
-} from 'lucide-react'
+    Trash,
+    WarningCircle
+} from '@phosphor-icons/react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -209,7 +209,7 @@ export default function ProdutosPage() {
         
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <AlertCircle className="h-8 w-8 text-red-500" />
+            <WarningCircle className="h-8 w-8 text-red-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Sem Estoque</p>
               <p className="text-2xl font-bold text-gray-900">{stats.outOfStock}</p>
@@ -233,7 +233,7 @@ export default function ProdutosPage() {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Buscar produtos..."
@@ -351,13 +351,13 @@ export default function ProdutosPage() {
                         onClick={() => openEditModal(product)}
                         className="text-orange-600 hover:text-orange-900"
                       >
-                        <Edit className="h-4 w-4" />
+                        <PencilSimple className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

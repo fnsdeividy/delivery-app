@@ -1,5 +1,6 @@
 import {
   AnalyticsData,
+  AuthContext,
   AuthResponse,
   Category,
   CreateCategoryDto,
@@ -8,12 +9,14 @@ import {
   CreateStockMovementDto,
   CreateStoreDto,
   CreateUserDto,
+  CreateUserStoreDto,
   Inventory,
   LoginDto,
   Order,
   OrderStats,
   PaginatedResponse,
   Product,
+  SetCurrentStoreDto,
   StockMovement,
   Store,
   StoreStats,
@@ -23,7 +26,10 @@ import {
   UpdateProductDto,
   UpdateStoreDto,
   UpdateUserDto,
-  User
+  UpdateUserStoreDto,
+  User,
+  UserPermissions,
+  UserStoreAssociation
 } from '@/types/cardapio-api'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { appConfig } from './config'
@@ -264,9 +270,7 @@ class ApiClient {
       }
 
       const loginData: LoginDto = { email, password }
-      if (storeSlug) {
-        loginData.storeSlug = storeSlug
-      }
+      // storeSlug agora é completamente opcional - o backend irá identificar automaticamente
 
       const response = await this.post<AuthResponse>('/auth/login', loginData)
       const token = response.access_token
@@ -306,6 +310,44 @@ class ApiClient {
 
   getCurrentToken(): string | null {
     return this.getAuthToken()
+  }
+
+  async getCurrentUser(): Promise<User> {
+    try {
+      const response = await this.get<User>('/users/me')
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao obter usuário atual', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async getCurrentUserContext(): Promise<AuthContext> {
+    try {
+      const response = await this.get<AuthContext>('/users/me/context')
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao obter contexto do usuário', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
+    try {
+      const response = await this.patch<User>('/users/me/current-store', data)
+      // Atualizar localStorage com a nova loja atual
+      localStorage.setItem('currentStoreSlug', data.storeSlug)
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao definir loja atual', { error })
+      }
+      throw this.createApiError(error)
+    }
   }
 
   getCurrentStoreSlug(): string | null {
@@ -416,6 +458,75 @@ class ApiClient {
 
   async deleteUser(id: string): Promise<void> {
     return this.delete<void>(`/users/${id}`)
+  }
+
+  // ===== USER-STORE ASSOCIATIONS (RBAC) =====
+
+  async getUserStoreAssociations(userId: string): Promise<UserStoreAssociation[]> {
+    try {
+      const response = await this.get<UserStoreAssociation[]>(`/users/${userId}/stores`)
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao obter associações usuário-loja', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async createUserStoreAssociation(data: CreateUserStoreDto): Promise<UserStoreAssociation> {
+    try {
+      const response = await this.post<UserStoreAssociation>('/user-stores', data)
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao criar associação usuário-loja', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async updateUserStoreAssociation(
+    userId: string, 
+    storeId: string, 
+    data: UpdateUserStoreDto
+  ): Promise<UserStoreAssociation> {
+    try {
+      const response = await this.patch<UserStoreAssociation>(
+        `/users/${userId}/stores/${storeId}`, 
+        data
+      )
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao atualizar associação usuário-loja', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async deleteUserStoreAssociation(userId: string, storeId: string): Promise<void> {
+    try {
+      await this.delete<void>(`/users/${userId}/stores/${storeId}`)
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao remover associação usuário-loja', { error })
+      }
+      throw this.createApiError(error)
+    }
+  }
+
+  async getUserPermissions(storeSlug?: string): Promise<UserPermissions> {
+    try {
+      const url = storeSlug ? `/users/me/permissions?store=${storeSlug}` : '/users/me/permissions'
+      const response = await this.get<UserPermissions>(url)
+      return response
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao obter permissões do usuário', { error })
+      }
+      throw this.createApiError(error)
+    }
   }
 
   // ===== LOJAS =====

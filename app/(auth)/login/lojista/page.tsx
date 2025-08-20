@@ -1,12 +1,12 @@
 'use client'
 
+import { FormValidation, useFormValidation } from '@/components/FormValidation'
+import { useToast } from '@/components/Toast'
 import { useCardapioAuth } from '@/hooks'
-import { ArrowLeft, Eye, EyeOff, Store } from 'lucide-react'
+import { ArrowLeft, Eye, EyeSlash, Storefront } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useToast } from '@/components/Toast'
-import { FormValidation, useFormValidation } from '@/components/FormValidation'
 
 export default function LojistaLogin() {
   const router = useRouter()
@@ -15,22 +15,16 @@ export default function LojistaLogin() {
   const { addToast } = useToast()
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    storeSlug: ''
+    password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
 
   // Validação de formulário
   const { errors, validateForm, clearErrors, getFieldError, isFieldTouched, markFieldAsTouched } = useFormValidation()
 
-  // Pré-preencher slug se vier da URL e mostrar mensagem
+  // Mostrar mensagem se vier da URL
   useEffect(() => {
-    const slug = searchParams.get('slug')
     const message = searchParams.get('message')
-
-    if (slug) {
-      setFormData(prev => ({ ...prev, storeSlug: slug }))
-    }
 
     if (message) {
       addToast({
@@ -71,10 +65,6 @@ export default function LojistaLogin() {
       password: [
         { required: true, fieldName: 'Senha' },
         { minLength: 6, fieldName: 'Senha' }
-      ],
-      storeSlug: [
-        { required: true, fieldName: 'Slug da Loja' },
-        { minLength: 2, fieldName: 'Slug da Loja' }
       ]
     }
 
@@ -92,8 +82,7 @@ export default function LojistaLogin() {
     // O hook irá lidar com o redirecionamento em caso de sucesso
     login({
       email: formData.email,
-      password: formData.password,
-      storeSlug: formData.storeSlug
+      password: formData.password
     })
   }
 
@@ -121,7 +110,7 @@ export default function LojistaLogin() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-            <Store className="w-6 h-6 text-white" />
+            <Storefront className="w-6 h-6 text-white" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
@@ -135,35 +124,6 @@ export default function LojistaLogin() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Slug da Loja */}
-            <div>
-              <label htmlFor="storeSlug" className="block text-sm font-medium text-gray-700">
-                Slug da Loja <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-1">
-                <input
-                  id="storeSlug"
-                  name="storeSlug"
-                  type="text"
-                  required
-                  value={formData.storeSlug}
-                  onChange={handleInputChange}
-                  onBlur={() => markFieldAsTouched('storeSlug')}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black ${isFieldTouched('storeSlug') && getFieldError('storeSlug')
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300'
-                    }`}
-                  placeholder="ex: minha-loja"
-                />
-              </div>
-              {isFieldTouched('storeSlug') && getFieldError('storeSlug') && (
-                <p className="mt-1 text-xs text-red-600">{getFieldError('storeSlug')?.message}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">
-                Identificador único da sua loja (ex: boteco-do-joao)
-              </p>
-            </div>
-
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -218,7 +178,7 @@ export default function LojistaLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeSlash className="h-4 w-4 text-gray-400" />
                   ) : (
                     <Eye className="h-4 w-4 text-gray-400" />
                   )}
@@ -240,7 +200,7 @@ export default function LojistaLogin() {
               <div className="text-blue-600 text-xs space-y-1">
                 <p><strong>Email:</strong> admin@boteco.com</p>
                 <p><strong>Senha:</strong> 123456</p>
-                <p><strong>Loja:</strong> boteco-do-joao</p>
+                <p className="text-xs italic">Redirecionamento automático após login</p>
               </div>
             </div>
 
@@ -252,7 +212,7 @@ export default function LojistaLogin() {
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                  <Store className="h-5 w-5 text-orange-500 group-hover:text-orange-400" />
+                  <Storefront className="h-5 w-5 text-orange-500 group-hover:text-orange-400" />
                 </span>
                 {isLoading ? 'Entrando...' : 'Acessar Dashboard'}
               </button>

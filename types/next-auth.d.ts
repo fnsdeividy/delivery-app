@@ -1,4 +1,5 @@
 import 'next-auth'
+import { UserRole, UserStoreAssociation } from './cardapio-api'
 
 declare module 'next-auth' {
   interface Session {
@@ -6,10 +7,12 @@ declare module 'next-auth' {
       id: string
       email: string
       name: string
-      role: 'CLIENT' | 'ADMIN' | 'SUPER_ADMIN'
-      storeId?: string
-      storeSlug?: string
+      role: UserRole
+      storeId?: string // Para compatibilidade - será depreciado
+      storeSlug?: string // Para compatibilidade - será depreciado
       active: boolean
+      stores?: UserStoreAssociation[]
+      currentStoreSlug?: string
     }
     accessToken?: string
   }
@@ -18,20 +21,24 @@ declare module 'next-auth' {
     id: string
     email: string
     name: string
-    role: 'CLIENT' | 'ADMIN' | 'SUPER_ADMIN'
-    storeId?: string
-    storeSlug?: string
+    role: UserRole
+    storeId?: string // Para compatibilidade - será depreciado
+    storeSlug?: string // Para compatibilidade - será depreciado
     active: boolean
     accessToken?: string
+    stores?: UserStoreAssociation[]
+    currentStoreSlug?: string
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    role: 'CLIENT' | 'ADMIN' | 'SUPER_ADMIN'
-    storeId?: string
-    storeSlug?: string
+    role: UserRole
+    storeId?: string // Para compatibilidade - será depreciado
+    storeSlug?: string // Para compatibilidade - será depreciado
     active: boolean
     accessToken?: string
+    stores?: UserStoreAssociation[]
+    currentStoreSlug?: string
   }
 }

@@ -3,13 +3,13 @@
 import { apiClient } from '@/lib/api-client'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
-    AlertCircle,
     CheckCircle,
     CreditCard,
+    FloppyDisk,
     Plus,
-    Save,
+    WarningCircle,
     X
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -395,7 +395,7 @@ export default function PagamentoPage() {
                 disabled={saving}
                 className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
               >
-                <Save className="h-4 w-4" />
+                <FloppyDisk className="h-4 w-4" />
                 <span>{saving ? 'Salvando...' : 'Salvar'}</span>
               </button>
             </div>
@@ -415,7 +415,7 @@ export default function PagamentoPage() {
               {message.type === 'success' ? (
                 <CheckCircle className="h-5 w-5" />
               ) : (
-                <AlertCircle className="h-5 w-5" />
+                <WarningCircle className="h-5 w-5" />
               )}
               <span>{message.text}</span>
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, ArrowLeft, Clock, Home } from 'lucide-react'
+import { ArrowLeft, Clock, House, Warning } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -21,7 +21,7 @@ export default function Unauthorized() {
             {isPendingApproval ? (
               <Clock className="w-12 h-12 text-yellow-500" />
             ) : (
-              <AlertTriangle className="w-12 h-12 text-red-500" />
+              <Warning className="w-12 h-12 text-red-500" />
             )}
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-2">
@@ -54,7 +54,7 @@ export default function Unauthorized() {
             href="/login"
             className="inline-flex items-center justify-center w-full px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
           >
-            <Home className="w-5 h-5 mr-2" />
+                            <House className="w-5 h-5 mr-2" />
             Fazer Login
           </Link>
           

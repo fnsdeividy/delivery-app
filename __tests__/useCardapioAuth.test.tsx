@@ -12,6 +12,7 @@ jest.mock('@/lib/api-client', () => ({
     logout: jest.fn(),
     isAuthenticated: jest.fn(),
     getCurrentToken: jest.fn(),
+    getCurrentUser: jest.fn(),
   },
 }))
 
@@ -79,10 +80,32 @@ describe('useCardapioAuth', () => {
   }
 
   describe('login', () => {
-    it('deve fazer login com sucesso para ADMIN com storeSlug e redirecionar para dashboard da loja', async () => {
+    it('deve fazer login com sucesso para ADMIN com uma loja e redirecionar para dashboard da loja', async () => {
       // Arrange
       mockApiClient.authenticate.mockResolvedValue(mockAuthResponse)
-      localStorageMock.getItem.mockReturnValue(null) // Sem storeSlug no localStorage
+      mockApiClient.getCurrentUser.mockResolvedValue({
+        id: 'admin-123',
+        email: 'admin@test.com',
+        name: 'Admin User',
+        role: 'ADMIN',
+        active: true,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01',
+        stores: [
+          {
+            id: 'store-123',
+            slug: 'test-store',
+            name: 'Test Store',
+            description: 'Test Description',
+            config: {} as any,
+            active: true,
+            approved: true,
+            createdAt: '2023-01-01',
+            updatedAt: '2023-01-01'
+          }
+        ]
+      })
+      localStorageMock.getItem.mockReturnValue(null)
 
       const { result } = renderHook(() => useCardapioAuth(), { wrapper })
 
@@ -96,22 +119,81 @@ describe('useCardapioAuth', () => {
 
       expect(mockApiClient.authenticate).toHaveBeenCalledWith(
         'admin@test.com',
-        'password123',
-        'test-store'
+        'password123'
       )
       expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store')
     })
 
-    it('deve fazer login com sucesso para ADMIN sem storeSlug e redirecionar para dashboard administrativo', async () => {
+    it('deve fazer login com sucesso para ADMIN sem lojas e redirecionar para criar loja', async () => {
       // Arrange
-      const credentialsWithoutStore = { ...mockLoginCredentials, storeSlug: undefined }
       mockApiClient.authenticate.mockResolvedValue(mockAuthResponse)
+      mockApiClient.getCurrentUser.mockResolvedValue({
+        id: 'admin-123',
+        email: 'admin@test.com',
+        name: 'Admin User',
+        role: 'ADMIN',
+        active: true,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01',
+        stores: [] // Usuário sem lojas
+      })
       localStorageMock.getItem.mockReturnValue(null)
 
       const { result } = renderHook(() => useCardapioAuth(), { wrapper })
 
       // Act
-      result.current.login(credentialsWithoutStore)
+      result.current.login(mockLoginCredentials)
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      expect(mockPush).toHaveBeenCalledWith('/register/loja')
+    })
+
+    it('deve fazer login com sucesso para ADMIN com múltiplas lojas e redirecionar para gerenciar lojas', async () => {
+      // Arrange
+      mockApiClient.authenticate.mockResolvedValue(mockAuthResponse)
+      mockApiClient.getCurrentUser.mockResolvedValue({
+        id: 'admin-123',
+        email: 'admin@test.com',
+        name: 'Admin User',
+        role: 'ADMIN',
+        active: true,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01',
+        stores: [
+          {
+            id: 'store-1',
+            slug: 'store-one',
+            name: 'Store One',
+            description: 'First Store',
+            config: {} as any,
+            active: true,
+            approved: true,
+            createdAt: '2023-01-01',
+            updatedAt: '2023-01-01'
+          },
+          {
+            id: 'store-2',
+            slug: 'store-two',
+            name: 'Store Two',
+            description: 'Second Store',
+            config: {} as any,
+            active: true,
+            approved: true,
+            createdAt: '2023-01-01',
+            updatedAt: '2023-01-01'
+          }
+        ]
+      })
+      localStorageMock.getItem.mockReturnValue(null)
+
+      const { result } = renderHook(() => useCardapioAuth(), { wrapper })
+
+      // Act
+      result.current.login(mockLoginCredentials)
 
       // Assert
       await waitFor(() => {
@@ -119,25 +201,6 @@ describe('useCardapioAuth', () => {
       })
 
       expect(mockPush).toHaveBeenCalledWith('/dashboard/gerenciar-lojas')
-    })
-
-    it('deve fazer login com sucesso para ADMIN usando storeSlug do localStorage', async () => {
-      // Arrange
-      const credentialsWithoutStore = { ...mockLoginCredentials, storeSlug: undefined }
-      mockApiClient.authenticate.mockResolvedValue(mockAuthResponse)
-      localStorageMock.getItem.mockReturnValue('stored-store')
-
-      const { result } = renderHook(() => useCardapioAuth(), { wrapper })
-
-      // Act
-      result.current.login(credentialsWithoutStore)
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
-
-      expect(mockPush).toHaveBeenCalledWith('/dashboard/stored-store')
     })
 
     it('deve fazer login com sucesso para SUPER_ADMIN e redirecionar para /admin', async () => {

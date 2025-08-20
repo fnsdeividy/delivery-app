@@ -2,7 +2,7 @@
 
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useCardapioAuth } from '@/hooks'
-import { BarChart3, Clock, CreditCard, Package, Settings, ShoppingBag, Store, Users } from 'lucide-react'
+import { ChartBar, Clock, CreditCard, Gear, Package, ShoppingBag, Storefront, Users } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -109,7 +109,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                <Store className="w-5 h-5 text-orange-600" />
+                <Storefront className="w-5 h-5 text-orange-600" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard da Loja</h1>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center">
-              <BarChart3 className="w-8 h-8 text-purple-600" />
+              <ChartBar className="w-8 h-8 text-purple-600" />
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
                 <p className="text-sm text-gray-600">Relatórios e métricas</p>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center">
-              <Settings className="w-8 h-8 text-orange-600" />
+              <Gear className="w-8 h-8 text-orange-600" />
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Configurações</h3>
                 <p className="text-sm text-gray-600">Personalizar loja</p>

@@ -72,13 +72,12 @@ describe('useAuth', () => {
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() })
 
     await waitFor(() => {
-      result.current.login('test@example.com', 'password', 'test-store')
+      result.current.login('test@example.com', 'password')
     })
 
     expect(mockApiClient.authenticate).toHaveBeenCalledWith(
       'test@example.com',
-      'password',
-      'test-store'
+      'password'
     )
   })
 
@@ -136,8 +135,7 @@ describe('useAuth', () => {
 
     expect(mockApiClient.authenticate).toHaveBeenCalledWith(
       'invalid@example.com',
-      'wrong-password',
-      undefined
+      'wrong-password'
     )
   })
 

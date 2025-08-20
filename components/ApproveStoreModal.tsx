@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, CheckCircle } from 'lucide-react'
+import { X, CheckCircle } from '@phosphor-icons/react'
 
 interface ApproveStoreModalProps {
   isOpen: boolean

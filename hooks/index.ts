@@ -3,19 +3,19 @@ export { useAuth, useCreateUser, useDeleteUser, useUpdateUser, useUser, useUsers
 
 // Hooks para lojas
 export {
-  useApproveStore, useApprovedStores, useCreateStore, useDeleteStore, usePendingStores, useRejectStore, useStore, useStoreStats, useStores, useUpdateStore
+    useApproveStore, useApprovedStores, useCreateStore, useDeleteStore, usePendingStores, useRejectStore, useStore, useStoreStats, useStores, useUpdateStore
 } from './useStores'
 
 // Hooks para produtos e categorias
 export {
-  useActiveProducts, useCategories, useCreateCategory, useCreateProduct, useDeleteCategory, useDeleteProduct, useProduct, useProducts, useProductsByCategory, useSearchProducts, useUpdateCategory, useUpdateProduct
+    useActiveProducts, useCategories, useCreateCategory, useCreateProduct, useDeleteCategory, useDeleteProduct, useProduct, useProducts, useProductsByCategory, useSearchProducts, useUpdateCategory, useUpdateProduct
 } from './useProducts'
 
 // Hooks para pedidos
 export {
-  useCancelOrder, useCancelledOrders, useCreateOrder, useDeliveredOrders, useDeliveringOrders, useDeliveryOrders, useOrder,
-  useOrderStats, useOrders, useOrdersByPeriod, useOrdersByStatus, useOrdersByType, usePendingOrders, usePickupOrders, usePreparingOrders,
-  useReadyOrders, useUpdateOrder
+    useCancelOrder, useCancelledOrders, useCreateOrder, useDeliveredOrders, useDeliveringOrders, useDeliveryOrders, useOrder,
+    useOrderStats, useOrders, useOrdersByPeriod, useOrdersByStatus, useOrdersByType, usePendingOrders, usePickupOrders, usePreparingOrders,
+    useReadyOrders, useUpdateOrder
 } from './useOrders'
 
 // Hooks existentes (manter compatibilidade)
@@ -104,4 +104,12 @@ export const useToggleProductAvailability = () => ({
   mutate: (data: any) => { },
   isLoading: false
 });
+
+// Hooks para RBAC e contexto de autenticação
+export {
+    useAuthContext, useCurrentStore, useHasPermission, useSetCurrentStore, useUserPermissions, useUserStores
+} from './useAuthContext'
+
+// Hook para redirecionamento inteligente
+export { useStoreRedirect } from './useStoreRedirect'
 

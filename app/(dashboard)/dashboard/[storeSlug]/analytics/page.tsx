@@ -2,19 +2,19 @@
 
 // import { useAnalytics, useCustomerMetrics, useOrderStats, useTopProducts } from '@/hooks'
 import {
-    Activity,
     ArrowDownRight,
     ArrowUpRight,
-    BarChart3,
+    ChartBar,
     Clock,
-    DollarSign,
+    CurrencyDollar,
     Eye,
     Package,
+    Pulse,
     ShoppingCart,
     Star,
-    TrendingUp,
+    TrendUp,
     Users
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
 
@@ -120,7 +120,7 @@ export default function AnalyticsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <BarChart3 className="h-6 w-6 text-orange-500" />
+              <ChartBar className="h-6 w-6 text-orange-500" />
               <h1 className="text-xl font-semibold text-gray-900">Analytics</h1>
             </div>
             
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-green-600" />
+                <CurrencyDollar className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-gray-500 mt-2">Por pedido</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
+                <TrendUp className="h-6 w-6 text-orange-600" />
               </div>
             </div>
           </div>
@@ -329,7 +329,7 @@ export default function AnalyticsPage() {
           {/* Tempo Médio de Entrega */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-3">
-              <Activity className="h-8 w-8 text-green-500" />
+              <Pulse className="h-8 w-8 text-green-500" />
               <div>
                 <p className="text-sm font-medium text-gray-600">Tempo de Entrega</p>
                 <p className="text-xl font-bold text-gray-900">{metrics.averageDeliveryTime} min</p>

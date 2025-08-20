@@ -7,8 +7,8 @@ export function useAuth() {
 
   // Login
   const loginMutation = useMutation({
-    mutationFn: ({ email, password, storeSlug }: LoginDto) =>
-      apiClient.authenticate(email, password, storeSlug),
+    mutationFn: ({ email, password }: LoginDto) =>
+      apiClient.authenticate(email, password),
     onSuccess: (data: AuthResponse) => {
       // Invalidar queries relacionadas ao usuário
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -53,8 +53,8 @@ export function useAuth() {
   })
 
   // Funções para chamar as mutations
-  const login = (email: string, password: string, storeSlug?: string) => {
-    return loginMutation.mutate({ email, password, storeSlug })
+  const login = (email: string, password: string) => {
+    return loginMutation.mutate({ email, password })
   }
 
   const register = (userData: CreateUserDto) => {

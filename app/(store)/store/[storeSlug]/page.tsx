@@ -1,7 +1,7 @@
 'use client'
 
-import { Clock, Phone, Search, ShoppingCart, Store, Truck, User } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { Clock, MagnifyingGlass, Phone, ShoppingCart, Storefront, Truck, User } from '@phosphor-icons/react/dist/ssr'
+// import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -20,7 +20,9 @@ export default function StorePage() {
   const { config, loading, error } = useStoreConfig(slug)
   const { isOpen, currentMessage } = useStoreStatus(config)
 
-  const { data: session, status } = useSession()
+  // const { data: session, status } = useSession()
+  const status = 'unauthenticated'
+  const session = null
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('todos')
   const [searchResults, setSearchResults] = useState<Product[] | null>(null)
@@ -111,7 +113,7 @@ export default function StorePage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Store className="w-12 h-12 text-red-500" />
+            <Storefront className="w-12 h-12 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Loja não encontrada
@@ -199,7 +201,7 @@ export default function StorePage() {
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors" />
+                <MagnifyingGlass className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors" />
                 <input
                   type="text"
                   placeholder="Buscar produtos..."
@@ -214,7 +216,7 @@ export default function StorePage() {
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
               {/* Login/Profile Button */}
-              {status === 'authenticated' && session?.user ? (
+              {false ? (
                 <button
                   onClick={() => setIsProfileOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
@@ -223,7 +225,7 @@ export default function StorePage() {
                 >
                   <User className="h-5 w-5" />
                   <span className="hidden sm:block">
-                    {session.user.name ? session.user.name.split(' ')[0] : 'Perfil'}
+                    Perfil
                   </span>
                 </button>
               ) : (
@@ -381,7 +383,7 @@ export default function StorePage() {
           {filteredProducts.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">
-                <Search className="w-16 h-16 mx-auto" />
+                <MagnifyingGlass className="w-16 h-16 mx-auto" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
               <p className="text-gray-600">
@@ -475,7 +477,7 @@ export default function StorePage() {
 
       {/* User Profile Modal */}
       <UserProfile
-        user={session?.user || null}
+        user={null}
         onLogin={() => setIsLoginOpen(true)}
         onLogout={() => {
           // Lógica de logout

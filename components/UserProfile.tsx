@@ -1,6 +1,6 @@
 'use client'
 
-import { LogOut, Settings, User } from 'lucide-react'
+import { SignOut, Gear, User } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 interface UserProfileProps {
@@ -51,7 +51,7 @@ export default function UserProfile({ user, onLogin, onLogout }: UserProfileProp
             }}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Gear className="h-4 w-4 mr-2" />
             Configurações
           </button>
           
@@ -62,7 +62,7 @@ export default function UserProfile({ user, onLogin, onLogout }: UserProfileProp
             }}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <SignOut className="h-4 w-4 mr-2" />
             Sair
           </button>
         </div>

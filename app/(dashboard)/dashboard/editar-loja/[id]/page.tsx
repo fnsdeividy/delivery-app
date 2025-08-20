@@ -1,7 +1,7 @@
 'use client'
 
 import { StoreEditForm } from '@/components/StoreEditForm'
-import { ArrowLeft, Store } from 'lucide-react'
+import { ArrowLeft, Storefront } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -58,7 +58,7 @@ export default function EditarLojaPage() {
               </Link>
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                  <Store className="w-5 h-5 text-orange-600" />
+                  <Storefront className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Editar Loja</h1>

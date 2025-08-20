@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api-client'
 import { CreateStoreDto, Store } from '@/types/cardapio-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useStoreRedirect } from './useStoreRedirect'
 
 interface CreateStoreHookReturn {
   mutateAsync: (data: CreateStoreDto) => Promise<Store>
@@ -16,6 +17,7 @@ interface CreateStoreHookReturn {
 
 export function useCreateStore(): CreateStoreHookReturn {
   const queryClient = useQueryClient()
+  const { redirectAfterStoreCreation } = useStoreRedirect()
 
   const createStoreMutation = useMutation({
     mutationFn: async (storeData: CreateStoreDto) => {
@@ -33,6 +35,11 @@ export function useCreateStore(): CreateStoreHookReturn {
         queryClient.invalidateQueries({ queryKey: ['stores'] })
         queryClient.invalidateQueries({ queryKey: ['store', data.slug] })
         queryClient.invalidateQueries({ queryKey: ['user'] })
+        queryClient.invalidateQueries({ queryKey: ['user-context'] })
+        queryClient.invalidateQueries({ queryKey: ['user-stores'] })
+
+        // Redirecionar para o dashboard da nova loja
+        await redirectAfterStoreCreation(data)
 
       } catch (error) {
         console.error('❌ Erro no processamento pós-criação:', error)

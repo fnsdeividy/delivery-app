@@ -1,31 +1,12 @@
 'use client'
 
-import { ArrowRight, Crown, Search, Shield, Store, Users } from 'lucide-react'
+import { Storefront } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { Header } from '../components/Header'
 
 export default function HomePage() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const handleStoreSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      // Navegar para a loja (por enquanto usa slug padrão)
-      router.push(`/store/${searchQuery.trim().toLowerCase().replace(/\s+/g, '-')}`)
-    }
-  }
 
   const featuredStores = [
-    {
-      name: 'Boteco do João',
-      slug: 'boteco-do-joao',
-      description: 'Comida caseira e ambiente acolhedor',
-      image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop',
-      rating: 4.8,
-      categories: ['Brasileira', 'Caseira', 'Bebidas']
-    },
     {
       name: 'Pizza Express',
       slug: 'pizza-express',
@@ -47,85 +28,47 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-900">Cardap.IO</h1>
-              <span className="ml-3 px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
-                Multi-Tenant
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/login"
-                className="text-gray-600 hover:text-gray-900 font-medium"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-medium"
-              >
-                Cadastrar
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-orange-50 to-amber-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Cardap.IO - Plataforma Completa de
-            <span className="text-orange-600"> Delivery Multi-Tenant</span>
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
-            Sistema completo para restaurantes, bares e estabelecimentos de alimentação. 
-            Cada loja tem seu próprio cardápio digital, dashboard administrativo e 
-            sistema de pedidos integrado. Ideal para redes, franquias e estabelecimentos independentes.
+      <section className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-24 relative overflow-hidden">
+        {/* Background SVG Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1" className="text-blue-200"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <circle cx="200" cy="150" r="80" fill="currentColor" className="text-blue-200 opacity-30"/>
+            <circle cx="1000" cy="600" r="120" fill="currentColor" className="text-indigo-200 opacity-30"/>
+            <rect x="800" y="200" width="200" height="150" rx="20" fill="currentColor" className="text-purple-200 opacity-20"/>
+          </svg>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Delivery Multi-Tenant
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              em um só lugar
+            </span>
+          </h1>
+          
+          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Crie e gerencie cardápios digitais, pedidos e lojas com poucos cliques.
           </p>
 
-          {/* Search */}
-          <form onSubmit={handleStoreSearch} className="max-w-md mx-auto mb-12">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Buscar loja pelo nome..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-2 bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700"
-              >
-                Buscar
-              </button>
-            </div>
-          </form>
-
-          {/* Quick Access */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          {/* CTA Button */}
+          <div className="flex justify-center">
             <Link
-              href="/store/boteco-do-joao"
-              className="inline-flex items-center px-8 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold shadow-lg"
+              href="/register/loja"
+              className="inline-flex items-center px-12 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 font-bold text-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
             >
-              <Store className="w-5 h-5 mr-2" />
-              Ver Loja Demo
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-            <Link
-              href="/login/lojista"
-              className="inline-flex items-center px-8 py-4 bg-white text-orange-600 border-2 border-orange-600 rounded-lg hover:bg-orange-50 font-semibold shadow-lg"
-            >
-              <Shield className="w-5 h-5 mr-2" />
-              Dashboard Lojista
+                          <Storefront className="w-7 h-7 mr-3" />
+            Criar Minha Loja
             </Link>
           </div>
-
         </div>
       </section>
 
@@ -143,138 +86,122 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {/* Clientes */}
-            <div className="bg-blue-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Clientes</h4>
-              <p className="text-gray-600 mb-6">
-                Navegue pelos cardápios, faça pedidos e acompanhe entregas
-              </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <p>🌐 Interface Pública</p>
-                <p>📱 Cardápios personalizados</p>
-                <p>🛒 Carrinho inteligente</p>
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-6xl mb-6">🛒</div>
+              <h4 className="text-2xl font-bold text-gray-900 mb-6">Cliente</h4>
+              <div className="space-y-3 text-left">
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span className="text-gray-600">Navegue pelos cardápios personalizados</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span className="text-gray-600">Faça pedidos com poucos cliques</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span className="text-gray-600">Acompanhe entregas em tempo real</span>
+                </div>
               </div>
             </div>
 
             {/* Lojistas */}
-            <div className="bg-orange-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Store className="w-8 h-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Lojistas</h4>
-              <p className="text-gray-600 mb-6">
-                Gerencie produtos, pedidos e configure sua loja
-              </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <p>📊 Dashboard Administrativo</p>
-                <p>🍔 Gestão de produtos</p>
-                <p>⚙️ Configurações da loja</p>
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-6xl mb-6">📊</div>
+              <h4 className="text-2xl font-bold text-gray-900 mb-6">Lojista</h4>
+              <div className="space-y-3 text-left">
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-500 mt-1">•</span>
+                  <span className="text-gray-600">Dashboard administrativo completo</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-500 mt-1">•</span>
+                  <span className="text-gray-600">Gerencie produtos e pedidos</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-500 mt-1">•</span>
+                  <span className="text-gray-600">Configure sua loja facilmente</span>
+                </div>
               </div>
             </div>
 
             {/* Super Admin */}
-            <div className="bg-purple-50 rounded-xl p-8 text-center">
-              <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="w-8 h-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-4">Super Admin</h4>
-              <p className="text-gray-600 mb-6">
-                Controle total do sistema e todas as lojas
-              </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <p>👑 Painel de Controle</p>
-                <p>🏢 Gestão de lojas</p>
-                <p>📈 Analytics globais</p>
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-6xl mb-6">👑</div>
+              <h4 className="text-2xl font-bold text-gray-900 mb-6">Super Admin</h4>
+              <div className="space-y-3 text-left">
+                <div className="flex items-start gap-3">
+                  <span className="text-indigo-500 mt-1">•</span>
+                  <span className="text-gray-600">Controle total do sistema</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-indigo-500 mt-1">•</span>
+                  <span className="text-gray-600">Gestão de todas as lojas</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-indigo-500 mt-1">•</span>
+                  <span className="text-gray-600">Analytics globais e relatórios</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Funcionalidades Detalhadas */}
-          <div className="bg-gray-50 rounded-2xl p-8">
-            <h4 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          {/* Funcionalidades Principais */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+            <h4 className="text-3xl font-bold text-gray-900 mb-8 text-center">
               Funcionalidades Principais
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🍔</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Cardápio Digital */}
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">🍔</span>
                 </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Cardápio Digital</h5>
-                <p className="text-sm text-gray-600">
-                  Cardápios personalizados com fotos, descrições e preços
-                </p>
+                <div>
+                  <h5 className="text-xl font-bold text-gray-900 mb-2">Cardápio Digital</h5>
+                  <p className="text-gray-600 leading-relaxed">
+                    Cardápios personalizados com fotos, descrições e preços. Interface intuitiva para clientes navegarem facilmente.
+                  </p>
+                </div>
               </div>
               
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">📊</span>
+              {/* Analytics */}
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📈</span>
                 </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Dashboard Analytics</h5>
-                <p className="text-sm text-gray-600">
-                  Relatórios detalhados de vendas, produtos e performance
-                </p>
+                <div>
+                  <h5 className="text-xl font-bold text-gray-900 mb-2">Analytics</h5>
+                  <p className="text-gray-600 leading-relaxed">
+                    Relatórios detalhados de vendas, produtos e performance. Tome decisões baseadas em dados reais.
+                  </p>
+                </div>
               </div>
               
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">⚙️</span>
+              {/* Configurações Avançadas */}
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">⚙️</span>
                 </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Configurações Avançadas</h5>
-                <p className="text-sm text-gray-600">
-                  Personalização visual, horários e métodos de pagamento
-                </p>
+                <div>
+                  <h5 className="text-xl font-bold text-gray-900 mb-2">Configurações Avançadas</h5>
+                  <p className="text-gray-600 leading-relaxed">
+                    Personalização visual, horários de funcionamento e métodos de pagamento. Configure tudo do seu jeito.
+                  </p>
+                </div>
               </div>
               
-              <div className="text-center">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🚚</span>
+                             {/* Entregas */}
+               <div className="flex items-start gap-4">
+                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                   <span className="text-3xl">🚚</span>
+                 </div>
+                <div>
+                  <h5 className="text-xl font-bold text-gray-900 mb-2">Entregas</h5>
+                  <p className="text-gray-600 leading-relaxed">
+                    Sistema completo de entregas com zonas, taxas e tempo estimado. Controle total sobre suas operações.
+                  </p>
                 </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Sistema de Entrega</h5>
-                <p className="text-sm text-gray-600">
-                  Zonas de entrega, taxas e tempo estimado
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">💳</span>
-                </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Múltiplos Pagamentos</h5>
-                <p className="text-sm text-gray-600">
-                  PIX, cartões, dinheiro e carteiras digitais
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🔔</span>
-                </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Notificações</h5>
-                <p className="text-sm text-gray-600">
-                  Alertas de pedidos, emails e notificações push
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">📱</span>
-                </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Responsivo</h5>
-                <p className="text-sm text-gray-600">
-                  Funciona perfeitamente em desktop, tablet e mobile
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🔒</span>
-                </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Segurança</h5>
-                <p className="text-sm text-gray-600">
-                  Autenticação segura e proteção de dados
-                </p>
               </div>
             </div>
           </div>
@@ -282,75 +209,42 @@ export default function HomePage() {
       </section>
 
       {/* Benefícios */}
-      <section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <section className="py-20 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+            <h3 className="text-4xl font-bold text-gray-900 mb-4">
               Por que escolher o Cardap.IO?
             </h3>
-            <p className="text-lg text-gray-600">
+            <p className="text-xl text-gray-600">
               Vantagens exclusivas para seu negócio
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">💰</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Economia</h4>
-              <p className="text-gray-600 text-sm">
-                Sem taxas mensais abusivas. Pague apenas pelo que usar, com planos flexíveis que crescem com seu negócio.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Economia */}
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-5xl mb-4">💰</div>
+              <h4 className="text-xl font-bold text-gray-900 mb-3">Economia</h4>
+              <p className="text-gray-600">
+                Sem taxas mensais abusivas. Pague apenas pelo que usar.
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">⚡</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Simplicidade</h4>
-              <p className="text-gray-600 text-sm">
-                Interface intuitiva que qualquer pessoa pode usar. Configure sua loja em minutos, não em dias.
+            {/* Simplicidade */}
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-5xl mb-4">⚡</div>
+              <h4 className="text-xl font-bold text-gray-900 mb-3">Simplicidade</h4>
+              <p className="text-gray-600">
+                Interface intuitiva que qualquer pessoa pode usar.
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">🔧</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Flexibilidade</h4>
-              <p className="text-gray-600 text-sm">
-                Personalize tudo: cores, logo, horários, métodos de pagamento. Sua loja, sua identidade.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">📈</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Crescimento</h4>
-              <p className="text-gray-600 text-sm">
-                Analytics detalhados para entender seus clientes e aumentar suas vendas com dados reais.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">🛡️</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Segurança</h4>
-              <p className="text-gray-600 text-sm">
-                Dados protegidos com criptografia avançada. Sua informação e a dos seus clientes sempre seguras.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">🎯</span>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Foco no Negócio</h4>
-              <p className="text-gray-600 text-sm">
-                Deixe a tecnologia conosco. Você foca no que importa: sua comida e seus clientes.
+            {/* Flexibilidade */}
+            <div className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-5xl mb-4">🔧</div>
+              <h4 className="text-xl font-bold text-gray-900 mb-3">Flexibilidade</h4>
+              <p className="text-gray-600">
+                Personalize tudo: cores, logo, horários e pagamentos.
               </p>
             </div>
           </div>
@@ -360,116 +254,181 @@ export default function HomePage() {
       {/* Featured Stores */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h3 className="text-4xl font-bold text-gray-900 mb-4">
               Lojas em Destaque
             </h3>
-            <p className="text-lg text-gray-600">
-              Experimente nosso sistema com estas lojas demo
+            <p className="text-xl text-gray-600">
+              Inspire-se com estas lojas de sucesso
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredStores.map((store) => (
-              <Link
-                key={store.slug}
-                href={`/store/${store.slug}`}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <img
-                  src={store.image}
-                  alt={store.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">{store.name}</h4>
-                    <div className="flex items-center">
-                      <span className="text-yellow-400">⭐</span>
-                      <span className="text-sm text-gray-600 ml-1">{store.rating}</span>
+          {/* Carrossel */}
+          <div className="relative">
+            <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory">
+              {featuredStores.map((store, index) => (
+                <div
+                  key={store.slug}
+                  className="flex-none w-80 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden snap-start"
+                >
+                  <div className="relative">
+                    <img
+                      src={store.image}
+                      alt={store.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute top-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+                      <span className="text-yellow-500">⭐</span>
+                      <span className="text-sm font-semibold text-gray-800">{store.rating}</span>
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-4">{store.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {store.categories.map((category) => (
-                      <span
-                        key={category}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                      >
-                        {category}
-                      </span>
-                    ))}
+                  
+                  <div className="p-6">
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">{store.name}</h4>
+                    <p className="text-gray-600 mb-4 leading-relaxed">{store.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {store.categories.map((category) => (
+                        <span
+                          key={category}
+                          className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full font-medium"
+                        >
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                    
+                    <Link
+                      href={`/store/${store.slug}`}
+                      className="block w-full text-center py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 font-semibold transition-all duration-200 transform hover:-translate-y-1"
+                    >
+                      Ver Cardápio
+                    </Link>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA Principal */}
+          <div className="text-center mt-16">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-2xl mx-auto">
+              <h4 className="text-2xl font-bold text-gray-900 mb-4">
+                Gostou do que viu?
+              </h4>
+              <p className="text-gray-600 mb-6">
+                Crie sua loja digital e tenha o mesmo sucesso. É rápido, fácil e acessível.
+              </p>
+              <Link
+                href="/register/loja"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+              >
+                <Storefront className="w-6 h-6 mr-3" />
+                Quero uma loja assim
               </Link>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-orange-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3 className="text-3xl font-bold text-white mb-4">
+      <section className="py-24 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="60" fill="currentColor" className="text-white opacity-20"/>
+            <circle cx="1100" cy="500" r="80" fill="currentColor" className="text-white opacity-20"/>
+            <circle cx="900" cy="150" r="40" fill="currentColor" className="text-white opacity-30"/>
+            <circle cx="200" cy="450" r="50" fill="currentColor" className="text-white opacity-25"/>
+          </svg>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h3 className="text-5xl font-bold text-white mb-6 leading-tight">
             Pronto para começar?
           </h3>
-          <p className="text-xl text-orange-100 mb-8">
-            Crie sua loja ou faça seu primeiro pedido
+          <p className="text-2xl text-purple-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Crie sua loja em minutos e comece a vender online.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              href="/register/loja"
-              className="inline-flex items-center px-8 py-4 bg-white text-orange-600 rounded-lg hover:bg-gray-100 font-semibold"
-            >
-              <Store className="w-5 h-5 mr-2" />
-              Criar Minha Loja
-            </Link>
-            <Link
-              href="/store/boteco-do-joao"
-              className="inline-flex items-center px-8 py-4 bg-orange-700 text-white rounded-lg hover:bg-orange-800 font-semibold"
-            >
-              <Search className="w-5 h-5 mr-2" />
-              Explorar Cardápios
-            </Link>
+          
+          <div className="flex justify-center">
+                      <Link
+            href="/register/loja"
+            className="inline-flex items-center px-12 py-5 bg-white text-purple-700 rounded-2xl hover:bg-gray-50 font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300"
+          >
+            <Storefront className="w-7 h-7 mr-3" />
+            Criar Minha Loja
+          </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-gradient-to-br from-gray-800 via-gray-900 to-indigo-900 text-white py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {/* Para Clientes */}
             <div>
-              <h5 className="text-lg font-bold mb-4">Cardap.IO</h5>
-              <p className="text-gray-400">
-                Plataforma multi-tenant completa para delivery
-              </p>
-            </div>
-            <div>
-              <h6 className="font-semibold mb-4">Para Clientes</h6>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/store/boteco-do-joao" className="hover:text-white">Ver Cardápios</Link></li>
-                <li><Link href="/login" className="hover:text-white">Fazer Login</Link></li>
-                <li><Link href="/register" className="hover:text-white">Criar Conta</Link></li>
+              <h6 className="text-lg font-bold mb-6 text-white">Para Clientes</h6>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/store/pizza-express" className="text-gray-400 hover:text-white transition-colors">
+                    Cardápios
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/login" className="text-gray-400 hover:text-white transition-colors">
+                    Login
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="text-gray-400 hover:text-white transition-colors">
+                    Criar Conta
+                  </Link>
+                </li>
               </ul>
             </div>
+
+            {/* Para Lojistas */}
             <div>
-              <h6 className="font-semibold mb-4">Para Lojistas</h6>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/login/lojista" className="hover:text-white">Dashboard</Link></li>
-                <li><Link href="/register/loja" className="hover:text-white">Criar Loja</Link></li>
+              <h6 className="text-lg font-bold mb-6 text-white">Para Lojistas</h6>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/login/lojista" className="text-gray-400 hover:text-white transition-colors">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register/loja" className="text-gray-400 hover:text-white transition-colors">
+                    Criar Loja
+                  </Link>
+                </li>
               </ul>
             </div>
+
+            {/* Sistema */}
             <div>
-              <h6 className="font-semibold mb-4">Sistema</h6>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Documentação</a></li>
-                <li><a href="#" className="hover:text-white">Suporte</a></li>
+              <h6 className="text-lg font-bold mb-6 text-white">Sistema</h6>
+              <ul className="space-y-3">
+                <li>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    Documentação
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    Suporte
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 mt-8 text-center text-gray-400">
-            <p>&copy; 2025 Cardap.IO. Sistema Multi-Tenant de Delivery.</p>
+
+          {/* Rodapé */}
+          <div className="border-t border-gray-800 pt-6 mt-12 text-center">
+            <p className="text-gray-400 text-sm">
+              &copy; 2025 Cardap.IO
+            </p>
           </div>
         </div>
       </footer>

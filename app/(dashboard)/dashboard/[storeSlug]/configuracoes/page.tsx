@@ -2,22 +2,22 @@
 
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
-    AlertCircle,
     Bell,
     CheckCircle,
     Clock,
     CreditCard,
+    DeviceMobile,
     FileText,
+    Gear,
     Globe,
+    Lightning,
     Palette,
-    Settings,
     Shield,
-    Smartphone,
-    Store,
+    Storefront,
     Truck,
     Users,
-    Zap
-} from 'lucide-react'
+    WarningCircle
+} from '@phosphor-icons/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -131,7 +131,7 @@ export default function ConfiguracoesPage() {
       id: 'integracao',
       title: 'Integrações',
       description: 'Conecte com iFood, WhatsApp, Google Business e outros',
-      icon: Zap,
+      icon: Lightning,
       href: `/dashboard/${slug}/configuracoes/integracao`,
       status: 'optional',
       badge: 'Em breve'
@@ -167,7 +167,7 @@ export default function ConfiguracoesPage() {
       id: 'app',
       title: 'App Mobile',
       description: 'Configure notificações push e funcionalidades do app',
-      icon: Smartphone,
+      icon: DeviceMobile,
       href: `/dashboard/${slug}/configuracoes/app`,
       status: 'optional',
       badge: 'Em breve'
@@ -190,9 +190,9 @@ export default function ConfiguracoesPage() {
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-600" />
       case 'pending':
-        return <AlertCircle className="h-5 w-5 text-orange-600" />
+        return <WarningCircle className="h-5 w-5 text-orange-600" />
       case 'optional':
-        return <Settings className="h-5 w-5 text-gray-600" />
+        return <Gear className="h-5 w-5 text-gray-600" />
     }
   }
 
@@ -217,7 +217,7 @@ export default function ConfiguracoesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Settings className="h-6 w-6 text-orange-500" />
+              <Gear className="h-6 w-6 text-orange-500" />
               <h1 className="text-xl font-semibold text-gray-900">Configurações</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -235,7 +235,7 @@ export default function ConfiguracoesPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Status das Configurações</h2>
             <div className="flex items-center space-x-2">
-              <Store className="h-5 w-5 text-gray-400" />
+              <Storefront className="h-5 w-5 text-gray-400" />
               <span className="text-sm text-gray-600">{slug}</span>
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function ConfiguracoesPage() {
         <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <Settings className="h-4 w-4 text-orange-600" />
+              <Gear className="h-4 w-4 text-orange-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">Precisa de ajuda?</p>

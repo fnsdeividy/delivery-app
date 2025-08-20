@@ -3,14 +3,14 @@
 import { apiClient } from '@/lib/api-client'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import {
-    AlertCircle,
     CheckCircle,
     Eye,
+    FloppyDisk,
     Palette,
-    Save,
     Upload,
+    WarningCircle,
     X
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -202,7 +202,7 @@ export default function VisualConfigPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <WarningCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar</h2>
           <p className="text-gray-600">{error || 'Configurações não encontradas'}</p>
         </div>
@@ -233,7 +233,7 @@ export default function VisualConfigPage() {
                 disabled={saving}
                 className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
-                <Save className="h-4 w-4" />
+                <FloppyDisk className="h-4 w-4" />
                 <span>{saving ? 'Salvando...' : 'Salvar'}</span>
               </button>
             </div>
@@ -252,7 +252,7 @@ export default function VisualConfigPage() {
             {message.type === 'success' ? (
               <CheckCircle className="h-5 w-5" />
             ) : (
-              <AlertCircle className="h-5 w-5" />
+              <WarningCircle className="h-5 w-5" />
             )}
             <span className="text-sm font-medium">{message.text}</span>
           </div>

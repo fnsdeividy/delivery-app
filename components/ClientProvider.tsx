@@ -1,12 +1,12 @@
 'use client'
 
 import { AuthProvider } from '@/contexts/AuthContext'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useState, type ReactNode } from 'react'
-import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react'
-import { ToastProvider } from './Toast'
+// import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react'
 import { createQueryClient } from '@/lib/query-config'
+import { ToastProvider } from './Toast'
 
 interface ClientProviderProps {
   children: ReactNode
@@ -17,14 +17,14 @@ export function ClientProvider({ children }: ClientProviderProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <NextAuthSessionProvider>
+      {/* <NextAuthSessionProvider> */}
         <AuthProvider>
           <ToastProvider>
             {children}
             <ReactQueryDevtools initialIsOpen={false} />
           </ToastProvider>
         </AuthProvider>
-      </NextAuthSessionProvider>
+      {/* </NextAuthSessionProvider> */}
     </QueryClientProvider>
   )
 }

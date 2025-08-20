@@ -1,28 +1,28 @@
 'use client'
 
-import { ArrowRight, Settings, ShoppingCart, Store, Users } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { ArrowRight, Gear, ShoppingCart, Storefront, Users } from '@phosphor-icons/react'
+// import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 
 export default function MeusPainelPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  // const { data: session, status } = useSession()
+  const status: 'unauthenticated' | 'authenticated' | 'loading' = 'unauthenticated'
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === 'loading') return
-
     if (status === 'unauthenticated') {
       router.push('/login')
       return
     }
 
-    if (session?.user) {
+    // Simular carregamento concluído quando autenticado
+    if (status === 'authenticated') {
       setLoading(false)
     }
-  }, [session, status, router])
+  }, [status, router])
 
   const handleAccessStore = (storeSlug: string) => {
     router.push(`/dashboard/${storeSlug}`)
@@ -32,7 +32,7 @@ export default function MeusPainelPage() {
     router.push('/dashboard/gerenciar-lojas')
   }
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -43,18 +43,9 @@ export default function MeusPainelPage() {
     )
   }
 
-  if (!session?.user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Acesso Negado</h1>
-          <p className="text-gray-600">Você precisa estar logado para acessar esta página.</p>
-        </div>
-      </div>
-    )
-  }
 
-  const { user } = session
+
+  const user = { name: 'Usuário', email: 'user@example.com', role: 'LOJISTA', storeSlug: undefined as string | undefined }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,7 +54,7 @@ export default function MeusPainelPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Store className="h-6 w-6 text-orange-500" />
+                              <Storefront className="h-6 w-6 text-orange-500" />
               <h1 className="text-xl font-semibold text-gray-900">Meu Painel</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -101,7 +92,7 @@ export default function MeusPainelPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Store className="h-5 w-5 text-purple-600" />
+                  <Storefront className="h-5 w-5 text-purple-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Gerenciar Lojas</h3>
               </div>
@@ -136,7 +127,7 @@ export default function MeusPainelPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-gray-600" />
+                  <Gear className="h-5 w-5 text-gray-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Configurações</h3>
               </div>
@@ -157,7 +148,7 @@ export default function MeusPainelPage() {
             {user.storeSlug ? (
               <div className="text-center">
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Store className="h-8 w-8 text-orange-600" />
+                  <Storefront className="h-8 w-8 text-orange-600" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Sua Loja</h2>
                 <p className="text-sm text-gray-600 mb-6">
@@ -174,7 +165,7 @@ export default function MeusPainelPage() {
             ) : (
               <div className="text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Store className="h-8 w-8 text-gray-400" />
+                  <Storefront className="h-8 w-8 text-gray-400" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma Loja Encontrada</h2>
                 <p className="text-sm text-gray-600 mb-6">

@@ -1,6 +1,6 @@
 'use client'
 
-import { Gift, X } from 'lucide-react'
+import { Gift, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 interface PromotionsBannerProps {

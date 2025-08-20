@@ -230,10 +230,24 @@ export interface PaginatedResponse<T> {
 // Enums alinhados com o backend
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
-  ADMIN = 'ADMIN',        // Lojista/Proprietário
-  MANAGER = 'MANAGER',    // Gerente da loja
-  EMPLOYEE = 'EMPLOYEE',  // Funcionário
+  ADMIN = 'ADMIN',        // Para compatibilidade - será depreciado
+  MANAGER = 'MANAGER',    // Para compatibilidade - será depreciado
+  EMPLOYEE = 'EMPLOYEE',  // Para compatibilidade - será depreciado
   CLIENTE = 'CLIENTE'     // Cliente final
+}
+
+// Novos roles para sistema RBAC por loja
+export enum StoreRole {
+  OWNER = 'OWNER',           // Proprietário/Criador da loja
+  LOJA_ADMIN = 'LOJA_ADMIN', // Administrador da loja
+  LOJA_MANAGER = 'LOJA_MANAGER', // Gerente da loja
+  LOJA_EMPLOYEE = 'LOJA_EMPLOYEE' // Funcionário da loja
+}
+
+// Escopos de permissão
+export enum PermissionScope {
+  GLOBAL = 'GLOBAL',     // Acesso a todo o sistema (apenas SUPER_ADMIN)
+  STORE = 'STORE'        // Acesso limitado a loja(s) específica(s)
 }
 
 export enum OrderStatus {
@@ -429,12 +443,61 @@ export interface User {
   email: string
   name: string
   role: UserRole
-  storeSlug?: string
+  storeSlug?: string // Para compatibilidade - será depreciado
   active: boolean
   phone?: string
   createdAt: string
   updatedAt: string
   lastLogin?: string
+  stores?: UserStoreAssociation[] // Array de lojas associadas com roles específicos
+  currentStoreSlug?: string // Loja atualmente selecionada/ativa
+}
+
+// Associação entre usuário e loja com role específico
+export interface UserStoreAssociation {
+  storeId: string
+  storeSlug: string
+  storeName: string
+  role: StoreRole
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// Interface para requisições de associação
+export interface CreateUserStoreDto {
+  userId: string
+  storeId: string
+  role: StoreRole
+}
+
+export interface UpdateUserStoreDto {
+  role?: StoreRole
+  isActive?: boolean
+}
+
+// Interface para permissões e contexto
+export interface UserPermissions {
+  scope: PermissionScope
+  stores: {
+    [storeSlug: string]: {
+      role: StoreRole
+      permissions: string[]
+    }
+  }
+  globalPermissions?: string[]
+}
+
+// Interface para contexto de autenticação
+export interface AuthContext {
+  user: User
+  permissions: UserPermissions
+  currentStore?: UserStoreAssociation
+}
+
+// Interface para seleção de loja ativa
+export interface SetCurrentStoreDto {
+  storeSlug: string
 }
 
 export interface StoreStats {

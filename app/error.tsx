@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { ArrowsClockwise, Warning } from '@phosphor-icons/react/dist/ssr'
 import { useEffect } from 'react'
 
 export default function Error({
@@ -20,7 +20,7 @@ export default function Error({
       <div className="max-w-md w-full text-center">
         <div className="mb-8">
           <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-12 h-12 text-red-500" />
+            <Warning className="w-12 h-12 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Ops! Algo deu errado
@@ -34,7 +34,7 @@ export default function Error({
           onClick={reset}
           className="inline-flex items-center justify-center w-full px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors mb-4"
         >
-          <RefreshCw className="w-5 h-5 mr-2" />
+                          <ArrowsClockwise className="w-5 h-5 mr-2" />
           Tentar novamente
         </button>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, X } from 'lucide-react'
+import { Bell, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 interface WelcomeNotificationProps {

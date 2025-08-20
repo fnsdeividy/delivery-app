@@ -7,8 +7,7 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-        storeSlug: { label: 'Store Slug', type: 'text' }
+        password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -17,15 +16,14 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Usar o apiClient para autenticar com o backend
-          const response = await fetch('http://localhost:3001/api/v1', {
+          const response = await fetch('http://localhost:3001/api/v1/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               email: credentials.email,
-              password: credentials.password,
-              storeSlug: credentials.storeSlug
+              password: credentials.password
             }),
           })
 
@@ -52,7 +50,7 @@ export const authOptions: NextAuthOptions = {
               email: authData.user.email,
               name: authData.user.name,
               role: authData.user.role,
-              storeSlug: authData.user.storeSlug || credentials.storeSlug,
+              storeSlug: authData.user.storeSlug,
               active: authData.user.active,
               accessToken: authData.access_token
             }

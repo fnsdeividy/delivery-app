@@ -1,14 +1,16 @@
 'use client'
 
-import { ArrowLeft, Crown, Eye, EyeOff } from 'lucide-react'
-import { signIn, useSession } from 'next-auth/react'
+import { ArrowLeft, Crown, Eye, EyeSlash } from '@phosphor-icons/react/dist/ssr'
+// import { signIn, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function SuperAdminLogin() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  // const { data: session, status } = useSession()
+  const status = 'unauthenticated'
+  const session = null
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,14 +19,14 @@ export default function SuperAdminLogin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Redirecionar se já estiver autenticado como super admin
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      if (session.user.role === 'SUPER_ADMIN') {
-        router.push('/admin')
-      }
-    }
-  }, [status, session, router])
+  // Redirecionar se já estiver autenticado como super admin (temporariamente desabilitado)
+  // useEffect(() => {
+  //   if (status === 'authenticated' && session?.user) {
+  //     if (session.user.role === 'SUPER_ADMIN') {
+  //       router.push('/admin')
+  //     }
+  //   }
+  // }, [status, session, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,22 +38,25 @@ export default function SuperAdminLogin() {
         throw new Error('Email e senha são obrigatórios')
       }
 
-      // Fazer login com NextAuth
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        storeSlug: 'system', // Slug especial para super admin
-        redirect: false
-      })
+      // Fazer login com NextAuth (temporariamente desabilitado)
+      // const result = await signIn('credentials', {
+      //   email: formData.email,
+      //   password: formData.password,
+      //   storeSlug: 'system', // Slug especial para super admin
+      //   redirect: false
+      // })
 
-      if (result?.error) {
-        throw new Error(result.error)
-      }
+      // if (result?.error) {
+      //   throw new Error(result.error)
+      // }
 
-      if (result?.ok) {
-        // O redirecionamento será feito pelo useEffect quando a sessão for atualizada
-        // Não precisamos fazer nada aqui
-      }
+      // if (result?.ok) {
+      //   // O redirecionamento será feito pelo useEffect quando a sessão for atualizada
+      //   // Não precisamos fazer nada aqui
+      // }
+      
+      // Temporariamente: mostrar mensagem de sucesso
+      console.log('Login temporariamente desabilitado')
     } catch (err) {
       console.error('Erro no login:', err)
       setError(err instanceof Error ? err.message : 'Erro ao fazer login')
@@ -67,17 +72,17 @@ export default function SuperAdminLogin() {
     }))
   }
 
-  // Mostrar loading enquanto verifica sessão
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando sessão...</p>
-        </div>
-      </div>
-    )
-  }
+  // Mostrar loading enquanto verifica sessão (temporariamente desabilitado)
+  // if (status === 'loading') {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  //       <div className="text-center">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+  //       <p className="mt-4 text-gray-600">Verificando sessão...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -141,7 +146,7 @@ export default function SuperAdminLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeSlash className="h-4 w-4 text-gray-400" />
                   ) : (
                     <Eye className="h-4 w-4 text-gray-400" />
                   )}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { WarningCircle } from '@phosphor-icons/react'
 
 interface ValidationError {
   field: string
@@ -35,7 +35,7 @@ export function FormValidation({ errors, onClearErrors }: FormValidationProps) {
   return (
     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
       <div className="flex items-start">
-        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+        <WarningCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
         <div className="flex-1">
           <h4 className="text-sm font-medium text-red-800 mb-2">
             Por favor, corrija os seguintes erros:

@@ -1,17 +1,21 @@
 'use client'
 
 import { apiClient } from '@/lib/api-client'
-import { AuthResponse, User } from '@/types/cardapio-api'
+import { AuthResponse, User, UserStoreAssociation } from '@/types/cardapio-api'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  currentStore: UserStoreAssociation | null
+  userStores: UserStoreAssociation[]
   login: (email: string, password: string, storeSlug?: string) => Promise<AuthResponse>
   register: (userData: any) => Promise<AuthResponse>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
+  setCurrentStore: (storeSlug: string) => Promise<void>
+  refreshUserData: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -23,36 +27,43 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [userStores, setUserStores] = useState<UserStoreAssociation[]>([])
+  const [currentStore, setCurrentStoreState] = useState<UserStoreAssociation | null>(null)
+
+  // Função para carregar dados completos do usuário
+  const refreshUserData = async () => {
+    try {
+      if (apiClient.isAuthenticated()) {
+        const currentUser = await apiClient.getCurrentUser()
+        setUser(currentUser)
+        setUserStores(currentUser.stores || [])
+        
+        // Definir loja atual baseada nos dados do usuário
+        const currentStoreSlug = currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug()
+        if (currentStoreSlug) {
+          const store = currentUser.stores?.find(s => s.storeSlug === currentStoreSlug)
+          setCurrentStoreState(store || null)
+        }
+        
+        // Persistir dados do usuário no localStorage
+        localStorage.setItem('user', JSON.stringify(currentUser))
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados do usuário:', error)
+      apiClient.logout()
+      localStorage.removeItem('user')
+      setUser(null)
+      setUserStores([])
+      setCurrentStoreState(null)
+    }
+  }
 
   // Verificar autenticação ao inicializar
   useEffect(() => {
     const checkAuth = async () => {
       try {
         if (apiClient.isAuthenticated()) {
-          // Aqui você pode implementar uma chamada para obter dados do usuário atual
-          // Por enquanto, vamos apenas verificar se o token existe
-          const token = apiClient.getCurrentToken()
-          if (token) {
-            // Decodificar o token JWT para obter informações básicas do usuário
-            // Em produção, você deve implementar um endpoint /me para obter dados completos
-            const tokenData = parseJwt(token)
-            if (tokenData) {
-              const userData = {
-                id: tokenData.sub,
-                email: tokenData.email,
-                name: tokenData.name || '',
-                role: tokenData.role,
-                storeSlug: tokenData.storeSlug,
-                active: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }
-              setUser(userData)
-
-              // Persistir dados do usuário no localStorage
-              localStorage.setItem('user', JSON.stringify(userData))
-            }
-          }
+          await refreshUserData()
         } else {
           // Tentar recuperar dados do usuário do localStorage
           const savedUser = localStorage.getItem('user')
@@ -60,14 +71,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
             try {
               const userData = JSON.parse(savedUser)
               setUser(userData)
+              setUserStores(userData.stores || [])
+              
+              const currentStoreSlug = userData.currentStoreSlug || apiClient.getCurrentStoreSlug()
+              if (currentStoreSlug) {
+                const store = userData.stores?.find((s: UserStoreAssociation) => s.storeSlug === currentStoreSlug)
+                setCurrentStoreState(store || null)
+              }
             } catch (e) {
               localStorage.removeItem('user')
             }
           }
         }
       } catch (error) {
+        console.error('❌ Erro na verificação de autenticação:', error)
         apiClient.logout()
         localStorage.removeItem('user')
+        setUser(null)
+        setUserStores([])
+        setCurrentStoreState(null)
       } finally {
         setIsLoading(false)
       }
@@ -84,8 +106,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ...response.user,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      }
+      } as User
       setUser(userData)
+      setUserStores(userData.stores || [])
+      
+      // Definir loja atual se disponível
+      if (userData.currentStoreSlug) {
+        const store = userData.stores?.find(s => s.storeSlug === userData.currentStoreSlug)
+        setCurrentStoreState(store || null)
+      }
 
       // Persistir dados do usuário no localStorage
       localStorage.setItem('user', JSON.stringify(userData))
@@ -118,12 +147,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     apiClient.logout()
     setUser(null)
+    setUserStores([])
+    setCurrentStoreState(null)
     localStorage.removeItem('user')
+    localStorage.removeItem('currentStoreSlug')
   }
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...userData })
+      const updatedUser = { ...user, ...userData }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    }
+  }
+
+  const setCurrentStore = async (storeSlug: string) => {
+    try {
+      const updatedUser = await apiClient.setCurrentStore({ storeSlug })
+      setUser(updatedUser)
+      setUserStores(updatedUser.stores || [])
+      
+      const store = updatedUser.stores?.find(s => s.storeSlug === storeSlug)
+      setCurrentStoreState(store || null)
+      
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    } catch (error) {
+      console.error('❌ Erro ao definir loja atual:', error)
+      throw error
     }
   }
 
@@ -131,10 +181,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isAuthenticated: !!user,
     isLoading,
+    currentStore,
+    userStores,
     login,
     register,
     logout,
     updateUser,
+    setCurrentStore,
+    refreshUserData,
   }
 
   return (

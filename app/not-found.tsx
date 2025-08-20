@@ -1,4 +1,4 @@
-import { ArrowLeft, Home, Search } from 'lucide-react'
+import { ArrowLeft, House, MagnifyingGlass } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
 
 export default function NotFound() {
@@ -8,7 +8,7 @@ export default function NotFound() {
         {/* 404 Icon */}
         <div className="mb-8">
           <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-12 h-12 text-orange-500" />
+            <MagnifyingGlass className="w-12 h-12 text-orange-500" />
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-2">404</h1>
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
@@ -25,7 +25,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center justify-center w-full px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
           >
-            <Home className="w-5 h-5 mr-2" />
+            <House className="w-5 h-5 mr-2" />
             Voltar ao início
           </Link>
           

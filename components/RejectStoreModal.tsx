@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, AlertTriangle } from 'lucide-react'
+import { X, Warning } from '@phosphor-icons/react'
 
 interface RejectStoreModalProps {
   isOpen: boolean
@@ -53,7 +53,7 @@ export function RejectStoreModal({ isOpen, onClose, onConfirm, storeName }: Reje
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-500" />
+              <Warning className="w-6 h-6 text-red-500" />
             </div>
             <h3 className="text-lg font-medium text-gray-900">
               Reprovar Loja

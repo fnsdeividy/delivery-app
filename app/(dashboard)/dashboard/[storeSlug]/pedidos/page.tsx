@@ -4,19 +4,18 @@ import { useOrdersByStore, useUpdateOrderStatus } from '@/hooks'
 import { useStoreConfig } from '@/lib/store/useStoreConfig'
 import { OrderStatus, PaymentStatus } from '@/types/cardapio-api'
 import {
+    ArrowsClockwise,
     CheckCircle,
     Clock,
-    DollarSign,
-    Eye,
+    CurrencyDollar,
+    MagnifyingGlass,
     MapPin,
     Package,
     Phone,
-    RefreshCw,
-    Search,
     Truck,
     User,
     XCircle
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
 
@@ -135,7 +134,7 @@ export default function PedidosPage() {
           onClick={refetchOrders}
           className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2"
         >
-          <RefreshCw className="h-4 w-4" />
+          <ArrowsClockwise className="h-4 w-4" />
           <span>Atualizar</span>
         </button>
       </div>
@@ -174,7 +173,7 @@ export default function PedidosPage() {
         
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <DollarSign className="h-8 w-8 text-green-500" />
+            <CurrencyDollar className="h-8 w-8 text-green-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Receita</p>
               <p className="text-2xl font-bold text-gray-900">{formatCurrency(orders.filter(o => o.paymentStatus === PaymentStatus.PAID).reduce((sum, o) => sum + o.total, 0))}</p>
@@ -188,7 +187,7 @@ export default function PedidosPage() {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Buscar por cliente, telefone ou ID do pedido..."
