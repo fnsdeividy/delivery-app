@@ -5,9 +5,36 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 export function useAuthContext() {
   return useQuery({
     queryKey: ['user-context'],
-    queryFn: () => apiClient.getCurrentUserContext(),
+    queryFn: async () => {
+      try {
+        // Tentar obter do endpoint (quando implementado)
+        return await apiClient.getCurrentUserContext()
+      } catch (error) {
+        // Fallback: obter dados do localStorage
+        if (typeof window !== 'undefined') {
+          const savedUser = localStorage.getItem('user')
+          if (savedUser) {
+            try {
+              const userData = JSON.parse(savedUser)
+              console.log('🔄 useAuthContext: Usando dados do localStorage como fallback')
+              return {
+                user: userData,
+                stores: userData.stores || [],
+                currentStore: userData.currentStore || null
+              }
+            } catch (e) {
+              console.error('❌ useAuthContext: Erro ao parsear dados do localStorage', e)
+            }
+          }
+        }
+        
+        // Se não conseguir obter dados, retornar erro
+        throw error
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
+    retry: false, // Não tentar novamente se falhar
   })
 }
 
@@ -128,7 +155,30 @@ export function useHasPermission() {
 export function useCurrentStore() {
   const { data: authContext } = useQuery({
     queryKey: ['user-context'],
-    queryFn: () => apiClient.getCurrentUserContext(),
+    queryFn: async () => {
+      try {
+        return await apiClient.getCurrentUserContext()
+      } catch (error) {
+        // Fallback: obter dados do localStorage
+        if (typeof window !== 'undefined') {
+          const savedUser = localStorage.getItem('user')
+          if (savedUser) {
+            try {
+              const userData = JSON.parse(savedUser)
+              return {
+                user: userData,
+                stores: userData.stores || [],
+                currentStore: userData.currentStore || null
+              }
+            } catch (e) {
+              console.error('❌ useCurrentStore: Erro ao parsear dados do localStorage', e)
+            }
+          }
+        }
+        throw error
+      }
+    },
+    retry: false,
   })
 
   const user = authContext?.user

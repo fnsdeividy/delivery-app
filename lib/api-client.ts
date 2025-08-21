@@ -84,14 +84,27 @@ class ApiClient {
         if (appConfig.api.logRequests) {
           this.log('🔑 Request Interceptor', {
             hasToken: !!token,
-            url: config.url
+            tokenLength: token ? token.length : 0,
+            url: config.url,
+            headers: config.headers
           })
         }
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
           if (appConfig.api.logRequests) {
-            this.log('🔑 Token adicionado aos headers')
+            this.log('🔑 Token adicionado aos headers', {
+              authorizationHeader: config.headers.Authorization?.substring(0, 20) + '...'
+            })
+          }
+        } else {
+          if (appConfig.api.logRequests) {
+            this.log('⚠️ Nenhum token encontrado para requisição', {
+              url: config.url,
+              localStorageToken: !!safeLocalStorage.getItem('cardapio_token'),
+              cookies: typeof document !== 'undefined' ? document.cookie.includes('cardapio_token') : 'N/A',
+              allCookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
+            })
           }
         }
 
