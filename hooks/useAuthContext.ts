@@ -35,6 +35,25 @@ export function useAuthContext() {
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     retry: false, // Não tentar novamente se falhar
+    // Adicionar fallback silencioso para evitar quebras na UI
+    placeholderData: (previousData) => {
+      if (typeof window !== 'undefined') {
+        try {
+          const savedUser = localStorage.getItem('user')
+          if (savedUser) {
+            const userData = JSON.parse(savedUser)
+            return {
+              user: userData,
+              stores: userData.stores || [],
+              currentStore: userData.currentStore || null
+            }
+          }
+        } catch (e) {
+          console.error('❌ useAuthContext: Erro no placeholderData', e)
+        }
+      }
+      return previousData
+    }
   })
 }
 
@@ -153,10 +172,11 @@ export function useHasPermission() {
 
 // Hook para obter a loja atual do usuário
 export function useCurrentStore() {
-  const { data: authContext } = useQuery({
+  const { data: authContext, error, isLoading } = useQuery({
     queryKey: ['user-context'],
     queryFn: async () => {
       try {
+        // Tentar obter do endpoint (quando implementado)
         return await apiClient.getCurrentUserContext()
       } catch (error) {
         // Fallback: obter dados do localStorage
@@ -165,6 +185,7 @@ export function useCurrentStore() {
           if (savedUser) {
             try {
               const userData = JSON.parse(savedUser)
+              console.log('🔄 useCurrentStore: Usando dados do localStorage como fallback')
               return {
                 user: userData,
                 stores: userData.stores || [],
@@ -175,13 +196,27 @@ export function useCurrentStore() {
             }
           }
         }
+        
+        // Se não conseguir obter dados, retornar erro
         throw error
       }
     },
     retry: false,
   })
 
-  const user = authContext?.user
+  // Se houver erro, tentar obter dados do localStorage como último recurso
+  let user = authContext?.user
+  if (!user && error && typeof window !== 'undefined') {
+    try {
+      const savedUser = localStorage.getItem('user')
+      if (savedUser) {
+        user = JSON.parse(savedUser)
+        console.log('🔄 useCurrentStore: Fallback final para localStorage após erro')
+      }
+    } catch (e) {
+      console.error('❌ useCurrentStore: Erro no fallback final', e)
+    }
+  }
 
   // Durante SSR, usar apenas dados do usuário
   // No cliente, tentar obter do localStorage como fallback
@@ -196,5 +231,7 @@ export function useCurrentStore() {
     isOwner: false, // TODO: Implementar verificação de role
     isAdmin: false, // TODO: Implementar verificação de role
     isManager: false, // TODO: Implementar verificação de role
+    isLoading,
+    error
   }
 }
