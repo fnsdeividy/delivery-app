@@ -7,8 +7,7 @@ import { ReactNode } from 'react'
 // Mock do apiClient
 jest.mock('@/lib/api-client', () => ({
   apiClient: {
-    getCurrentUserContext: jest.fn(),
-    getCurrentUser: jest.fn(),
+      getCurrentUserContext: jest.fn(),
     getCurrentStoreSlug: jest.fn(() => null),
     getUserStoreAssociations: jest.fn(),
     setCurrentStore: jest.fn(),

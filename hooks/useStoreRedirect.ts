@@ -31,33 +31,41 @@ export function useStoreRedirect() {
    * Redireciona o usuário baseado no contexto atual de lojas
    * @param user - Dados do usuário atual
    */
+  // TODO: Endpoint /users/me/context não está disponível no backend ainda
+  // Comentado temporariamente até a implementação
   const redirectBasedOnUserStores = useCallback(async (user?: User) => {
     try {
       // Se não tiver usuário, obter do API
-      const currentUser = user || await apiClient.getCurrentUser()
+      // const authContext = user ? { user } : await apiClient.getCurrentStoreContext()
+      // const currentUser = authContext.user
       
-      if (!currentUser.stores || currentUser.stores.length === 0) {
-        // Usuário não possui lojas - redirecionar para criar loja
-        router.push('/register/loja')
-        return
-      }
+      // Fallback temporário: redirecionar para gerenciar lojas
+      console.warn('Endpoint /users/me/context não implementado no backend ainda')
+      router.push('/dashboard/gerenciar-lojas')
+      return
       
-      if (currentUser.stores.length === 1) {
-        // Usuário possui apenas uma loja - redirecionar diretamente
-        const store = currentUser.stores[0]
-        await apiClient.setCurrentStore({ storeSlug: store.storeSlug })
-        router.push(`/dashboard/${store.storeSlug}`)
-        return
-      }
+      // if (!currentUser.stores || currentUser.stores.length === 0) {
+      //   // Usuário não possui lojas - redirecionar para criar loja
+      //   router.push('/register/loja')
+      //   return
+      // }
       
-      // Usuário possui múltiplas lojas
-      if (currentUser.currentStoreSlug) {
-        // Se já tem uma loja selecionada, ir para o dashboard dela
-        router.push(`/dashboard/${currentUser.currentStoreSlug}`)
-      } else {
-        // Se não tem loja selecionada, ir para gerenciar lojas
-        router.push('/dashboard/gerenciar-lojas')
-      }
+      // if (currentUser.stores.length === 1) {
+      //   // Usuário possui apenas uma loja - redirecionar diretamente
+      //   const store = currentUser.stores[0]
+      //   await apiClient.setCurrentStore({ storeSlug: store.storeSlug })
+      //   router.push(`/dashboard/${store.storeSlug}`)
+      //   return
+      // }
+      
+      // // Usuário possui múltiplas lojas
+      // if (currentUser.currentStoreSlug) {
+      //   // Se já tem uma loja selecionada, ir para o dashboard dela
+      //   router.push(`/dashboard/${currentUser.currentStoreSlug}`)
+      // } else {
+      //   // Se não tem loja selecionada, ir para gerenciar lojas
+      //   router.push('/dashboard/gerenciar-lojas')
+      // }
     } catch (error) {
       console.error('❌ Erro ao redirecionar baseado em lojas do usuário:', error)
       // Fallback: redirecionar para dashboard geral

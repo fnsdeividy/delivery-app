@@ -59,6 +59,16 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
   - ✅ Sem duplicação de lógica de API
   - ✅ Facilita testes de integração
 
+### 🛡️ Correção SSR - localStorage (Janeiro 2025)
+- **Problema Resolvido**: Erro `localStorage is not defined` durante Server-Side Rendering
+- **Solução Implementada**: Utilities de ambiente e localStorage seguro
+- **Componentes Afetados**: `UserStoreStatus`, `useCurrentStore`, `ApiClient`
+- **Benefícios**:
+  - ✅ Renderização SSR funcional sem erros
+  - ✅ Hydration suave entre servidor e cliente
+  - ✅ Fallbacks robustos para ambientes sem localStorage
+  - ✅ Compatibilidade com diferentes ambientes de execução
+
 ### 🏗️ Configuração de Desenvolvimento
 ```bash
 # Terminal 1: Backend (porta 3001)

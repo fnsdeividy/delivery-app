@@ -86,43 +86,20 @@ export function useCardapioAuth() {
       } else if (data.user.role === 'ADMIN') {
         // Para ADMIN, implementar redirecionamento inteligente
         try {
-          // Consultar /users/me para obter lojas do usuário
-          const userInfo = await apiClient.getCurrentUser()
+          // TODO: Endpoint /users/me/context não está disponível no backend ainda
+          // Comentado temporariamente até a implementação
+          // Consultar contexto do usuário para obter lojas
+          // const authContext = await apiClient.getCurrentUserContext()
+          // const userInfo = authContext.user
           
-          if (userInfo && userInfo.stores && Array.isArray(userInfo.stores)) {
-            const userStores = userInfo.stores
-            
-            if (userStores.length === 0) {
-              // Usuário não possui lojas - redirecionar para criar loja
-              router.push('/register/loja')
-            } else if (userStores.length === 1) {
-              // Usuário possui apenas uma loja - redirecionar diretamente
-              const storeSlug = userStores[0].storeSlug
-              router.push(`/dashboard/${storeSlug}`)
-            } else {
-              // Usuário possui múltiplas lojas - redirecionar para gerenciar lojas
-              router.push('/dashboard/gerenciar-lojas')
-            }
-          } else {
-            // Fallback: se não conseguir obter informações, usar lógica antiga
-            const storeSlug = data.user.storeSlug || localStorage.getItem('currentStoreSlug')
-            
-            if (storeSlug && storeSlug.trim() !== '') {
-              router.push(`/dashboard/${storeSlug}`)
-            } else {
-              router.push('/dashboard/gerenciar-lojas')
-            }
-          }
+          // Fallback temporário: não redirecionar automaticamente
+          console.warn('Endpoint /users/me/context não implementado no backend ainda')
+          router.push('/dashboard/gerenciar-lojas')
+          return
         } catch (error) {
-          console.warn('Erro ao obter informações do usuário, usando fallback:', error)
-          // Fallback em caso de erro na API
-          const storeSlug = data.user.storeSlug || localStorage.getItem('currentStoreSlug')
-          
-          if (storeSlug && storeSlug.trim() !== '') {
-            router.push(`/dashboard/${storeSlug}`)
-          } else {
-            router.push('/dashboard/gerenciar-lojas')
-          }
+          console.warn('Erro ao obter informações do usuário:', error)
+          // Fallback: redirecionar para gerenciar lojas
+          router.push('/dashboard/gerenciar-lojas')
         }
       }
     },

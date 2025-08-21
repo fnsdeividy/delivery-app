@@ -2,7 +2,7 @@
 
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useCardapioAuth } from '@/hooks'
-import { ChartBar, Clock, CreditCard, Gear, Package, ShoppingBag, Storefront, Users } from '@phosphor-icons/react'
+import { ChartBar, Clock, CreditCard, Package, ShoppingBag, Storefront, Users } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -189,6 +189,19 @@ export default function DashboardPage() {
           </Link>
 
           <Link
+            href={`/dashboard/${slug}/estoque`}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center">
+              <Package className="w-8 h-8 text-green-600" />
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Estoque</h3>
+                <p className="text-sm text-gray-600">Controle de inventário</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
             href={`/dashboard/${slug}/pedidos`}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
@@ -210,19 +223,6 @@ export default function DashboardPage() {
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
                 <p className="text-sm text-gray-600">Relatórios e métricas</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href={`/dashboard/${slug}/configuracoes`}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center">
-              <Gear className="w-8 h-8 text-orange-600" />
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Configurações</h3>
-                <p className="text-sm text-gray-600">Personalizar loja</p>
               </div>
             </div>
           </Link>
