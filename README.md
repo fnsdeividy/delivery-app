@@ -24,6 +24,15 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - **Responsivo**: Menu adaptável para dispositivos móveis e desktop
 - **Integração**: Funciona com todas as páginas do dashboard
 
+### 🏛️ Dashboard Admin Completo (Janeiro 2025)
+- **Dashboard Principal**: Visão geral do sistema com estatísticas e métricas
+- **Gestão de Usuários**: CRUD completo de usuários com diferentes roles (ADMIN, SUPER_ADMIN, LOJISTA)
+- **Gestão de Pedidos**: Monitoramento global de todos os pedidos do sistema
+- **Gerenciamento de Lojas**: Aprovação, rejeição e administração de lojas
+- **Navegação Integrada**: Acesso rápido entre todas as seções administrativas
+- **Controle de Acesso**: Verificação de permissões baseada em roles JWT
+- **Componentes Reutilizáveis**: UserManagement e AdminOrderManagement integrados
+
 ### 🔒 Filtro de Lojas por Criador (Janeiro 2025)
 - **Isolamento por ADMIN**: Usuários ADMIN veem apenas lojas criadas por eles
 - **Identificação por Email**: Filtro baseado no campo `createdByEmail` da loja

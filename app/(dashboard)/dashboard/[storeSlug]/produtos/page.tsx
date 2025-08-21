@@ -91,7 +91,7 @@ export default function ProdutosPage() {
 
   const loadProducts = async () => {
     try {
-      const response = await fetch(`/api/v1/products/store/${slug}?page=${pagination.page}&limit=${pagination.limit}&active=${!showInactive}${selectedCategory ? `&categoryId=${selectedCategory}` : ''}`)
+              const response = await fetch(`/api/products/store/${slug}?page=${pagination.page}&limit=${pagination.limit}&active=${!showInactive}${selectedCategory ? `&categoryId=${selectedCategory}` : ''}`)
       
       if (response.ok) {
         const data: PaginatedResponse<Product> = await response.json()
@@ -105,7 +105,7 @@ export default function ProdutosPage() {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`/api/v1/stores/${slug}/categories`)
+              const response = await fetch(`/api/stores/${slug}/categories`)
       if (response.ok) {
         const data = await response.json()
         setCategories(data)
@@ -119,7 +119,7 @@ export default function ProdutosPage() {
     if (searchQuery.trim().length < 2) return
 
     try {
-      const response = await fetch(`/api/v1/products/store/${slug}/search?q=${encodeURIComponent(searchQuery.trim())}${selectedCategory ? `&categoryId=${selectedCategory}` : ''}`)
+              const response = await fetch(`/api/products/store/${slug}/search?q=${encodeURIComponent(searchQuery.trim())}${selectedCategory ? `&categoryId=${selectedCategory}` : ''}`)
       
       if (response.ok) {
         const data: Product[] = await response.json()
@@ -133,7 +133,7 @@ export default function ProdutosPage() {
 
   const toggleProductStatus = async (productId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/v1/products/${productId}/toggle-status?storeSlug=${slug}`, {
+              const response = await fetch(`/api/products/${productId}/toggle-status?storeSlug=${slug}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

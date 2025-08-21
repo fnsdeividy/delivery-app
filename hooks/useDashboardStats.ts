@@ -28,7 +28,7 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
 
         if (userRole === 'SUPER_ADMIN') {
           // Super admin vê todas as estatísticas do sistema
-          const storesStatsResponse = await apiClient.get('/api/v1/stores/stats')
+          const storesStatsResponse = await apiClient.get('/stores/stats')
           const storesStats = storesStatsResponse as any
 
           stats.totalStores = storesStats.total || 0
@@ -36,7 +36,7 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
           stats.pendingStores = storesStats.pending || 0
 
           try {
-            const allStoresResponse = await apiClient.get('/api/v1/stores')
+            const allStoresResponse = await apiClient.get('/stores')
             const allStores = (allStoresResponse as any).data || []
 
             let totalProducts = 0
@@ -47,12 +47,12 @@ export function useDashboardStats(userRole: string | null, storeSlug?: string | 
             for (const store of allStores) {
               try {
                 // Buscar produtos da loja
-                const productsResponse = await apiClient.get(`/api/v1/stores/${store.slug}/products`)
+                const productsResponse = await apiClient.get(`/stores/${store.slug}/products`)
                 const products = (productsResponse as any).data || []
                 totalProducts += products.length
 
                 // Buscar pedidos da loja
-                const ordersResponse = await apiClient.get(`/api/v1/stores/${store.slug}/orders`)
+                const ordersResponse = await apiClient.get(`/stores/${store.slug}/orders`)
                 const orders = (ordersResponse as any).data || []
                 totalOrders += orders.length
 

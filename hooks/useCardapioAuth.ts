@@ -2,7 +2,7 @@ import { apiClient } from '@/lib/api-client'
 import { CreateUserDto, LoginDto } from '@/types/cardapio-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 export function useCardapioAuth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -147,21 +147,21 @@ export function useCardapioAuth() {
   })
 
   // Função para logout
-  const logout = () => {
+  const logout = useCallback(() => {
     apiClient.logout()
     queryClient.clear()
     router.push('/login')
-  }
+  }, [queryClient, router])
 
-  // Função para verificar se está autenticado
-  const isAuthenticated = () => {
+  // Função para verificar se está autenticado - estabilizada com useCallback
+  const isAuthenticated = useCallback(() => {
     return apiClient.isAuthenticated()
-  }
+  }, [])
 
-  // Função para obter token atual
-  const getCurrentToken = () => {
+  // Função para obter token atual - estabilizada com useCallback
+  const getCurrentToken = useCallback(() => {
     return apiClient.getCurrentToken()
-  }
+  }, [])
 
   return {
     // Estados

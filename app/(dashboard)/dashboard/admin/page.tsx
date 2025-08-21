@@ -2,10 +2,12 @@
 
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { useCardapioAuth } from '@/hooks'
+import { apiClient } from '@/lib/api-client'
 import {
     Crown,
     Database,
     Gear,
+    Package,
     Shield,
     Storefront,
     TrendUp,
@@ -13,7 +15,7 @@ import {
     WarningCircle
 } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 interface Store {
   id: string
@@ -44,81 +46,78 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<SystemStats | null>(null)
   const [recentStores, setRecentStores] = useState<Store[]>([])
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (!isAuthenticated()) {
-          router.push('/login/lojista')
-          return
-        }
-
-        const token = getCurrentToken()
-        if (!token) {
-          router.push('/login/lojista')
-          return
-        }
-
-        // Decodificar token JWT
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setUserRole(payload.role)
-
-        // Verificar se é SUPER_ADMIN ou ADMIN
-        if (payload.role !== 'SUPER_ADMIN' && payload.role !== 'ADMIN') {
-          router.push('/unauthorized')
-          return
-        }
-
-        // Carregar dados administrativos
-        loadAdminData()
-      } catch (error) {
+  // Estabilizar funções para evitar re-renders desnecessários
+  const checkAuth = useCallback(async () => {
+    try {
+      if (!isAuthenticated()) {
         router.push('/login/lojista')
-      } finally {
-        setIsLoading(false)
+        return
       }
-    }
 
-    checkAuth()
+      const token = getCurrentToken()
+      if (!token) {
+        router.push('/login/lojista')
+        return
+      }
+
+      // Decodificar token JWT
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      setUserRole(payload.role)
+
+      // Verificar se é SUPER_ADMIN ou ADMIN
+      if (payload.role !== 'SUPER_ADMIN' && payload.role !== 'ADMIN') {
+        router.push('/unauthorized')
+        return
+      }
+
+      // Carregar dados administrativos
+      loadAdminData()
+    } catch (error) {
+      router.push('/login/lojista')
+    } finally {
+      setIsLoading(false)
+    }
   }, [isAuthenticated, getCurrentToken, router])
 
-  const loadAdminData = async () => {
+  const loadAdminData = useCallback(async () => {
     try {
       // Carregar estatísticas do sistema
-      const statsResponse = await fetch('/api/v1/stores/stats')
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats({
-          totalStores: statsData.total || 0,
-          activeStores: statsData.approved || 0,
-          pendingStores: statsData.pending || 0,
-          totalUsers: 0, // TODO: Implementar endpoint de usuários
-          totalOrders: 0, // TODO: Implementar endpoint de pedidos
-          totalRevenue: 'R$ 0,00', // TODO: Implementar cálculo de receita
-          systemHealth: 'excellent'
-        })
-      }
+      const statsData = await apiClient.get<any>('/stores/stats')
+      setStats({
+        totalStores: statsData.total || 0,
+        activeStores: statsData.approved || 0,
+        pendingStores: statsData.pending || 0,
+        totalUsers: 0, // TODO: Implementar endpoint de usuários
+        totalOrders: 0, // TODO: Implementar endpoint de pedidos
+        totalRevenue: 'R$ 0,00', // TODO: Implementar cálculo de receita
+        systemHealth: 'excellent'
+      })
 
       // Carregar lojas recentes
-      const storesResponse = await fetch('/api/v1/stores?page=1&limit=5')
-      if (storesResponse.ok) {
-        const storesData = await storesResponse.json()
-        const formattedStores = storesData.data.map((store: any) => ({
-          id: store.id,
-          name: store.name,
-          slug: store.slug,
-          status: store.approved ? 'active' : 'pending',
-          owner: store.createdByEmail || 'N/A',
-          revenue: 'R$ 0,00', // TODO: Implementar cálculo de receita
-          orders: 0, // TODO: Implementar contagem de pedidos
-          createdAt: store.createdAt
-        }))
-        setRecentStores(formattedStores)
-      }
+      const storesData = await apiClient.get<any>('/stores?page=1&limit=5')
+      const formattedStores = storesData.data.map((store: any) => ({
+        id: store.id,
+        name: store.name,
+        slug: store.slug,
+        status: store.approved ? 'active' : 'pending',
+        owner: store.createdByEmail || 'N/A',
+        revenue: 'R$ 0,00', // TODO: Implementar cálculo de receita
+        orders: 0, // TODO: Implementar contagem de pedidos
+        createdAt: store.createdAt
+      }))
+      setRecentStores(formattedStores)
     } catch (error) {
       console.error('Erro ao carregar dados administrativos:', error)
     }
-  }
+  }, [])
 
-  const getSystemHealthColor = (health: string) => {
+  // Executar apenas uma vez na montagem do componente
+  useEffect(() => {
+    checkAuth()
+  }, []) // Remover dependências para evitar loops
+
+  // Memoizar funções utilitárias
+  const getSystemHealthColor = useCallback((health: string) => {
     switch (health) {
       case 'excellent': return 'bg-green-500'
       case 'good': return 'bg-blue-500'
@@ -126,9 +125,9 @@ export default function AdminDashboard() {
       case 'critical': return 'bg-red-500'
       default: return 'bg-gray-500'
     }
-  }
+  }, [])
 
-  const getSystemHealthText = (health: string) => {
+  const getSystemHealthText = useCallback((health: string) => {
     switch (health) {
       case 'excellent': return 'Excelente'
       case 'good': return 'Bom'
@@ -136,15 +135,61 @@ export default function AdminDashboard() {
       case 'critical': return 'Crítico'
       default: return 'Desconhecido'
     }
-  }
+  }, [])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     })
-  }
+  }, [])
+
+  // Memoizar navegação para evitar re-renders
+  const navigationActions = useMemo(() => [
+    {
+      href: '/dashboard/gerenciar-lojas',
+      icon: Storefront,
+      title: 'Gerenciar Lojas',
+      description: 'Visualizar e administrar todas as lojas',
+      color: 'bg-blue-500'
+    },
+    {
+      href: '/dashboard/admin/usuarios',
+      icon: Users,
+      title: 'Gestão de Usuários',
+      description: 'Administrar usuários do sistema',
+      color: 'bg-green-500'
+    },
+    {
+      href: '/dashboard/admin/pedidos',
+      icon: Package,
+      title: 'Gestão de Pedidos',
+      description: 'Monitorar todos os pedidos',
+      color: 'bg-purple-500'
+    },
+    {
+      href: '/dashboard/meus-painel',
+      icon: Storefront,
+      title: 'Minhas Lojas',
+      description: 'Acessar suas lojas',
+      color: 'bg-orange-500'
+    },
+    {
+      href: '/dashboard',
+      icon: Gear,
+      title: 'Dashboard',
+      description: 'Voltar ao dashboard principal',
+      color: 'bg-gray-500'
+    },
+    {
+      href: '/dashboard/admin',
+      icon: Database,
+      title: 'Sistema',
+      description: 'Logs, backup e manutenção',
+      color: 'bg-red-500'
+    }
+  ], [])
 
   if (isLoading) {
     return (
@@ -334,65 +379,23 @@ export default function AdminDashboard() {
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  <button
-                    onClick={() => router.push('/dashboard/gerenciar-lojas')}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="bg-blue-500 rounded-lg p-2 mr-3">
-                        <Storefront className="w-4 h-4 text-white" />
+                  {navigationActions.map((action, index) => (
+                    <button
+                      key={index}
+                      onClick={() => router.push(action.href)}
+                      className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <div className={`${action.color} rounded-lg p-2 mr-3`}>
+                          <action.icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{action.title}</p>
+                          <p className="text-sm text-gray-500">{action.description}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Gerenciar Lojas</p>
-                        <p className="text-sm text-gray-500">Visualizar e administrar todas as lojas</p>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/dashboard/meus-painel')}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="bg-green-500 rounded-lg p-2 mr-3">
-                        <Users className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Minhas Lojas</p>
-                        <p className="text-sm text-gray-500">Acessar suas lojas</p>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="bg-purple-500 rounded-lg p-2 mr-3">
-                        <Gear className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Dashboard</p>
-                        <p className="text-sm text-gray-500">Voltar ao dashboard principal</p>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/dashboard/admin')}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="bg-red-500 rounded-lg p-2 mr-3">
-                        <Database className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Sistema</p>
-                        <p className="text-sm text-gray-500">Logs, backup e manutenção</p>
-                      </div>
-                    </div>
-                  </button>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

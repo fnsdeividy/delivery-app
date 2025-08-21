@@ -6,7 +6,6 @@ import {
   CreditCard,
   Crown,
   Gear,
-  House,
   Layout,
   List,
   Package,
@@ -99,23 +98,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Navegação principal sempre disponível
   const mainNavigation: NavigationItem[] = [
     {
-      name: 'Minhas Lojas',
-      href: '/dashboard/meus-painel',
-      icon: House,
-      current: pathname === '/dashboard/meus-painel'
-    },
+      name: 'Painel Geral',
+      href: '/dashboard/admin',
+      icon: Crown,
+    current: pathname === '/dashboard/admin'
+  },
     {
       name: 'Gerenciar Lojas',
       href: '/dashboard/gerenciar-lojas',
       icon: Storefront,
       current: pathname === '/dashboard/gerenciar-lojas'
     },
-    {
-      name: 'Dashboard Admin',
-      href: '/dashboard/admin',
-      icon: Crown,
-      current: pathname === '/dashboard/admin'
-    }
   ]
 
   // Navegação por loja específica
