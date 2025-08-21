@@ -3,6 +3,7 @@
 import { apiClient } from '@/lib/api-client'
 import { AuthResponse, User, UserStoreAssociation } from '@/types/cardapio-api'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { useTokenSync } from '@/hooks/useTokenSync'
 
 interface AuthContextType {
   user: User | null
@@ -30,6 +31,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userStores, setUserStores] = useState<UserStoreAssociation[]>([])
   const [currentStore, setCurrentStoreState] = useState<UserStoreAssociation | null>(null)
 
+  // Sincronizar token entre localStorage e cookies
+  useTokenSync()
+
   // Função para carregar dados completos do usuário
   const refreshUserData = async () => {
     try {
@@ -38,14 +42,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const currentUser = authContext.user
         setUser(currentUser)
         setUserStores(currentUser.stores || [])
-        
+
         // Definir loja atual baseada nos dados do usuário
         const currentStoreSlug = currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug()
         if (currentStoreSlug) {
           const store = currentUser.stores?.find(s => s.storeSlug === currentStoreSlug)
           setCurrentStoreState(store || null)
         }
-        
+
         // Persistir dados do usuário no localStorage
         localStorage.setItem('user', JSON.stringify(currentUser))
       }
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               const userData = JSON.parse(savedUser)
               setUser(userData)
               setUserStores(userData.stores || [])
-              
+
               const currentStoreSlug = userData.currentStoreSlug || apiClient.getCurrentStoreSlug()
               if (currentStoreSlug) {
                 const store = userData.stores?.find((s: UserStoreAssociation) => s.storeSlug === currentStoreSlug)
@@ -110,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } as User
       setUser(userData)
       setUserStores(userData.stores || [])
-      
+
       // Definir loja atual se disponível
       if (userData.currentStoreSlug) {
         const store = userData.stores?.find(s => s.storeSlug === userData.currentStoreSlug)
@@ -167,10 +171,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const updatedUser = await apiClient.setCurrentStore({ storeSlug })
       setUser(updatedUser)
       setUserStores(updatedUser.stores || [])
-      
+
       const store = updatedUser.stores?.find(s => s.storeSlug === storeSlug)
       setCurrentStoreState(store || null)
-      
+
       localStorage.setItem('user', JSON.stringify(updatedUser))
     } catch (error) {
       console.error('❌ Erro ao definir loja atual:', error)

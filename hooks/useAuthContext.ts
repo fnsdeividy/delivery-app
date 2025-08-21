@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api-client'
 import { SetCurrentStoreDto } from '@/types/cardapio-api'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export function useAuthContext() {
   return useQuery({
@@ -27,7 +27,7 @@ export function useUserStores() {
   //   enabled: !!user?.id,
   //   staleTime: 5 * 60 * 1000,
   // })
-  
+
   // Fallback temporário: retornar array vazio
   return {
     data: [],
@@ -44,7 +44,7 @@ export function useUserPermissions(storeSlug?: string) {
   //   queryFn: () => apiClient.getUserPermissions(storeSlug),
   //   staleTime: 5 * 60 * 1000,
   // })
-  
+
   // Fallback temporário: retornar permissões básicas
   return {
     data: {
@@ -64,7 +64,7 @@ export function useUserPermissions(storeSlug?: string) {
 
 export function useSetCurrentStore() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: (data: SetCurrentStoreDto) => apiClient.setCurrentStore(data),
     onSuccess: (updatedUser, variables) => {
@@ -72,10 +72,10 @@ export function useSetCurrentStore() {
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['user-context'] })
       queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
-      
+
       // Atualizar dados do usuário no cache
       queryClient.setQueryData(['user'], updatedUser)
-      
+
       console.log('✅ Loja atual definida com sucesso:', variables.storeSlug)
     },
     onError: (error) => {
@@ -89,34 +89,34 @@ export function useSetCurrentStore() {
 // Hook para verificar permissões
 export function useHasPermission() {
   // const { data: permissions } = useUserPermissions()
-  
+
   // Fallback temporário: retornar permissões básicas
   return {
     hasPermission: (permission: string, storeSlug?: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
       return true // Temporariamente permite tudo
     },
-    
+
     hasStoreRole: (role: string, storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
       return true // Temporariamente permite tudo
     },
-    
+
     isGlobalAdmin: () => {
       // TODO: Implementar quando o endpoint estiver disponível
       return false // Temporariamente não é admin global
     },
-    
+
     isSuperAdmin: () => {
       // TODO: Implementar quando o endpoint estiver disponível
       return false // Temporariamente não é super admin
     },
-    
+
     isStoreAdmin: (storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
       return true // Temporariamente é admin da loja
     },
-    
+
     canAccessStore: (storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
       return true // Temporariamente pode acessar qualquer loja
@@ -136,15 +136,15 @@ export function useCurrentStore() {
   // Durante SSR, usar apenas dados do usuário
   // No cliente, tentar obter do localStorage como fallback
   const currentStoreSlug = typeof window !== 'undefined' ? apiClient.getCurrentStoreSlug() : null
-  
-  const currentStore = user?.currentStore || null
+
+  const currentStore = user?.currentStoreSlug || null
 
   return {
     currentStore,
     currentStoreSlug,
-    hasCurrentStore: !!currentStore,
-    isOwner: currentStore?.role === 'OWNER',
-    isAdmin: currentStore?.role === 'ADMIN',
-    isManager: currentStore?.role === 'MANAGER',
+    hasCurrentStore: !!currentStoreSlug,
+    isOwner: false, // TODO: Implementar verificação de role
+    isAdmin: false, // TODO: Implementar verificação de role
+    isManager: false, // TODO: Implementar verificação de role
   }
 }

@@ -87,17 +87,45 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Verificar se estamos no cliente
+  const isClient = typeof window !== 'undefined'
+
+  console.log(`🎯 useStoreConfig render - slug: ${slug}, loading: ${loading}, error: ${error}, config: ${!!config}, isClient: ${isClient}`)
+
+  // Se não estamos no cliente, retornar estado inicial
+  if (!isClient) {
+    console.log('❌ SSR detectado, retornando estado inicial')
+    return {
+      config: null,
+      loading: false,
+      error: 'SSR não suportado'
+    }
+  }
+
   useEffect(() => {
+    console.log(`🔄 useStoreConfig effect triggered with slug: ${slug}`)
+
     if (!slug) {
+      console.log('❌ Slug vazio, parando loading')
       setLoading(false)
       return
     }
 
+    // Timeout de segurança para evitar loading infinito
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Timeout de segurança - forçando loading false')
+      setLoading(false)
+    }, 10000)
+
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
+        console.log(`🔍 Buscando dados da loja: ${slug}`)
+
         // Buscar dados da loja via endpoint público
         const response = await fetch(`/api/store-public/${slug}`)
-        
+
+        console.log(`📡 Resposta da API:`, { status: response.status, ok: response.ok })
+
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('Loja não encontrada')
@@ -107,11 +135,13 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             throw new Error('Erro ao buscar dados da loja')
           }
         }
-        
+
         const data = await response.json()
 
+        console.log(`📊 Dados recebidos:`, data)
+
         // Mapear resposta da API para StoreConfig
-        return {
+        const mappedConfig = {
           id: data.store.id,
           name: data.store.name,
           slug: data.store.slug,
@@ -164,9 +194,13 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           status: data.status || { isOpen: false, reason: 'Indisponível' }
         }
+
+        console.log(`🔧 Config mapeada:`, mappedConfig)
+
+        return mappedConfig
       } catch (error: any) {
         console.error('Erro ao buscar configuração da loja:', error)
-        
+
         // Tratar diferentes tipos de erro
         if (error.message?.includes('Loja não encontrada')) {
           throw new Error('Loja não encontrada')
@@ -184,6 +218,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
     const loadConfig = async () => {
       try {
+        console.log('🚀 Iniciando loadConfig')
         setLoading(true)
         setError(null)
 
@@ -244,14 +279,16 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           status: storeConfig.status
         }
 
+        console.log('✅ Config carregada com sucesso:', transformedConfig)
         setConfig(transformedConfig)
 
       } catch (err: any) {
+        console.log('❌ Erro no loadConfig:', err)
         console.error('Erro ao buscar configuração da loja:', err)
-        
+
         // Mapear mensagens de erro para mensagens mais amigáveis
         let userMessage = 'Erro ao carregar dados da loja'
-        
+
         if (err.message?.includes('Loja não encontrada')) {
           userMessage = 'Loja não encontrada'
         } else if (err.message?.includes('Loja inativa')) {
@@ -263,14 +300,20 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
         } else if (err.message?.includes('não encontrada')) {
           userMessage = 'Loja não encontrada'
         }
-        
+
         setError(userMessage)
       } finally {
+        console.log('🏁 Finalizando loadConfig, setLoading(false)')
         setLoading(false)
+        clearTimeout(timeoutId)
       }
     }
 
     loadConfig()
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
   }, [slug])
 
   return { config, loading, error }

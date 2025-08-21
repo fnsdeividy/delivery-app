@@ -49,7 +49,7 @@ export function validateConfig() {
   ]
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
-  
+
   if (missingVars.length > 0) {
     console.warn('⚠️ Variáveis de ambiente ausentes:', missingVars)
   }

@@ -1,35 +1,35 @@
 import {
-    AnalyticsData,
-    AuthContext,
-    AuthResponse,
-    Category,
-    CreateCategoryDto,
-    CreateOrderDto,
-    CreateProductDto,
-    CreateStockMovementDto,
-    CreateStoreDto,
-    CreateUserDto,
-    CreateUserStoreDto,
-    Inventory,
-    LoginDto,
-    Order,
-    OrderStats,
-    PaginatedResponse,
-    Product,
-    SetCurrentStoreDto,
-    StockMovement,
-    Store,
-    StoreStats,
-    UpdateCategoryDto,
-    UpdateInventoryDto,
-    UpdateOrderDto,
-    UpdateProductDto,
-    UpdateStoreDto,
-    UpdateUserDto,
-    UpdateUserStoreDto,
-    User,
-    UserPermissions,
-    UserStoreAssociation
+  AnalyticsData,
+  AuthContext,
+  AuthResponse,
+  Category,
+  CreateCategoryDto,
+  CreateOrderDto,
+  CreateProductDto,
+  CreateStockMovementDto,
+  CreateStoreDto,
+  CreateUserDto,
+  CreateUserStoreDto,
+  Inventory,
+  LoginDto,
+  Order,
+  OrderStats,
+  PaginatedResponse,
+  Product,
+  SetCurrentStoreDto,
+  StockMovement,
+  Store,
+  StoreStats,
+  UpdateCategoryDto,
+  UpdateInventoryDto,
+  UpdateOrderDto,
+  UpdateProductDto,
+  UpdateStoreDto,
+  UpdateUserDto,
+  UpdateUserStoreDto,
+  User,
+  UserPermissions,
+  UserStoreAssociation
 } from '@/types/cardapio-api'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { appConfig } from './config'
@@ -80,21 +80,21 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         const token = this.getAuthToken()
-        
+
         if (appConfig.api.logRequests) {
-          this.log('🔑 Request Interceptor', { 
-            hasToken: !!token, 
-            url: config.url 
+          this.log('🔑 Request Interceptor', {
+            hasToken: !!token,
+            url: config.url
           })
         }
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
-                  if (appConfig.api.logRequests) {
-          this.log('🔑 Token adicionado aos headers')
+          if (appConfig.api.logRequests) {
+            this.log('🔑 Token adicionado aos headers')
+          }
         }
-        }
-        
+
         return config
       },
       (error) => Promise.reject(error)
@@ -104,13 +104,13 @@ class ApiClient {
   private setupResponseInterceptor(): void {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-              if (appConfig.api.logResponses) {
-        this.log('✅ Response Interceptor', {
-          status: response.status,
-          url: response.config.url,
-          dataType: typeof response.data
-        })
-      }
+        if (appConfig.api.logResponses) {
+          this.log('✅ Response Interceptor', {
+            status: response.status,
+            url: response.config.url,
+            dataType: typeof response.data
+          })
+        }
         return response
       },
       (error: AxiosError) => {
@@ -160,7 +160,17 @@ class ApiClient {
     safeLocalStorage.setItem('cardapio_token', token)
     // Cookie só pode ser definido no cliente
     if (typeof window !== 'undefined') {
-      document.cookie = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Strict`
+      // Definir cookie com configurações mais robustas
+      const cookieValue = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Lax; secure=${window.location.protocol === 'https:'}`
+      document.cookie = cookieValue
+
+      // Log para debug
+      if (appConfig.api.logRequests) {
+        this.log('🍪 Cookie definido', {
+          tokenLength: token.length,
+          cookieValue: cookieValue.substring(0, 50) + '...'
+        })
+      }
     }
   }
 
@@ -322,7 +332,7 @@ class ApiClient {
     try {
       // const response = await this.get<AuthContext>('/users/me/context')
       // return response
-      
+
       // Fallback temporário: retornar dados básicos do usuário
       // TODO: Implementar quando o endpoint estiver disponível
       throw new Error('Endpoint /users/me/context não implementado no backend ainda')
@@ -337,14 +347,14 @@ class ApiClient {
   async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
     try {
       const response = await this.patch<User>('/users/me/current-store', data)
-      
+
       // Atualizar localStorage com a nova loja atual (SSR-safe)
       safeLocalStorage.setItem('currentStoreSlug', data.storeSlug)
-      
+
       if (appConfig.api.logResponses) {
         this.log('✅ Loja atual definida com sucesso', { storeSlug: data.storeSlug })
       }
-      
+
       return response
     } catch (error) {
       if (appConfig.api.debug) {
@@ -423,7 +433,7 @@ class ApiClient {
 
       try {
         const payload = JSON.parse(atob(tokenParts[1]))
-        
+
         if (payload.storeSlug === storeSlug) {
           if (appConfig.api.logResponses) {
             this.log('✅ StoreSlug já está correto no token')
@@ -437,13 +447,13 @@ class ApiClient {
         }
 
       } catch (decodeError) {
-                  if (appConfig.api.debug) {
-            this.log('⚠️ Erro ao decodificar token, continuando...', { decodeError })
-          }
-          safeLocalStorage.setItem('currentStoreSlug', storeSlug)
-          if (appConfig.api.logResponses) {
-            this.log('💾 StoreSlug armazenado no localStorage (fallback)', { storeSlug })
-          }
+        if (appConfig.api.debug) {
+          this.log('⚠️ Erro ao decodificar token, continuando...', { decodeError })
+        }
+        safeLocalStorage.setItem('currentStoreSlug', storeSlug)
+        if (appConfig.api.logResponses) {
+          this.log('💾 StoreSlug armazenado no localStorage (fallback)', { storeSlug })
+        }
       }
 
     } catch (error) {
@@ -484,7 +494,7 @@ class ApiClient {
     try {
       // const response = await this.get<UserStoreAssociation[]>(`/users/${userId}/stores`)
       // return response
-      
+
       // Fallback temporário: retornar array vazio
       // TODO: Implementar quando o endpoint estiver disponível
       return []
@@ -502,7 +512,7 @@ class ApiClient {
     try {
       // const response = await this.post<UserStoreAssociation>('/user-stores', data)
       // return response
-      
+
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
       throw new Error('Endpoint /user-stores não implementado no backend ainda')
@@ -517,8 +527,8 @@ class ApiClient {
   // TODO: Endpoint /users/{userId}/stores/{storeId} não está disponível no backend ainda
   // Comentado temporariamente até a implementação
   async updateUserStoreAssociation(
-    userId: string, 
-    storeId: string, 
+    userId: string,
+    storeId: string,
     data: UpdateUserStoreDto
   ): Promise<UserStoreAssociation> {
     try {
@@ -527,7 +537,7 @@ class ApiClient {
       //   data
       // )
       // return response
-      
+
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
       throw new Error('Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda')
@@ -544,7 +554,7 @@ class ApiClient {
   async deleteUserStoreAssociation(userId: string, storeId: string): Promise<void> {
     try {
       // await this.delete<void>(`/users/${userId}/stores/${storeId}`)
-      
+
       // Fallback temporário: não fazer nada
       // TODO: Implementar quando o endpoint estiver disponível
       console.warn('Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda')
@@ -563,7 +573,7 @@ class ApiClient {
       // const url = storeSlug ? `/users/me/permissions?store=${storeSlug}` : '/users/me/permissions'
       // const response = await this.get<UserPermissions>(url)
       // return response
-      
+
       // Fallback temporário: retornar permissões básicas
       // TODO: Implementar quando o endpoint estiver disponível
       return {

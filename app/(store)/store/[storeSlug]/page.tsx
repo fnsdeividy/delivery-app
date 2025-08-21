@@ -1,36 +1,115 @@
-'use client'
-
 import { Clock, MagnifyingGlass, Phone, ShoppingCart, Storefront, Truck, User } from '@phosphor-icons/react/dist/ssr'
-// import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
-import LoginModal from '../../../../components/LoginModal'
 import PromotionsBanner from '../../../../components/PromotionsBanner'
-import UserProfile from '../../../../components/UserProfile'
-import { apiClient } from '../../../../lib/api-client'
-import { useStoreConfig, useStoreStatus } from '../../../../lib/store/useStoreConfig'
 import { Product } from '../../../../types/cardapio-api'
 
-export default function StorePage() {
-  const params = useParams()
-  const slug = params.slug as string
+interface PageProps {
+  params: {
+    storeSlug: string
+  }
+}
 
-  const { config, loading, error } = useStoreConfig(slug)
-  const { isOpen, currentMessage } = useStoreStatus(config)
+async function getStoreConfig(slug: string) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/store-public/${slug}`, {
+      cache: 'no-store'
+    })
 
-  // const { data: session, status } = useSession()
+    if (!response.ok) {
+      throw new Error('Loja não encontrada')
+    }
+
+    const data = await response.json()
+
+    // Mapear resposta da API para StoreConfig
+    return {
+      id: data.store.id,
+      name: data.store.name,
+      slug: data.store.slug,
+      description: data.store.description,
+      active: data.store.active,
+      approved: data.store.approved || false,
+      createdAt: data.store.createdAt,
+      updatedAt: data.store.updatedAt,
+      config: data.config || {},
+      menu: {
+        products: data.products || [],
+        categories: data.categories || []
+      },
+      settings: {
+        preparationTime: data.config?.preparationTime || 30,
+        orderNotifications: data.config?.orderNotifications !== false
+      },
+      delivery: {
+        fee: data.config?.deliveryFee || 0,
+        freeDeliveryMinimum: data.config?.minimumOrder || 0,
+        estimatedTime: data.config?.estimatedDeliveryTime || 30,
+        enabled: data.config?.deliveryEnabled !== false
+      },
+      payments: {
+        pix: data.config?.paymentMethods?.includes('PIX') || false,
+        cash: data.config?.paymentMethods?.includes('DINHEIRO') || false,
+        card: data.config?.paymentMethods?.includes('CARTÃO') || false
+      },
+      promotions: {
+        coupons: data.config?.coupons || []
+      },
+      branding: {
+        logo: data.config?.logo || '',
+        favicon: data.config?.favicon || '',
+        bannerImage: data.config?.banner || '',
+        primaryColor: data.config?.primaryColor || '#f97316',
+        secondaryColor: data.config?.secondaryColor || '#ea580c',
+        backgroundColor: data.config?.backgroundColor || '#ffffff',
+        textColor: data.config?.textColor || '#000000',
+        accentColor: data.config?.accentColor || '#f59e0b'
+      },
+      schedule: {
+        timezone: 'America/Sao_Paulo',
+        workingHours: data.config?.businessHours || {}
+      },
+      business: {
+        phone: data.config?.phone || '',
+        email: data.config?.email || '',
+        address: data.config?.address || ''
+      },
+      status: data.status || { isOpen: false, reason: 'Indisponível' }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar configuração da loja:', error)
+    throw error
+  }
+}
+
+export default async function StorePage({ params }: PageProps) {
+  const { storeSlug: slug } = params
+
+  console.log(`🏪 StorePage render - slug: ${slug}, params:`, params)
+
+  let config
+  let error: string | null = null
+
+  try {
+    config = await getStoreConfig(slug)
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Erro desconhecido'
+  }
+
+  // Determinar se a loja está aberta
+  const isOpen = config?.status?.isOpen || false
+  const currentMessage = config?.status?.reason || 'Loja fechada'
+
+  // Estado estático para demonstração
   const status = 'unauthenticated'
   const session = null
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('todos')
-  const [searchResults, setSearchResults] = useState<Product[] | null>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
-  const [cartItems, setCartItems] = useState<any[]>([])
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const searchQuery = ''
+  const selectedCategory = 'todos'
+  const searchResults = null
+  const cartItems: any[] = []
+  const isCartOpen = false
+  const isProfileOpen = false
+  const isLoginOpen = false
 
   // Promoções de exemplo (em produção viriam do banco/config)
   const promotions = [
@@ -54,57 +133,12 @@ export default function StorePage() {
     }
   ]
 
-  // Filtrar produtos - movido para antes dos returns condicionais
-  const filteredProducts = useMemo(() => {
-    if (!config?.menu?.products) return []
-    const base = (searchResults ?? config.menu.products).filter(p => p.active)
-    let filtered = base
-
-    // Filtrar por categoria
-    if (selectedCategory !== 'todos') {
-      filtered = filtered.filter(product => product.categoryId === selectedCategory)
-    }
-
-    // Filtrar por busca
-    // quando há resultados de busca por API, já estão filtrados
-
-    return filtered
-  }, [config?.menu?.products, selectedCategory, searchQuery])
-
-  // Busca com debounce usando API e cache do Redis no backend
-  useEffect(() => {
-    if (!slug) return
-    if (!searchQuery.trim()) {
-      setSearchResults(null)
-      return
-    }
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(async () => {
-      try {
-        // Usar apiClient para buscar produtos via API backend
-        const data = await apiClient.searchProducts(slug, searchQuery)
-        setSearchResults(data)
-      } catch {
-        setSearchResults(null)
-      }
-    }, 200)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [slug, searchQuery])
+  // Filtrar produtos - versão simplificada para Server Component
+  const filteredProducts = config?.menu?.products?.filter(p => p.active) || []
 
   const addToCart = (product: Product) => {
-    setCartItems(prev => [...prev, { ...product, quantity: 1 }])
-  }
-
-  const getTagColor = (color: string) => {
-    switch (color) {
-      case 'orange': return 'bg-orange-500 text-white'
-      case 'red': return 'bg-red-500 text-white'
-      case 'green': return 'bg-green-500 text-white'
-      case 'blue': return 'bg-blue-500 text-white'
-      default: return 'bg-gray-500 text-white'
-    }
+    // Função estática para demonstração
+    console.log('Produto adicionado ao carrinho:', product.name)
   }
 
   // Mostrar erro se a loja não for encontrada
@@ -145,14 +179,7 @@ export default function StorePage() {
     )
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  // Loading state - removido pois não há mais loading state
 
   // Error state
   if (error || !config) {
@@ -205,10 +232,10 @@ export default function StorePage() {
                 <input
                   type="text"
                   placeholder="Buscar produtos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  defaultValue=""
                   className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white search-focus transition-all duration-300"
                   style={{ '--tw-ring-color': config?.branding?.primaryColor || '#f97316' } as any}
+                  readOnly
                 />
               </div>
             </div>
@@ -216,53 +243,22 @@ export default function StorePage() {
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
               {/* Login/Profile Button */}
-              {false ? (
-                <button
-                  onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                  style={{ color: config?.branding?.primaryColor || '#f97316' }}
-                  title="Meu Perfil"
-                >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">
-                    Perfil
-                  </span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsLoginOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                  style={{ color: config?.branding?.primaryColor || '#f97316' }}
-                  title="Fazer Login"
-                >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">Login</span>
-                </button>
-              )}
+              <button
+                className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
+                style={{ color: config?.branding?.primaryColor || '#f97316' }}
+                title="Fazer Login"
+              >
+                <User className="h-5 w-5" />
+                <span className="hidden sm:block">Login</span>
+              </button>
 
               {/* Cart Button */}
               <button
-                onClick={() => {
-                  if (cartItems.length > 0) {
-                    setIsCartOpen(true)
-                  } else {
-                    // Mostrar mensagem de carrinho vazio
-                    alert('Adicione produtos ao carrinho primeiro')
-                  }
-                }}
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
                 style={{ color: config?.branding?.primaryColor || '#f97316' }}
               >
                 <ShoppingCart className="h-5 w-5 transition-transform" />
                 <span className="hidden sm:block">Carrinho</span>
-                {cartItems.length > 0 && (
-                  <span
-                    className="absolute -top-2 -right-2 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle"
-                    style={{ backgroundColor: config?.branding?.accentColor || '#f97316' }}
-                  >
-                    {cartItems.length}
-                  </span>
-                )}
               </button>
             </div>
           </div>
@@ -335,33 +331,23 @@ export default function StorePage() {
       <section className="bg-white border-b animate-slide-in-left animate-delay-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
-            <button
-              onClick={() => setSelectedCategory('todos')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${selectedCategory === 'todos'
-                ? 'text-white animate-glow'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              style={selectedCategory === 'todos' ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
+            <div
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
             >
               <span className="font-medium">Todos</span>
               <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
-            </button>
+            </div>
 
             {config?.menu?.categories?.filter(c => c.active).map((category) => {
               const count = config?.menu?.products?.filter(p => p.active && p.categoryId === category.id).length || 0
               return (
-                <button
+                <div
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 hover-lift ${selectedCategory === category.id
-                    ? 'text-white animate-glow'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  style={selectedCategory === category.id ? { backgroundColor: config?.branding?.primaryColor || '#f97316' } : {}}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
                 >
                   <span className="font-medium">{category.name}</span>
                   <span className="text-sm opacity-75">({count})</span>
-                </button>
+                </div>
               )
             })}
           </div>
@@ -447,7 +433,6 @@ export default function StorePage() {
 
                     {/* Action Button */}
                     <button
-                      onClick={() => addToCart(product)}
                       disabled={!isOpen}
                       className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                       style={{ backgroundColor: isOpen ? (config?.branding?.primaryColor || '#f97316') : '#9ca3af' }}
@@ -475,25 +460,6 @@ export default function StorePage() {
         </div>
       </footer>
 
-      {/* User Profile Modal */}
-      <UserProfile
-        user={null}
-        onLogin={() => setIsLoginOpen(true)}
-        onLogout={() => {
-          // Lógica de logout
-          setIsProfileOpen(false)
-        }}
-      />
-
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onSuccess={() => {
-          setIsLoginOpen(false)
-          // Usuário logado com sucesso
-        }}
-      />
     </div>
   )
 }

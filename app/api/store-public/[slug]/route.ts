@@ -6,7 +6,7 @@ export async function GET(
 ) {
   try {
     const { slug } = params
-    
+
     // Chamar o backend real
     const backendUrl = 'http://localhost:3001/api/v1'
     const response = await fetch(`${backendUrl}/stores/public/${slug}`, {
@@ -17,11 +17,11 @@ export async function GET(
       // Timeout de 10 segundos
       signal: AbortSignal.timeout(10000)
     })
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         return NextResponse.json(
-          { 
+          {
             error: 'Loja não encontrada',
             message: `A loja "${slug}" não foi encontrada`
           },
@@ -29,7 +29,7 @@ export async function GET(
         )
       } else if (response.status === 403) {
         return NextResponse.json(
-          { 
+          {
             error: 'Loja indisponível',
             message: 'Esta loja está temporariamente indisponível'
           },
@@ -37,7 +37,7 @@ export async function GET(
         )
       } else {
         return NextResponse.json(
-          { 
+          {
             error: 'Erro do servidor',
             message: 'Falha ao buscar dados da loja'
           },
@@ -45,27 +45,27 @@ export async function GET(
         )
       }
     }
-    
+
     const data = await response.json()
-    
+
     return NextResponse.json(data)
-    
+
   } catch (error) {
     console.error('Erro ao buscar loja pública:', error)
-    
+
     // Se for erro de timeout
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(
-        { 
+        {
           error: 'Timeout',
           message: 'Tempo limite excedido ao buscar dados da loja'
         },
         { status: 408 }
       )
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Erro interno do servidor',
         message: 'Falha ao buscar dados da loja'
       },

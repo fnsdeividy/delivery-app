@@ -5,6 +5,6 @@ interface PageProps {
 }
 
 export default function ShortSlugRedirect({ params }: PageProps) {
-  redirect(`/store/${params.slug}`)
+  redirect(`/store/`)
 }
 
