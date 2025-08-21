@@ -372,9 +372,31 @@ class ApiClient {
       // const response = await this.get<AuthContext>('/users/me/context')
       // return response
 
-      // Fallback temporário: retornar dados básicos do usuário
+      // Fallback temporário: retornar dados do localStorage
       // TODO: Implementar quando o endpoint estiver disponível
-      throw new Error('Endpoint /users/me/context não implementado no backend ainda')
+      if (typeof window !== 'undefined') {
+        const savedUser = localStorage.getItem('user')
+        if (savedUser) {
+          try {
+            const userData = JSON.parse(savedUser)
+            if (appConfig.api.debug) {
+              this.log('🔄 getCurrentUserContext: Usando dados do localStorage como fallback')
+            }
+            return {
+              user: userData,
+              stores: userData.stores || [],
+              currentStore: userData.currentStore || null
+            }
+          } catch (e) {
+            if (appConfig.api.debug) {
+              this.log('❌ getCurrentUserContext: Erro ao parsear dados do localStorage', e)
+            }
+          }
+        }
+      }
+
+      // Se não conseguir obter dados do localStorage, lançar erro
+      throw new Error('Endpoint /users/me/context não implementado no backend ainda e nenhum usuário encontrado no localStorage')
     } catch (error) {
       if (appConfig.api.debug) {
         this.log('❌ Erro ao obter contexto do usuário', { error })
@@ -554,7 +576,18 @@ class ApiClient {
 
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
-      throw new Error('Endpoint /user-stores não implementado no backend ainda')
+      if (appConfig.api.debug) {
+        this.log('🔄 createUserStoreAssociation: Usando fallback mockado')
+      }
+      return {
+        id: 'temp-' + Date.now(),
+        userId: data.userId,
+        storeId: data.storeId,
+        role: data.role || 'USER',
+        permissions: data.permissions || ['read'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      } as UserStoreAssociation
     } catch (error) {
       if (appConfig.api.debug) {
         this.log('❌ Erro ao criar associação usuário-loja', { error })
@@ -579,7 +612,18 @@ class ApiClient {
 
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
-      throw new Error('Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda')
+      if (appConfig.api.debug) {
+        this.log('🔄 updateUserStoreAssociation: Usando fallback mockado')
+      }
+      return {
+        id: 'temp-' + Date.now(),
+        userId,
+        storeId,
+        role: data.role || 'USER',
+        permissions: data.permissions || ['read'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      } as UserStoreAssociation
     } catch (error) {
       if (appConfig.api.debug) {
         this.log('❌ Erro ao atualizar associação usuário-loja', { error })

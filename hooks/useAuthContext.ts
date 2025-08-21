@@ -27,7 +27,7 @@ export function useAuthContext() {
             }
           }
         }
-        
+
         // Se não conseguir obter dados, retornar erro
         throw error
       }
@@ -196,7 +196,7 @@ export function useCurrentStore() {
             }
           }
         }
-        
+
         // Se não conseguir obter dados, retornar erro
         throw error
       }
