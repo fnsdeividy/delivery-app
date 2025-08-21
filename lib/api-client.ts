@@ -153,7 +153,33 @@ class ApiClient {
   // ===== GERENCIAMENTO DE TOKENS =====
 
   private getAuthToken(): string | null {
-    return safeLocalStorage.getItem('cardapio_token')
+    // 1. Tentar obter do localStorage primeiro
+    const localStorageToken = safeLocalStorage.getItem('cardapio_token')
+    if (localStorageToken) {
+      return localStorageToken
+    }
+
+    // 2. Fallback: tentar obter do cookie se estivermos no cliente
+    if (typeof window !== 'undefined') {
+      const cookies = document.cookie.split(';')
+      const cardapioTokenCookie = cookies.find(cookie => 
+        cookie.trim().startsWith('cardapio_token=')
+      )
+      
+      if (cardapioTokenCookie) {
+        const token = cardapioTokenCookie.split('=')[1]
+        if (token) {
+          // Sincronizar com localStorage para futuras requisições
+          safeLocalStorage.setItem('cardapio_token', token)
+          if (appConfig.api.logRequests) {
+            this.log('🔄 Token sincronizado do cookie para localStorage')
+          }
+          return token
+        }
+      }
+    }
+
+    return null
   }
 
   private setAuthToken(token: string): void {

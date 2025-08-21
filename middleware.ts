@@ -45,11 +45,20 @@ async function protectDashboardRoute(request: NextRequest) {
   let token = request.cookies.get('cardapio_token')?.value ||
     request.headers.get('authorization')?.replace('Bearer ', '')
 
+  // Log para debug
+  console.log('🔍 Middleware Dashboard: Verificando token', {
+    hasCardapioToken: !!request.cookies.get('cardapio_token')?.value,
+    hasAuthorizationHeader: !!request.headers.get('authorization'),
+    tokenFound: !!token,
+    url: request.url
+  })
+
   // Se não houver token no cookie, verificar se há um cookie de fallback do localStorage
   if (!token) {
     const fallbackToken = request.cookies.get('localStorage_token')?.value
     if (fallbackToken) {
       token = fallbackToken
+      console.log('🔄 Middleware Dashboard: Usando token de fallback')
     }
   }
 
@@ -97,11 +106,20 @@ async function protectSuperAdminRoute(request: NextRequest) {
   let token = request.cookies.get('cardapio_token')?.value ||
     request.headers.get('authorization')?.replace('Bearer ', '')
 
+  // Log para debug
+  console.log('🔍 Middleware SuperAdmin: Verificando token', {
+    hasCardapioToken: !!request.cookies.get('cardapio_token')?.value,
+    hasAuthorizationHeader: !!request.headers.get('authorization'),
+    tokenFound: !!token,
+    url: request.url
+  })
+
   // Se não houver token no cookie, verificar se há um cookie de fallback do localStorage
   if (!token) {
     const fallbackToken = request.cookies.get('localStorage_token')?.value
     if (fallbackToken) {
       token = fallbackToken
+      console.log('🔄 Middleware SuperAdmin: Usando token de fallback')
     }
   }
 
