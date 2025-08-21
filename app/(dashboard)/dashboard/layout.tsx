@@ -4,8 +4,8 @@ import {
   ChartBar,
   Clock,
   CreditCard,
+  Crown,
   Gear,
-  House,
   Layout,
   List,
   Package,
@@ -49,6 +49,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   if (pathname.startsWith('/dashboard/editar-loja/') || 
       pathname.startsWith('/dashboard/gerenciar-lojas') ||
       pathname.startsWith('/dashboard/meus-painel') ||
+      pathname.startsWith('/dashboard/admin') ||
+      pathname.startsWith('/dashboard/superadmin') ||
       pathname === '/dashboard') {
     slug = ''
   } else if (pathParts.length > 2) {
@@ -56,14 +58,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const validParts = pathParts.filter(part => part && part.trim() !== '')
     if (validParts.length > 1) {
       const possibleSlug = validParts[1] // [0] é 'dashboard', [1] é o slug
-      if (!['editar-loja', 'gerenciar-lojas', 'meus-painel', 'admin'].includes(possibleSlug)) {
+      if (!['editar-loja', 'gerenciar-lojas', 'meus-painel', 'admin', 'superadmin'].includes(possibleSlug)) {
         slug = possibleSlug
       }
     }
   }
   
   // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig = slug && slug !== 'editar-loja' && slug !== 'gerenciar-lojas' && slug !== 'meus-painel'
+  const shouldLoadStoreConfig = slug && slug !== 'editar-loja' && slug !== 'gerenciar-lojas' && slug !== 'meus-painel' && slug !== 'admin' && slug !== 'superadmin'
   
   // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
   const { config, loading, error } = useStoreConfig(shouldLoadStoreConfig ? slug : '')
@@ -96,23 +98,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Navegação principal sempre disponível
   const mainNavigation: NavigationItem[] = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: Layout,
-      current: pathname === '/dashboard'
-    },
-    {
-      name: 'Minhas Lojas',
-      href: '/dashboard/meus-painel',
-      icon: House,
-      current: pathname === '/dashboard/meus-painel'
-    },
+      name: 'Painel Geral',
+      href: '/dashboard/admin',
+      icon: Crown,
+    current: pathname === '/dashboard/admin'
+  },
     {
       name: 'Gerenciar Lojas',
       href: '/dashboard/gerenciar-lojas',
       icon: Storefront,
       current: pathname === '/dashboard/gerenciar-lojas'
-    }
+    },
   ]
 
   // Navegação por loja específica

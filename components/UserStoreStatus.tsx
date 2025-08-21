@@ -3,8 +3,8 @@
 import { useAuthContext } from '@/contexts/AuthContext'
 import { useCurrentStore, useSetCurrentStore } from '@/hooks/useAuthContext'
 import { StoreRole, UserRole } from '@/types/cardapio-api'
-import { CaretDown, Crown, Storefront, User } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { Crown, Storefront, User } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
 
 interface UserStoreStatusProps {
   showStoreSelector?: boolean
@@ -19,6 +19,25 @@ export function UserStoreStatus({
   const { currentStore } = useCurrentStore()
   const { mutateAsync: setCurrentStore } = useSetCurrentStore()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Garantir que o componente só renderize completamente após hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  // Durante SSR e antes da hydration, mostrar estado de loading
+  if (!isHydrated) {
+    return (
+      <div className={`flex items-center space-x-3 ${className}`}>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    )
+  }
 
   if (!user) {
     return null
@@ -97,6 +116,7 @@ export function UserStoreStatus({
     )
   }
 
+  // TODO: Componente simplificado temporariamente até implementação dos endpoints
   // Para usuários com lojas
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
@@ -107,84 +127,9 @@ export function UserStoreStatus({
       </div>
 
       {/* Loja atual e papel */}
-      {currentStore ? (
-        <div className="flex items-center space-x-2">
-          {showStoreSelector && userStores.length > 1 ? (
-            // Seletor de loja (dropdown)
-            <div className="relative">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center space-x-2 px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {getRoleIcon(currentStore.role)}
-                <span className="font-medium">{currentStore.storeName}</span>
-                <CaretDown className="w-4 h-4 text-gray-400" />
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  <div className="py-1">
-                    {userStores.map((store) => (
-                      <button
-                        key={store.storeId}
-                        onClick={() => handleStoreChange(store.storeSlug)}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 ${
-                          store.storeSlug === currentStore.storeSlug 
-                            ? 'bg-blue-50 text-blue-700' 
-                            : 'text-gray-700'
-                        }`}
-                      >
-                        {getRoleIcon(store.role)}
-                        <div className="flex-1">
-                          <div className="font-medium">{store.storeName}</div>
-                          <div className="text-xs text-gray-500">
-                            {getRoleLabel(store.role)}
-                          </div>
-                        </div>
-                        {store.storeSlug === currentStore.storeSlug && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Loja única (sem dropdown)
-            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-50 rounded-lg">
-              {getRoleIcon(currentStore.role)}
-              <span className="text-sm font-medium text-gray-700">{currentStore.storeName}</span>
-            </div>
-          )}
-
-          {/* Badge do papel */}
-          <span className={`px-2 py-1 text-xs font-medium rounded border ${getRoleBadgeColor(currentStore.role)}`}>
-            {getRoleLabel(currentStore.role)}
-          </span>
-        </div>
-      ) : (
-        // Usuário sem loja atual
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">Nenhuma loja selecionada</span>
-          {userStores.length > 0 && showStoreSelector && (
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="text-sm text-blue-600 hover:text-blue-700"
-            >
-              Selecionar loja
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Fechar dropdown ao clicar fora */}
-      {isDropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsDropdownOpen(false)}
-        />
-      )}
+      <div className="flex items-center space-x-2">
+        <span className="text-sm text-gray-500">Nenhuma loja selecionada</span>
+      </div>
     </div>
   )
 }
@@ -196,7 +141,8 @@ export function UserRoleBadge({ className = '' }: { className?: string }) {
 
   if (!user) return null
 
-  const role = user.role === UserRole.SUPER_ADMIN ? user.role : currentStore?.role
+  // TODO: Simplificado temporariamente até implementação dos endpoints
+  const role = user.role === UserRole.SUPER_ADMIN ? user.role : 'ADMIN'
   if (!role) return null
 
   const getRoleLabel = (role: string) => {

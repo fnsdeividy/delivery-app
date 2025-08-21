@@ -23,11 +23,11 @@ const nextConfig = {
         source: '/api/v1/:path*',
         destination: 'http://localhost:3001/api/v1/:path*',
       },
-      // Fallback para outras rotas de API se necessário
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*',
-      },
+      // Remover o rewrite genérico que estava interferindo com as rotas de API do Next.js
+      // {
+      //   source: '/api/:path*',
+      //   destination: 'http://localhost:3001/api/:path*',
+      // },
     ]
   },
 

@@ -17,8 +17,7 @@ jest.mock('@/lib/api-client', () => ({
   apiClient: {
     isAuthenticated: jest.fn(() => false),
     getCurrentToken: jest.fn(() => null),
-    getCurrentUser: jest.fn(),
-    getCurrentUserContext: jest.fn(),
+      getCurrentUserContext: jest.fn(),
     getCurrentStoreSlug: jest.fn(() => null),
     setCurrentStore: jest.fn(),
     getUserPermissions: jest.fn(),

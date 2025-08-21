@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 export default function LojistaLogin() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login, isLoading, error } = useCardapioAuth()
+  const { login, isLoading, error, clearError } = useCardapioAuth()
   const { addToast } = useToast()
   const [formData, setFormData] = useState({
     email: '',
@@ -46,6 +46,35 @@ export default function LojistaLogin() {
     }
   }, [error, addToast])
 
+  // Limpar erro quando o usuário começar a digitar
+  useEffect(() => {
+    const handleInputChange = () => {
+      if (error) {
+        clearError()
+      }
+    }
+
+    // Adicionar listeners para os campos de input
+    const emailInput = document.getElementById('email')
+    const passwordInput = document.getElementById('password')
+    
+    if (emailInput) {
+      emailInput.addEventListener('input', handleInputChange)
+    }
+    if (passwordInput) {
+      passwordInput.addEventListener('input', handleInputChange)
+    }
+
+    return () => {
+      if (emailInput) {
+        emailInput.removeEventListener('input', handleInputChange)
+      }
+      if (passwordInput) {
+        passwordInput.removeEventListener('input', handleInputChange)
+      }
+    }
+  }, [error, clearError])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -78,12 +107,18 @@ export default function LojistaLogin() {
       return
     }
 
-    // Fazer login usando o hook unificado
-    // O hook irá lidar com o redirecionamento em caso de sucesso
-    login({
-      email: formData.email,
-      password: formData.password
-    })
+    try {
+      // Fazer login usando o hook unificado
+      // O hook irá lidar com o redirecionamento em caso de sucesso
+      await login({
+        email: formData.email,
+        password: formData.password
+      })
+    } catch (err) {
+      // Erro já tratado pelo hook useCardapioAuth
+      console.error('Erro no login:', err)
+      // Não fazer nada aqui - o erro será exibido pelo toast
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +126,11 @@ export default function LojistaLogin() {
       ...prev,
       [e.target.name]: e.target.value
     }))
+    
+    // Limpar erro quando usuário começar a digitar
+    if (error) {
+      clearError()
+    }
   }
 
   // Mostrar loading enquanto verifica sessão

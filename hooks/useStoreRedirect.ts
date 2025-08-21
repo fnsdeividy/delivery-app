@@ -16,10 +16,10 @@ export function useStoreRedirect() {
   const redirectAfterStoreCreation = useCallback(async (createdStore: Store) => {
     try {
       // Definir a nova loja como atual
-      await apiClient.setCurrentStore({ storeSlug: createdStore.slug })
+      await apiClient.updateStoreContext(createdStore.slug)
       
-      // Redirecionar para o dashboard da nova loja
-      router.push(`/dashboard/${createdStore.slug}`)
+      // Redirecionar para o dashboard da nova loja com mensagem de boas-vindas
+      router.push(`/dashboard/${createdStore.slug}?welcome=true&message=Loja criada com sucesso!`)
     } catch (error) {
       console.error('❌ Erro ao definir loja atual após criação:', error)
       // Fallback: redirecionar mesmo sem definir como atual
@@ -33,27 +33,24 @@ export function useStoreRedirect() {
    */
   const redirectBasedOnUserStores = useCallback(async (user?: User) => {
     try {
-      // Se não tiver usuário, obter do API
-      const currentUser = user || await apiClient.getCurrentUser()
-      
-      if (!currentUser.stores || currentUser.stores.length === 0) {
+      if (!user || !user.stores || user.stores.length === 0) {
         // Usuário não possui lojas - redirecionar para criar loja
         router.push('/register/loja')
         return
       }
       
-      if (currentUser.stores.length === 1) {
+      if (user.stores.length === 1) {
         // Usuário possui apenas uma loja - redirecionar diretamente
-        const store = currentUser.stores[0]
-        await apiClient.setCurrentStore({ storeSlug: store.storeSlug })
+        const store = user.stores[0]
+        await apiClient.updateStoreContext(store.storeSlug)
         router.push(`/dashboard/${store.storeSlug}`)
         return
       }
       
       // Usuário possui múltiplas lojas
-      if (currentUser.currentStoreSlug) {
+      if (user.currentStoreSlug) {
         // Se já tem uma loja selecionada, ir para o dashboard dela
-        router.push(`/dashboard/${currentUser.currentStoreSlug}`)
+        router.push(`/dashboard/${user.currentStoreSlug}`)
       } else {
         // Se não tem loja selecionada, ir para gerenciar lojas
         router.push('/dashboard/gerenciar-lojas')
@@ -71,7 +68,7 @@ export function useStoreRedirect() {
    */
   const redirectToStore = useCallback(async (storeSlug: string) => {
     try {
-      await apiClient.setCurrentStore({ storeSlug })
+      await apiClient.updateStoreContext(storeSlug)
       router.push(`/dashboard/${storeSlug}`)
     } catch (error) {
       console.error('❌ Erro ao redirecionar para loja:', error)

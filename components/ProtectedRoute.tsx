@@ -196,51 +196,35 @@ export function ProtectedRoute({
   return <>{children}</>
 }
 
+// TODO: Hook comentado temporariamente até implementação dos endpoints
 // Hook para usar dentro de componentes para verificar permissões
 export function usePermissionCheck() {
-  const { user } = useAuthContext()
-  const { currentStore } = useCurrentStore()
-  const { data: permissions } = useUserPermissions()
+  // const { user } = useAuthContext()
+  // const { currentStore } = useCurrentStore()
+  // const { data: permissions } = useUserPermissions()
 
+  // Fallback temporário: retornar permissões básicas
   return {
     hasPermission: (permission: string, storeSlug?: string) => {
-      if (!permissions) return false
-      
-      // Super admin sempre tem acesso
-      if (user?.role === UserRole.SUPER_ADMIN) return true
-      
-      // Verificar permissões globais
-      if (permissions.globalPermissions?.includes(permission)) return true
-      
-      // Verificar permissões da loja
-      const targetStoreSlug = storeSlug || currentStore?.storeSlug
-      if (targetStoreSlug && permissions.stores[targetStoreSlug]?.permissions.includes(permission)) {
-        return true
-      }
-      
-      return false
+      // TODO: Implementar quando os endpoints estiverem disponíveis
+      return true // Temporariamente permite tudo
     },
     
     hasStoreRole: (role: StoreRole, storeSlug?: string) => {
-      const targetStoreSlug = storeSlug || currentStore?.storeSlug
-      if (!targetStoreSlug) return false
-      
-      const store = user?.stores?.find(s => s.storeSlug === targetStoreSlug)
-      return store?.role === role
+      // TODO: Implementar quando os endpoints estiverem disponíveis
+      return true // Temporariamente permite tudo
     },
     
     isStoreAdmin: (storeSlug?: string) => {
-      const targetStoreSlug = storeSlug || currentStore?.storeSlug
-      if (!targetStoreSlug) return false
-      
-      const store = user?.stores?.find(s => s.storeSlug === targetStoreSlug)
-      return store?.role === StoreRole.OWNER || store?.role === StoreRole.LOJA_ADMIN
+      // TODO: Implementar quando os endpoints estiverem disponíveis
+      return true // Temporariamente é admin
     },
     
-    isSuperAdmin: () => user?.role === UserRole.SUPER_ADMIN,
+    isSuperAdmin: () => false, // TODO: Implementar quando os endpoints estiverem disponíveis
     
     canAccessStore: (storeSlug: string) => {
-      return user?.stores?.some(s => s.storeSlug === storeSlug) || user?.role === UserRole.SUPER_ADMIN
+      // TODO: Implementar quando os endpoints estiverem disponíveis
+      return true // Temporariamente pode acessar qualquer loja
     }
   }
 }

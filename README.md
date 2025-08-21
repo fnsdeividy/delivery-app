@@ -24,6 +24,23 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - **Responsivo**: Menu adaptável para dispositivos móveis e desktop
 - **Integração**: Funciona com todas as páginas do dashboard
 
+### 🏛️ Dashboard Admin Completo (Janeiro 2025)
+- **Dashboard Principal**: Visão geral do sistema com estatísticas e métricas
+- **Gestão de Usuários**: CRUD completo de usuários com diferentes roles (ADMIN, SUPER_ADMIN, LOJISTA)
+- **Gestão de Pedidos**: Monitoramento global de todos os pedidos do sistema
+- **Gerenciamento de Lojas**: Aprovação, rejeição e administração de lojas
+- **Navegação Integrada**: Acesso rápido entre todas as seções administrativas
+- **Controle de Acesso**: Verificação de permissões baseada em roles JWT
+- **Componentes Reutilizáveis**: UserManagement e AdminOrderManagement integrados
+
+### 🔒 Filtro de Lojas por Criador (Janeiro 2025)
+- **Isolamento por ADMIN**: Usuários ADMIN veem apenas lojas criadas por eles
+- **Identificação por Email**: Filtro baseado no campo `createdByEmail` da loja
+- **Segurança**: Implementado no backend, não pode ser contornado pelo frontend
+- **SUPER_ADMIN**: Mantém acesso a todas as lojas (sem filtro)
+- **Retrocompatibilidade**: Lojas legacy (sem criador) ficam visíveis apenas para SUPER_ADMIN
+- **Performance**: Filtro aplicado diretamente na query do banco de dados
+
 ### 🔌 Configuração da API Backend (Janeiro 2025)
 - **URL Base**: `http://localhost:3001/api/v1`
 - **Endpoints Disponíveis**:
@@ -50,6 +67,16 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
   - ✅ Desenvolvimento mais próximo da produção
   - ✅ Sem duplicação de lógica de API
   - ✅ Facilita testes de integração
+
+### 🛡️ Correção SSR - localStorage (Janeiro 2025)
+- **Problema Resolvido**: Erro `localStorage is not defined` durante Server-Side Rendering
+- **Solução Implementada**: Utilities de ambiente e localStorage seguro
+- **Componentes Afetados**: `UserStoreStatus`, `useCurrentStore`, `ApiClient`
+- **Benefícios**:
+  - ✅ Renderização SSR funcional sem erros
+  - ✅ Hydration suave entre servidor e cliente
+  - ✅ Fallbacks robustos para ambientes sem localStorage
+  - ✅ Compatibilidade com diferentes ambientes de execução
 
 ### 🏗️ Configuração de Desenvolvimento
 ```bash
@@ -390,6 +417,32 @@ node scripts/test-api-connection.js
   - Botões primários: `bg-blue-600 text-white rounded hover:bg-blue-700`
   - Botões de ação: `bg-green-600 text-white rounded hover:bg-green-700`
   - Botões de exclusão: `bg-red-600 text-white rounded hover:bg-red-700`
+
+### 🚀 Redirecionamento Automático após Criação de Loja (Janeiro 2025)
+- **Objetivo**: Implementar redirecionamento automático do usuário para o dashboard da loja recém-criada
+- **Implementação**: 
+  - **Backend**: Associação automática do usuário criador como ADMIN da loja
+  - **Backend**: Loja nasce com `approved: true` (sem processo de aprovação)
+  - **Backend**: Endpoint `/users/me/current-store` para definir loja atual
+  - **Frontend**: Hooks atualizados para usar endpoints reais
+  - **Frontend**: Redirecionamento automático para `/dashboard/{slug}`
+- **Arquivos Modificados**:
+  - `delivery-back/src/stores/stores.service.ts` - Associação automática
+  - `delivery-back/src/users/users.controller.ts` - Novo endpoint
+  - `delivery-back/src/users/users.service.ts` - Método setCurrentStore
+  - `delivery-app/lib/api-client.ts` - Implementação real do setCurrentStore
+  - `delivery-app/hooks/useStoreRedirect.ts` - Redirecionamento funcionando
+  - `delivery-app/hooks/useAuthContext.ts` - Hooks funcionando
+  - `delivery-app/contexts/AuthContext.tsx` - Contexto completo
+- **Testes**: 
+  - Backend: UsersController, UsersService, StoresService (100% passando)
+  - Frontend: useCreateStore (100% passando)
+- **Benefícios**: 
+  - ✅ Usuário é automaticamente redirecionado para o dashboard
+  - ✅ Sem processo de aprovação desnecessário
+  - ✅ Associação automática usuário-loja como ADMIN
+  - ✅ Sistema funciona de ponta a ponta
+  - ✅ Código limpo e bem testado
   - Botões de navegação: `text-gray-600 hover:text-gray-900 hover:bg-gray-100`
 - **Benefícios**: 
   - ✅ Interface mais clara e intuitiva

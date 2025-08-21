@@ -34,7 +34,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshUserData = async () => {
     try {
       if (apiClient.isAuthenticated()) {
-        const currentUser = await apiClient.getCurrentUser()
+        const authContext = await apiClient.getCurrentUserContext()
+        const currentUser = authContext.user
         setUser(currentUser)
         setUserStores(currentUser.stores || [])
         
