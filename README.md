@@ -15,6 +15,23 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - **NOVA**: Configuração centralizada da API backend
 - **NOVA**: Sistema de logging configurável por ambiente
 - **NOVA**: Menu lateral do dashboard habilitado com navegação completa
+- **NOVA**: Sistema de componentes Shadcn UI implementado
+
+### 🎨 Sistema de Componentes Shadcn UI (Janeiro 2025)
+- **Componentes Base**: Button, Card, Badge, Container, Section
+- **Variantes Personalizadas**: Gradientes, cores específicas do projeto
+- **Acessibilidade**: Baseado em Radix UI com suporte a leitores de tela
+- **Responsividade**: Sistema de breakpoints automático
+- **Página Home**: Completamente migrada para Shadcn UI
+- **Testes Unitários**: 17 testes cobrindo todos os componentes
+- **Design System**: Padrões visuais consistentes e reutilizáveis
+
+#### Componentes Implementados:
+- **Button**: Múltiplas variantes (gradient, gradientGreen, white) e tamanhos
+- **Card**: Sistema modular com Header, Title, Content e Footer
+- **Badge**: Etiquetas com variantes de cores personalizadas
+- **Container**: Containers responsivos com tamanhos predefinidos
+- **Section**: Seções com variantes de fundo (default, gradient, dark)
 
 ### 🎯 Menu Lateral do Dashboard (Janeiro 2025)
 - **Navegação Principal**: Dashboard, Minhas Lojas, Gerenciar Lojas
