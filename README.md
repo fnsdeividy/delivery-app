@@ -24,6 +24,14 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - **Responsivo**: Menu adaptável para dispositivos móveis e desktop
 - **Integração**: Funciona com todas as páginas do dashboard
 
+### 🔒 Filtro de Lojas por Criador (Janeiro 2025)
+- **Isolamento por ADMIN**: Usuários ADMIN veem apenas lojas criadas por eles
+- **Identificação por Email**: Filtro baseado no campo `createdByEmail` da loja
+- **Segurança**: Implementado no backend, não pode ser contornado pelo frontend
+- **SUPER_ADMIN**: Mantém acesso a todas as lojas (sem filtro)
+- **Retrocompatibilidade**: Lojas legacy (sem criador) ficam visíveis apenas para SUPER_ADMIN
+- **Performance**: Filtro aplicado diretamente na query do banco de dados
+
 ### 🔌 Configuração da API Backend (Janeiro 2025)
 - **URL Base**: `http://localhost:3001/api/v1`
 - **Endpoints Disponíveis**:
