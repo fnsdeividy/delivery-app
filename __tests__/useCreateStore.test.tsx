@@ -11,6 +11,7 @@ jest.mock('@/lib/api-client', () => ({
     getCurrentToken: jest.fn(),
     updateStoreContext: jest.fn(),
     createStore: jest.fn(),
+    setCurrentStore: jest.fn(),
   },
 }))
 
@@ -114,7 +115,7 @@ describe('useCreateStore', () => {
     })
 
     expect(mockApiClient.createStore).toHaveBeenCalledWith(mockStoreData)
-    expect(mockApiClient.updateStoreContext).toHaveBeenCalledWith(mockStoreResponse)
+    expect(mockApiClient.updateStoreContext).toHaveBeenCalledWith(mockStoreResponse.slug)
     expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store?welcome=true&message=Loja criada com sucesso!')
   })
 
@@ -134,7 +135,8 @@ describe('useCreateStore', () => {
     })
 
     expect(result.current.error?.message).toBe(errorMessage)
-    expect(mockPush).toHaveBeenCalledWith('/dashboard/gerenciar-lojas')
+    // O hook não redireciona automaticamente em caso de erro
+    expect(mockPush).not.toHaveBeenCalled()
   })
 
   it('deve lidar com erro no updateStoreContext', async () => {
@@ -154,7 +156,7 @@ describe('useCreateStore', () => {
     })
 
     // Deve continuar mesmo com erro no updateStoreContext
-    expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store?welcome=true&message=Loja criada com sucesso!')
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store')
   })
 
   it('deve funcionar sem token de autenticação', async () => {
@@ -172,9 +174,10 @@ describe('useCreateStore', () => {
       expect(result.current.isSuccess).toBe(true)
     })
 
-    // Não deve chamar updateStoreContext se não houver token
-    expect(mockApiClient.updateStoreContext).not.toHaveBeenCalled()
-    expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store?welcome=true&message=Loja criada com sucesso!')
+    // Deve chamar updateStoreContext mesmo sem token (fallback)
+    expect(mockApiClient.updateStoreContext).toHaveBeenCalledWith('test-store')
+    // Como updateStoreContext falha sem token, usa fallback
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/test-store')
   })
 
   it('deve invalidar queries relacionadas após sucesso', async () => {

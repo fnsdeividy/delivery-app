@@ -417,6 +417,32 @@ node scripts/test-api-connection.js
   - Botões primários: `bg-blue-600 text-white rounded hover:bg-blue-700`
   - Botões de ação: `bg-green-600 text-white rounded hover:bg-green-700`
   - Botões de exclusão: `bg-red-600 text-white rounded hover:bg-red-700`
+
+### 🚀 Redirecionamento Automático após Criação de Loja (Janeiro 2025)
+- **Objetivo**: Implementar redirecionamento automático do usuário para o dashboard da loja recém-criada
+- **Implementação**: 
+  - **Backend**: Associação automática do usuário criador como ADMIN da loja
+  - **Backend**: Loja nasce com `approved: true` (sem processo de aprovação)
+  - **Backend**: Endpoint `/users/me/current-store` para definir loja atual
+  - **Frontend**: Hooks atualizados para usar endpoints reais
+  - **Frontend**: Redirecionamento automático para `/dashboard/{slug}`
+- **Arquivos Modificados**:
+  - `delivery-back/src/stores/stores.service.ts` - Associação automática
+  - `delivery-back/src/users/users.controller.ts` - Novo endpoint
+  - `delivery-back/src/users/users.service.ts` - Método setCurrentStore
+  - `delivery-app/lib/api-client.ts` - Implementação real do setCurrentStore
+  - `delivery-app/hooks/useStoreRedirect.ts` - Redirecionamento funcionando
+  - `delivery-app/hooks/useAuthContext.ts` - Hooks funcionando
+  - `delivery-app/contexts/AuthContext.tsx` - Contexto completo
+- **Testes**: 
+  - Backend: UsersController, UsersService, StoresService (100% passando)
+  - Frontend: useCreateStore (100% passando)
+- **Benefícios**: 
+  - ✅ Usuário é automaticamente redirecionado para o dashboard
+  - ✅ Sem processo de aprovação desnecessário
+  - ✅ Associação automática usuário-loja como ADMIN
+  - ✅ Sistema funciona de ponta a ponta
+  - ✅ Código limpo e bem testado
   - Botões de navegação: `text-gray-600 hover:text-gray-900 hover:bg-gray-100`
 - **Benefícios**: 
   - ✅ Interface mais clara e intuitiva

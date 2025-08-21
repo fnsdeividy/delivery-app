@@ -30,29 +30,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userStores, setUserStores] = useState<UserStoreAssociation[]>([])
   const [currentStore, setCurrentStoreState] = useState<UserStoreAssociation | null>(null)
 
-  // TODO: Endpoint /users/me/context não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   // Função para carregar dados completos do usuário
   const refreshUserData = async () => {
     try {
       if (apiClient.isAuthenticated()) {
-        // const authContext = await apiClient.getCurrentUserContext()
-        // const currentUser = authContext.user
-        // setUser(currentUser)
-        // setUserStores(currentUser.stores || [])
-        
-        // Fallback temporário: não carregar dados do usuário
-        console.warn('Endpoint /users/me/context não implementado no backend ainda')
+        const authContext = await apiClient.getCurrentUserContext()
+        const currentUser = authContext.user
+        setUser(currentUser)
+        setUserStores(currentUser.stores || [])
         
         // Definir loja atual baseada nos dados do usuário
-        // const currentStoreSlug = currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug()
-        // if (currentStoreSlug) {
-        //   const store = currentUser.stores?.find(s => s.storeSlug === currentStoreSlug)
-        //   setCurrentStoreState(store || null)
-        // }
+        const currentStoreSlug = currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug()
+        if (currentStoreSlug) {
+          const store = currentUser.stores?.find(s => s.storeSlug === currentStoreSlug)
+          setCurrentStoreState(store || null)
+        }
         
         // Persistir dados do usuário no localStorage
-        // localStorage.setItem('user', JSON.stringify(currentUser))
+        localStorage.setItem('user', JSON.stringify(currentUser))
       }
     } catch (error) {
       console.error('❌ Erro ao carregar dados do usuário:', error)

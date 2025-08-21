@@ -174,7 +174,9 @@ class ApiClient {
 
   private redirectToLogin(): void {
     if (typeof window !== 'undefined') {
-      window.location.href = '/login'
+      // Não usar window.location.href para evitar refresh da página
+      // O redirecionamento será tratado pelos componentes React
+      console.warn('🔒 Token expirado - redirecionamento para login desabilitado para evitar refresh')
     }
   }
 
@@ -332,31 +334,35 @@ class ApiClient {
     }
   }
 
-  // TODO: Endpoint /users/me/current-store não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
     try {
-      // const response = await this.patch<User>('/users/me/current-store', data)
+      const response = await this.patch<User>('/users/me/current-store', data)
+      
       // Atualizar localStorage com a nova loja atual (SSR-safe)
       safeLocalStorage.setItem('currentStoreSlug', data.storeSlug)
       
-      // Fallback temporário: retornar dados mockados
-      // TODO: Implementar quando o endpoint estiver disponível
-      return {
-        id: 'temp-user',
-        email: 'temp@example.com',
-        name: 'Usuário Temporário',
-        role: 'ADMIN' as any,
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        currentStoreSlug: data.storeSlug
-      } as User
+      if (appConfig.api.logResponses) {
+        this.log('✅ Loja atual definida com sucesso', { storeSlug: data.storeSlug })
+      }
+      
+      return response
     } catch (error) {
       if (appConfig.api.debug) {
         this.log('❌ Erro ao definir loja atual', { error })
       }
       throw this.createApiError(error)
+    }
+  }
+
+  // Método para atualizar contexto da loja (alias para setCurrentStore)
+  async updateStoreContext(storeSlug: string): Promise<void> {
+    try {
+      await this.setCurrentStore({ storeSlug })
+    } catch (error) {
+      if (appConfig.api.debug) {
+        this.log('❌ Erro ao atualizar contexto da loja', { error })
+      }
+      throw error
     }
   }
 
@@ -593,6 +599,10 @@ class ApiClient {
 
   async getStoreBySlug(slug: string): Promise<Store> {
     return this.get<Store>(`/stores/slug/${slug}`)
+  }
+
+  async getPublicStore(slug: string): Promise<any> {
+    return this.get<any>(`/stores/public/${slug}`)
   }
 
   async createStore(storeData: CreateStoreDto): Promise<Store> {

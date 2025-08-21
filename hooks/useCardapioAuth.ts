@@ -64,7 +64,19 @@ export function useCardapioAuth() {
           }
         }
       } catch (err: any) {
-        const errorMessage = err.message || 'Erro desconhecido durante o login'
+        // Melhorar tratamento de erros para evitar refresh da página
+        let errorMessage = 'Erro desconhecido durante o login'
+        
+        if (err.response?.status === 401) {
+          errorMessage = 'Email ou senha incorretos'
+        } else if (err.response?.status === 400) {
+          errorMessage = 'Dados de login inválidos'
+        } else if (err.response?.status === 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente.'
+        } else if (err.message) {
+          errorMessage = err.message
+        }
+        
         setError(errorMessage)
         throw new Error(errorMessage)
       } finally {
@@ -105,8 +117,18 @@ export function useCardapioAuth() {
     },
     onError: (err: any) => {
       console.error('Erro no login:', err)
-      setError(err.message)
+      
+      // Garantir que o erro seja exibido corretamente
+      if (err.message) {
+        setError(err.message)
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message)
+      } else {
+        setError('Erro desconhecido durante o login')
+      }
+      
       // Não fazer redirecionamento automático em caso de erro
+      // O usuário deve ver o erro e tentar novamente
     },
   })
 
@@ -153,6 +175,11 @@ export function useCardapioAuth() {
     router.push('/login')
   }, [queryClient, router])
 
+  // Função para limpar erro
+  const clearError = useCallback(() => {
+    setError(null)
+  }, [])
+
   // Função para verificar se está autenticado - estabilizada com useCallback
   const isAuthenticated = useCallback(() => {
     return apiClient.isAuthenticated()
@@ -172,6 +199,7 @@ export function useCardapioAuth() {
     login: loginMutation.mutate,
     register: registerMutation.mutate,
     logout,
+    clearError,
 
     // Utilitários
     isAuthenticated,

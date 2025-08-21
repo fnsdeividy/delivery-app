@@ -1,41 +1,14 @@
 import { apiClient } from '@/lib/api-client'
-import { SetCurrentStoreDto, UserStoreAssociation } from '@/types/cardapio-api'
+import { SetCurrentStoreDto } from '@/types/cardapio-api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-// TODO: Endpoint /users/me/context não está disponível no backend ainda
-// Comentado temporariamente até a implementação
 export function useAuthContext() {
-  // return useQuery({
-  //   queryKey: ['user-context'],
-  //   queryFn: () => apiClient.getCurrentUserContext(),
-  //   staleTime: 5 * 60 * 1000, // 5 minutos
-  //   gcTime: 10 * 60 * 1000, // 10 minutos
-  // })
-  
-  // Fallback temporário: retornar dados mockados
-  return {
-    data: {
-      user: {
-        id: 'temp-user',
-        email: 'temp@example.com',
-        name: 'Usuário Temporário',
-        role: 'ADMIN' as any,
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        stores: [],
-        currentStoreSlug: null
-      },
-      permissions: {
-        scope: 'STORE' as any,
-        stores: {},
-        globalPermissions: []
-      },
-      currentStore: null
-    },
-    isLoading: false,
-    error: null
-  } as any
+  return useQuery({
+    queryKey: ['user-context'],
+    queryFn: () => apiClient.getCurrentUserContext(),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+  })
 }
 
 // TODO: Endpoint /users/{userId}/stores não está disponível no backend ainda
@@ -89,8 +62,6 @@ export function useUserPermissions(storeSlug?: string) {
   } as any
 }
 
-// TODO: Endpoint /users/me/current-store não está disponível no backend ainda
-// Comentado temporariamente até a implementação
 export function useSetCurrentStore() {
   const queryClient = useQueryClient()
   
@@ -98,15 +69,14 @@ export function useSetCurrentStore() {
     mutationFn: (data: SetCurrentStoreDto) => apiClient.setCurrentStore(data),
     onSuccess: (updatedUser, variables) => {
       // Invalidar queries relacionadas
-      // queryClient.invalidateQueries({ queryKey: ['user'] })
-      // queryClient.invalidateQueries({ queryKey: ['user-context'] })
-      // queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['user-context'] })
+      queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
       
       // Atualizar dados do usuário no cache
-      // queryClient.setQueryData(['user'], updatedUser)
+      queryClient.setQueryData(['user'], updatedUser)
       
-      // Fallback temporário: apenas atualizar localStorage
-      console.log('✅ Loja atual definida temporariamente:', variables.storeSlug)
+      console.log('✅ Loja atual definida com sucesso:', variables.storeSlug)
     },
     onError: (error) => {
       console.error('❌ Erro ao definir loja atual:', error)
@@ -154,30 +124,27 @@ export function useHasPermission() {
   }
 }
 
-// TODO: Endpoint /users/me/context não está disponível no backend ainda
-// Comentado temporariamente até a implementação
 // Hook para obter a loja atual do usuário
 export function useCurrentStore() {
-  // const { data: authContext } = useQuery({
-  //   queryKey: ['user-context'],
-  //   queryFn: () => apiClient.getCurrentUserContext(),
-  // })
+  const { data: authContext } = useQuery({
+    queryKey: ['user-context'],
+    queryFn: () => apiClient.getCurrentUserContext(),
+  })
 
-  // const user = authContext?.user
+  const user = authContext?.user
 
   // Durante SSR, usar apenas dados do usuário
   // No cliente, tentar obter do localStorage como fallback
   const currentStoreSlug = typeof window !== 'undefined' ? apiClient.getCurrentStoreSlug() : null
   
-  // Fallback temporário: não há loja atual
-  const currentStore: UserStoreAssociation | null = null
+  const currentStore = user?.currentStore || null
 
   return {
     currentStore,
     currentStoreSlug,
-    hasCurrentStore: false,
-    isOwner: false,
-    isAdmin: false,
-    isManager: false,
+    hasCurrentStore: !!currentStore,
+    isOwner: currentStore?.role === 'OWNER',
+    isAdmin: currentStore?.role === 'ADMIN',
+    isManager: currentStore?.role === 'MANAGER',
   }
 }
