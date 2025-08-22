@@ -16,11 +16,6 @@ export function Logo({ className = '', showBadge = true, size = 'md' }: LogoProp
       <h1 className={`font-bold text-gray-900 ${sizeClasses[size]}`}>
         Cardap.IO
       </h1>
-      {showBadge && (
-        <span className="ml-3 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
-          Multi-Tenant
-        </span>
-      )}
     </div>
   )
 } 

@@ -1,17 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
 import { Logo } from './Logo'
 import { MobileMenu } from './MobileMenu'
 
 export function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
-
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
@@ -21,16 +14,6 @@ export function Header() {
             <div className="flex-shrink-0">
               <Logo size="md" />
             </div>
-
-            {/* Links de navegação - Desktop */}
-            <nav className="hidden lg:flex items-center space-x-8">
-              <Link
-                href="/login/lojista"
-                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-              >
-                Dashboard Lojista
-              </Link>
-            </nav>
 
             {/* Botões de ação - Desktop */}
             <div className="hidden lg:flex items-center space-x-4">
@@ -49,10 +32,7 @@ export function Header() {
             </div>
 
             {/* Menu mobile */}
-            <MobileMenu 
-              isOpen={isMobileMenuOpen} 
-              onToggle={toggleMobileMenu} 
-            />
+            <MobileMenu />
           </div>
         </div>
       </header>
