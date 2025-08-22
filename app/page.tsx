@@ -1,481 +1,507 @@
 'use client'
 
-import { Storefront } from '@phosphor-icons/react'
+import { Header } from '@/components/Header'
+import {
+  Animated,
+  AnimatedCard,
+  Hero,
+  StaggerItem,
+  StaggerList
+} from '@/components/ui'
+import { CheckCircle, MessageCircle, Phone, Shield, Star, Store, Truck, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { Header } from '../components/Header'
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Container, Section } from '../components/ui'
 
 export default function HomePage() {
-
-  const featuredStores = [
+  const features = [
     {
-      name: 'Pizza Express',
-      slug: 'pizza-express',
-      description: 'As melhores pizzas da região',
-      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop',
-      rating: 4.6,
-      categories: ['Pizza', 'Italiana', 'Delivery']
+      icon: <Zap className="w-8 h-8 text-yellow-500" />,
+      title: 'Pedidos em 1 Minuto',
+      description: 'Seu cardápio online pronto em menos de 1 minuto, sem complicação'
     },
     {
-      name: 'Burger House',
-      slug: 'burger-house',
-      description: 'Hambúrguers artesanais premium',
-      image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop',
-      rating: 4.7,
-      categories: ['Hamburger', 'Americana', 'Gourmet']
+      icon: <MessageCircle className="w-8 h-8 text-green-500" />,
+      title: 'WhatsApp Integration',
+      description: 'Receba pedidos diretamente pelo WhatsApp, sem taxas por pedido'
+    },
+    {
+      icon: <Store className="w-8 h-8 text-blue-500" />,
+      title: 'Multi-Plataforma',
+      description: 'Seus produtos no Google, iFood e nosso app simultaneamente'
+    }
+  ]
+
+  const testimonials = [
+    {
+      name: 'Carlos Silva',
+      store: 'Hamburgueria Artesanal',
+      text: 'Aumentei minhas vendas em 40% depois que comecei a usar o Cardap.IO. O melhor é que não pago taxas absurdas como em outros apps.',
+      avatar: 'CS'
+    },
+    {
+      name: 'Mariana Santos',
+      store: 'Pizzaria Donatella',
+      text: 'Finalmente uma plataforma que entende as necessidades dos pequenos negócios. Fácil de usar e os clientes amam a experiência.',
+      avatar: 'MS'
     }
   ]
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <Header />
-
+      
       {/* Hero Section */}
-      <Section variant="gradient" className="py-24">
-        {/* Background SVG Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1" className="text-blue-200"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-            <circle cx="200" cy="150" r="80" fill="currentColor" className="text-blue-200 opacity-30"/>
-            <circle cx="1000" cy="600" r="120" fill="currentColor" className="text-indigo-200 opacity-30"/>
-            <rect x="800" y="200" width="200" height="150" rx="20" fill="currentColor" className="text-purple-200 opacity-20"/>
-          </svg>
-        </div>
-
-        <Container size="lg" className="text-center relative z-10">
-          <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Delivery Multi-Tenant
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              em um só lugar
-            </span>
-          </h1>
-          
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Crie e gerencie cardápios digitais, pedidos e lojas com poucos cliques.
-          </p>
-
-          {/* CTA Button */}
-          <div className="flex justify-center">
-            <Button
-              asChild
-              variant="gradient"
-              size="xl"
-              className="shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
-            >
-              <Link href="/register/loja">
-                <Storefront className="w-7 h-7 mr-3" />
-                Criar Minha Loja
-              </Link>
-            </Button>
-          </div>
-        </Container>
-      </Section>
-
-      {/* Features */}
-      <Section>
-        <Container size="xl">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              O que o Cardap.IO oferece
-            </h3>
-            <p className="text-lg text-gray-600">
-              Sistema completo com funcionalidades avançadas para cada tipo de usuário
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {/* Clientes */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-6xl mb-6">🛒</div>
-                <CardTitle className="text-2xl">Cliente</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-left">
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-500 mt-1">•</span>
-                    <span className="text-gray-600">Navegue pelos cardápios personalizados</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-500 mt-1">•</span>
-                    <span className="text-gray-600">Faça pedidos com poucos cliques</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-500 mt-1">•</span>
-                    <span className="text-gray-600">Acompanhe entregas em tempo real</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Lojistas */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-6xl mb-6">📊</div>
-                <CardTitle className="text-2xl">Lojista</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-left">
-                  <div className="flex items-start gap-3">
-                    <span className="text-purple-500 mt-1">•</span>
-                    <span className="text-gray-600">Dashboard administrativo completo</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-purple-500 mt-1">•</span>
-                    <span className="text-gray-600">Gerencie produtos e pedidos</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-purple-500 mt-1">•</span>
-                    <span className="text-gray-600">Configure sua loja facilmente</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Super Admin */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-6xl mb-6">👑</div>
-                <CardTitle className="text-2xl">Super Admin</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-left">
-                  <div className="flex items-start gap-3">
-                    <span className="text-indigo-500 mt-1">•</span>
-                    <span className="text-gray-600">Controle total do sistema</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-indigo-500 mt-1">•</span>
-                    <span className="text-gray-600">Gestão de todas as lojas</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-indigo-500 mt-1">•</span>
-                    <span className="text-gray-600">Analytics globais e relatórios</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Funcionalidades Principais */}
-          <Card className="shadow-lg border border-gray-100">
-            <CardHeader>
-              <CardTitle className="text-3xl text-center">
-                Funcionalidades Principais
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Cardápio Digital */}
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">🍔</span>
-                  </div>
-                  <div>
-                    <h5 className="text-xl font-bold text-gray-900 mb-2">Cardápio Digital</h5>
-                    <p className="text-gray-600 leading-relaxed">
-                      Cardápios personalizados com fotos, descrições e preços. Interface intuitiva para clientes navegarem facilmente.
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Analytics */}
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">📈</span>
-                  </div>
-                  <div>
-                    <h5 className="text-xl font-bold text-gray-900 mb-2">Analytics</h5>
-                    <p className="text-gray-600 leading-relaxed">
-                      Relatórios detalhados de vendas, produtos e performance. Tome decisões baseadas em dados reais.
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Configurações Avançadas */}
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">⚙️</span>
-                  </div>
-                  <div>
-                    <h5 className="text-xl font-bold text-gray-900 mb-2">Configurações Avançadas</h5>
-                    <p className="text-gray-600 leading-relaxed">
-                      Personalização visual, horários de funcionamento e métodos de pagamento. Configure tudo do seu jeito.
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Entregas */}
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">🚚</span>
-                  </div>
-                  <div>
-                    <h5 className="text-xl font-bold text-gray-900 mb-2">Entregas</h5>
-                    <p className="text-gray-600 leading-relaxed">
-                      Sistema completo de entregas com zonas, taxas e tempo estimado. Controle total sobre suas operações.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Container>
-      </Section>
-
-      {/* Benefícios */}
-      <Section variant="gradient">
-        <Container size="xl">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que escolher o Cardap.IO?
-            </h3>
-            <p className="text-xl text-gray-600">
-              Vantagens exclusivas para seu negócio
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {/* Economia */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-5xl mb-4">💰</div>
-                <CardTitle className="text-xl">Economia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Sem taxas mensais abusivas. Pague apenas pelo que usar.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Simplicidade */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-5xl mb-4">⚡</div>
-                <CardTitle className="text-xl">Simplicidade</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Interface intuitiva que qualquer pessoa pode usar.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Flexibilidade */}
-            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <CardHeader>
-                <div className="text-5xl mb-4">🔧</div>
-                <CardTitle className="text-xl">Flexibilidade</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Personalize tudo: cores, logo, horários e pagamentos.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </Container>
-      </Section>
-
-      {/* Featured Stores */}
-      <Section className="bg-gray-50">
-        <Container size="xl">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4">
-              Lojas em Destaque
-            </h3>
-            <p className="text-xl text-gray-600">
-              Inspire-se com estas lojas de sucesso
-            </p>
-          </div>
-
-          {/* Carrossel */}
-          <div className="relative">
-            <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory">
-              {featuredStores.map((store, index) => (
-                <Card
-                  key={store.slug}
-                  className="flex-none w-80 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden snap-start"
+      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white py-20 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Hero>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6">
+                Venda Mais Online
+                <Animated 
+                  animation="slideIn" 
+                  config={{ direction: 'up', delay: 0.2 }}
+                  trigger="mount"
+                  className="block text-blue-200"
                 >
-                  <div className="relative">
-                    <img
-                      src={store.image}
-                      alt={store.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute top-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-                      <span className="text-yellow-500">⭐</span>
-                      <span className="text-sm font-semibold text-gray-800">{store.rating}</span>
-                    </div>
+                  Sem Taxas Abusivas
+                </Animated>
+              </h1>
+              <Animated 
+                animation="fadeIn" 
+                config={{ delay: 0.3 }}
+                trigger="mount"
+                className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto"
+              >
+                Crie sua loja no Cardap.IO, receba pedidos direto pelo WhatsApp e apareça para milhares de clientes na sua região.
+              </Animated>
+              <Animated 
+                animation="scaleIn" 
+                config={{ delay: 0.5 }}
+                trigger="mount"
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+              >
+                <Link
+                  href="/register/loja"
+                  className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  ➕ Criar Minha Loja Grátis
+                </Link>
+                <Link
+                  href="/lojas"
+                  className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
+                >
+                  🛍️ Ver Lojas Próximas
+                </Link>
+              </Animated>
+            </Hero>
+          </div>
+        </div>
+        
+        {/* Background Animation Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full animate-float animate-delay-100 blur-sm"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-white/5 rounded-full animate-float animate-delay-300 blur-md"></div>
+        <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-white/10 rounded-full animate-float animate-delay-500 blur-lg"></div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="py-8 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Animated 
+              animation="fadeIn" 
+              config={{ delay: 0.1 }}
+              className="text-sm font-semibold text-gray-500 uppercase mb-4"
+            >
+              Confiado por centenas de lojistas
+            </Animated>
+            <Animated 
+              animation="slideIn" 
+              config={{ direction: 'up', delay: 0.2 }}
+              className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60"
+            >
+              <div className="text-2xl font-bold text-gray-700">🥗 Salads & Cia</div>
+              <div className="text-2xl font-bold text-gray-700">🍔 Burger Art</div>
+              <div className="text-2xl font-bold text-gray-700">☕ Café Brasil</div>
+              <div className="text-2xl font-bold text-gray-700">🍕 Pizzaria Top</div>
+            </Animated>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Animated animation="fadeIn">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Por que escolher o Cardap.IO?
+              </h2>
+            </Animated>
+            <Animated 
+              animation="fadeIn" 
+              config={{ delay: 0.2 }}
+            >
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                A plataforma completa para seu negócio de alimentação crescer
+              </p>
+            </Animated>
+          </div>
+          
+          <StaggerList staggerDelay={0.1}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Truck className="w-8 h-8 text-blue-600" />
                   </div>
-                  
-                  <CardContent className="p-6">
-                    <h4 className="text-xl font-bold text-gray-900 mb-2">{store.name}</h4>
-                    <p className="text-gray-600 mb-4 leading-relaxed">{store.description}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {store.categories.map((category) => (
-                        <Badge key={category} variant="blue">
-                          {category}
-                        </Badge>
-                      ))}
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Entrega Rápida</h3>
+                  <p className="text-gray-600">Receba seus pedidos em até 1 hora</p>
+                </AnimatedCard>
+              </StaggerItem>
+              
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+                  <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Compra Segura</h3>
+                  <p className="text-gray-600">Pagamento seguro e garantia de entrega</p>
+                </AnimatedCard>
+              </StaggerItem>
+              
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+                  <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Store className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Lojas Verificadas</h3>
+                  <p className="text-gray-600">Todas as lojas são verificadas e confiáveis</p>
+                </AnimatedCard>
+              </StaggerItem>
+              
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+                  <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Phone className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">WhatsApp Direct</h3>
+                  <p className="text-gray-600">Receba pedidos sem taxas pelo WhatsApp</p>
+                </AnimatedCard>
+              </StaggerItem>
+            </div>
+          </StaggerList>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Animated animation="fadeIn">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Como Funciona
+              </h2>
+            </Animated>
+            <Animated 
+              animation="fadeIn" 
+              config={{ delay: 0.2 }}
+            >
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Em poucos minutos seu negócio está online e vendendo
+              </p>
+            </Animated>
+          </div>
+          
+          <StaggerList staggerDelay={0.15}>
+            <div className="grid md:grid-cols-3 gap-8">
+              {features.map((feature, index) => (
+                <StaggerItem key={index} animation="scaleIn">
+                  <AnimatedCard className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+                    <div className="flex justify-center mb-4">
+                      {feature.icon}
                     </div>
-                    
-                    <Button
-                      asChild
-                      variant="gradient"
-                      className="w-full transform hover:-translate-y-1"
-                    >
-                      <Link href={`/store/${store.slug}`}>
-                        Ver Cardápio
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">{feature.title}</h3>
+                    <p className="text-gray-600 text-center">{feature.description}</p>
+                  </AnimatedCard>
+                </StaggerItem>
               ))}
             </div>
-          </div>
+          </StaggerList>
+          
+          <Animated 
+            animation="fadeIn" 
+            config={{ delay: 0.5 }}
+            className="mt-12 text-center"
+          >
+            <div className="inline-flex items-center bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+              <CheckCircle className="w-5 h-5 mr-2" />
+              <span>Sem necessidade de cartão de crédito para começar</span>
+            </div>
+          </Animated>
+        </div>
+      </section>
 
-          {/* CTA Principal */}
-          <div className="text-center mt-16">
-            <Card className="shadow-lg border border-gray-100 max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  Gostou do que viu?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-6">
-                  Crie sua loja digital e tenha o mesmo sucesso. É rápido, fácil e acessível.
-                </p>
-                <Button
-                  asChild
-                  variant="gradientGreen"
-                  size="lg"
-                  className="transform hover:-translate-y-1"
-                >
-                  <Link href="/register/loja">
-                    <Storefront className="w-6 h-6 mr-3" />
-                    Quero uma loja assim
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+      {/* Testimonials Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Animated animation="fadeIn">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                O que nossos lojistas dizem
+              </h2>
+            </Animated>
           </div>
-        </Container>
-      </Section>
+          
+          <StaggerList staggerDelay={0.2}>
+            <div className="grid md:grid-cols-2 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <StaggerItem key={index} animation="slideIn" config={{ direction: 'left', delay: index * 0.2 }}>
+                  <AnimatedCard className="bg-gray-50 p-6 rounded-lg hover:shadow-md transition-shadow duration-300">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                        <span className="font-semibold text-blue-800">{testimonial.avatar}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                        <p className="text-gray-600 text-sm">{testimonial.store}</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 italic">"{testimonial.text}"</p>
+                    <div className="flex mt-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                  </AnimatedCard>
+                </StaggerItem>
+              ))}
+            </div>
+          </StaggerList>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Animated animation="fadeIn">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Planos Acessíveis
+              </h2>
+            </Animated>
+            <Animated 
+              animation="fadeIn" 
+              config={{ delay: 0.2 }}
+            >
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Escolha o plano ideal para o seu negócio
+              </p>
+            </Animated>
+          </div>
+          
+          <StaggerList staggerDelay={0.1}>
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="bg-gray-50 p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Plano Básico</h3>
+                  <div className="text-3xl font-bold text-gray-900 mb-4">Grátis</div>
+                  <ul className="space-y-3 text-gray-600">
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>1 loja</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Até 20 produtos</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Pedidos por WhatsApp</span>
+                    </li>
+                  </ul>
+                  <Link
+                    href="/register"
+                    className="mt-6 block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
+                  >
+                    Começar Grátis
+                  </Link>
+                </AnimatedCard>
+              </StaggerItem>
+              
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="bg-blue-50 p-6 rounded-lg border border-blue-200 relative hover:shadow-lg transition-shadow duration-300">
+                  <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                    Popular
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Plano Premium</h3>
+                  <div className="text-3xl font-bold text-gray-900 mb-4">R$ 79<span className="text-lg font-normal">/mês</span></div>
+                  <ul className="space-y-3 text-gray-600">
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>3 lojas</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Produtos ilimitados</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Pedidos por WhatsApp</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Integração com iFood</span>
+                    </li>
+                  </ul>
+                  <Link
+                    href="/register"
+                    className="mt-6 block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300"
+                  >
+                    Assinar Agora
+                  </Link>
+                </AnimatedCard>
+              </StaggerItem>
+              
+              <StaggerItem animation="scaleIn">
+                <AnimatedCard className="bg-gray-50 p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Plano Empresarial</h3>
+                  <div className="text-3xl font-bold text-gray-900 mb-4">R$ 149<span className="text-lg font-normal">/mês</span></div>
+                  <ul className="space-y-3 text-gray-600">
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Lojas ilimitadas</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Produtos ilimitados</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Pedidos multi-canais</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <span>Suporte prioritário</span>
+                    </li>
+                  </ul>
+                  <Link
+                    href="/register"
+                    className="mt-6 block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
+                  >
+                    Assinar Agora
+                  </Link>
+                </AnimatedCard>
+              </StaggerItem>
+            </div>
+          </StaggerList>
+        </div>
+      </section>
 
       {/* CTA Section */}
-      <Section variant="dark" className="py-24">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="100" cy="100" r="60" fill="currentColor" className="text-white opacity-20"/>
-            <circle cx="1100" cy="500" r="80" fill="currentColor" className="text-white opacity-20"/>
-            <circle cx="900" cy="150" r="40" fill="currentColor" className="text-white opacity-30"/>
-            <circle cx="200" cy="450" r="50" fill="currentColor" className="text-white opacity-25"/>
-          </svg>
-        </div>
-
-        <Container size="lg" className="text-center relative z-10">
-          <h3 className="text-5xl font-bold text-white mb-6 leading-tight">
-            Pronto para começar?
-          </h3>
-          <p className="text-2xl text-purple-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Crie sua loja em minutos e comece a vender online.
-          </p>
-          
-          <div className="flex justify-center">
-            <Button
-              asChild
-              variant="white"
-              size="xl"
-              className="shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300"
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <Animated animation="fadeIn">
+            <h2 className="text-3xl font-bold mb-4">
+              Pronto para vender mais?
+            </h2>
+          </Animated>
+          <Animated 
+            animation="fadeIn" 
+            config={{ delay: 0.2 }}
+          >
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Junte-se a milhares de lojistas que aumentaram suas vendas com o Cardap.IO
+            </p>
+          </Animated>
+          <Animated 
+            animation="scaleIn" 
+            config={{ delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Link
+              href="/register"
+              className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
-              <Link href="/register/loja">
-                <Storefront className="w-7 h-7 mr-3" />
-                Criar Minha Loja
-              </Link>
-            </Button>
-          </div>
-        </Container>
-      </Section>
+              Criar Minha Loja Grátis
+            </Link>
+            <Link
+              href="/login"
+              className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
+            >
+              Fazer Login
+            </Link>
+          </Animated>
+          <Animated 
+            animation="fadeIn" 
+            config={{ delay: 0.5 }}
+            className="mt-6 text-blue-100 text-sm"
+          >
+            Não é necessário cartão de crédito. Comece gratuitamente.
+          </Animated>
+        </div>
+        
+        {/* Background Animation Elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-white/5 rounded-full animate-float animate-delay-200 blur-sm"></div>
+        <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/5 rounded-full animate-float animate-delay-400 blur-md"></div>
+        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full animate-float animate-delay-600 blur-lg"></div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-800 via-gray-900 to-indigo-900 text-white py-16">
-        <Container size="lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {/* Para Clientes */}
-            <div>
-              <h6 className="text-lg font-bold mb-6 text-white">Para Clientes</h6>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/store/pizza-express" className="text-gray-400 hover:text-white transition-colors">
-                    Cardápios
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/login" className="text-gray-400 hover:text-white transition-colors">
-                    Login
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="text-gray-400 hover:text-white transition-colors">
-                    Criar Conta
-                  </Link>
-                </li>
-              </ul>
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <StaggerList staggerDelay={0.1}>
+            <div className="grid md:grid-cols-4 gap-8">
+              <StaggerItem animation="fadeIn">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Cardap.IO</h3>
+                  <p className="text-gray-400">
+                    A melhor plataforma para conectar clientes e lojistas locais
+                  </p>
+                </div>
+              </StaggerItem>
+              
+              <StaggerItem animation="fadeIn">
+                <div>
+                  <h4 className="text-md font-semibold mb-4">Para Clientes</h4>
+                  <ul className="space-y-2 text-gray-400">
+                    <li><Link href="/lojas" className="hover:text-white transition-colors">Encontrar Lojas</Link></li>
+                    <li><Link href="/categorias" className="hover:text-white transition-colors">Categorias</Link></li>
+                    <li><Link href="/ofertas" className="hover:text-white transition-colors">Ofertas</Link></li>
+                  </ul>
+                </div>
+              </StaggerItem>
+              
+              <StaggerItem animation="fadeIn">
+                <div>
+                  <h4 className="text-md font-semibold mb-4">Para Lojistas</h4>
+                  <ul className="space-y-2 text-gray-400">
+                    <li><Link href="/register" className="hover:text-white transition-colors">Cadastrar Loja</Link></li>
+                    <li><Link href="/vender" className="hover:text-white transition-colors">Como Vender</Link></li>
+                    <li><Link href="/suporte" className="hover:text-white transition-colors">Suporte</Link></li>
+                  </ul>
+                </div>
+              </StaggerItem>
+              
+              <StaggerItem animation="fadeIn">
+                <div>
+                  <h4 className="text-md font-semibold mb-4">Suporte</h4>
+                  <ul className="space-y-2 text-gray-400">
+                    <li><Link href="/ajuda" className="hover:text-white transition-colors">Central de Ajuda</Link></li>
+                    <li><Link href="/contato" className="hover:text-white transition-colors">Contato</Link></li>
+                    <li><Link href="/termos" className="hover:text-white transition-colors">Termos de Uso</Link></li>
+                  </ul>
+                </div>
+              </StaggerItem>
             </div>
-
-            {/* Para Lojistas */}
-            <div>
-              <h6 className="text-lg font-bold mb-6 text-white">Para Lojistas</h6>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/login/lojista" className="text-gray-400 hover:text-white transition-colors">
-                    Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register/loja" className="text-gray-400 hover:text-white transition-colors">
-                    Criar Loja
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Sistema */}
-            <div>
-              <h6 className="text-lg font-bold mb-6 text-white">Sistema</h6>
-              <ul className="space-y-3">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    Documentação
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    Suporte
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Rodapé */}
-          <div className="border-t border-gray-800 pt-6 mt-12 text-center">
-            <p className="text-gray-400 text-sm">
-              &copy; 2025 Cardap.IO
-            </p>
-          </div>
-        </Container>
+          </StaggerList>
+          
+          <Animated 
+            animation="fadeIn" 
+            config={{ delay: 0.5 }}
+            className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
+          >
+            <p>&copy; 2024 Cardap.IO. Todos os direitos reservados.</p>
+          </Animated>
+        </div>
       </footer>
     </div>
   )
