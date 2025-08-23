@@ -169,46 +169,100 @@ class ApiClient {
     // 1. Tentar obter do localStorage primeiro
     const localStorageToken = safeLocalStorage.getItem('cardapio_token')
     if (localStorageToken) {
+      if (appConfig.api.logRequests) {
+        this.log('🔑 Token encontrado no localStorage', { tokenLength: localStorageToken.length })
+      }
       return localStorageToken
     }
 
     // 2. Fallback: tentar obter do cookie se estivermos no cliente
     if (typeof window !== 'undefined') {
       const cookies = document.cookie.split(';')
-      const cardapioTokenCookie = cookies.find(cookie => 
+      const cardapioTokenCookie = cookies.find(cookie =>
         cookie.trim().startsWith('cardapio_token=')
       )
-      
+
       if (cardapioTokenCookie) {
         const token = cardapioTokenCookie.split('=')[1]
-        if (token) {
+        if (token && token.trim()) {
           // Sincronizar com localStorage para futuras requisições
           safeLocalStorage.setItem('cardapio_token', token)
           if (appConfig.api.logRequests) {
-            this.log('🔄 Token sincronizado do cookie para localStorage')
+            this.log('🔄 Token sincronizado do cookie para localStorage', {
+              tokenLength: token.length,
+              source: 'cookie'
+            })
           }
           return token
         }
       }
     }
 
+    if (appConfig.api.logRequests) {
+      this.log('⚠️ Nenhum token encontrado', {
+        localStorageToken: !!localStorageToken,
+        cookies: typeof window !== 'undefined' ? document.cookie : 'server-side'
+      })
+    }
+
     return null
   }
 
   private setAuthToken(token: string): void {
+    if (!token || token.trim() === '') {
+      if (appConfig.api.debug) {
+        this.log('⚠️ Tentativa de definir token vazio ou inválido')
+      }
+      return
+    }
+
+    // Definir no localStorage primeiro
     safeLocalStorage.setItem('cardapio_token', token)
+
     // Cookie só pode ser definido no cliente
     if (typeof window !== 'undefined') {
-      // Definir cookie com configurações mais robustas
-      const cookieValue = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Lax; secure=${window.location.protocol === 'https:'}`
-      document.cookie = cookieValue
+      try {
+        // Limpar cookie existente primeiro
+        document.cookie = 'cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
 
-      // Log para debug
-      if (appConfig.api.logRequests) {
-        this.log('🍪 Cookie definido', {
-          tokenLength: token.length,
-          cookieValue: cookieValue.substring(0, 50) + '...'
-        })
+        // Definir cookie com configurações mais robustas
+        const cookieValue = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Lax; secure=${window.location.protocol === 'https:'}`
+        document.cookie = cookieValue
+
+        // Aguardar um pouco e verificar se o cookie foi definido corretamente
+        setTimeout(() => {
+          const cookieSet = document.cookie.includes('cardapio_token=')
+
+          // Log para debug
+          if (appConfig.api.logRequests) {
+            this.log('🍪 Verificação do cookie', {
+              localStorage: true,
+              cookie: cookieSet,
+              tokenLength: token.length,
+              allCookies: document.cookie,
+              cookieValue: cookieValue.substring(0, 50) + '...'
+            })
+          }
+
+          if (!cookieSet) {
+            if (appConfig.api.debug) {
+              this.log('⚠️ Cookie não foi definido corretamente, tentando novamente...')
+            }
+
+            // Tentar novamente com configurações mais simples
+            const simpleCookie = `cardapio_token=${token}; path=/`
+            document.cookie = simpleCookie
+
+            const retryCookieSet = document.cookie.includes('cardapio_token=')
+            if (appConfig.api.debug) {
+              this.log('🔄 Retry do cookie', { success: retryCookieSet })
+            }
+          }
+        }, 100)
+      } catch (error) {
+        if (appConfig.api.debug) {
+          this.log('❌ Erro ao definir cookie', { error })
+        }
       }
     }
   }
@@ -328,7 +382,7 @@ class ApiClient {
 
       this.setAuthToken(token)
       if (appConfig.api.logResponses) {
-        this.log('💾 Token armazenado')
+        this.log('💾 Token armazenado', token)
       }
 
       return response

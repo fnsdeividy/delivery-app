@@ -4,6 +4,9 @@ export const config = {
   api: {
     baseURL: process.env.NEXT_PUBLIC_CARDAPIO_API_URL || 'http://localhost:3001/api/v1',
     timeout: 10000,
+    debug: process.env.NODE_ENV === 'development',
+    logRequests: process.env.NODE_ENV === 'development',
+    logResponses: process.env.NODE_ENV === 'development',
     endpoints: {
       auth: {
         login: '/auth/login',

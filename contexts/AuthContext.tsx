@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api-client'
 import { AuthResponse, User, UserStoreAssociation } from '@/types/cardapio-api'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import { useTokenSync } from '@/hooks/useTokenSync'
+import { appConfig } from '@/lib/config'
 
 interface AuthContextType {
   user: User | null
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentStore, setCurrentStoreState] = useState<UserStoreAssociation | null>(null)
 
   // Sincronizar token entre localStorage e cookies
-  useTokenSync()
+  const { isSynced } = useTokenSync()
 
   // Função para carregar dados completos do usuário
   const refreshUserData = async () => {
@@ -67,7 +68,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Aguardar até que o token esteja sincronizado
+        if (!isSynced) {
+          if (appConfig.api.debug) {
+            console.log('⏳ Aguardando sincronização do token...')
+          }
+          return
+        }
+
         if (apiClient.isAuthenticated()) {
+          if (appConfig.api.debug) {
+            console.log('✅ Usuário autenticado, carregando dados...')
+          }
           await refreshUserData()
         } else {
           // Tentar recuperar dados do usuário do localStorage
@@ -83,13 +95,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const store = userData.stores?.find((s: UserStoreAssociation) => s.storeSlug === currentStoreSlug)
                 setCurrentStoreState(store || null)
               }
+
+              if (appConfig.api.debug) {
+                console.log('🔄 Dados do usuário recuperados do localStorage')
+              }
             } catch (e) {
+              if (appConfig.api.debug) {
+                console.error('❌ Erro ao parsear dados do localStorage:', e)
+              }
               localStorage.removeItem('user')
+            }
+          } else {
+            if (appConfig.api.debug) {
+              console.log('ℹ️ Nenhum usuário salvo encontrado')
             }
           }
         }
       } catch (error) {
-        console.error('❌ Erro na verificação de autenticação:', error)
+        if (appConfig.api.debug) {
+          console.error('❌ Erro na verificação de autenticação:', error)
+        }
         apiClient.logout()
         localStorage.removeItem('user')
         setUser(null)
@@ -101,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     checkAuth()
-  }, [])
+  }, [isSynced])
 
   const login = async (email: string, password: string, storeSlug?: string): Promise<AuthResponse> => {
     try {

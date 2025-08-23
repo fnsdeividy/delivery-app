@@ -4,7 +4,30 @@ const nextConfig = {
   env: {
     PORT: '3000',
   },
-  
+
+  // Configurações de headers para cookies
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
+  },
+
   // Redirects para manter compatibilidade com URLs antigas
   async redirects() {
     return [
