@@ -6,7 +6,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Cardap.IO - Sistema Multi-Tenant de Delivery',
+  title: 'Cardap.IO - Sistema de Delivery',
   description: 'Plataforma completa para lojistas e clientes com dashboard administrativo e sistema de pedidos',
   icons: {
     icon: '/favicon.svg',

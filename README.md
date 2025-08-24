@@ -15,6 +15,58 @@ O frontend está totalmente integrado com o backend Cardap.IO Delivery na porta 
 - **NOVA**: Configuração centralizada da API backend
 - **NOVA**: Sistema de logging configurável por ambiente
 - **NOVA**: Menu lateral do dashboard habilitado com navegação completa
+- **NOVA**: Sistema de componentes Shadcn UI implementado
+- **NOVA**: Página inicial corrigida e implementada
+
+### 🏠 Página Inicial Corrigida (Janeiro 2025)
+- **Problema Resolvido**: Erro "The default export is not a React Component" corrigido
+- **Estrutura Adequada**: Página inicial agora exporta corretamente um componente React
+- **Header Integrado**: Importação correta do componente Header existente
+- **Landing Page Completa**: Seções hero, recursos, categorias, lojas em destaque e CTA
+- **Design Responsivo**: Layout mobile-first com Tailwind CSS
+- **Navegação Funcional**: Links para todas as seções principais da aplicação
+- **Testes Unitários**: 9 testes cobrindo todas as funcionalidades da página
+- **Performance**: Componente otimizado sem re-renders desnecessários
+
+#### Seções Implementadas:
+- **Hero Section**: Título principal com call-to-action para explorar lojas e cadastro
+- **Features**: Destaque dos benefícios (Entrega Rápida, Compra Segura, Lojas Verificadas)
+- **Categorias**: Grid responsivo com 6 categorias principais (Eletrônicos, Moda, Casa, etc.)
+- **CTA Section**: Seção de conversão para cadastro e login
+- **Footer**: Informações da empresa e links de navegação
+
+### 🎨 Sistema de Componentes Shadcn UI (Janeiro 2025)
+- **Componentes Base**: Button, Card, Badge, Container, Section
+- **Componentes Avançados**: Sheet, NavigationMenu
+- **Variantes Personalizadas**: Gradientes, cores específicas do projeto
+- **Acessibilidade**: Baseado em Radix UI com suporte a leitores de tela
+- **Responsividade**: Sistema de breakpoints automático
+- **Página Home**: Completamente migrada para Shadcn UI
+- **Menu Mobile**: Refatorado com Sheet component e animações suaves
+- **Testes Unitários**: 33 testes cobrindo todos os componentes (incluindo 18 testes para MobileMenu)
+- **Design System**: Padrões visuais consistentes e reutilizáveis
+
+#### Componentes Implementados:
+- **Button**: Múltiplas variantes (gradient, gradientGreen, white, ghost, outline) e tamanhos
+- **Card**: Sistema modular com Header, Title, Content e Footer
+- **Badge**: Etiquetas com variantes de cores personalizadas
+- **Container**: Containers responsivos com tamanhos predefinidos
+- **Section**: Seções com variantes de fundo (default, gradient, dark)
+- **Sheet**: Painel lateral deslizante para menus mobile
+- **NavigationMenu**: Sistema de navegação dropdown responsivo
+
+#### 🍔 Menu Mobile Refatorado:
+- **Problema Resolvido**: Menu hambúrguer agora é claramente visível e funcional
+- **Componente Sheet**: Painel lateral com animações suaves de entrada/saída
+- **Acessibilidade**: Suporte completo a navegação por teclado e leitores de tela
+- **Estado Simplificado**: Gerenciamento automático de estado usando Shadcn UI
+- **Navegação Expandida**: Links adicionais para Dashboard, Cardápios e Criação de Loja
+- **Botões Consistentes**: Uso das variantes Button do Shadcn UI
+- **🆕 Integração com Autenticação**: Menu adaptativo baseado no status de login do usuário
+- **🆕 Links Dinâmicos**: Dashboard, Pedidos e Perfil para usuários logados
+- **🆕 Performance Otimizada**: React.memo para evitar re-renders desnecessários
+- **🆕 Ícones Visuais**: Ícones do Phosphor para melhor identificação dos links
+- **🆕 Estados Condicionais**: Botões diferentes para usuários logados vs. não logados
 
 ### 🎯 Menu Lateral do Dashboard (Janeiro 2025)
 - **Navegação Principal**: Dashboard, Minhas Lojas, Gerenciar Lojas
