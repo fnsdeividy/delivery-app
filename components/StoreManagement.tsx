@@ -1,197 +1,214 @@
-'use client'
+"use client";
 
-import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useStoreStats, useUpdateStore } from '@/hooks'
-import { CreateStoreDto, Store, UpdateStoreDto } from '@/types/cardapio-api'
-import React, { useState } from 'react'
-import LoadingSpinner from './LoadingSpinner'
+import {
+  useApproveStore,
+  useCreateStore,
+  useDeleteStore,
+  useRejectStore,
+  useStores,
+  useStoreStats,
+  useUpdateStore,
+} from "@/hooks";
+import { CreateStoreDto, Store, UpdateStoreDto } from "@/types/cardapio-api";
+import React, { useState } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface StoreManagementProps {
-  showPendingOnly?: boolean
+  showPendingOnly?: boolean;
 }
 
-export function StoreManagement({ showPendingOnly = false }: StoreManagementProps) {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingStore, setEditingStore] = useState<Store | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null)
+export function StoreManagement({
+  showPendingOnly = false,
+}: StoreManagementProps) {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<Store | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
   // Hooks para gerenciar lojas
-  const { data: storesData, isLoading: isLoadingStores, error: storesError } = useStores(currentPage, 10)
-  const createStoreMutation = useCreateStore()
-  const updateStoreMutation = useUpdateStore()
-  const deleteStoreMutation = useDeleteStore()
-  const approveStoreMutation = useApproveStore()
-  const rejectStoreMutation = useRejectStore()
-  
+  const {
+    data: storesData,
+    isLoading: isLoadingStores,
+    error: storesError,
+  } = useStores(currentPage, 10);
+  const createStoreMutation = useCreateStore();
+  const updateStoreMutation = useUpdateStore();
+  const deleteStoreMutation = useDeleteStore();
+  const approveStoreMutation = useApproveStore();
+  const rejectStoreMutation = useRejectStore();
+
   // Stats da loja selecionada
-  const { data: storeStats, isLoading: isLoadingStats } = useStoreStats(selectedStore?.slug || '')
+  const { data: storeStats, isLoading: isLoadingStats } = useStoreStats(
+    selectedStore?.slug || ""
+  );
 
   // Estados do formulário
   const [formData, setFormData] = useState<CreateStoreDto>({
-    name: '',
-    slug: '',
-    description: '',
+    name: "",
+    slug: "",
+    description: "",
     config: {
-      address: '',
-      phone: '',
-      email: '',
-      category: '',
+      address: "",
+      phone: "",
+      email: "",
+      category: "",
       deliveryFee: 0,
       minimumOrder: 0,
       estimatedDeliveryTime: 30,
       businessHours: {
-        monday: { open: true, openTime: '09:00', closeTime: '18:00' },
-        tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-        wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-        thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
-        friday: { open: true, openTime: '09:00', closeTime: '18:00' },
-        saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
-        sunday: { open: false }
+        monday: { open: true, openTime: "09:00", closeTime: "18:00" },
+        tuesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+        wednesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+        thursday: { open: true, openTime: "09:00", closeTime: "18:00" },
+        friday: { open: true, openTime: "09:00", closeTime: "18:00" },
+        saturday: { open: true, openTime: "10:00", closeTime: "16:00" },
+        sunday: { open: false },
       },
-      paymentMethods: ['CASH', 'CREDIT_CARD', 'PIX']
-    }
+      paymentMethods: ["CASH", "CREDIT_CARD", "PIX"],
+    },
     // active e approved são definidos pelo backend com valores padrão
-  })
+  });
 
   // Filtrar lojas
-  const filteredStores = storesData?.data.filter(store => {
-    const matchesSearch = 
-      store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      store.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      store.config.category.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    if (showPendingOnly) {
-      return matchesSearch && !store.approved
-    }
-    
-    return matchesSearch
-  }) || []
+  const filteredStores =
+    storesData?.data.filter((store) => {
+      const matchesSearch =
+        store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        store.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        store.config.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (showPendingOnly) {
+        return matchesSearch && !store.approved;
+      }
+
+      return matchesSearch;
+    }) || [];
 
   // Manipular criação de loja
   const handleCreateStore = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await createStoreMutation.mutateAsync(formData)
-      setIsCreateModalOpen(false)
-      resetForm()
+      await createStoreMutation.mutateAsync(formData);
+      setIsCreateModalOpen(false);
+      resetForm();
     } catch (error) {
-      console.error('Erro ao criar loja:', error)
+      console.error("Erro ao criar loja:", error);
     }
-  }
+  };
 
   // Manipular edição de loja
   const handleUpdateStore = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingStore) return
+    e.preventDefault();
+    if (!editingStore) return;
 
     try {
       const updateData: UpdateStoreDto = {
         name: formData.name,
         description: formData.description,
-        config: formData.config
+        config: formData.config,
         // active e approved são gerenciados separadamente pelo backend
-      }
+      };
 
       await updateStoreMutation.mutateAsync({
         slug: editingStore.slug,
-        storeData: updateData
-      })
+        storeData: updateData,
+      });
 
-      setEditingStore(null)
-      resetForm()
+      setEditingStore(null);
+      resetForm();
     } catch (error) {
-      console.error('Erro ao atualizar loja:', error)
+      console.error("Erro ao atualizar loja:", error);
     }
-  }
+  };
 
   // Manipular exclusão de loja
   const handleDeleteStore = async (slug: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta loja?')) {
+    if (window.confirm("Tem certeza que deseja excluir esta loja?")) {
       try {
-        await deleteStoreMutation.mutateAsync(slug)
+        await deleteStoreMutation.mutateAsync(slug);
       } catch (error) {
-        console.error('Erro ao excluir loja:', error)
+        console.error("Erro ao excluir loja:", error);
       }
     }
-  }
+  };
 
   // Aprovar loja
   const handleApproveStore = async (slug: string) => {
     try {
-      await approveStoreMutation.mutateAsync(slug)
+      await approveStoreMutation.mutateAsync(slug);
     } catch (error) {
-      console.error('Erro ao aprovar loja:', error)
+      console.error("Erro ao aprovar loja:", error);
     }
-  }
+  };
 
   // Rejeitar loja
   const handleRejectStore = async (slug: string) => {
     try {
-      await rejectStoreMutation.mutateAsync({ id: slug })
+      await rejectStoreMutation.mutateAsync({ id: slug });
     } catch (error) {
-      console.error('Erro ao rejeitar loja:', error)
+      console.error("Erro ao rejeitar loja:", error);
     }
-  }
+  };
 
   // Abrir modal de edição
   const openEditModal = (store: Store) => {
-    setEditingStore(store)
+    setEditingStore(store);
     setFormData({
       name: store.name,
       slug: store.slug,
-      description: store.description || '',
-      config: store.config
-    })
-  }
+      description: store.description || "",
+      config: store.config,
+    });
+  };
 
   // Selecionar loja para ver stats
   const selectStore = (store: Store) => {
-    setSelectedStore(selectedStore?.id === store.id ? null : store)
-  }
+    setSelectedStore(selectedStore?.id === store.id ? null : store);
+  };
 
   // Resetar formulário
   const resetForm = () => {
     setFormData({
-      name: '',
-      slug: '',
-      description: '',
+      name: "",
+      slug: "",
+      description: "",
       config: {
-        address: '',
-        phone: '',
-        email: '',
-        category: '',
+        address: "",
+        phone: "",
+        email: "",
+        category: "",
         deliveryFee: 0,
         minimumOrder: 0,
         estimatedDeliveryTime: 30,
         businessHours: {
-          monday: { open: true, openTime: '09:00', closeTime: '18:00' },
-          tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-          wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-          thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
-          friday: { open: true, openTime: '09:00', closeTime: '18:00' },
-          saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
-          sunday: { open: false }
+          monday: { open: true, openTime: "09:00", closeTime: "18:00" },
+          tuesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+          wednesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+          thursday: { open: true, openTime: "09:00", closeTime: "18:00" },
+          friday: { open: true, openTime: "09:00", closeTime: "18:00" },
+          saturday: { open: true, openTime: "10:00", closeTime: "16:00" },
+          sunday: { open: false },
         },
-        paymentMethods: ['CASH', 'CREDIT_CARD', 'PIX']
+        paymentMethods: ["CASH", "CREDIT_CARD", "PIX"],
       },
-
-    })
-  }
+    });
+  };
 
   // Fechar modais
   const closeModals = () => {
-    setIsCreateModalOpen(false)
-    setEditingStore(null)
-    resetForm()
-  }
+    setIsCreateModalOpen(false);
+    setEditingStore(null);
+    resetForm();
+  };
 
   // Renderizar modal de criação/edição
   const renderStoreModal = () => {
-    const isEditing = !!editingStore
-    const title = isEditing ? 'Editar Loja' : 'Criar Nova Loja'
-    const onSubmit = isEditing ? handleUpdateStore : handleCreateStore
-    const isLoading = createStoreMutation.isPending || updateStoreMutation.isPending
+    const isEditing = !!editingStore;
+    const title = isEditing ? "Editar Loja" : "Criar Nova Loja";
+    const onSubmit = isEditing ? handleUpdateStore : handleCreateStore;
+    const isLoading =
+      createStoreMutation.isPending || updateStoreMutation.isPending;
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -203,8 +220,18 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               className="text-gray-400 hover:text-gray-600"
               disabled={isLoading}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -212,14 +239,19 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Nome da Loja *
                 </label>
                 <input
                   type="text"
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -227,14 +259,19 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               </div>
 
               <div>
-                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="slug"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Slug da Loja *
                 </label>
                 <input
                   type="text"
                   id="slug"
                   value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, slug: e.target.value })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -243,13 +280,18 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Descrição
               </label>
               <textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 disabled={isLoading}
@@ -258,17 +300,22 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="address"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Endereço *
                 </label>
                 <input
                   type="text"
                   id="address"
                   value={formData.config.address}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, address: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, address: e.target.value },
+                    })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -276,17 +323,22 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Telefone *
                 </label>
                 <input
                   type="tel"
                   id="phone"
                   value={formData.config.phone}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, phone: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, phone: e.target.value },
+                    })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -294,17 +346,22 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Email *
                 </label>
                 <input
                   type="email"
                   id="email"
                   value={formData.config.email}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, email: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, email: e.target.value },
+                    })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -314,17 +371,22 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Categoria *
                 </label>
                 <input
                   type="text"
                   id="category"
                   value={formData.config.category}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, category: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, category: e.target.value },
+                    })
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
@@ -332,17 +394,25 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               </div>
 
               <div>
-                <label htmlFor="deliveryFee" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="deliveryFee"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Taxa de Entrega *
                 </label>
                 <input
                   type="number"
                   id="deliveryFee"
                   value={formData.config.deliveryFee}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, deliveryFee: parseFloat(e.target.value) || 0 }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: {
+                        ...formData.config,
+                        deliveryFee: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
                   required
                   min="0"
                   step="0.01"
@@ -352,17 +422,25 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               </div>
 
               <div>
-                <label htmlFor="minimumOrder" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="minimumOrder"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Pedido Mínimo *
                 </label>
                 <input
                   type="number"
                   id="minimumOrder"
                   value={formData.config.minimumOrder}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    config: { ...formData.config, minimumOrder: parseFloat(e.target.value) || 0 }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: {
+                        ...formData.config,
+                        minimumOrder: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
                   required
                   min="0"
                   step="0.01"
@@ -374,12 +452,14 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
 
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
-                <span className="font-medium">Status:</span> A loja será criada como ativa por padrão
+                <span className="font-medium">Status:</span> A loja será criada
+                como ativa por padrão
               </div>
-              
+
               {!isEditing && (
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">Aprovação:</span> A loja precisará ser aprovada por um administrador
+                  <span className="font-medium">Aprovação:</span> A loja
+                  precisará ser aprovada por um administrador
                 </div>
               )}
             </div>
@@ -389,24 +469,26 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               disabled={isLoading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
+              {isLoading ? "Salvando..." : isEditing ? "Atualizar" : "Criar"}
             </button>
           </form>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   if (isLoadingStores) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   if (storesError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-700">Erro ao carregar lojas: {storesError.message}</p>
+        <p className="text-red-700">
+          Erro ao carregar lojas: {storesError.message}
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -414,16 +496,10 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">
-          {showPendingOnly ? 'Lojas Pendentes de Aprovação' : 'Gerenciamento de Lojas'}
+          {showPendingOnly
+            ? "Lojas Pendentes de Aprovação"
+            : "Gerenciamento de Lojas"}
         </h2>
-        {!showPendingOnly && (
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            + Nova Loja
-          </button>
-        )}
       </div>
 
       {/* Filtros e Busca */}
@@ -466,10 +542,14 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
               <tr key={store.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{store.name}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {store.name}
+                    </div>
                     <div className="text-sm text-gray-500">{store.slug}</div>
                     {store.description && (
-                      <div className="text-sm text-gray-500">{store.description}</div>
+                      <div className="text-sm text-gray-500">
+                        {store.description}
+                      </div>
                     )}
                   </div>
                 </td>
@@ -478,15 +558,23 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="space-y-1">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      store.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {store.approved ? 'Aprovada' : 'Pendente'}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        store.approved
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {store.approved ? "Aprovada" : "Pendente"}
                     </span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      store.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {store.active ? 'Ativa' : 'Inativa'}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        store.active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {store.active ? "Ativa" : "Inativa"}
                     </span>
                   </div>
                 </td>
@@ -503,7 +591,7 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
                       onClick={() => selectStore(store)}
                       className="text-blue-600 hover:text-blue-900"
                     >
-                      {selectedStore?.id === store.id ? 'Ocultar' : 'Ver Stats'}
+                      {selectedStore?.id === store.id ? "Ocultar" : "Ver Stats"}
                     </button>
                     <button
                       onClick={() => openEditModal(store)}
@@ -552,19 +640,27 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{storeStats.totalOrders}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {storeStats.totalOrders}
+              </div>
               <div className="text-sm text-blue-600">Total de Pedidos</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">R$ {storeStats.totalRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600">
+                R$ {storeStats.totalRevenue.toFixed(2)}
+              </div>
               <div className="text-sm text-green-600">Receita Total</div>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">{storeStats.totalProducts}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {storeStats.totalProducts}
+              </div>
               <div className="text-sm text-yellow-600">Total de Produtos</div>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{storeStats.totalCustomers}</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {storeStats.totalCustomers}
+              </div>
               <div className="text-sm text-purple-600">Total de Clientes</div>
             </div>
           </div>
@@ -575,14 +671,17 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
       {storesData && storesData.pagination.totalPages > 1 && (
         <div className="flex justify-center">
           <nav className="flex space-x-2">
-            {Array.from({ length: storesData.pagination.totalPages }, (_, i) => i + 1).map((page) => (
+            {Array.from(
+              { length: storesData.pagination.totalPages },
+              (_, i) => i + 1
+            ).map((page) => (
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {page}
@@ -596,5 +695,5 @@ export function StoreManagement({ showPendingOnly = false }: StoreManagementProp
       {isCreateModalOpen && renderStoreModal()}
       {editingStore && renderStoreModal()}
     </div>
-  )
-} 
+  );
+}

@@ -1,68 +1,126 @@
-'use client'
+"use client";
 
-import { apiClient } from '@/lib/api-client'
-import { AuthResponse, User, UserStoreAssociation } from '@/types/cardapio-api'
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
-import { useTokenSync } from '@/hooks/useTokenSync'
-import { appConfig } from '@/lib/config'
+import { useTokenSync } from "@/hooks/useTokenSync";
+import { apiClient } from "@/lib/api-client";
+import { apiConfig } from "@/lib/config";
+import { AuthResponse, User, UserStoreAssociation } from "@/types/cardapio-api";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface AuthContextType {
-  user: User | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  currentStore: UserStoreAssociation | null
-  userStores: UserStoreAssociation[]
-  login: (email: string, password: string, storeSlug?: string) => Promise<AuthResponse>
-  register: (userData: any) => Promise<AuthResponse>
-  logout: () => void
-  updateUser: (userData: Partial<User>) => void
-  setCurrentStore: (storeSlug: string) => Promise<void>
-  refreshUserData: () => Promise<void>
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  currentStore: UserStoreAssociation | null;
+  userStores: UserStoreAssociation[];
+  login: (
+    email: string,
+    password: string,
+    storeSlug?: string
+  ) => Promise<AuthResponse>;
+  register: (userData: any) => Promise<AuthResponse>;
+  logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
+  setCurrentStore: (storeSlug: string) => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [userStores, setUserStores] = useState<UserStoreAssociation[]>([])
-  const [currentStore, setCurrentStoreState] = useState<UserStoreAssociation | null>(null)
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userStores, setUserStores] = useState<UserStoreAssociation[]>([]);
+  const [currentStore, setCurrentStoreState] =
+    useState<UserStoreAssociation | null>(null);
 
   // Sincronizar token entre localStorage e cookies
-  const { isSynced } = useTokenSync()
+  const { isSynced } = useTokenSync();
 
   // Função para carregar dados completos do usuário
   const refreshUserData = async () => {
     try {
       if (apiClient.isAuthenticated()) {
-        const authContext = await apiClient.getCurrentUserContext()
-        const currentUser = authContext.user
-        setUser(currentUser)
-        setUserStores(currentUser.stores || [])
+        // Obter dados do token JWT em vez de chamar o endpoint não implementado
+        const token = apiClient.getCurrentToken();
+        if (token) {
+          try {
+            const tokenParts = token.split(".");
+            if (tokenParts.length === 3) {
+              const payload = JSON.parse(atob(tokenParts[1]));
 
-        // Definir loja atual baseada nos dados do usuário
-        const currentStoreSlug = currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug()
-        if (currentStoreSlug) {
-          const store = currentUser.stores?.find(s => s.storeSlug === currentStoreSlug)
-          setCurrentStoreState(store || null)
+              // Criar objeto de usuário a partir do token JWT
+              const currentUser: User = {
+                id: payload.sub || payload.id || "unknown",
+                email: payload.email || "",
+                name: payload.name || payload.email || "",
+                role: payload.role || "USER",
+                storeSlug: payload.storeSlug || undefined,
+                active: payload.active !== false,
+                phone: payload.phone || undefined,
+                createdAt: payload.iat
+                  ? new Date(payload.iat * 1000).toISOString()
+                  : new Date().toISOString(),
+                updatedAt: payload.iat
+                  ? new Date(payload.iat * 1000).toISOString()
+                  : new Date().toISOString(),
+                lastLogin: payload.iat
+                  ? new Date(payload.iat * 1000).toISOString()
+                  : undefined,
+                stores: payload.stores || [],
+                currentStoreSlug: payload.storeSlug || undefined,
+              };
+
+              setUser(currentUser);
+              setUserStores(currentUser.stores || []);
+
+              // Definir loja atual baseada nos dados do usuário
+              const currentStoreSlug =
+                currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug();
+              if (currentStoreSlug) {
+                const store = currentUser.stores?.find(
+                  (s: UserStoreAssociation) => s.storeSlug === currentStoreSlug
+                );
+                setCurrentStoreState(store || null);
+              }
+
+              // Persistir dados do usuário no localStorage
+              localStorage.setItem("user", JSON.stringify(currentUser));
+            }
+          } catch (decodeError) {
+            console.error("❌ Erro ao decodificar token JWT:", decodeError);
+            // Fallback para dados do localStorage
+            const savedUser = localStorage.getItem("user");
+            if (savedUser) {
+              try {
+                const userData = JSON.parse(savedUser);
+                setUser(userData);
+                setUserStores(userData.stores || []);
+              } catch (e) {
+                console.error("❌ Erro ao parsear dados do localStorage:", e);
+              }
+            }
+          }
         }
-
-        // Persistir dados do usuário no localStorage
-        localStorage.setItem('user', JSON.stringify(currentUser))
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar dados do usuário:', error)
-      apiClient.logout()
-      localStorage.removeItem('user')
-      setUser(null)
-      setUserStores([])
-      setCurrentStoreState(null)
+      console.error("❌ Erro ao carregar dados do usuário:", error);
+      // Não fazer logout automático, apenas limpar dados
+      localStorage.removeItem("user");
+      setUser(null);
+      setUserStores([]);
+      setCurrentStoreState(null);
     }
-  }
+  };
 
   // Verificar autenticação ao inicializar
   useEffect(() => {
@@ -70,142 +128,141 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         // Aguardar até que o token esteja sincronizado
         if (!isSynced) {
-          if (appConfig.api.debug) {
-            console.log('⏳ Aguardando sincronização do token...')
-          }
-          return
+          return;
         }
 
         if (apiClient.isAuthenticated()) {
-          if (appConfig.api.debug) {
-            console.log('✅ Usuário autenticado, carregando dados...')
-          }
-          await refreshUserData()
+          await refreshUserData();
         } else {
           // Tentar recuperar dados do usuário do localStorage
-          const savedUser = localStorage.getItem('user')
+          const savedUser = localStorage.getItem("user");
           if (savedUser) {
             try {
-              const userData = JSON.parse(savedUser)
-              setUser(userData)
-              setUserStores(userData.stores || [])
+              const userData = JSON.parse(savedUser);
+              setUser(userData);
+              setUserStores(userData.stores || []);
 
-              const currentStoreSlug = userData.currentStoreSlug || apiClient.getCurrentStoreSlug()
+              const currentStoreSlug =
+                userData.currentStoreSlug || apiClient.getCurrentStoreSlug();
               if (currentStoreSlug) {
-                const store = userData.stores?.find((s: UserStoreAssociation) => s.storeSlug === currentStoreSlug)
-                setCurrentStoreState(store || null)
-              }
-
-              if (appConfig.api.debug) {
-                console.log('🔄 Dados do usuário recuperados do localStorage')
+                const store = userData.stores?.find(
+                  (s: UserStoreAssociation) => s.storeSlug === currentStoreSlug
+                );
+                setCurrentStoreState(store || null);
               }
             } catch (e) {
-              if (appConfig.api.debug) {
-                console.error('❌ Erro ao parsear dados do localStorage:', e)
+              if (apiConfig.api.debug) {
+                console.error("❌ Erro ao parsear dados do localStorage:", e);
               }
-              localStorage.removeItem('user')
+              localStorage.removeItem("user");
             }
           } else {
-            if (appConfig.api.debug) {
-              console.log('ℹ️ Nenhum usuário salvo encontrado')
+            if (apiConfig.api.debug) {
+              console.log("ℹ️ Nenhum usuário salvo encontrado");
             }
           }
         }
       } catch (error) {
-        if (appConfig.api.debug) {
-          console.error('❌ Erro na verificação de autenticação:', error)
+        if (apiConfig.api.debug) {
+          console.error("❌ Erro na verificação de autenticação:", error);
         }
-        apiClient.logout()
-        localStorage.removeItem('user')
-        setUser(null)
-        setUserStores([])
-        setCurrentStoreState(null)
+        apiClient.logout();
+        localStorage.removeItem("user");
+        setUser(null);
+        setUserStores([]);
+        setCurrentStoreState(null);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    checkAuth()
-  }, [isSynced])
+    checkAuth();
+  }, [isSynced]);
 
-  const login = async (email: string, password: string, storeSlug?: string): Promise<AuthResponse> => {
+  const login = async (
+    email: string,
+    password: string,
+    storeSlug?: string
+  ): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.authenticate(email, password, storeSlug)
+      const response = await apiClient.authenticate(email, password, storeSlug);
 
       const userData = {
         ...response.user,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      } as User
-      setUser(userData)
-      setUserStores(userData.stores || [])
+        updatedAt: new Date().toISOString(),
+      } as User;
+      setUser(userData);
+      setUserStores(userData.stores || []);
 
       // Definir loja atual se disponível
       if (userData.currentStoreSlug) {
-        const store = userData.stores?.find(s => s.storeSlug === userData.currentStoreSlug)
-        setCurrentStoreState(store || null)
+        const store = userData.stores?.find(
+          (s) => s.storeSlug === userData.currentStoreSlug
+        );
+        setCurrentStoreState(store || null);
       }
 
       // Persistir dados do usuário no localStorage
-      localStorage.setItem('user', JSON.stringify(userData))
+      localStorage.setItem("user", JSON.stringify(userData));
 
-      return response
+      return response;
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
   const register = async (userData: any): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.register(userData)
+      const response = await apiClient.register(userData);
       const userDataWithDates = {
         ...response.user,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-      setUser(userDataWithDates)
+        updatedAt: new Date().toISOString(),
+      };
+      setUser(userDataWithDates);
 
       // Persistir dados do usuário no localStorage
-      localStorage.setItem('user', JSON.stringify(userDataWithDates))
+      localStorage.setItem("user", JSON.stringify(userDataWithDates));
 
-      return response
+      return response;
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
   const logout = () => {
-    apiClient.logout()
-    setUser(null)
-    setUserStores([])
-    setCurrentStoreState(null)
-    localStorage.removeItem('user')
-    localStorage.removeItem('currentStoreSlug')
-  }
+    apiClient.logout();
+    setUser(null);
+    setUserStores([]);
+    setCurrentStoreState(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("currentStoreSlug");
+  };
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
-      const updatedUser = { ...user, ...userData }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
-  }
+  };
 
   const setCurrentStore = async (storeSlug: string) => {
     try {
-      const updatedUser = await apiClient.setCurrentStore({ storeSlug })
-      setUser(updatedUser)
-      setUserStores(updatedUser.stores || [])
+      const updatedUser = await apiClient.setCurrentStore({ storeSlug });
+      setUser(updatedUser);
+      setUserStores(updatedUser.stores || []);
 
-      const store = updatedUser.stores?.find(s => s.storeSlug === storeSlug)
-      setCurrentStoreState(store || null)
+      const store = updatedUser.stores?.find((s) => s.storeSlug === storeSlug);
+      setCurrentStoreState(store || null);
 
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {
-      console.error('❌ Erro ao definir loja atual:', error)
-      throw error
+      console.error("❌ Erro ao definir loja atual:", error);
+      throw error;
     }
-  }
+  };
 
   const value: AuthContextType = {
     user,
@@ -219,37 +276,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateUser,
     setCurrentStore,
     refreshUserData,
-  }
+  };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuthContext() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuthContext deve ser usado dentro de um AuthProvider')
+    throw new Error("useAuthContext deve ser usado dentro de um AuthProvider");
   }
-  return context
+  return context;
 }
 
 // Função utilitária para decodificar JWT (apenas para desenvolvimento)
 function parseJwt(token: string) {
   try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
   } catch (error) {
-
-    return null
+    return null;
   }
-} 
+}

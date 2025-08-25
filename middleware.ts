@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Middleware para proteção de rotas com RBAC
@@ -6,95 +6,122 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
   // Rotas públicas que não precisam de autenticação
-  if (pathname === '/' ||
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/register') ||
-    pathname.startsWith('/store') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/v1') ||
-    pathname.startsWith('/unauthorized') ||
-    pathname.startsWith('/forbidden')) {
-
-    return NextResponse.next()
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/store") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/v1") ||
+    pathname.startsWith("/unauthorized") ||
+    pathname.startsWith("/forbidden")
+  ) {
+    return NextResponse.next();
   }
 
   // Proteger rotas de super admin
-  if (pathname.startsWith('/admin')) {
-    return await protectSuperAdminRoute(request)
+  if (pathname.startsWith("/admin")) {
+    return await protectSuperAdminRoute(request);
   }
 
   // Proteger rotas do dashboard
-  if (pathname.startsWith('/dashboard')) {
-    return await protectDashboardRoute(request)
+  if (pathname.startsWith("/dashboard")) {
+    return await protectDashboardRoute(request);
   }
 
   // Permitir acesso a outras rotas
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 /**
  * Protege rotas do dashboard - usuários autenticados com acesso a lojas
  */
 async function protectDashboardRoute(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
+
+  console.log("🔒 Middleware: Protegendo rota do dashboard:", pathname);
 
   // Verificar token JWT nos cookies, headers ou localStorage (via cookie de fallback)
-  let token = request.cookies.get('cardapio_token')?.value ||
-    request.headers.get('authorization')?.replace('Bearer ', '')
-
-  // Log para debug
-  console.log('🔍 Middleware Dashboard: Verificando token', {
-    hasCardapioToken: !!request.cookies.get('cardapio_token')?.value,
-    hasAuthorizationHeader: !!request.headers.get('authorization'),
-    tokenFound: !!token,
-    url: request.url
-  })
+  let token =
+    request.cookies.get("cardapio_token")?.value ||
+    request.headers.get("authorization")?.replace("Bearer ", "");
 
   // Se não houver token no cookie, verificar se há um cookie de fallback do localStorage
   if (!token) {
-    const fallbackToken = request.cookies.get('localStorage_token')?.value
+    const fallbackToken = request.cookies.get("localStorage_token")?.value;
     if (fallbackToken) {
-      token = fallbackToken
-      console.log('🔄 Middleware Dashboard: Usando token de fallback')
+      token = fallbackToken;
     }
   }
 
+  console.log("🔑 Middleware: Token encontrado:", token ? "Sim" : "Não");
+
   if (!token) {
+    console.log("❌ Middleware: Sem token, redirecionando para login");
     // Redirecionar para login se não houver token
-    return NextResponse.redirect(new URL('/login/lojista', request.url))
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   try {
     // Decodificar token para verificações básicas
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    console.log("🔍 Middleware: Payload do token:", {
+      role: payload.role,
+      exp: payload.exp,
+    });
 
     // Verificar se token não expirou
     if (payload.exp && payload.exp < Date.now() / 1000) {
-      return NextResponse.redirect(new URL('/login/lojista', request.url))
+      console.log("❌ Middleware: Token expirado, redirecionando para login");
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     // Para rotas específicas de loja (/dashboard/[storeSlug]/*)
-    const storeSlugMatch = pathname.match(/^\/dashboard\/([^\/]+)/)
+    const storeSlugMatch = pathname.match(/^\/dashboard\/([^\/]+)/);
     if (storeSlugMatch) {
-      const storeSlug = storeSlugMatch[1]
+      const storeSlug = storeSlugMatch[1];
+      console.log("🏪 Middleware: Rota de loja detectada:", storeSlug);
 
       // Rotas especiais que não requerem slug específico
-      const specialRoutes = ['gerenciar-lojas', 'meus-painel', 'editar-loja', 'selecionar-loja']
+      const specialRoutes = [
+        "gerenciar-lojas",
+        "meus-painel",
+        "editar-loja",
+        "selecionar-loja",
+      ];
       if (specialRoutes.includes(storeSlug)) {
-        return NextResponse.next()
+        console.log("✅ Middleware: Rota especial, permitindo acesso");
+        return NextResponse.next();
       }
 
-      // Para outras rotas, a validação detalhada será feita no componente
-      // O middleware apenas garante que há autenticação básica
+      // Para outras rotas de loja, verificar se o usuário tem acesso
+      // Se o usuário é ADMIN ou OWNER, permitir acesso
+      if (
+        payload.role === "ADMIN" ||
+        payload.role === "OWNER" ||
+        payload.role === "LOJA_ADMIN"
+      ) {
+        console.log(
+          "✅ Middleware: Usuário tem role válido, permitindo acesso"
+        );
+        return NextResponse.next();
+      }
+
+      console.log(
+        "❌ Middleware: Usuário não tem role válido para acessar loja"
+      );
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    return NextResponse.next()
+    console.log("✅ Middleware: Rota permitida");
+    return NextResponse.next();
   } catch (error) {
+    console.error("❌ Middleware: Erro ao processar token:", error);
     // Token inválido, redirecionar para login
-    return NextResponse.redirect(new URL('/login/lojista', request.url))
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 }
 
@@ -103,49 +130,41 @@ async function protectDashboardRoute(request: NextRequest) {
  */
 async function protectSuperAdminRoute(request: NextRequest) {
   // Verificar token JWT nos cookies, headers ou localStorage (via cookie de fallback)
-  let token = request.cookies.get('cardapio_token')?.value ||
-    request.headers.get('authorization')?.replace('Bearer ', '')
-
-  // Log para debug
-  console.log('🔍 Middleware SuperAdmin: Verificando token', {
-    hasCardapioToken: !!request.cookies.get('cardapio_token')?.value,
-    hasAuthorizationHeader: !!request.headers.get('authorization'),
-    tokenFound: !!token,
-    url: request.url
-  })
+  let token =
+    request.cookies.get("cardapio_token")?.value ||
+    request.headers.get("authorization")?.replace("Bearer ", "");
 
   // Se não houver token no cookie, verificar se há um cookie de fallback do localStorage
   if (!token) {
-    const fallbackToken = request.cookies.get('localStorage_token')?.value
+    const fallbackToken = request.cookies.get("localStorage_token")?.value;
     if (fallbackToken) {
-      token = fallbackToken
-      console.log('🔄 Middleware SuperAdmin: Usando token de fallback')
+      token = fallbackToken;
     }
   }
 
   if (!token) {
     // Redirecionar para login de super admin se não houver token
-    return NextResponse.redirect(new URL('/login/super-admin', request.url))
+    return NextResponse.redirect(new URL("/login/super-admin", request.url));
   }
 
   try {
     // Decodificar token para verificar role
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split(".")[1]));
 
     // Verificar se token não expirou
     if (payload.exp && payload.exp < Date.now() / 1000) {
-      return NextResponse.redirect(new URL('/login/super-admin', request.url))
+      return NextResponse.redirect(new URL("/login/super-admin", request.url));
     }
 
     // Verificar se é super admin
-    if (payload.role !== 'SUPER_ADMIN') {
-      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    if (payload.role !== "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    return NextResponse.next()
+    return NextResponse.next();
   } catch (error) {
     // Token inválido, redirecionar para login
-    return NextResponse.redirect(new URL('/login/super-admin', request.url))
+    return NextResponse.redirect(new URL("/login/super-admin", request.url));
   }
 }
 
@@ -153,7 +172,5 @@ async function protectSuperAdminRoute(request: NextRequest) {
  * Configuração do middleware - rotas que devem ser processadas
  */
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ]
-} 
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};

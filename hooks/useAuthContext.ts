@@ -1,35 +1,46 @@
-import { apiClient } from '@/lib/api-client'
-import { SetCurrentStoreDto } from '@/types/cardapio-api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from "@/lib/api-client";
+import { SetCurrentStoreDto } from "@/types/cardapio-api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useAuthContext() {
   return useQuery({
-    queryKey: ['user-context'],
+    queryKey: ["user-context"],
     queryFn: async () => {
       try {
-        // Tentar obter do endpoint (quando implementado)
-        return await apiClient.getCurrentUserContext()
-      } catch (error) {
-        // Fallback: obter dados do localStorage
-        if (typeof window !== 'undefined') {
-          const savedUser = localStorage.getItem('user')
+        // Fallback: obter dados do localStorage em vez de chamar endpoint não implementado
+        if (typeof window !== "undefined") {
+          const savedUser = localStorage.getItem("user");
           if (savedUser) {
             try {
-              const userData = JSON.parse(savedUser)
-              console.log('🔄 useAuthContext: Usando dados do localStorage como fallback')
+              const userData = JSON.parse(savedUser);
+
               return {
                 user: userData,
                 stores: userData.stores || [],
-                currentStore: userData.currentStore || null
-              }
+                currentStore: userData.currentStore || null,
+              };
             } catch (e) {
-              console.error('❌ useAuthContext: Erro ao parsear dados do localStorage', e)
+              console.error(
+                "❌ useAuthContext: Erro ao parsear dados do localStorage",
+                e
+              );
             }
           }
         }
 
-        // Se não conseguir obter dados, retornar erro
-        throw error
+        // Se não conseguir obter dados, retornar objeto vazio
+        return {
+          user: null,
+          stores: [],
+          currentStore: null,
+        };
+      } catch (error) {
+        // Se não conseguir obter dados, retornar objeto vazio
+        return {
+          user: null,
+          stores: [],
+          currentStore: null,
+        };
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
@@ -37,24 +48,24 @@ export function useAuthContext() {
     retry: false, // Não tentar novamente se falhar
     // Adicionar fallback silencioso para evitar quebras na UI
     placeholderData: (previousData) => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         try {
-          const savedUser = localStorage.getItem('user')
+          const savedUser = localStorage.getItem("user");
           if (savedUser) {
-            const userData = JSON.parse(savedUser)
+            const userData = JSON.parse(savedUser);
             return {
               user: userData,
               stores: userData.stores || [],
-              currentStore: userData.currentStore || null
-            }
+              currentStore: userData.currentStore || null,
+            };
           }
         } catch (e) {
-          console.error('❌ useAuthContext: Erro no placeholderData', e)
+          console.error("❌ useAuthContext: Erro no placeholderData", e);
         }
       }
-      return previousData
-    }
-  })
+      return previousData;
+    },
+  });
 }
 
 // TODO: Endpoint /users/{userId}/stores não está disponível no backend ainda
@@ -78,8 +89,8 @@ export function useUserStores() {
   return {
     data: [],
     isLoading: false,
-    error: null
-  } as any
+    error: null,
+  } as any;
 }
 
 // TODO: Endpoint /users/me/permissions não está disponível no backend ainda
@@ -94,40 +105,40 @@ export function useUserPermissions(storeSlug?: string) {
   // Fallback temporário: retornar permissões básicas
   return {
     data: {
-      scope: 'STORE' as any,
-      stores: storeSlug ? {
-        [storeSlug]: {
-          role: 'OWNER' as any,
-          permissions: ['read', 'write', 'delete']
-        }
-      } : {},
-      globalPermissions: []
+      scope: "STORE" as any,
+      stores: storeSlug
+        ? {
+            [storeSlug]: {
+              role: "OWNER" as any,
+              permissions: ["read", "write", "delete"],
+            },
+          }
+        : {},
+      globalPermissions: [],
     },
     isLoading: false,
-    error: null
-  } as any
+    error: null,
+  } as any;
 }
 
 export function useSetCurrentStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: SetCurrentStoreDto) => apiClient.setCurrentStore(data),
     onSuccess: (updatedUser, variables) => {
       // Invalidar queries relacionadas
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      queryClient.invalidateQueries({ queryKey: ['user-context'] })
-      queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["user-context"] });
+      queryClient.invalidateQueries({ queryKey: ["user-permissions"] });
 
       // Atualizar dados do usuário no cache
-      queryClient.setQueryData(['user'], updatedUser)
-
-      console.log('✅ Loja atual definida com sucesso:', variables.storeSlug)
+      queryClient.setQueryData(["user"], updatedUser);
     },
     onError: (error) => {
-      console.error('❌ Erro ao definir loja atual:', error)
-    }
-  })
+      console.error("❌ Erro ao definir loja atual:", error);
+    },
+  });
 }
 
 // TODO: Endpoint /users/me/permissions não está disponível no backend ainda
@@ -140,89 +151,104 @@ export function useHasPermission() {
   return {
     hasPermission: (permission: string, storeSlug?: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return true // Temporariamente permite tudo
+      return true; // Temporariamente permite tudo
     },
 
     hasStoreRole: (role: string, storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return true // Temporariamente permite tudo
+      return true; // Temporariamente permite tudo
     },
 
     isGlobalAdmin: () => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return false // Temporariamente não é admin global
+      return false; // Temporariamente não é admin global
     },
 
     isSuperAdmin: () => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return false // Temporariamente não é super admin
+      return false; // Temporariamente não é super admin
     },
 
     isStoreAdmin: (storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return true // Temporariamente é admin da loja
+      return true; // Temporariamente é admin da loja
     },
 
     canAccessStore: (storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
-      return true // Temporariamente pode acessar qualquer loja
-    }
-  }
+      return true; // Temporariamente pode acessar qualquer loja
+    },
+  };
 }
 
 // Hook para obter a loja atual do usuário
 export function useCurrentStore() {
-  const { data: authContext, error, isLoading } = useQuery({
-    queryKey: ['user-context'],
+  const {
+    data: authContext,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ["user-context"],
     queryFn: async () => {
       try {
-        // Tentar obter do endpoint (quando implementado)
-        return await apiClient.getCurrentUserContext()
-      } catch (error) {
-        // Fallback: obter dados do localStorage
-        if (typeof window !== 'undefined') {
-          const savedUser = localStorage.getItem('user')
+        // Fallback: obter dados do localStorage em vez de chamar endpoint não implementado
+        if (typeof window !== "undefined") {
+          const savedUser = localStorage.getItem("user");
           if (savedUser) {
             try {
-              const userData = JSON.parse(savedUser)
-              console.log('🔄 useCurrentStore: Usando dados do localStorage como fallback')
+              const userData = JSON.parse(savedUser);
+
               return {
                 user: userData,
                 stores: userData.stores || [],
-                currentStore: userData.currentStore || null
-              }
+                currentStore: userData.currentStore || null,
+              };
             } catch (e) {
-              console.error('❌ useCurrentStore: Erro ao parsear dados do localStorage', e)
+              console.error(
+                "❌ useCurrentStore: Erro ao parsear dados do localStorage",
+                e
+              );
             }
           }
         }
 
-        // Se não conseguir obter dados, retornar erro
-        throw error
+        // Se não conseguir obter dados, retornar objeto vazio
+        return {
+          user: null,
+          stores: [],
+          currentStore: null,
+        };
+      } catch (error) {
+        // Se não conseguir obter dados, retornar objeto vazio
+        return {
+          user: null,
+          stores: [],
+          currentStore: null,
+        };
       }
     },
     retry: false,
-  })
+  });
 
   // Se houver erro, tentar obter dados do localStorage como último recurso
-  let user = authContext?.user
-  if (!user && error && typeof window !== 'undefined') {
+  let user = authContext?.user;
+  if (!user && error && typeof window !== "undefined") {
     try {
-      const savedUser = localStorage.getItem('user')
+      const savedUser = localStorage.getItem("user");
       if (savedUser) {
-        user = JSON.parse(savedUser)
-        console.log('🔄 useCurrentStore: Fallback final para localStorage após erro')
+        user = JSON.parse(savedUser);
       }
     } catch (e) {
-      console.error('❌ useCurrentStore: Erro no fallback final', e)
+      console.error("❌ useCurrentStore: Erro no fallback final", e);
     }
   }
 
   // Durante SSR, usar apenas dados do usuário
   // No cliente, tentar obter do localStorage como fallback
-  const currentStoreSlug = typeof window !== 'undefined' ? apiClient.getCurrentStoreSlug() : null
+  const currentStoreSlug =
+    typeof window !== "undefined" ? apiClient.getCurrentStoreSlug() : null;
 
-  const currentStore = user?.currentStoreSlug || null
+  const currentStore = user?.currentStoreSlug || null;
 
   return {
     currentStore,
@@ -232,6 +258,6 @@ export function useCurrentStore() {
     isAdmin: false, // TODO: Implementar verificação de role
     isManager: false, // TODO: Implementar verificação de role
     isLoading,
-    error
-  }
+    error,
+  };
 }

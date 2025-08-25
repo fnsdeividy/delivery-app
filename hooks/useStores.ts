@@ -1,160 +1,163 @@
-import { apiClient } from '@/lib/api-client'
-import {
-  CreateStoreDto,
-  UpdateStoreDto
-} from '@/types/cardapio-api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from "@/lib/api-client";
+import { CreateStoreDto, UpdateStoreDto } from "@/types/cardapio-api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useStores(page = 1, limit = 10) {
+export function useStores(page = 1, limit = 10, enabled = true) {
   return useQuery({
-    queryKey: ['stores', page, limit],
+    queryKey: ["stores", page, limit],
     queryFn: async () => {
       try {
-        const response = await apiClient.getStores(page, limit)
-        return response
+        const response = await apiClient.getStores(page, limit);
+        return response;
       } catch (error) {
-        throw error
+        throw error;
       }
     },
-  })
+    enabled: enabled,
+  });
 }
 
 export function useStore(slug: string) {
   return useQuery({
-    queryKey: ['store', slug],
+    queryKey: ["store", slug],
     queryFn: () => apiClient.getStoreBySlug(slug),
     enabled: !!slug,
-  })
+  });
 }
 
 export function useCreateStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (storeData: CreateStoreDto) => apiClient.createStore(storeData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error('❌ Erro na criação da loja:', error.message)
-      
+      console.error("❌ Erro na criação da loja:", error.message);
+
       // Log específico para diferentes tipos de erro
-      if (error.message.includes('Conflito')) {
-        console.warn('🚫 Conflito detectado - possivelmente slug duplicado')
-      } else if (error.message.includes('Validação')) {
-        console.warn('⚠️ Erro de validação - verificar dados enviados')
-      } else if (error.message.includes('Não autorizado')) {
-        console.error('🔒 Erro de autenticação - verificar token')
+      if (error.message.includes("Conflito")) {
+        console.warn("🚫 Conflito detectado - possivelmente slug duplicado");
+      } else if (error.message.includes("Validação")) {
+        console.warn("⚠️ Erro de validação - verificar dados enviados");
+      } else if (error.message.includes("Não autorizado")) {
+        console.error("🔒 Erro de autenticação - verificar token");
       }
     },
-  })
+  });
 }
 
 export function useUpdateStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ slug, storeData }: { slug: string; storeData: UpdateStoreDto }) =>
-      apiClient.updateStore(slug, storeData),
+    mutationFn: ({
+      slug,
+      storeData,
+    }: {
+      slug: string;
+      storeData: UpdateStoreDto;
+    }) => apiClient.updateStore(slug, storeData),
     onSuccess: (_, { slug }) => {
-      queryClient.invalidateQueries({ queryKey: ['store', slug] })
-      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      queryClient.invalidateQueries({ queryKey: ["store", slug] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
-  })
+  });
 }
 
 export function useDeleteStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (slug: string) => apiClient.deleteStore(slug),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
-  })
+  });
 }
 
 export function useApproveStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => apiClient.approveStore(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['store', id] })
-      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      queryClient.invalidateQueries({ queryKey: ["store", id] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error(`❌ Erro ao aprovar loja:`, error.message)
-      
+      console.error(`❌ Erro ao aprovar loja:`, error.message);
+
       // Log específico para diferentes tipos de erro
-      if (error.message.includes('401')) {
-        console.warn('🔒 Erro de autenticação - verificar token')
-      } else if (error.message.includes('403')) {
-        console.warn('🚫 Erro de permissão - usuário não tem acesso')
-      } else if (error.message.includes('404')) {
-        console.warn('🔍 Loja não encontrada - verificar ID')
+      if (error.message.includes("401")) {
+        console.warn("🔒 Erro de autenticação - verificar token");
+      } else if (error.message.includes("403")) {
+        console.warn("🚫 Erro de permissão - usuário não tem acesso");
+      } else if (error.message.includes("404")) {
+        console.warn("🔍 Loja não encontrada - verificar ID");
       }
     },
-  })
+  });
 }
 
 export function useRejectStore() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) => 
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       apiClient.rejectStore(id, reason),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['store', id] })
-      queryClient.invalidateQueries({ queryKey: ['stores'] })
+      queryClient.invalidateQueries({ queryKey: ["store", id] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error(`❌ Erro ao rejeitar loja:`, error.message)
-      
+      console.error(`❌ Erro ao rejeitar loja:`, error.message);
+
       // Log específico para diferentes tipos de erro
-      if (error.message.includes('401')) {
-        console.warn('🔒 Erro de autenticação - verificar token')
-      } else if (error.message.includes('403')) {
-        console.warn('🚫 Erro de permissão - usuário não tem acesso')
-      } else if (error.message.includes('404')) {
-        console.warn('🔍 Loja não encontrada - verificar ID')
+      if (error.message.includes("401")) {
+        console.warn("🔒 Erro de autenticação - verificar token");
+      } else if (error.message.includes("403")) {
+        console.warn("🚫 Erro de permissão - usuário não tem acesso");
+      } else if (error.message.includes("404")) {
+        console.warn("🔍 Loja não encontrada - verificar ID");
       }
     },
-  })
+  });
 }
 
 export function useStoreStats(slug: string) {
   return useQuery({
-    queryKey: ['store', slug, 'stats'],
+    queryKey: ["store", slug, "stats"],
     queryFn: () => apiClient.getStoreStats(slug),
     enabled: !!slug,
-  })
+  });
 }
 
 // Hook para lojas pendentes de aprovação
 export function usePendingStores() {
   return useQuery({
-    queryKey: ['stores', 'pending'],
+    queryKey: ["stores", "pending"],
     queryFn: async () => {
-      const response = await apiClient.getStores(1, 100) // Buscar todas as lojas
+      const response = await apiClient.getStores(1, 100); // Buscar todas as lojas
       return {
         ...response,
-        data: response.data.filter(store => !store.approved)
-      }
+        data: response.data.filter((store) => !store.approved),
+      };
     },
-  })
+  });
 }
 
 // Hook para lojas aprovadas
 export function useApprovedStores() {
   return useQuery({
-    queryKey: ['stores', 'approved'],
+    queryKey: ["stores", "approved"],
     queryFn: async () => {
-      const response = await apiClient.getStores(1, 100) // Buscar todas as lojas
+      const response = await apiClient.getStores(1, 100); // Buscar todas as lojas
       return {
         ...response,
-        data: response.data.filter(store => store.approved && store.active)
-      }
+        data: response.data.filter((store) => store.approved && store.active),
+      };
     },
-  })
-} 
+  });
+}

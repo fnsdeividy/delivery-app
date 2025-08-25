@@ -14,9 +14,13 @@ interface TokenDebugInfo {
 export function TokenDebug() {
   const [debugInfo, setDebugInfo] = useState<TokenDebugInfo | null>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [lastTokenHash, setLastTokenHash] = useState<string>('')
 
   useEffect(() => {
     const updateDebugInfo = () => {
+      // Só atualizar se o componente estiver visível
+      if (!isVisible) return
+      
       try {
         // Verificar localStorage
         const localStorageToken = localStorage.getItem('cardapio_token')
@@ -40,26 +44,35 @@ export function TokenDebug() {
         // Verificar dados do usuário
         const userData = localStorage.getItem('user')
 
-        setDebugInfo({
-          localStorageToken,
-          cookieToken,
-          isAuthenticated,
-          currentToken,
-          userData: userData ? JSON.parse(userData) : null
-        })
+        // Criar hash do token para evitar atualizações desnecessárias
+        const tokenHash = `${localStorageToken?.length || 0}-${cookieToken?.length || 0}-${currentToken?.length || 0}-${isAuthenticated}`
+        
+        // Só atualizar se algo mudou
+        if (tokenHash !== lastTokenHash) {
+          setDebugInfo({
+            localStorageToken,
+            cookieToken,
+            isAuthenticated,
+            currentToken,
+            userData: userData ? JSON.parse(userData) : null
+          })
+          setLastTokenHash(tokenHash)
+        }
       } catch (error) {
         console.error('Erro ao obter debug info:', error)
       }
     }
 
-    // Atualizar imediatamente
-    updateDebugInfo()
+    // Atualizar imediatamente apenas se estiver visível
+    if (isVisible) {
+      updateDebugInfo()
+    }
 
-    // Atualizar a cada 2 segundos
-    const interval = setInterval(updateDebugInfo, 2000)
+    // Atualizar a cada 10 segundos apenas se estiver visível
+    const interval = setInterval(updateDebugInfo, 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isVisible])
 
   if (!debugInfo) return null
 

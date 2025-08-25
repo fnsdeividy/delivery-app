@@ -1,98 +1,119 @@
-'use client'
+"use client";
 
-import { ApproveStoreModal } from '@/components/ApproveStoreModal'
-import { useFormValidation } from '@/components/FormValidation'
-import { RejectStoreModal } from '@/components/RejectStoreModal'
-import { useToast } from '@/components/Toast'
-import { useApproveStore, useCreateStore, useDeleteStore, useRejectStore, useStores, useUpdateStore } from '@/hooks'
-import { CreateStoreDto } from '@/types/cardapio-api'
-import { Eye, Plus, Storefront, Users } from '@phosphor-icons/react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { ApproveStoreModal } from "@/components/ApproveStoreModal";
+import { useFormValidation } from "@/components/FormValidation";
+import { RejectStoreModal } from "@/components/RejectStoreModal";
+import { useToast } from "@/components/Toast";
+import {
+  useApproveStore,
+  useCreateStore,
+  useDeleteStore,
+  useRejectStore,
+  useStores,
+  useUpdateStore,
+} from "@/hooks";
+import { CreateStoreDto } from "@/types/cardapio-api";
+import { Check, Clock, Eye, Storefront, Users, X } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function GerenciarLojas() {
-  const router = useRouter()
-  const { addToast } = useToast()
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingStore, setEditingStore] = useState<string | null>(null)
-  const [rejectingStore, setRejectingStore] = useState<{ id: string; name: string } | null>(null)
-  const [approvingStore, setApprovingStore] = useState<{ id: string; name: string } | null>(null)
+  const router = useRouter();
+  const { addToast } = useToast();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<string | null>(null);
+  const [rejectingStore, setRejectingStore] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [approvingStore, setApprovingStore] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    slug: ''
-  })
+    name: "",
+    description: "",
+    slug: "",
+  });
 
   // Validação de formulário
-  const { errors, validateForm, clearErrors, getFieldError, isFieldTouched, markFieldAsTouched } = useFormValidation()
+  const {
+    errors,
+    validateForm,
+    clearErrors,
+    getFieldError,
+    isFieldTouched,
+    markFieldAsTouched,
+  } = useFormValidation();
 
   // Hooks da API Cardap.IO
-  const { data: storesData, isLoading, refetch, error } = useStores()
-  const createStoreMutation = useCreateStore()
-  const updateStoreMutation = useUpdateStore()
-  const deleteStoreMutation = useDeleteStore()
-  const approveStoreMutation = useApproveStore()
-  const rejectStoreMutation = useRejectStore()
+  const { data: storesData, isLoading, refetch, error } = useStores();
+  const createStoreMutation = useCreateStore();
+  const updateStoreMutation = useUpdateStore();
+  const deleteStoreMutation = useDeleteStore();
+  const approveStoreMutation = useApproveStore();
+  const rejectStoreMutation = useRejectStore();
 
-  const stores = storesData?.data || []
-  const loading = isLoading
+  const stores = storesData?.data || [];
+  const loading = isLoading;
 
   // Gerar slug automaticamente
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
 
   // Criar nova loja
   const handleCreateStore = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Limpar erros anteriores
-    clearErrors()
+    clearErrors();
 
-    const slug = formData.slug || generateSlug(formData.name)
+    const slug = formData.slug || generateSlug(formData.name);
 
     // Validação usando o hook de validação
     const validationRules = {
       name: [
-        { required: true, fieldName: 'Nome da loja' },
-        { minLength: 2, fieldName: 'Nome da loja' },
-        { maxLength: 100, fieldName: 'Nome da loja' }
+        { required: true, fieldName: "Nome da loja" },
+        { minLength: 2, fieldName: "Nome da loja" },
+        { maxLength: 100, fieldName: "Nome da loja" },
       ],
       slug: [
-        { required: true, fieldName: 'Slug' },
-        { minLength: 2, fieldName: 'Slug' },
-        { maxLength: 50, fieldName: 'Slug' },
+        { required: true, fieldName: "Slug" },
+        { minLength: 2, fieldName: "Slug" },
+        { maxLength: 50, fieldName: "Slug" },
         {
           pattern: /^[a-z0-9-]+$/,
-          fieldName: 'Slug',
-          message: 'Slug deve conter apenas letras minúsculas, números e hífens'
-        }
-      ]
-    }
+          fieldName: "Slug",
+          message:
+            "Slug deve conter apenas letras minúsculas, números e hífens",
+        },
+      ],
+    };
 
-    const isValid = validateForm(formData, validationRules)
+    const isValid = validateForm(formData, validationRules);
     if (!isValid) {
-      addToast({
-        type: 'error',
-        title: 'Erro de Validação',
-        message: 'Por favor, corrija os campos obrigatórios'
-      })
-      return
+      addToast(
+        "error",
+        "Erro de Validação",
+        "Por favor, corrija os campos obrigatórios"
+      );
+      return;
     }
 
     // Verificar se slug já existe
-    if (stores.some(store => store.slug === slug)) {
-      addToast({
-        type: 'error',
-        title: 'Slug Duplicado',
-        message: `Já existe uma loja com o slug "${slug}". Escolha outro nome.`
-      })
-      return
+    if (stores.some((store) => store.slug === slug)) {
+      addToast(
+        "error",
+        "Slug Duplicado",
+        `Já existe uma loja com o slug "${slug}". Escolha outro nome.`
+      );
+      return;
     }
 
     try {
@@ -101,218 +122,274 @@ export default function GerenciarLojas() {
         description: formData.description.trim(),
         slug: slug,
         config: {
-          address: 'Endereço a ser configurado',
-          phone: 'Telefone a ser configurado',
-          email: 'email@loja.com',
-          logo: '',
-          banner: '',
-          category: 'Outros',
+          address: "Endereço a ser configurado",
+          phone: "Telefone a ser configurado",
+          email: "email@loja.com",
+          logo: "",
+          banner: "",
+          category: "Outros",
           deliveryFee: 5,
           minimumOrder: 20,
           estimatedDeliveryTime: 30,
           businessHours: {
-            monday: { open: true, openTime: '09:00', closeTime: '18:00' },
-            tuesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-            wednesday: { open: true, openTime: '09:00', closeTime: '18:00' },
-            thursday: { open: true, openTime: '09:00', closeTime: '18:00' },
-            friday: { open: true, openTime: '09:00', closeTime: '18:00' },
-            saturday: { open: true, openTime: '10:00', closeTime: '16:00' },
-            sunday: { open: false }
+            monday: { open: true, openTime: "09:00", closeTime: "18:00" },
+            tuesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+            wednesday: { open: true, openTime: "09:00", closeTime: "18:00" },
+            thursday: { open: true, openTime: "09:00", closeTime: "18:00" },
+            friday: { open: true, openTime: "09:00", closeTime: "18:00" },
+            saturday: { open: true, openTime: "10:00", closeTime: "16:00" },
+            sunday: { open: false },
           },
-          paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
-        }
-      }
+          paymentMethods: ["PIX", "CARTÃO", "DINHEIRO"],
+        },
+      };
 
-      const createdStore = await createStoreMutation.mutateAsync(storeData)
+      const createdStore = await createStoreMutation.mutateAsync(storeData);
 
       // Limpar formulário e fechar modal
       setFormData({
-        name: '',
-        description: '',
-        slug: ''
-      })
-      setIsCreateModalOpen(false)
+        name: "",
+        description: "",
+        slug: "",
+      });
+      setIsCreateModalOpen(false);
 
       // Recarregar dados
-      refetch()
+      refetch();
 
       // Feedback de sucesso
-      addToast({
-        type: 'success',
-        title: 'Loja Criada!',
-        message: 'Loja criada com sucesso!'
-      })
+      addToast("success", "Loja Criada!", "Loja criada com sucesso!");
 
       // Aguardar um momento e redirecionar para o dashboard da loja
       setTimeout(() => {
-        router.push(`/dashboard/${createdStore.slug}?welcome=true&message=Loja criada com sucesso!`)
-      }, 1000)
-
+        router.push(
+          `/dashboard/${createdStore.slug}?welcome=true&message=Loja criada com sucesso!`
+        );
+      }, 1000);
     } catch (error) {
-      console.error('Erro ao criar loja:', error)
+      console.error("Erro ao criar loja:", error);
 
       // Mensagem de erro mais específica
-      let errorMessage = 'Erro ao criar loja. Tente novamente.'
+      let errorMessage = "Erro ao criar loja. Tente novamente.";
 
       if (error instanceof Error) {
-        if (error.message.includes('Conflito')) {
-          errorMessage = error.message
-        } else if (error.message.includes('Validação')) {
-          errorMessage = error.message
-        } else if (error.message.includes('Não autorizado')) {
-          errorMessage = 'Sessão expirada. Faça login novamente.'
+        if (error.message.includes("Conflito")) {
+          errorMessage = error.message;
+        } else if (error.message.includes("Validação")) {
+          errorMessage = error.message;
+        } else if (error.message.includes("Não autorizado")) {
+          errorMessage = "Sessão expirada. Faça login novamente.";
         }
       }
 
-      addToast({
-        type: 'error',
-        title: 'Erro ao Criar Loja',
-        message: errorMessage
-      })
+      addToast("error", "Erro ao Criar Loja", errorMessage);
     }
-  }
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
-    }))
-  }
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   // Aprovar loja
   const handleApproveStore = async (storeId: string) => {
     setApprovingStore({
       id: storeId,
-      name: stores.find(store => store.id === storeId)?.name || 'Loja'
-    })
-  }
+      name: stores.find((store) => store.id === storeId)?.name || "Loja",
+    });
+  };
 
   // Rejeitar loja
   const handleRejectStore = async (storeId: string, reason?: string) => {
     try {
-      await rejectStoreMutation.mutateAsync({ id: storeId, reason })
-      addToast({
-        type: 'success',
-        title: 'Loja Rejeitada',
-        message: 'Loja rejeitada com sucesso!'
-      })
-      refetch()
+      await rejectStoreMutation.mutateAsync({ id: storeId, reason });
+      addToast("success", "Loja Rejeitada", "Loja rejeitada com sucesso!");
+      refetch();
     } catch (error: any) {
-      console.error('Erro ao rejeitar loja:', error)
+      console.error("Erro ao rejeitar loja:", error);
 
-      let errorMessage = 'Erro ao rejeitar loja. Tente novamente.'
+      let errorMessage = "Erro ao rejeitar loja. Tente novamente.";
 
-      if (error.message?.includes('401')) {
-        errorMessage = 'Erro de autenticação. Faça login novamente.'
-      } else if (error.message?.includes('403')) {
-        errorMessage = 'Você não tem permissão para rejeitar lojas.'
-      } else if (error.message?.includes('404')) {
-        errorMessage = 'Loja não encontrada. Tente atualizar a página.'
+      if (error.message?.includes("401")) {
+        errorMessage = "Erro de autenticação. Faça login novamente.";
+      } else if (error.message?.includes("403")) {
+        errorMessage = "Você não tem permissão para rejeitar lojas.";
+      } else if (error.message?.includes("404")) {
+        errorMessage = "Loja não encontrada. Tente atualizar a página.";
       }
 
-      addToast({
-        type: 'error',
-        title: 'Erro ao Rejeitar Loja',
-        message: errorMessage
-      })
+      addToast("error", "Erro ao Rejeitar Loja", errorMessage);
     }
-  }
+  };
 
   // Abrir modal de reprovação
   const openRejectModal = (store: any) => {
     setRejectingStore({
       id: store.id,
-      name: store.name
-    })
-  }
+      name: store.name,
+    });
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando lojas...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center p-8">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600 font-medium">
+            Carregando lojas...
+          </p>
+          <p className="text-sm text-gray-500 mt-2">Aguarde um momento</p>
         </div>
       </div>
-    )
+    );
+  }
+
+  // Tratamento de erro para falha na busca de lojas
+  if (error) {
+    console.error("❌ Erro ao carregar lojas:", error);
+
+    let errorMessage = "Erro ao carregar lojas. Tente novamente.";
+    let errorTitle = "Erro ao Carregar Lojas";
+
+    if (error.message?.includes("401")) {
+      errorMessage = "Sessão expirada. Faça login novamente.";
+      errorTitle = "Sessão Expirada";
+    } else if (error.message?.includes("403")) {
+      errorMessage = "Você não tem permissão para acessar esta página.";
+      errorTitle = "Acesso Negado";
+    } else if (error.message?.includes("404")) {
+      errorMessage = "Recurso não encontrado. Tente atualizar a página.";
+      errorTitle = "Recurso Não Encontrado";
+    } else if (error.message?.includes("500")) {
+      errorMessage =
+        "Erro interno do servidor. Tente novamente em alguns minutos.";
+      errorTitle = "Erro do Servidor";
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center p-8 max-w-md mx-auto">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {errorTitle}
+          </h1>
+          <p className="text-gray-600 mb-6">{errorMessage}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => refetch()}
+              className="w-full px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-6 py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 transition-colors duration-200"
+            >
+              Recarregar Página
+            </button>
+          </div>
+          <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+            <p className="text-xs text-gray-500">
+              <strong>Detalhes técnicos:</strong>
+              <br />
+              {error.message || "Erro desconhecido"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow">
+      <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Gerencie todas as lojas do sistema
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-6 space-y-4 sm:space-y-0">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                Dashboard
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-gray-600 max-w-2xl">
+                Gerencie todas as lojas do sistema de forma centralizada e
+                eficiente
               </p>
             </div>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Nova Loja
-            </button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-                              <Storefront className="w-8 h-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total de Lojas</p>
-                <p className="text-2xl font-bold text-gray-900">{stores.length}</p>
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <Storefront className="w-8 h-8 text-orange-600" />
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Eye className="w-8 h-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Lojas Aprovadas</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total de Lojas
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stores.filter(store => store.approved).length}
+                  {stores.length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <span className="text-yellow-600 text-sm font-bold">⏳</span>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <Check className="w-8 h-8 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Pendentes</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Lojas Aprovadas
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stores.filter(store => !store.approved).length}
+                  {stores.filter((store) => store.approved).length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <Users className="w-8 h-8 text-blue-600" />
+              <div className="p-3 bg-yellow-100 rounded-xl">
+                <Clock className="w-8 h-8 text-yellow-600" />
+              </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total de Usuários</p>
+                <p className="text-sm font-medium text-gray-600">Pendentes</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stores.filter((store) => !store.approved).length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">
+                  Total de Usuários
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stores.length}
                 </p>
@@ -322,110 +399,146 @@ export default function GerenciarLojas() {
         </div>
 
         {/* Stores List */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Lojas Cadastradas</h2>
+        <div className="bg-white shadow-lg rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200 bg-gray-50">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+              Lojas Cadastradas
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Gerencie o status e configurações de todas as lojas
+            </p>
           </div>
 
           {stores.length === 0 ? (
-            <div className="text-center py-12">
-                              <Storefront className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma loja encontrada</h3>
-              <p className="text-gray-500 mb-4">Comece criando sua primeira loja</p>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Criar Primeira Loja
-              </button>
+            <div className="text-center py-16 px-4">
+              <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                <Storefront className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Nenhuma loja encontrada
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Nenhuma loja foi criada no sistema ainda.
+              </p>
             </div>
           ) : (
-            <div className="overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Loja
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Usuários
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Criada em
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {stores.map((store) => (
-                    <tr key={store.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{store.name}</div>
-                          <div className="text-sm text-gray-500">{store.description}</div>
-                          <div className="text-xs text-gray-400">/{store.slug}</div>
+                    <tr
+                      key={store.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-gray-900 truncate">
+                            {store.name}
+                          </div>
+                          <div className="text-sm text-gray-600 truncate max-w-xs">
+                            {store.description}
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                            /{store.slug}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-1">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.approved
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {store.approved ? 'Aprovada' : 'Pendente'}
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="space-y-2">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${
+                              store.approved
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                            }`}
+                          >
+                            {store.approved ? (
+                              <>
+                                <Check className="w-3 h-3 mr-1" />
+                                Aprovada
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-3 h-3 mr-1" />
+                                Pendente
+                              </>
+                            )}
                           </span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.active
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {store.active ? 'Ativa' : 'Inativa'}
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${
+                              store.active
+                                ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                : "bg-gray-100 text-gray-800 border border-gray-200"
+                            }`}
+                          >
+                            {store.active ? "Ativa" : "Inativa"}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-900">
                         N/A
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600">
                         {formatDate(store.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
+                      <td className="px-4 sm:px-6 py-4 text-right text-sm font-medium">
+                        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
                           {!store.approved && (
                             <>
                               <button
                                 onClick={() => handleApproveStore(store.id)}
-                                className="text-green-600 hover:text-green-900"
+                                className="inline-flex items-center px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-sm"
                                 title="Aprovar loja"
                               >
-                                <span className="text-sm">✅</span>
+                                <Check className="w-3 h-3 mr-1" />
+                                Aprovar
                               </button>
                               <button
                                 onClick={() => openRejectModal(store)}
-                                className="text-red-600 hover:text-red-900"
+                                className="inline-flex items-center px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-sm"
                                 title="Rejeitar loja"
                               >
-                                <span className="text-sm">❌</span>
+                                <X className="w-3 h-3 mr-1" />
+                                Rejeitar
                               </button>
                             </>
                           )}
                           {store.approved && (
                             <>
                               <button
-                                onClick={() => router.push(`/store/${store.slug}`)}
-                                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                onClick={() =>
+                                  router.push(`/store/${store.slug}`)
+                                }
+                                className="inline-flex items-center px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm"
                                 title="Ver loja"
                               >
+                                <Eye className="w-3 h-3 mr-1" />
                                 Ver Loja
                               </button>
                               <button
-                        onClick={() => router.push(`/dashboard/editar-loja/${store.id}`)}
-                                className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                onClick={() =>
+                                  router.push(`/dashboard/${store.slug}`)
+                                }
+                                className="inline-flex items-center px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-sm"
                                 title="Acessar dashboard"
                               >
                                 Dashboard
@@ -445,14 +558,24 @@ export default function GerenciarLojas() {
 
       {/* Create Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Criar Nova Loja</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Criar Nova Loja
+                </h3>
+                <button
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-              <form onSubmit={handleCreateStore} className="space-y-4">
+              <form onSubmit={handleCreateStore} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Nome da Loja *
                   </label>
                   <input
@@ -461,13 +584,13 @@ export default function GerenciarLojas() {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 transition-all duration-200"
                     placeholder="Ex: Pizzaria do João"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Descrição
                   </label>
                   <textarea
@@ -475,17 +598,17 @@ export default function GerenciarLojas() {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 transition-all duration-200 resize-none"
                     placeholder="Descrição da loja..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     URL da Loja
                   </label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  <div className="flex rounded-xl shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-all duration-200">
+                    <span className="inline-flex items-center px-4 py-3 rounded-l-xl border-r border-gray-300 bg-gray-50 text-gray-600 text-sm font-medium">
                       cardap.io/store/
                     </span>
                     <input
@@ -493,26 +616,26 @@ export default function GerenciarLojas() {
                       name="slug"
                       value={formData.slug}
                       onChange={handleInputChange}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                      className="flex-1 min-w-0 block w-full px-4 py-3 border-0 rounded-r-xl focus:outline-none focus:ring-0 text-gray-900"
                       placeholder="pizzaria-do-joao"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-gray-500">
                     Deixe em branco para gerar automaticamente
                   </p>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6">
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                    className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700"
+                    className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl hover:from-orange-700 hover:to-orange-800 transform hover:scale-105 transition-all duration-200 shadow-lg"
                   >
                     Criar Loja
                   </button>
@@ -546,14 +669,10 @@ export default function GerenciarLojas() {
             await approveStoreMutation.mutateAsync(approvingStore.id);
             setApprovingStore(null);
             refetch();
-            addToast({
-              type: 'success',
-              title: 'Loja Aprovada!',
-              message: 'Loja aprovada com sucesso!'
-            });
+            addToast("success", "Loja Aprovada!", "Loja aprovada com sucesso!");
           }}
         />
       )}
     </div>
-  )
+  );
 }

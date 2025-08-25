@@ -1,228 +1,196 @@
-import { Product } from '@/types/cardapio-api'
-import { useEffect, useState } from 'react'
+import { apiClient } from "@/lib/api-client";
+import { Product } from "@/types/cardapio-api";
+import { useEffect, useState } from "react";
 
 interface StoreConfig {
-  id: string
-  slug: string
-  name: string
-  description?: string
-  config: Record<string, any>
-  active: boolean
-  approved: boolean
-  createdAt: string
-  updatedAt: string
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  config: Record<string, any>;
+  active: boolean;
+  approved: boolean;
+  createdAt: string;
+  updatedAt: string;
   // Propriedades adicionais para o dashboard
   menu: {
-    products: Product[]
+    products: Product[];
     categories: Array<{
-      id: string
-      name: string
-      active: boolean
-    }>
-  }
+      id: string;
+      name: string;
+      active: boolean;
+    }>;
+  };
   settings: {
-    preparationTime: number
-    orderNotifications: boolean
-  }
+    preparationTime: number;
+    orderNotifications: boolean;
+  };
   delivery: {
-    fee: number
-    freeDeliveryMinimum: number
-    estimatedTime: number
-    enabled: boolean
-  }
+    fee: number;
+    freeDeliveryMinimum: number;
+    estimatedTime: number;
+    enabled: boolean;
+  };
   payments: {
-    pix: boolean
-    cash: boolean
-    card: boolean
-  }
+    pix: boolean;
+    cash: boolean;
+    card: boolean;
+  };
   promotions: {
     coupons: Array<{
-      id: string
-      name: string
-      active: boolean
-      discount: number
-    }>
-  }
+      id: string;
+      name: string;
+      active: boolean;
+      discount: number;
+    }>;
+  };
   branding: {
-    logo?: string
-    favicon?: string
-    bannerImage?: string
-    primaryColor: string
-    secondaryColor: string
-    backgroundColor?: string
-    textColor?: string
-    accentColor?: string
-  }
+    logo?: string;
+    favicon?: string;
+    banner?: string;
+    primaryColor: string;
+    secondaryColor: string;
+    backgroundColor?: string;
+    textColor?: string;
+    accentColor?: string;
+  };
   schedule: {
-    timezone: string
+    timezone: string;
     workingHours: {
       [key: string]: {
-        open: boolean
+        open: boolean;
         hours: Array<{
-          start: string
-          end: string
-        }>
-      }
-    }
-  }
+          start: string;
+          end: string;
+        }>;
+      };
+    };
+  };
   business: {
-    phone: string
-    email: string
-    address: string
-  }
+    phone: string;
+    email: string;
+    address: string;
+  };
   status: {
-    isOpen: boolean
-    reason: string
-  }
+    isOpen: boolean;
+    reason: string;
+  };
 }
 
 interface UseStoreConfigReturn {
-  config: StoreConfig | null
-  loading: boolean
-  error: string | null
+  config: StoreConfig | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export function useStoreConfig(slug: string): UseStoreConfigReturn {
-  const [config, setConfig] = useState<StoreConfig | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [config, setConfig] = useState<StoreConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Verificar se estamos no cliente
-  const isClient = typeof window !== 'undefined'
-
-  console.log(`🎯 useStoreConfig render - slug: ${slug}, loading: ${loading}, error: ${error}, config: ${!!config}, isClient: ${isClient}`)
+  const isClient = typeof window !== "undefined";
 
   // Se não estamos no cliente, retornar estado inicial
   if (!isClient) {
-    console.log('❌ SSR detectado, retornando estado inicial')
     return {
       config: null,
       loading: false,
-      error: 'SSR não suportado'
-    }
+      error: "SSR não suportado",
+    };
   }
 
   useEffect(() => {
-    console.log(`🔄 useStoreConfig effect triggered with slug: ${slug}`)
-
     if (!slug) {
-      console.log('❌ Slug vazio, parando loading')
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     // Timeout de segurança para evitar loading infinito
     const timeoutId = setTimeout(() => {
-      console.log('⏰ Timeout de segurança - forçando loading false')
-      setLoading(false)
-    }, 10000)
+      setLoading(false);
+    }, 10000);
 
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
-        console.log(`🔍 Buscando dados da loja: ${slug}`)
-
         // Buscar dados da loja via endpoint público
-        const response = await fetch(`/api/store-public/${slug}`)
-
-        console.log(`📡 Resposta da API:`, { status: response.status, ok: response.ok })
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Loja não encontrada')
-          } else if (response.status === 403) {
-            throw new Error('Loja inativa')
-          } else {
-            throw new Error('Erro ao buscar dados da loja')
-          }
-        }
-
-        const data = await response.json()
-
-        console.log(`📊 Dados recebidos:`, data)
+        const data = await apiClient.get(`/stores/public/${slug}`);
 
         // Mapear resposta da API para StoreConfig
         const mappedConfig = {
-          id: data.store.id,
-          name: data.store.name,
-          slug: data.store.slug,
-          description: data.store.description,
-          active: data.store.active,
-          approved: data.store.approved || false,
-          createdAt: data.store.createdAt,
-          updatedAt: data.store.updatedAt,
-          config: data.config || {},
+          id: (data as any).store.id,
+          name: (data as any).store.name,
+          slug: (data as any).store.slug,
+          description: (data as any).store.description,
+          active: (data as any).store.active,
+          approved: (data as any).store.approved || false,
+          createdAt: (data as any).store.createdAt,
+          updatedAt: (data as any).store.updatedAt,
+          config: (data as any).config || {},
           menu: {
-            products: data.products || [],
-            categories: data.categories || []
+            products: (data as any).products || [],
+            categories: (data as any).categories || [],
           },
           settings: {
-            preparationTime: data.config?.preparationTime || 30,
-            orderNotifications: data.config?.orderNotifications !== false
+            preparationTime: (data as any).config?.preparationTime || 30,
+            orderNotifications:
+              (data as any).config?.orderNotifications !== false,
           },
           delivery: {
-            fee: data.config?.deliveryFee || 0,
-            freeDeliveryMinimum: data.config?.minimumOrder || 0,
-            estimatedTime: data.config?.estimatedDeliveryTime || 30,
-            enabled: data.config?.deliveryEnabled !== false
+            fee: (data as any).config?.deliveryFee || 0,
+            freeDeliveryMinimum: (data as any).config?.minimumOrder || 0,
+            estimatedTime: (data as any).config?.estimatedDeliveryTime || 30,
+            enabled: (data as any).config?.deliveryEnabled !== false,
           },
           payments: {
-            pix: data.config?.paymentMethods?.includes('PIX') || false,
-            cash: data.config?.paymentMethods?.includes('DINHEIRO') || false,
-            card: data.config?.paymentMethods?.includes('CARTÃO') || false
+            pix: (data as any).config?.paymentMethods?.includes("PIX") || false,
+            cash:
+              (data as any).config?.paymentMethods?.includes("DINHEIRO") ||
+              false,
+            card:
+              (data as any).config?.paymentMethods?.includes("CARTÃO") || false,
           },
           promotions: {
-            coupons: data.config?.coupons || []
+            coupons: (data as any).config?.coupons || [],
           },
           branding: {
-            logo: data.config?.logo || '',
-            favicon: data.config?.favicon || '',
-            bannerImage: data.config?.banner || '',
-            primaryColor: data.config?.primaryColor || '#f97316',
-            secondaryColor: data.config?.secondaryColor || '#ea580c',
-            backgroundColor: data.config?.backgroundColor || '#ffffff',
-            textColor: data.config?.textColor || '#000000',
-            accentColor: data.config?.accentColor || '#f59e0b'
+            logo: (data as any).config?.logo || "",
+            favicon: (data as any).config?.favicon || "",
+            banner: (data as any).config?.banner || "",
+            primaryColor: (data as any).config?.primaryColor || "#f97316",
+            secondaryColor: (data as any).config?.secondaryColor || "#ea580c",
+            backgroundColor: (data as any).config?.backgroundColor || "#ffffff",
+            textColor: (data as any).config?.textColor || "#000000",
+            accentColor: (data as any).config?.accentColor || "#f59e0b",
           },
           schedule: {
-            timezone: 'America/Sao_Paulo',
-            workingHours: data.config?.businessHours || {}
+            timezone: "America/Sao_Paulo",
+            workingHours: (data as any).config?.businessHours || {},
           },
           business: {
-            phone: data.config?.phone || '',
-            email: data.config?.email || '',
-            address: data.config?.address || ''
+            phone: (data as any).config?.phone || "",
+            email: (data as any).config?.email || "",
+            address: (data as any).config?.address || "",
           },
-          status: data.status || { isOpen: false, reason: 'Indisponível' }
-        }
+          status: (data as any).status || {
+            isOpen: false,
+            reason: "Indisponível",
+          },
+        };
 
-        console.log(`🔧 Config mapeada:`, mappedConfig)
-
-        return mappedConfig
+        return mappedConfig;
       } catch (error: any) {
-        console.error('Erro ao buscar configuração da loja:', error)
-
-        // Tratar diferentes tipos de erro
-        if (error.message?.includes('Loja não encontrada')) {
-          throw new Error('Loja não encontrada')
-        } else if (error.message?.includes('Loja inativa')) {
-          throw new Error('Loja inativa')
-        } else if (error.message?.includes('timeout')) {
-          throw new Error('Timeout na conexão')
-        } else if (error.message?.includes('API indisponível')) {
-          throw new Error('Serviço temporariamente indisponível')
-        } else {
-          throw new Error('Erro ao buscar dados da loja')
-        }
+        console.error("Erro ao buscar dados da loja:", error);
+        throw new Error("Erro ao buscar dados da loja");
       }
-    }
+    };
 
     const loadConfig = async () => {
       try {
-        console.log('🚀 Iniciando loadConfig')
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
-        const storeConfig = await fetchConfig(slug)
+        const storeConfig = await fetchConfig(slug);
 
         // Transformar dados da API para o formato esperado
         const transformedConfig: StoreConfig = {
@@ -237,103 +205,100 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           updatedAt: storeConfig.updatedAt,
           menu: {
             products: storeConfig.menu?.products || [],
-            categories: storeConfig.menu?.categories || []
+            categories: storeConfig.menu?.categories || [],
           },
           settings: {
             preparationTime: storeConfig.settings?.preparationTime || 30,
-            orderNotifications: storeConfig.settings?.orderNotifications !== false
+            orderNotifications:
+              storeConfig.settings?.orderNotifications !== false,
           },
           delivery: {
             fee: storeConfig.delivery?.fee || 0,
             freeDeliveryMinimum: storeConfig.delivery?.freeDeliveryMinimum || 0,
             estimatedTime: storeConfig.delivery?.estimatedTime || 30,
-            enabled: storeConfig.delivery?.enabled !== false
+            enabled: storeConfig.delivery?.enabled !== false,
           },
           payments: {
             pix: storeConfig.payments?.pix || false,
             cash: storeConfig.payments?.cash || false,
-            card: storeConfig.payments?.card || false
+            card: storeConfig.payments?.card || false,
           },
           promotions: {
-            coupons: storeConfig.promotions?.coupons || []
+            coupons: storeConfig.promotions?.coupons || [],
           },
           branding: {
-            logo: storeConfig.branding?.logo || '',
-            favicon: storeConfig.branding?.favicon || '',
-            bannerImage: storeConfig.branding?.bannerImage || '',
-            primaryColor: storeConfig.branding?.primaryColor || '#f97316',
-            secondaryColor: storeConfig.branding?.secondaryColor || '#ea580c',
-            backgroundColor: storeConfig.branding?.backgroundColor || '#ffffff',
-            textColor: storeConfig.branding?.textColor || '#000000',
-            accentColor: storeConfig.branding?.accentColor || '#f59e0b'
+            logo: storeConfig.branding?.logo || "",
+            favicon: storeConfig.branding?.favicon || "",
+            banner: storeConfig.branding?.banner || "",
+            primaryColor: storeConfig.branding?.primaryColor || "#f97316",
+            secondaryColor: storeConfig.branding?.secondaryColor || "#ea580c",
+            backgroundColor: storeConfig.branding?.backgroundColor || "#ffffff",
+            textColor: storeConfig.branding?.textColor || "#000000",
+            accentColor: storeConfig.branding?.accentColor || "#f59e0b",
           },
           schedule: {
-            timezone: 'America/Sao_Paulo',
-            workingHours: storeConfig.schedule?.workingHours || {}
+            timezone: "America/Sao_Paulo",
+            workingHours: storeConfig.schedule?.workingHours || {},
           },
           business: {
-            phone: storeConfig.business?.phone || '',
-            email: storeConfig.business?.email || '',
-            address: storeConfig.business?.address || ''
+            phone: storeConfig.business?.phone || "",
+            email: storeConfig.business?.email || "",
+            address: storeConfig.business?.address || "",
           },
-          status: storeConfig.status
-        }
+          status: storeConfig.status,
+        };
 
-        console.log('✅ Config carregada com sucesso:', transformedConfig)
-        setConfig(transformedConfig)
-
+        setConfig(transformedConfig);
       } catch (err: any) {
-        console.log('❌ Erro no loadConfig:', err)
-        console.error('Erro ao buscar configuração da loja:', err)
+        console.error("Erro ao buscar configuração da loja:", err);
 
         // Mapear mensagens de erro para mensagens mais amigáveis
-        let userMessage = 'Erro ao carregar dados da loja'
+        let userMessage = "Erro ao carregar dados da loja";
 
-        if (err.message?.includes('Loja não encontrada')) {
-          userMessage = 'Loja não encontrada'
-        } else if (err.message?.includes('Loja inativa')) {
-          userMessage = 'Loja temporariamente indisponível'
-        } else if (err.message?.includes('timeout')) {
-          userMessage = 'Conexão lenta, tente novamente'
-        } else if (err.message?.includes('API indisponível')) {
-          userMessage = 'Serviço temporariamente indisponível'
-        } else if (err.message?.includes('não encontrada')) {
-          userMessage = 'Loja não encontrada'
+        if (err.message?.includes("Loja não encontrada")) {
+          userMessage = "Loja não encontrada";
+        } else if (err.message?.includes("Loja inativa")) {
+          userMessage = "Loja temporariamente indisponível";
+        } else if (err.message?.includes("timeout")) {
+          userMessage = "Conexão lenta, tente novamente";
+        } else if (err.message?.includes("API indisponível")) {
+          userMessage = "Serviço temporariamente indisponível";
+        } else if (err.message?.includes("não encontrada")) {
+          userMessage = "Loja não encontrada";
         }
 
-        setError(userMessage)
+        setError(userMessage);
       } finally {
-        console.log('🏁 Finalizando loadConfig, setLoading(false)')
-        setLoading(false)
-        clearTimeout(timeoutId)
+        setLoading(false);
+        clearTimeout(timeoutId);
       }
-    }
+    };
 
-    loadConfig()
+    loadConfig();
 
     return () => {
-      clearTimeout(timeoutId)
-    }
-  }, [slug])
+      clearTimeout(timeoutId);
+    };
+  }, [slug]);
 
-  return { config, loading, error }
+  return { config, loading, error };
 }
 
 export function useStoreStatus(config: StoreConfig | null) {
-  const [isOpen, setIsOpen] = useState(true)
-  const [currentMessage, setCurrentMessage] = useState('')
+  const [isOpen, setIsOpen] = useState(true);
+  const [currentMessage, setCurrentMessage] = useState("");
 
   useEffect(() => {
     if (config) {
       // Simular status da loja
-      setIsOpen(config.active && config.approved)
+      setIsOpen(config.active && config.approved);
       setCurrentMessage(
         config.approved
-          ? 'Loja aberta e funcionando normalmente'
-          : 'Loja aguardando aprovação'
-      )
+          ? "Loja aberta e funcionando normalmente"
+          : "Loja aguardando aprovação"
+      );
     }
-  }, [config])
+  }, [config]);
 
-  return { isOpen, currentMessage }
-} 
+  return { isOpen, currentMessage };
+}
