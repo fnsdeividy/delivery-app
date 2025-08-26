@@ -188,17 +188,20 @@ export default function RegisterLojaPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Ícone */}
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-            <Storefront className="w-6 h-6 text-white" />
+          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg">
+            <Storefront className="w-7 h-7 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+
+        {/* Título */}
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
           Criar Nova Loja
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-white/80">
           Configure sua loja em poucos passos
         </p>
 
@@ -208,31 +211,31 @@ export default function RegisterLojaPage() {
             {[1, 2, 3].map((stepNumber) => (
               <div
                 key={stepNumber}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step >= stepNumber
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= stepNumber
+                    ? "bg-white/20 text-white border-2 border-white/30"
+                    : "bg-white/10 text-white/60 border-2 border-white/20"
+                  }`}
               >
                 {stepNumber}
               </div>
             ))}
           </div>
           <div className="flex justify-center space-x-8 mt-2">
-            <span className="text-xs text-gray-500">Proprietário</span>
-            <span className="text-xs text-gray-500">Loja</span>
-            <span className="text-xs text-gray-500">Confirmação</span>
+            <span className="text-xs text-white/80">Proprietário</span>
+            <span className="text-xs text-white/80">Loja</span>
+            <span className="text-xs text-white/80">Confirmação</span>
           </div>
         </div>
       </div>
 
+      {/* Card de Registro */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white rounded-xl shadow-lg py-8 px-6 sm:px-10">
           {/* Step 1: Dados do Proprietário */}
           {step === 1 && (
             <form className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Nome completo *
                 </label>
                 <input
@@ -241,13 +244,13 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.ownerName}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="Seu nome completo"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Email *
                 </label>
                 <input
@@ -256,13 +259,13 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.ownerEmail}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="seu@email.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Telefone
                 </label>
                 <input
@@ -270,13 +273,13 @@ export default function RegisterLojaPage() {
                   name="ownerPhone"
                   value={formData.ownerPhone}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="(11) 99999-9999"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Senha *
                 </label>
                 <div className="mt-1 relative">
@@ -286,7 +289,7 @@ export default function RegisterLojaPage() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="••••••••"
                   />
                   <button
@@ -304,7 +307,7 @@ export default function RegisterLojaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Confirmar senha *
                 </label>
                 <input
@@ -313,7 +316,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="••••••••"
                 />
               </div>
@@ -324,7 +327,7 @@ export default function RegisterLojaPage() {
           {step === 2 && (
             <form className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Nome da loja *
                 </label>
                 <input
@@ -333,13 +336,13 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.storeName}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="Ex: Pizzaria do João"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   URL da loja *
                 </label>
                 <div className="mt-1 flex rounded-md shadow-sm">
@@ -352,7 +355,7 @@ export default function RegisterLojaPage() {
                     required
                     value={formData.storeSlug}
                     onChange={handleInputChange}
-                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="pizzaria-do-joao"
                   />
                 </div>
@@ -362,7 +365,7 @@ export default function RegisterLojaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Categoria *
                 </label>
                 <select
@@ -370,7 +373,7 @@ export default function RegisterLojaPage() {
                   required
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                 >
                   <option value="">Selecione uma categoria</option>
                   {categories.map((cat) => (
@@ -382,7 +385,7 @@ export default function RegisterLojaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-800">
                   Descrição
                 </label>
                 <textarea
@@ -390,7 +393,7 @@ export default function RegisterLojaPage() {
                   rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="Descreva sua loja..."
                 />
               </div>
@@ -402,7 +405,7 @@ export default function RegisterLojaPage() {
                 </h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-800">
                     Endereço *
                   </label>
                   <input
@@ -411,14 +414,14 @@ export default function RegisterLojaPage() {
                     required
                     value={formData.address}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="Rua, número, bairro"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-800">
                       Cidade *
                     </label>
                     <input
@@ -427,13 +430,13 @@ export default function RegisterLojaPage() {
                       required
                       value={formData.city}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                       placeholder="Sua cidade"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-800">
                       Estado *
                     </label>
                     <input
@@ -442,14 +445,14 @@ export default function RegisterLojaPage() {
                       required
                       value={formData.state}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                       placeholder="SP, RJ, MG..."
                     />
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-800">
                     CEP
                   </label>
                   <input
@@ -457,7 +460,7 @@ export default function RegisterLojaPage() {
                     name="zipCode"
                     value={formData.zipCode}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="00000-000"
                   />
                 </div>
@@ -564,7 +567,7 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+                className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium transition-colors"
               >
                 Voltar
               </button>
@@ -574,7 +577,7 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 font-medium"
+                className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium transition-all shadow-md"
               >
                 Próximo
               </button>
@@ -583,7 +586,7 @@ export default function RegisterLojaPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="flex-1 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium disabled:opacity-50"
+                className="flex-1 py-2 px-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-md hover:from-green-700 hover:to-blue-700 font-medium disabled:opacity-50 transition-all shadow-md"
               >
                 {isLoading ? "Criando..." : "Criar Loja"}
               </button>
@@ -594,13 +597,13 @@ export default function RegisterLojaPage() {
           <div className="mt-6 flex items-center justify-between">
             <Link
               href="/login"
-              className="text-sm text-orange-600 hover:text-orange-500"
+              className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
             >
               Já tenho uma loja
             </Link>
             <Link
               href="/"
-              className="flex items-center text-sm text-gray-600 hover:text-gray-500"
+              className="flex items-center text-sm text-gray-600 hover:text-gray-500 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Voltar ao início
