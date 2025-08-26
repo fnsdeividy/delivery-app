@@ -11,7 +11,6 @@ import {
   CreateUserDto,
   CreateUserStoreDto,
   Inventory,
-  LoginDto,
   Order,
   OrderStats,
   PaginatedResponse,
@@ -29,257 +28,249 @@ import {
   UpdateUserStoreDto,
   User,
   UserPermissions,
-  UserStoreAssociation
-} from '@/types/cardapio-api'
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { appConfig } from './config'
-import { safeLocalStorage } from './utils/environment'
+  UserStoreAssociation,
+} from "@/types/cardapio-api";
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
+import { apiConfig } from "./config";
+import { safeLocalStorage } from "./utils/environment";
 
 // Interfaces para tipagem de erros
 interface ApiErrorResponse {
-  message?: string
-  error?: string
-  status?: number
+  message?: string;
+  error?: string;
+  status?: number;
 }
 
 interface ApiError extends Error {
-  status?: number
-  data?: ApiErrorResponse
-  isAxiosError?: boolean
+  status?: number;
+  data?: ApiErrorResponse;
+  isAxiosError?: boolean;
 }
 
 // Configuração do cliente HTTP
 class ApiClient {
-  private client: AxiosInstance
-  private baseURL: string
-  private isDev: boolean
+  private client: AxiosInstance;
+  private baseURL: string;
+  private isDev: boolean;
+  private lastLoggedToken: string | null = null;
 
   constructor() {
-    this.baseURL = appConfig.api.baseURL
-    this.isDev = appConfig.env.isDevelopment
+    this.baseURL = apiConfig.api.baseURL;
+    this.isDev = apiConfig.env.isDevelopment;
 
     this.client = axios.create({
       baseURL: this.baseURL,
-      timeout: appConfig.api.timeout,
+      timeout: apiConfig.api.timeout,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-    })
+    });
 
-    this.setupInterceptors()
+    this.setupInterceptors();
   }
 
   // ===== CONFIGURAÇÃO DE INTERCEPTORS =====
 
   private setupInterceptors(): void {
-    this.setupRequestInterceptor()
-    this.setupResponseInterceptor()
+    this.setupRequestInterceptor();
+    this.setupResponseInterceptor();
   }
 
   private setupRequestInterceptor(): void {
     this.client.interceptors.request.use(
       (config) => {
-        const token = this.getAuthToken()
+        const token = this.getAuthToken();
 
-        if (appConfig.api.logRequests) {
-          this.log('🔑 Request Interceptor', {
-            hasToken: !!token,
-            tokenLength: token ? token.length : 0,
-            url: config.url,
-            headers: config.headers
-          })
+        // Log apenas quando necessário (primeira vez ou mudanças)
+        if (apiConfig.api.debug && !this.lastLoggedToken) {
+          this.lastLoggedToken = token;
         }
 
         if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-          if (appConfig.api.logRequests) {
-            this.log('🔑 Token adicionado aos headers', {
-              authorizationHeader: config.headers.Authorization?.substring(0, 20) + '...'
-            })
+          config.headers.Authorization = `Bearer ${token}`;
+          // Log apenas quando o token muda
+          if (apiConfig.api.debug && this.lastLoggedToken !== token) {
+            this.log("🔑 Token atualizado nos headers", {
+              tokenLength: token.length,
+            });
+            this.lastLoggedToken = token;
           }
-        } else {
-          if (appConfig.api.logRequests) {
-            this.log('⚠️ Nenhum token encontrado para requisição', {
-              url: config.url,
-              localStorageToken: !!safeLocalStorage.getItem('cardapio_token'),
-              cookies: typeof document !== 'undefined' ? document.cookie.includes('cardapio_token') : 'N/A',
-              allCookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
-            })
-          }
+        } else if (apiConfig.api.debug && this.lastLoggedToken !== null) {
+          // Log apenas quando o token é removido
+          this.log("⚠️ Token removido dos headers");
+          this.lastLoggedToken = null;
         }
 
-        return config
+        return config;
       },
       (error) => Promise.reject(error)
-    )
+    );
   }
 
   private setupResponseInterceptor(): void {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        if (appConfig.api.logResponses) {
-          this.log('✅ Response Interceptor', {
+        if (apiConfig.api.logResponses) {
+          this.log("✅ Response Interceptor", {
             status: response.status,
             url: response.config.url,
-            dataType: typeof response.data
-          })
+            dataType: typeof response.data,
+          });
         }
-        return response
+        return response;
       },
-      (error: AxiosError) => {
-        this.handleResponseError(error)
-        return Promise.reject(error)
+      async (error: AxiosError) => {
+        // Tentar refresh token apenas uma vez em caso de 401
+        if (
+          error.response?.status === 401 &&
+          error.config &&
+          !(error.config as any)._retry
+        ) {
+          (error.config as any)._retry = true;
+
+          try {
+            this.log("🔄 Tentando refresh token...");
+            // Por enquanto, não implementamos refresh token, mas não limpamos o token automaticamente
+            // O componente React deve tratar o erro 401 adequadamente
+            this.log("⚠️ Refresh token não implementado, mantendo token atual");
+          } catch (refreshError) {
+            this.log("❌ Falha no refresh token, limpando token");
+            this.logout();
+          }
+        }
+
+        // Não processar outros erros automaticamente - deixar o componente React decidir
+        this.handleResponseError(error);
+        return Promise.reject(error);
       }
-    )
+    );
   }
 
   private handleResponseError(error: AxiosError): void {
-    this.log('❌ Response Error', {
+    this.log("❌ Response Error", {
       status: error.response?.status,
       url: error.config?.url,
-      message: error.message
-    })
+      message: error.message,
+    });
 
+    // Não limpar token automaticamente em nenhum erro - deixar o componente React decidir
     if (error.response?.status === 401) {
-      this.log('🔒 Token expirado, redirecionando para login')
-      this.clearAuthToken()
-      this.redirectToLogin()
+      this.log("🔒 Token expirado ou inválido - componente React deve tratar");
+      // Não chamar clearAuthToken() aqui
+    } else if (error.response?.status === 403) {
+      this.log("🚫 Acesso negado - componente React deve tratar");
+      // Não chamar clearAuthToken() aqui
+    } else if (error.response?.status === 500) {
+      this.log("💥 Erro interno do servidor - componente React deve tratar");
+      // Não chamar clearAuthToken() aqui
     }
 
     // Processar erro com ErrorHandler se disponível
-    this.processErrorWithHandler(error)
+    this.processErrorWithHandler(error);
   }
 
   private processErrorWithHandler(error: AxiosError): void {
-    if (typeof window !== 'undefined') {
-      import('./error-handler').then(({ ErrorHandler }) => {
-        const apiError = ErrorHandler.handleApiError(error)
-        ErrorHandler.logError(error, 'API Client')
-      }).catch(() => {
-        if (appConfig.api.debug) {
-          this.log('Error handler não disponível')
-        }
-      })
+    if (typeof window !== "undefined") {
+      import("./error-handler")
+        .then(({ ErrorHandler }) => {
+          const apiError = ErrorHandler.handleApiError(error);
+          ErrorHandler.logError(error, "API Client");
+        })
+        .catch(() => {
+          if (apiConfig.api.debug) {
+            this.log("Error handler não disponível");
+          }
+        });
     }
   }
 
   // ===== GERENCIAMENTO DE TOKENS =====
 
+  /**
+   * Armazena o token de autenticação
+   */
+  private storeAuthToken(token: string): void {
+    try {
+      // Armazenar no localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cardapio_token", token);
+        // Cookie com expiração de 2 horas (7200 segundos)
+        document.cookie = `cardapio_token=${token}; path=/; max-age=7200; SameSite=Strict`;
+      }
+    } catch (error) {
+      console.error("❌ Erro ao armazenar token:", error);
+    }
+  }
+
+  /**
+   * Obtém o token de autenticação
+   */
   private getAuthToken(): string | null {
-    // 1. Tentar obter do localStorage primeiro
-    const localStorageToken = safeLocalStorage.getItem('cardapio_token')
-    if (localStorageToken) {
-      if (appConfig.api.logRequests) {
-        this.log('🔑 Token encontrado no localStorage', { tokenLength: localStorageToken.length })
+    try {
+      // Tentar obter do localStorage primeiro
+      if (typeof window !== "undefined") {
+        const localToken = localStorage.getItem("cardapio_token");
+        if (localToken) return localToken;
       }
-      return localStorageToken
-    }
 
-    // 2. Fallback: tentar obter do cookie se estivermos no cliente
-    if (typeof window !== 'undefined') {
-      const cookies = document.cookie.split(';')
-      const cardapioTokenCookie = cookies.find(cookie =>
-        cookie.trim().startsWith('cardapio_token=')
-      )
-
-      if (cardapioTokenCookie) {
-        const token = cardapioTokenCookie.split('=')[1]
-        if (token && token.trim()) {
-          // Sincronizar com localStorage para futuras requisições
-          safeLocalStorage.setItem('cardapio_token', token)
-          if (appConfig.api.logRequests) {
-            this.log('🔄 Token sincronizado do cookie para localStorage', {
-              tokenLength: token.length,
-              source: 'cookie'
-            })
-          }
-          return token
+      // Fallback para cookie
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split("=");
+        if (name === "cardapio_token" && value) {
+          return value;
         }
       }
-    }
 
-    if (appConfig.api.logRequests) {
-      this.log('⚠️ Nenhum token encontrado', {
-        localStorageToken: !!localStorageToken,
-        cookies: typeof window !== 'undefined' ? document.cookie : 'server-side'
-      })
+      return null;
+    } catch (error) {
+      console.error("❌ Erro ao obter token:", error);
+      return null;
     }
-
-    return null
   }
 
-  private setAuthToken(token: string): void {
-    if (!token || token.trim() === '') {
-      if (appConfig.api.debug) {
-        this.log('⚠️ Tentativa de definir token vazio ou inválido')
+  /**
+   * Verifica se o usuário está autenticado
+   */
+  isAuthenticated(): boolean {
+    const token = this.getAuthToken();
+    if (!token) return false;
+
+    try {
+      // Verificar se o token não expirou
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.exp && payload.exp > Date.now() / 1000;
+    } catch (error) {
+      console.error("❌ Erro ao verificar token:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtém o token atual
+   */
+  getCurrentToken(): string | null {
+    return this.getAuthToken();
+  }
+
+  /**
+   * Faz logout do usuário
+   */
+  logout(): void {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cardapio_token");
+        // Remover cookie
+        document.cookie =
+          "cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       }
-      return
-    }
-
-    // Definir no localStorage primeiro
-    safeLocalStorage.setItem('cardapio_token', token)
-
-    // Cookie só pode ser definido no cliente
-    if (typeof window !== 'undefined') {
-      try {
-        // Limpar cookie existente primeiro
-        document.cookie = 'cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-
-        // Definir cookie com configurações mais robustas
-        const cookieValue = `cardapio_token=${token}; path=/; max-age=86400; SameSite=Lax; secure=${window.location.protocol === 'https:'}`
-        document.cookie = cookieValue
-
-        // Aguardar um pouco e verificar se o cookie foi definido corretamente
-        setTimeout(() => {
-          const cookieSet = document.cookie.includes('cardapio_token=')
-
-          // Log para debug
-          if (appConfig.api.logRequests) {
-            this.log('🍪 Verificação do cookie', {
-              localStorage: true,
-              cookie: cookieSet,
-              tokenLength: token.length,
-              allCookies: document.cookie,
-              cookieValue: cookieValue.substring(0, 50) + '...'
-            })
-          }
-
-          if (!cookieSet) {
-            if (appConfig.api.debug) {
-              this.log('⚠️ Cookie não foi definido corretamente, tentando novamente...')
-            }
-
-            // Tentar novamente com configurações mais simples
-            const simpleCookie = `cardapio_token=${token}; path=/`
-            document.cookie = simpleCookie
-
-            const retryCookieSet = document.cookie.includes('cardapio_token=')
-            if (appConfig.api.debug) {
-              this.log('🔄 Retry do cookie', { success: retryCookieSet })
-            }
-          }
-        }, 100)
-      } catch (error) {
-        if (appConfig.api.debug) {
-          this.log('❌ Erro ao definir cookie', { error })
-        }
-      }
-    }
-  }
-
-  private clearAuthToken(): void {
-    safeLocalStorage.removeItem('cardapio_token')
-    // Cookie só pode ser limpo no cliente
-    if (typeof window !== 'undefined') {
-      document.cookie = 'cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    }
-  }
-
-  private redirectToLogin(): void {
-    if (typeof window !== 'undefined') {
-      // Não usar window.location.href para evitar refresh da página
-      // O redirecionamento será tratado pelos componentes React
-      console.warn('🔒 Token expirado - redirecionamento para login desabilitado para evitar refresh')
+    } catch (error) {
+      console.error("❌ Erro ao fazer logout:", error);
     }
   }
 
@@ -287,137 +278,146 @@ class ApiClient {
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.client.get<T>(url, config)
-      return response.data
+      const response = await this.client.get<T>(url, config);
+      return response.data;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     try {
-      if (appConfig.api.logRequests) {
-        this.log('📤 Enviando POST', { url, dataType: typeof data })
-      }
-
-      const response = await this.client.post<T>(url, data, config)
-
-      if (appConfig.api.logResponses) {
-        this.log('📥 Resposta POST', {
-          status: response.status,
-          dataType: typeof response.data
-        })
-      }
+      const response = await this.client.post<T>(url, data, config);
 
       if (response.status === 200 || response.status === 201) {
-        return response.data
+        return response.data;
       }
 
-      throw new Error(`Status inesperado: ${response.status}`)
+      throw new Error(`Status inesperado: ${response.status}`);
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro na requisição POST', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro na requisição POST", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     try {
-      const response = await this.client.put<T>(url, data, config)
-      return response.data
+      const response = await this.client.put<T>(url, data, config);
+      return response.data;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(
+    url: string,
+    data: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     try {
-      const response = await this.client.patch<T>(url, data, config)
-      return response.data
+      // Debug: Log dos dados que serão enviados
+      console.log("🔍 API Client - Dados que serão enviados:", data);
+      console.log("🔍 API Client - Tipo dos dados:", typeof data);
+      console.log(
+        "🔍 API Client - Estrutura dos dados:",
+        JSON.stringify(data, null, 2)
+      );
+
+      const response = await this.client.patch<T>(url, data, config);
+      return response.data;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.client.delete<T>(url, config)
-      return response.data
+      const response = await this.client.delete<T>(url, config);
+      return response.data;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
-  async upload<T>(url: string, file: File, config?: AxiosRequestConfig): Promise<T> {
+  async upload<T>(
+    url: string,
+    file: File,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append("file", file);
 
       const response = await this.client.post<T>(url, formData, {
         ...config,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-      })
-      return response.data
+      });
+      return response.data;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
   // ===== AUTENTICAÇÃO =====
 
-  async authenticate(email: string, password: string, storeSlug?: string): Promise<AuthResponse> {
+  /**
+   * Autentica um usuário com email e senha
+   */
+  async authenticate(
+    email: string,
+    password: string,
+    storeSlug?: string
+  ): Promise<AuthResponse> {
     try {
-      if (appConfig.api.logRequests) {
-        this.log('🔐 Iniciando autenticação')
+      const response = await this.post<AuthResponse>("/auth/login", {
+        email,
+        password,
+        storeSlug,
+      });
+
+      // Armazenar token automaticamente
+      if (response.access_token) {
+        this.storeAuthToken(response.access_token);
       }
 
-      const loginData: LoginDto = { email, password }
-      // storeSlug agora é completamente opcional - o backend irá identificar automaticamente
-
-      const response = await this.post<AuthResponse>('/auth/login', loginData)
-      const token = response.access_token
-
-      this.setAuthToken(token)
-      if (appConfig.api.logResponses) {
-        this.log('💾 Token armazenado', token)
-      }
-
-      return response
+      return response;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro na autenticação', { error })
-      }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
+  /**
+   * Registra um novo usuário
+   */
   async register(userData: CreateUserDto): Promise<AuthResponse> {
     try {
-      const response = await this.post<AuthResponse>('/auth/register', userData)
-      const token = response.access_token
-      this.setAuthToken(token)
-      return response
+      const response = await this.post<AuthResponse>(
+        "/auth/register",
+        userData
+      );
+
+      // Armazenar token automaticamente
+      if (response.access_token) {
+        this.storeAuthToken(response.access_token);
+      }
+
+      return response;
     } catch (error) {
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
-
-  logout(): void {
-    this.clearAuthToken()
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getAuthToken()
-  }
-
-  getCurrentToken(): string | null {
-    return this.getAuthToken()
-  }
-
-
 
   // TODO: Endpoint /users/me/context não está disponível no backend ainda
   // Comentado temporariamente até a implementação
@@ -428,225 +428,238 @@ class ApiClient {
 
       // Fallback temporário: retornar dados do localStorage
       // TODO: Implementar quando o endpoint estiver disponível
-      if (typeof window !== 'undefined') {
-        const savedUser = localStorage.getItem('user')
+      if (typeof window !== "undefined") {
+        const savedUser = localStorage.getItem("user");
         if (savedUser) {
           try {
-            const userData = JSON.parse(savedUser)
-            if (appConfig.api.debug) {
-              this.log('🔄 getCurrentUserContext: Usando dados do localStorage como fallback')
-            }
+            const userData = JSON.parse(savedUser);
+            // Usando dados do localStorage como fallback
             return {
               user: userData,
               stores: userData.stores || [],
-              currentStore: userData.currentStore || null
-            }
+              currentStore: userData.currentStore || null,
+              permissions: {
+                scope: "STORE" as any,
+                stores: {},
+                globalPermissions: [],
+              },
+            };
           } catch (e) {
-            if (appConfig.api.debug) {
-              this.log('❌ getCurrentUserContext: Erro ao parsear dados do localStorage', e)
-            }
+            // Erro ao parsear dados do localStorage
           }
         }
       }
 
-      // Se não conseguir obter dados do localStorage, lançar erro
-      throw new Error('Endpoint /users/me/context não implementado no backend ainda e nenhum usuário encontrado no localStorage')
+      // Se não conseguir obter dados do localStorage, retornar objeto vazio em vez de lançar erro
+      return {
+        user: {
+          id: "unknown",
+          email: "",
+          name: "",
+          role: "USER" as any,
+          active: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          stores: [],
+        },
+        stores: [],
+        currentStore: undefined,
+        permissions: {
+          scope: "STORE" as any,
+          stores: {},
+          globalPermissions: [],
+        },
+      };
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao obter contexto do usuário', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao obter contexto do usuário", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
   async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
     try {
-      const response = await this.patch<User>('/users/me/current-store', data)
+      const response = await this.patch<User>("/users/me/current-store", data);
 
       // Atualizar localStorage com a nova loja atual (SSR-safe)
-      safeLocalStorage.setItem('currentStoreSlug', data.storeSlug)
+      safeLocalStorage.setItem("currentStoreSlug", data.storeSlug);
 
-      if (appConfig.api.logResponses) {
-        this.log('✅ Loja atual definida com sucesso', { storeSlug: data.storeSlug })
+      if (apiConfig.api.debug) {
+        this.log("✅ Loja atual definida com sucesso", {
+          storeSlug: data.storeSlug,
+        });
       }
 
-      return response
+      return response;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao definir loja atual', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao definir loja atual", { error });
       }
-      throw this.createApiError(error)
-    }
-  }
-
-  // Método para atualizar contexto da loja (alias para setCurrentStore)
-  async updateStoreContext(storeSlug: string): Promise<void> {
-    try {
-      await this.setCurrentStore({ storeSlug })
-    } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao atualizar contexto da loja', { error })
-      }
-      throw error
+      throw this.createApiError(error);
     }
   }
 
   getCurrentStoreSlug(): string | null {
     try {
       // 1. Tentar obter do localStorage primeiro (SSR-safe)
-      const storedStoreSlug = safeLocalStorage.getItem('currentStoreSlug')
+      const storedStoreSlug = safeLocalStorage.getItem("currentStoreSlug");
       if (storedStoreSlug) {
-        return storedStoreSlug
+        return storedStoreSlug;
       }
 
       // 2. Tentar obter do token JWT
-      const currentToken = this.getAuthToken()
+      const currentToken = this.getAuthToken();
       if (currentToken) {
-        const tokenParts = currentToken.split('.')
+        const tokenParts = currentToken.split(".");
         if (tokenParts.length === 3) {
           try {
-            const payload = JSON.parse(atob(tokenParts[1]))
-            return payload.storeSlug || null
+            const payload = JSON.parse(atob(tokenParts[1]));
+            return payload.storeSlug || null;
           } catch (decodeError) {
-            if (appConfig.api.debug) {
-              this.log('⚠️ Erro ao decodificar token', { decodeError })
+            if (apiConfig.api.debug) {
+              this.log("⚠️ Erro ao decodificar token", { decodeError });
             }
           }
         }
       }
 
-      return null
+      return null;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao obter storeSlug atual', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao obter storeSlug atual", { error });
       }
-      return null
+      return null;
     }
   }
 
   async updateStoreContext(storeSlug: string): Promise<void> {
     try {
-      if (appConfig.api.logRequests) {
-        this.log('🔄 Atualizando contexto da loja', { storeSlug })
+      if (apiConfig.api.logRequests) {
+        this.log("🔄 Atualizando contexto da loja", { storeSlug });
       }
 
-      const currentToken = this.getAuthToken()
+      const currentToken = this.getAuthToken();
       if (!currentToken) {
-        if (appConfig.api.debug) {
-          this.log('⚠️ Nenhum token encontrado para atualizar contexto')
-        }
-        return
+        return;
       }
 
-      const tokenParts = currentToken.split('.')
+      const tokenParts = currentToken.split(".");
       if (tokenParts.length !== 3) {
-        if (appConfig.api.debug) {
-          this.log('⚠️ Token JWT inválido')
+        if (apiConfig.api.debug) {
+          this.log("⚠️ Token JWT inválido");
         }
-        return
+        return;
       }
 
       try {
-        const payload = JSON.parse(atob(tokenParts[1]))
+        const payload = JSON.parse(atob(tokenParts[1]));
 
         if (payload.storeSlug === storeSlug) {
-          if (appConfig.api.logResponses) {
-            this.log('✅ StoreSlug já está correto no token')
+          if (apiConfig.api.debug) {
+            this.log("✅ StoreSlug já está correto no token");
           }
-          return
+          return;
         }
 
-        safeLocalStorage.setItem('currentStoreSlug', storeSlug)
-        if (appConfig.api.logResponses) {
-          this.log('💾 StoreSlug atualizado no localStorage', { storeSlug })
+        safeLocalStorage.setItem("currentStoreSlug", storeSlug);
+        if (apiConfig.api.debug) {
+          this.log("💾 StoreSlug atualizado no localStorage", { storeSlug });
         }
-
       } catch (decodeError) {
-        if (appConfig.api.debug) {
-          this.log('⚠️ Erro ao decodificar token, continuando...', { decodeError })
+        if (apiConfig.api.debug) {
+          this.log("⚠️ Erro ao decodificar token, continuando...", {
+            decodeError,
+          });
         }
-        safeLocalStorage.setItem('currentStoreSlug', storeSlug)
-        if (appConfig.api.logResponses) {
-          this.log('💾 StoreSlug armazenado no localStorage (fallback)', { storeSlug })
+        safeLocalStorage.setItem("currentStoreSlug", storeSlug);
+        if (apiConfig.api.debug) {
+          this.log("💾 StoreSlug armazenado no localStorage (fallback)", {
+            storeSlug,
+          });
         }
       }
-
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao atualizar contexto da loja', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao atualizar contexto da loja", { error });
       }
-      throw new Error('Falha ao atualizar contexto da loja')
+      throw new Error("Falha ao atualizar contexto da loja");
     }
   }
 
   // ===== USUÁRIOS =====
 
   async getUsers(page = 1, limit = 10): Promise<PaginatedResponse<User>> {
-    return this.get<PaginatedResponse<User>>(`/users?page=${page}&limit=${limit}`)
+    return this.get<PaginatedResponse<User>>(
+      `/users?page=${page}&limit=${limit}`
+    );
   }
 
   async getUserById(id: string): Promise<User> {
-    return this.get<User>(`/users/${id}`)
+    return this.get<User>(`/users/${id}`);
   }
 
   async createUser(userData: CreateUserDto): Promise<User> {
-    return this.post<User>('/users', userData)
+    return this.post<User>("/users", userData);
   }
 
   async updateUser(id: string, userData: UpdateUserDto): Promise<User> {
-    return this.patch<User>(`/users/${id}`, userData)
+    return this.patch<User>(`/users/${id}`, userData);
   }
 
   async deleteUser(id: string): Promise<void> {
-    return this.delete<void>(`/users/${id}`)
+    return this.delete<void>(`/users/${id}`);
   }
 
   // ===== USER-STORE ASSOCIATIONS (RBAC) =====
 
   // TODO: Endpoint /users/{userId}/stores não está disponível no backend ainda
   // Comentado temporariamente até a implementação
-  async getUserStoreAssociations(userId: string): Promise<UserStoreAssociation[]> {
+  async getUserStoreAssociations(
+    userId: string
+  ): Promise<UserStoreAssociation[]> {
     try {
       // const response = await this.get<UserStoreAssociation[]>(`/users/${userId}/stores`)
       // return response
 
       // Fallback temporário: retornar array vazio
       // TODO: Implementar quando o endpoint estiver disponível
-      return []
+      return [];
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao obter associações usuário-loja', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao obter associações usuário-loja", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /user-stores não está disponível no backend ainda
   // Comentado temporariamente até a implementação
-  async createUserStoreAssociation(data: CreateUserStoreDto): Promise<UserStoreAssociation> {
+  async createUserStoreAssociation(
+    data: CreateUserStoreDto
+  ): Promise<UserStoreAssociation> {
     try {
       // const response = await this.post<UserStoreAssociation>('/user-stores', data)
       // return response
 
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
-      if (appConfig.api.debug) {
-        this.log('🔄 createUserStoreAssociation: Usando fallback mockado')
-      }
       return {
-        id: 'temp-' + Date.now(),
+        id: "temp-" + Date.now(),
         userId: data.userId,
         storeId: data.storeId,
-        role: data.role || 'USER',
-        permissions: data.permissions || ['read'],
+        storeSlug: `store-${data.storeId}`,
+        storeName: `Store ${data.storeId}`,
+        role: data.role || "USER",
+        isActive: true,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      } as UserStoreAssociation
+        updatedAt: new Date().toISOString(),
+      } as UserStoreAssociation;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao criar associação usuário-loja', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao criar associação usuário-loja", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
@@ -659,47 +672,51 @@ class ApiClient {
   ): Promise<UserStoreAssociation> {
     try {
       // const response = await this.patch<UserStoreAssociation>(
-      //   `/users/${userId}/stores/${storeId}`, 
+      //   `/users/${userId}/stores/${storeId}`,
       //   data
       // )
       // return response
 
       // Fallback temporário: retornar dados mockados
       // TODO: Implementar quando o endpoint estiver disponível
-      if (appConfig.api.debug) {
-        this.log('🔄 updateUserStoreAssociation: Usando fallback mockado')
-      }
       return {
-        id: 'temp-' + Date.now(),
+        id: "temp-" + Date.now(),
         userId,
         storeId,
-        role: data.role || 'USER',
-        permissions: data.permissions || ['read'],
+        storeSlug: `store-${storeId}`,
+        storeName: `Store ${storeId}`,
+        role: data.role || "USER",
+        isActive: true,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      } as UserStoreAssociation
+        updatedAt: new Date().toISOString(),
+      } as UserStoreAssociation;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao atualizar associação usuário-loja', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao atualizar associação usuário-loja", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /users/{userId}/stores/{storeId} não está disponível no backend ainda
   // Comentado temporariamente até a implementação
-  async deleteUserStoreAssociation(userId: string, storeId: string): Promise<void> {
+  async deleteUserStoreAssociation(
+    userId: string,
+    storeId: string
+  ): Promise<void> {
     try {
       // await this.delete<void>(`/users/${userId}/stores/${storeId}`)
 
       // Fallback temporário: não fazer nada
       // TODO: Implementar quando o endpoint estiver disponível
-      console.warn('Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda')
+      console.warn(
+        "Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda"
+      );
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao remover associação usuário-loja', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao remover associação usuário-loja", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
@@ -714,20 +731,22 @@ class ApiClient {
       // Fallback temporário: retornar permissões básicas
       // TODO: Implementar quando o endpoint estiver disponível
       return {
-        scope: 'STORE' as any,
-        stores: storeSlug ? {
-          [storeSlug]: {
-            role: 'OWNER' as any,
-            permissions: ['read', 'write', 'delete']
-          }
-        } : {},
-        globalPermissions: []
-      } as UserPermissions
+        scope: "STORE" as any,
+        stores: storeSlug
+          ? {
+              [storeSlug]: {
+                role: "OWNER" as any,
+                permissions: ["read", "write", "delete"],
+              },
+            }
+          : {},
+        globalPermissions: [],
+      } as UserPermissions;
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao obter permissões do usuário', { error })
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao obter permissões do usuário", { error });
       }
-      throw this.createApiError(error)
+      throw this.createApiError(error);
     }
   }
 
@@ -735,225 +754,268 @@ class ApiClient {
 
   async getStores(page = 1, limit = 10): Promise<PaginatedResponse<Store>> {
     try {
-      return await this.get<PaginatedResponse<Store>>(`/stores?page=${page}&limit=${limit}`)
+      return await this.get<PaginatedResponse<Store>>(
+        `/stores?page=${page}&limit=${limit}`
+      );
     } catch (error) {
-      if (appConfig.api.debug) {
-        this.log('❌ Erro ao buscar lojas', { error })
-      }
-      throw error
+      throw error;
     }
   }
 
   async getStoreBySlug(slug: string): Promise<Store> {
-    return this.get<Store>(`/stores/slug/${slug}`)
+    return this.get<Store>(`/stores/slug/${slug}`);
   }
 
   async getPublicStore(slug: string): Promise<any> {
-    return this.get<any>(`/stores/public/${slug}`)
+    return this.get<any>(`/stores/public/${slug}`);
   }
 
   async createStore(storeData: CreateStoreDto): Promise<Store> {
-    return this.post<Store>('/stores', storeData)
+    return this.post<Store>("/stores", storeData);
   }
 
   async updateStore(slug: string, storeData: UpdateStoreDto): Promise<Store> {
-    return this.patch<Store>(`/stores/${slug}`, storeData)
+    return this.patch<Store>(`/stores/${slug}`, storeData);
   }
 
   async deleteStore(slug: string): Promise<void> {
-    return this.delete<void>(`/stores/${slug}`)
+    return this.delete<void>(`/stores/${slug}`);
   }
 
   async approveStore(id: string): Promise<Store> {
-    return this.post<Store>(`/stores/${id}/approve`, { approved: true })
+    return this.post<Store>(`/stores/${id}/approve`, { approved: true });
   }
 
   async rejectStore(id: string, reason?: string): Promise<Store> {
     return this.post<Store>(`/stores/${id}/reject`, {
       approved: false,
-      reason: reason || 'Rejeitada pelo administrador'
-    })
+      reason: reason || "Rejeitada pelo administrador",
+    });
   }
 
   async getStoreStats(slug: string): Promise<StoreStats> {
-    return this.get<StoreStats>(`/stores/${slug}/stats`)
+    return this.get<StoreStats>(`/stores/${slug}/stats`);
   }
 
   // ===== CATEGORIAS =====
 
   async getCategories(storeSlug: string): Promise<Category[]> {
-    return this.get<Category[]>(`/stores/${storeSlug}/categories`)
+    return this.get<Category[]>(`/stores/${storeSlug}/categories`);
   }
 
   async createCategory(categoryData: CreateCategoryDto): Promise<Category> {
-    return this.post<Category>('/categories', categoryData)
+    return this.post<Category>("/categories", categoryData);
   }
 
-  async updateCategory(id: string, categoryData: UpdateCategoryDto): Promise<Category> {
-    return this.patch<Category>(`/categories/${id}`, categoryData)
+  async updateCategory(
+    id: string,
+    categoryData: UpdateCategoryDto
+  ): Promise<Category> {
+    return this.patch<Category>(`/categories/${id}`, categoryData);
   }
 
   async deleteCategory(id: string): Promise<void> {
-    return this.delete<void>(`/categories/${id}`)
+    return this.delete<void>(`/categories/${id}`);
   }
 
   // ===== PRODUTOS =====
 
-  async getProducts(storeSlug: string, page = 1, limit = 10): Promise<PaginatedResponse<Product>> {
-    return this.get<PaginatedResponse<Product>>(`/stores/${storeSlug}/products?page=${page}&limit=${limit}`)
+  async getProducts(
+    storeSlug: string,
+    page = 1,
+    limit = 10
+  ): Promise<PaginatedResponse<Product>> {
+    return this.get<PaginatedResponse<Product>>(
+      `/stores/${storeSlug}/products?page=${page}&limit=${limit}`
+    );
   }
 
   async getProductById(id: string): Promise<Product> {
-    return this.get<Product>(`/products/${id}`)
+    return this.get<Product>(`/products/${id}`);
   }
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
-    return this.post<Product>('/products', productData)
+    return this.post<Product>("/products", productData);
   }
 
-  async updateProduct(id: string, productData: UpdateProductDto): Promise<Product> {
-    return this.patch<Product>(`/products/${id}`, productData)
+  async updateProduct(
+    id: string,
+    productData: UpdateProductDto
+  ): Promise<Product> {
+    return this.patch<Product>(`/products/${id}`, productData);
   }
 
   async deleteProduct(id: string): Promise<void> {
-    return this.delete<void>(`/products/${id}`)
+    return this.delete<void>(`/products/${id}`);
   }
 
   async searchProducts(storeSlug: string, query: string): Promise<Product[]> {
-    return this.get<Product[]>(`/stores/${storeSlug}/products/search?q=${encodeURIComponent(query)}`)
+    return this.get<Product[]>(
+      `/stores/${storeSlug}/products/search?q=${encodeURIComponent(query)}`
+    );
   }
 
   // ===== ESTOQUE =====
 
   async getInventory(storeSlug: string): Promise<Inventory[]> {
-    return this.get<Inventory[]>(`/stores/${storeSlug}/inventory`)
+    return this.get<Inventory[]>(`/stores/${storeSlug}/inventory`);
   }
 
-  async updateInventory(id: string, inventoryData: UpdateInventoryDto): Promise<Inventory> {
-    return this.patch<Inventory>(`/inventory/${id}`, inventoryData)
+  async updateInventory(
+    id: string,
+    inventoryData: UpdateInventoryDto
+  ): Promise<Inventory> {
+    return this.patch<Inventory>(`/inventory/${id}`, inventoryData);
   }
 
-  async createStockMovement(movementData: CreateStockMovementDto): Promise<StockMovement> {
-    return this.post<StockMovement>('/stock-movements', movementData)
+  async createStockMovement(
+    movementData: CreateStockMovementDto
+  ): Promise<StockMovement> {
+    return this.post<StockMovement>("/stock-movements", movementData);
   }
 
   async getStockMovements(productId: string): Promise<StockMovement[]> {
-    return this.get<StockMovement[]>(`/products/${productId}/stock-movements`)
+    return this.get<StockMovement[]>(`/products/${productId}/stock-movements`);
   }
 
   // ===== PEDIDOS =====
 
-  async getOrders(storeSlug: string, page = 1, limit = 10): Promise<PaginatedResponse<Order>> {
-    return this.get<PaginatedResponse<Order>>(`/stores/${storeSlug}/orders?page=${page}&limit=${limit}`)
+  async getOrders(
+    storeSlug: string,
+    page = 1,
+    limit = 10
+  ): Promise<PaginatedResponse<Order>> {
+    return this.get<PaginatedResponse<Order>>(
+      `/stores/${storeSlug}/orders?page=${page}&limit=${limit}`
+    );
   }
 
   async getOrderById(id: string): Promise<Order> {
-    return this.get<Order>(`/orders/${id}`)
+    return this.get<Order>(`/orders/${id}`);
   }
 
   async createOrder(orderData: CreateOrderDto): Promise<Order> {
-    return this.post<Order>('/orders', orderData)
+    return this.post<Order>("/orders", orderData);
   }
 
   async updateOrder(id: string, orderData: UpdateOrderDto): Promise<Order> {
-    return this.patch<Order>(`/orders/${id}`, orderData)
+    return this.patch<Order>(`/orders/${id}`, orderData);
   }
 
   async cancelOrder(id: string): Promise<Order> {
-    return this.patch<Order>(`/orders/${id}`, { status: 'CANCELLED' })
+    return this.patch<Order>(`/orders/${id}`, { status: "CANCELLED" });
   }
 
   async getOrderStats(storeSlug: string): Promise<OrderStats> {
-    return this.get<OrderStats>(`/stores/${storeSlug}/orders/stats`)
+    return this.get<OrderStats>(`/stores/${storeSlug}/orders/stats`);
   }
 
   // ===== ANALYTICS =====
 
-  async getAnalytics(storeSlug: string, period: 'daily' | 'weekly' | 'monthly' = 'daily'): Promise<AnalyticsData> {
-    return this.get<AnalyticsData>(`/stores/${storeSlug}/analytics?period=${period}`)
+  async getAnalytics(
+    storeSlug: string,
+    period: "daily" | "weekly" | "monthly" = "daily"
+  ): Promise<AnalyticsData> {
+    return this.get<AnalyticsData>(
+      `/stores/${storeSlug}/analytics?period=${period}`
+    );
   }
 
   // ===== UTILITÁRIOS =====
 
   private log(message: string, data?: any): void {
-    if (appConfig.api.debug) {
-      console.log(message, data)
+    if (apiConfig.api.debug) {
+      console.log(message, data);
     }
   }
 
   private createApiError(error: unknown): ApiError {
     if (this.isAxiosError(error)) {
-      return this.createAxiosError(error)
+      return this.createAxiosError(error);
     }
 
     if (error instanceof Error) {
-      return error as ApiError
+      return error as ApiError;
     }
 
-    return new Error('Erro desconhecido ocorreu.') as ApiError
+    return new Error("Erro desconhecido ocorreu.") as ApiError;
   }
 
   private isAxiosError(error: unknown): error is AxiosError {
-    return axios.isAxiosError(error)
+    return axios.isAxiosError(error);
   }
 
   private createAxiosError(error: AxiosError): ApiError {
-    const apiError = new Error() as ApiError
-    apiError.isAxiosError = true
+    const apiError = new Error() as ApiError;
+    apiError.isAxiosError = true;
 
     if (error.response) {
-      const { status, data } = error.response
-      apiError.status = status
-      apiError.data = data as ApiErrorResponse
+      const { status, data } = error.response;
+      apiError.status = status;
+      apiError.data = data as ApiErrorResponse;
 
       switch (status) {
         case 400:
-          apiError.message = (data as ApiErrorResponse)?.message || 'Dados inválidos. Verifique as informações enviadas.'
-          break
+          apiError.message =
+            (data as ApiErrorResponse)?.message ||
+            "Dados inválidos. Verifique as informações enviadas.";
+          break;
         case 401:
-          apiError.message = 'Não autorizado. Faça login novamente.'
-          break
+          apiError.message = "Não autorizado. Faça login novamente.";
+          break;
         case 403:
-          apiError.message = 'Acesso negado. Você não tem permissão para esta ação.'
-          break
+          apiError.message =
+            "Acesso negado. Você não tem permissão para esta ação.";
+          break;
         case 404:
-          apiError.message = 'Recurso não encontrado.'
-          break
+          apiError.message = "Recurso não encontrado.";
+          break;
         case 409:
-          apiError.message = (data as ApiErrorResponse)?.message || 'Conflito detectado. Verifique se os dados já existem.'
-          break
+          apiError.message =
+            (data as ApiErrorResponse)?.message ||
+            "Conflito detectado. Verifique se os dados já existem.";
+          break;
         case 422:
-          apiError.message = (data as ApiErrorResponse)?.message || 'Dados inválidos. Verifique a validação.'
-          break
+          apiError.message =
+            (data as ApiErrorResponse)?.message ||
+            "Dados inválidos. Verifique a validação.";
+          break;
         case 500:
-          apiError.message = 'Erro interno do servidor. Tente novamente mais tarde.'
-          break
+          apiError.message =
+            "Erro interno do servidor. Tente novamente mais tarde.";
+          break;
         default:
-          apiError.message = (data as ApiErrorResponse)?.message || `Erro ${status}: ${(data as ApiErrorResponse)?.error || 'Erro desconhecido'}`
+          apiError.message =
+            (data as ApiErrorResponse)?.message ||
+            `Erro ${status}: ${
+              (data as ApiErrorResponse)?.error || "Erro desconhecido"
+            }`;
       }
-    } else if (error.code === 'ECONNABORTED') {
-      apiError.message = 'Tempo limite da requisição excedido. Verifique sua conexão.'
-    } else if (error.code === 'ERR_NETWORK') {
-      apiError.message = 'Erro de conexão. Verifique sua internet e tente novamente.'
+    } else if (error.code === "ECONNABORTED") {
+      apiError.message =
+        "Tempo limite da requisição excedido. Verifique sua conexão.";
+    } else if (error.code === "ERR_NETWORK") {
+      apiError.message =
+        "Erro de conexão. Verifique sua internet e tente novamente.";
     } else {
-      apiError.message = error.message || 'Erro desconhecido ocorreu.'
+      apiError.message = error.message || "Erro desconhecido ocorreu.";
     }
 
-    return apiError
+    return apiError;
   }
 
   async healthCheck(): Promise<boolean> {
     try {
-      await this.get('/health')
-      return true
+      await this.get("/health");
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
 }
 
 // Instância singleton do cliente
-export const apiClient = new ApiClient()
+export const apiClient = new ApiClient();
 
 // Exportar tipos úteis
-export type { AxiosRequestConfig, AxiosResponse }
+export type { AxiosRequestConfig, AxiosResponse };

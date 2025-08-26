@@ -1,100 +1,115 @@
-'use client'
+"use client";
 
-import { useCardapioAuth, useCreateStore } from '@/hooks'
-import { CreateStoreDto, CreateUserDto, UserRole } from '@/types/cardapio-api'
-import { ArrowLeft, Eye, EyeSlash, Storefront } from '@phosphor-icons/react/dist/ssr'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCardapioAuth, useCreateStore } from "@/hooks";
+import { CreateStoreDto, CreateUserDto, UserRole } from "@/types/cardapio-api";
+import {
+  ArrowLeft,
+  Eye,
+  EyeSlash,
+  Storefront,
+} from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterLojaPage() {
-  const router = useRouter()
-  const [step, setStep] = useState(1)
+  const router = useRouter();
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Dados do proprietário
-    ownerName: '',
-    ownerEmail: '',
-    ownerPhone: '',
-    password: '',
-    confirmPassword: '',
-    
+    ownerName: "",
+    ownerEmail: "",
+    ownerPhone: "",
+    password: "",
+    confirmPassword: "",
+
     // Dados da loja
-    storeName: '',
-    storeSlug: '',
-    description: '',
-    category: '',
-    
+    storeName: "",
+    storeSlug: "",
+    description: "",
+    category: "",
+
     // Endereço
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+
     // Configurações iniciais
     deliveryEnabled: true,
-    deliveryFee: '5.00',
-    minimumOrder: '20.00'
-  })
-  const [showPassword, setShowPassword] = useState(false)
+    deliveryFee: "5.00",
+    minimumOrder: "20.00",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const { registerMutation, isLoading: isRegistering, error: registerError } = useCardapioAuth()
-  const { mutateAsync: createStore, isPending: isCreatingStore } = useCreateStore()
+  const {
+    registerMutation,
+    isLoading: isRegistering,
+    error: registerError,
+  } = useCardapioAuth();
+  const { mutateAsync: createStore, isPending: isCreatingStore } =
+    useCreateStore();
 
-  const isLoading = isRegistering || isCreatingStore
-  const error = registerError
+  const isLoading = isRegistering || isCreatingStore;
+  const error = registerError;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value, type } = e.target;
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }))
-    
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
+
     // Auto-gerar slug quando digitar nome da loja
-    if (name === 'storeName') {
-      const slug = value.toLowerCase()
-        .replace(/[^\w\s]/gi, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-+|-+$/g, '')
-      
-      setFormData(prev => ({
+    if (name === "storeName") {
+      const slug = value
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, "")
+        .replace(/\s+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+      setFormData((prev) => ({
         ...prev,
-        storeSlug: slug
-      }))
+        storeSlug: slug,
+      }));
     }
-  }
+  };
 
   const handleNextStep = () => {
     // Validações básicas por step
     if (step === 1) {
       if (!formData.ownerName || !formData.ownerEmail || !formData.password) {
-        return
+        return;
       }
       if (formData.password !== formData.confirmPassword) {
-        return
+        return;
       }
     }
-    
+
     if (step === 2) {
       if (!formData.storeName || !formData.storeSlug || !formData.category) {
-        return
+        return;
       }
       if (!formData.address || !formData.city || !formData.state) {
-        return
+        return;
       }
     }
-    
-    setStep(step + 1)
-  }
+
+    setStep(step + 1);
+  };
 
   const handleSubmit = async () => {
     try {
-      
       // Validações finais
       if (!formData.address || !formData.city || !formData.state) {
-        console.error('❌ Campos obrigatórios não preenchidos')
-        return
+        console.error("❌ Campos obrigatórios não preenchidos");
+        return;
       }
 
       // 1. Criar usuário proprietário
@@ -102,14 +117,14 @@ export default function RegisterLojaPage() {
         email: formData.ownerEmail,
         name: formData.ownerName,
         password: formData.password,
-        role: UserRole.ADMIN
-      }
+        role: UserRole.ADMIN,
+      };
 
-      const userResponse = await registerMutation.mutateAsync(userData)
-      
+      const userResponse = await registerMutation.mutateAsync(userData);
+
       // 2. Aguardar um momento para garantir que o token foi armazenado
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // 3. Criar loja
       const storeData: CreateStoreDto = {
         name: formData.storeName,
@@ -119,48 +134,58 @@ export default function RegisterLojaPage() {
           address: `${formData.address}, ${formData.city} - ${formData.state} ${formData.zipCode}`,
           phone: formData.ownerPhone,
           email: formData.ownerEmail,
-          logo: '',
-          banner: '',
+          logo: "",
+          banner: "",
           category: formData.category,
           deliveryFee: parseFloat(formData.deliveryFee),
           minimumOrder: parseFloat(formData.minimumOrder),
           estimatedDeliveryTime: 30,
           businessHours: {
-            monday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            tuesday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            wednesday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            thursday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            friday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            saturday: { open: true, openTime: '08:00', closeTime: '18:00' },
-            sunday: { open: false }
+            monday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            tuesday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            wednesday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            thursday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            friday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            saturday: { open: true, openTime: "08:00", closeTime: "18:00" },
+            sunday: { open: false },
           },
-          paymentMethods: ['PIX', 'CARTÃO', 'DINHEIRO']
-        }
-      }
+          paymentMethods: ["PIX", "CARTÃO", "DINHEIRO"],
+        },
+      };
 
-      const storeResponse = await createStore(storeData)
+      const storeResponse = await createStore(storeData);
 
       // 4. O redirecionamento será feito automaticamente pelo hook useCreateStore
-      
-    } catch (err) {
+    } catch (err: any) {
       // Em caso de erro, mostrar erro mas não redirecionar automaticamente
+      console.error("❌ Erro durante o processo de registro:", err);
+
+      // Se for erro de criação de loja, o hook já tratou
+      // Se for erro de registro de usuário, mostrar mensagem apropriada
+      if (err.message?.includes("já possui uma loja")) {
+        // Erro já tratado pelo hook
+        return;
+      }
+
+      // Outros erros podem ser mostrados aqui se necessário
+      console.error("Erro não tratado:", err);
     }
-  }
+  };
 
   const categories = [
-    'Restaurante',
-    'Pizzaria', 
-    'Hamburgueria',
-    'Sorveteria',
-    'Cafeteria',
-    'Padaria',
-    'Açaí',
-    'Comida Japonesa',
-    'Comida Italiana',
-    'Comida Brasileira',
-    'Vegetariana/Vegana',
-    'Outros'
-  ]
+    "Restaurante",
+    "Pizzaria",
+    "Hamburgueria",
+    "Sorveteria",
+    "Cafeteria",
+    "Padaria",
+    "Açaí",
+    "Comida Japonesa",
+    "Comida Italiana",
+    "Comida Brasileira",
+    "Vegetariana/Vegana",
+    "Outros",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -176,7 +201,7 @@ export default function RegisterLojaPage() {
         <p className="mt-2 text-center text-sm text-gray-600">
           Configure sua loja em poucos passos
         </p>
-        
+
         {/* Progress */}
         <div className="mt-8">
           <div className="flex items-center justify-center space-x-4">
@@ -185,8 +210,8 @@ export default function RegisterLojaPage() {
                 key={stepNumber}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step >= stepNumber
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    ? "bg-orange-600 text-white"
+                    : "bg-gray-200 text-gray-500"
                 }`}
               >
                 {stepNumber}
@@ -256,7 +281,7 @@ export default function RegisterLojaPage() {
                 </label>
                 <div className="mt-1 relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     required
                     value={formData.password}
@@ -349,7 +374,9 @@ export default function RegisterLojaPage() {
                 >
                   <option value="">Selecione uma categoria</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -370,8 +397,10 @@ export default function RegisterLojaPage() {
 
               {/* Campos de Endereço */}
               <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Endereço da Loja</h3>
-                
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Endereço da Loja
+                </h3>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Endereço *
@@ -436,7 +465,7 @@ export default function RegisterLojaPage() {
             </form>
           )}
 
-                      {/* Step 3: Confirmação */}
+          {/* Step 3: Confirmação */}
           {step === 3 && (
             <div className="space-y-6">
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
@@ -454,47 +483,66 @@ export default function RegisterLojaPage() {
                   <p className="text-sm text-gray-600">{formData.ownerName}</p>
                   <p className="text-sm text-gray-600">{formData.ownerEmail}</p>
                   {formData.ownerPhone && (
-                    <p className="text-sm text-gray-600">{formData.ownerPhone}</p>
+                    <p className="text-sm text-gray-600">
+                      {formData.ownerPhone}
+                    </p>
                   )}
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium text-gray-900">Loja</h4>
                   <p className="text-sm text-gray-600">{formData.storeName}</p>
-                  <p className="text-sm text-gray-500">cardap.io/store/{formData.storeSlug}</p>
+                  <p className="text-sm text-gray-500">
+                    cardap.io/store/{formData.storeSlug}
+                  </p>
                   <p className="text-sm text-gray-600">{formData.category}</p>
                   {formData.description && (
-                    <p className="text-sm text-gray-500 italic">{formData.description}</p>
+                    <p className="text-sm text-gray-500 italic">
+                      {formData.description}
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <h4 className="font-medium text-gray-900">Endereço</h4>
                   <p className="text-sm text-gray-600">{formData.address}</p>
-                  <p className="text-sm text-gray-600">{formData.city}, {formData.state}</p>
+                  <p className="text-sm text-gray-600">
+                    {formData.city}, {formData.state}
+                  </p>
                   {formData.zipCode && (
-                    <p className="text-sm text-gray-600">CEP: {formData.zipCode}</p>
+                    <p className="text-sm text-gray-600">
+                      CEP: {formData.zipCode}
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <h4 className="font-medium text-gray-900">Configurações</h4>
                   <p className="text-sm text-gray-600">
-                    Entrega: {formData.deliveryEnabled ? 'Ativada' : 'Desativada'}
+                    Entrega:{" "}
+                    {formData.deliveryEnabled ? "Ativada" : "Desativada"}
                   </p>
                   {formData.deliveryEnabled && (
                     <>
-                      <p className="text-sm text-gray-600">Taxa de entrega: R$ {formData.deliveryFee}</p>
-                      <p className="text-sm text-gray-600">Pedido mínimo: R$ {formData.minimumOrder}</p>
+                      <p className="text-sm text-gray-600">
+                        Taxa de entrega: R$ {formData.deliveryFee}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Pedido mínimo: R$ {formData.minimumOrder}
+                      </p>
                     </>
                   )}
                 </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Próximos passos</h4>
+                <h4 className="font-medium text-blue-800 mb-2">
+                  Próximos passos
+                </h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
+                  <li>
+                    🏪 Poderá acessar o dashboard para configurar produtos
+                  </li>
                   <li>🎨 Personalizar cores e logo da loja</li>
                   <li>📱 Configurar horários de funcionamento</li>
                   <li>💳 Configurar métodos de pagamento</li>
@@ -521,7 +569,7 @@ export default function RegisterLojaPage() {
                 Voltar
               </button>
             )}
-            
+
             {step < 3 ? (
               <button
                 type="button"
@@ -537,7 +585,7 @@ export default function RegisterLojaPage() {
                 disabled={isLoading}
                 className="flex-1 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium disabled:opacity-50"
               >
-                {isLoading ? 'Criando...' : 'Criar Loja'}
+                {isLoading ? "Criando..." : "Criar Loja"}
               </button>
             )}
           </div>
@@ -545,7 +593,7 @@ export default function RegisterLojaPage() {
           {/* Links */}
           <div className="mt-6 flex items-center justify-between">
             <Link
-              href="/login/lojista"
+              href="/login"
               className="text-sm text-orange-600 hover:text-orange-500"
             >
               Já tenho uma loja
@@ -561,5 +609,5 @@ export default function RegisterLojaPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

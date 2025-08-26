@@ -1,26 +1,36 @@
-import { Clock, MagnifyingGlass, Phone, ShoppingCart, Storefront, Truck, User } from '@phosphor-icons/react/dist/ssr'
-import Link from 'next/link'
-import LoadingSpinner from '../../../../components/LoadingSpinner'
-import PromotionsBanner from '../../../../components/PromotionsBanner'
-import { Product } from '../../../../types/cardapio-api'
+import {
+  Clock,
+  MagnifyingGlass,
+  Phone,
+  ShoppingCart,
+  Storefront,
+  Truck,
+  User,
+} from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import PromotionsBanner from "../../../../components/PromotionsBanner";
+import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
   params: {
-    storeSlug: string
-  }
+    storeSlug: string;
+  };
 }
 
 async function getStoreConfig(slug: string) {
   try {
-    const response = await fetch(`http://localhost:3000/api/store-public/${slug}`, {
-      cache: 'no-store'
-    })
+    const response = await fetch(
+      `http://localhost:3001/api/store-public/${slug}`,
+      {
+        cache: "no-store",
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Loja não encontrada')
+      throw new Error("Loja não encontrada");
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     // Mapear resposta da API para StoreConfig
     return {
@@ -35,111 +45,112 @@ async function getStoreConfig(slug: string) {
       config: data.config || {},
       menu: {
         products: data.products || [],
-        categories: data.categories || []
+        categories: data.categories || [],
       },
       settings: {
         preparationTime: data.config?.preparationTime || 30,
-        orderNotifications: data.config?.orderNotifications !== false
+        orderNotifications: data.config?.orderNotifications !== false,
       },
       delivery: {
         fee: data.config?.deliveryFee || 0,
         freeDeliveryMinimum: data.config?.minimumOrder || 0,
         estimatedTime: data.config?.estimatedDeliveryTime || 30,
-        enabled: data.config?.deliveryEnabled !== false
+        enabled: data.config?.deliveryEnabled !== false,
       },
       payments: {
-        pix: data.config?.paymentMethods?.includes('PIX') || false,
-        cash: data.config?.paymentMethods?.includes('DINHEIRO') || false,
-        card: data.config?.paymentMethods?.includes('CARTÃO') || false
+        pix: data.config?.paymentMethods?.includes("PIX") || false,
+        cash: data.config?.paymentMethods?.includes("DINHEIRO") || false,
+        card: data.config?.paymentMethods?.includes("CARTÃO") || false,
       },
       promotions: {
-        coupons: data.config?.coupons || []
+        coupons: data.config?.coupons || [],
       },
       branding: {
-        logo: data.config?.logo || '',
-        favicon: data.config?.favicon || '',
-        bannerImage: data.config?.banner || '',
-        primaryColor: data.config?.primaryColor || '#f97316',
-        secondaryColor: data.config?.secondaryColor || '#ea580c',
-        backgroundColor: data.config?.backgroundColor || '#ffffff',
-        textColor: data.config?.textColor || '#000000',
-        accentColor: data.config?.accentColor || '#f59e0b'
+        logo: data.config?.logo || "",
+        favicon: data.config?.favicon || "",
+        banner: data.config?.banner || "",
+        primaryColor: data.config?.primaryColor || "#f97316",
+        secondaryColor: data.config?.secondaryColor || "#ea580c",
+        backgroundColor: data.config?.backgroundColor || "#ffffff",
+        textColor: data.config?.textColor || "#000000",
+        accentColor: data.config?.accentColor || "#f59e0b",
       },
       schedule: {
-        timezone: 'America/Sao_Paulo',
-        workingHours: data.config?.businessHours || {}
+        timezone: "America/Sao_Paulo",
+        workingHours: data.config?.businessHours || {},
       },
       business: {
-        phone: data.config?.phone || '',
-        email: data.config?.email || '',
-        address: data.config?.address || ''
+        phone: data.config?.phone || "",
+        email: data.config?.email || "",
+        address: data.config?.address || "",
       },
-      status: data.status || { isOpen: false, reason: 'Indisponível' }
-    }
+      status: data.status || { isOpen: false, reason: "Indisponível" },
+    };
   } catch (error) {
-    console.error('Erro ao buscar configuração da loja:', error)
-    throw error
+    console.error("Erro ao buscar configuração da loja:", error);
+    throw error;
   }
 }
 
 export default async function StorePage({ params }: PageProps) {
-  const { storeSlug: slug } = params
+  const { storeSlug: slug } = params;
 
-  console.log(`🏪 StorePage render - slug: ${slug}, params:`, params)
+  console.log(`🏪 StorePage render - slug: ${slug}, params:`, params);
 
-  let config
-  let error: string | null = null
+  let config;
+  let error: string | null = null;
 
   try {
-    config = await getStoreConfig(slug)
+    config = await getStoreConfig(slug);
   } catch (err) {
-    error = err instanceof Error ? err.message : 'Erro desconhecido'
+    error = err instanceof Error ? err.message : "Erro desconhecido";
   }
 
   // Determinar se a loja está aberta
-  const isOpen = config?.status?.isOpen || false
-  const currentMessage = config?.status?.reason || 'Loja fechada'
+  const isOpen = config?.status?.isOpen || false;
+  const currentMessage = config?.status?.reason || "Loja fechada";
 
   // Estado estático para demonstração
-  const status = 'unauthenticated'
-  const session = null
-  const searchQuery = ''
-  const selectedCategory = 'todos'
-  const searchResults = null
-  const cartItems: any[] = []
-  const isCartOpen = false
-  const isProfileOpen = false
-  const isLoginOpen = false
+  const status = "unauthenticated";
+  const session = null;
+  const searchQuery = "";
+  const selectedCategory = "todos";
+  const searchResults = null;
+  const cartItems: any[] = [];
+  const isCartOpen = false;
+  const isProfileOpen = false;
+  const isLoginOpen = false;
 
   // Promoções de exemplo (em produção viriam do banco/config)
   const promotions = [
     {
-      id: '1',
-      title: '🎉 Primeira Compra',
-      description: '10% de desconto na primeira compra com cupom PRIMEIRA10',
-      type: 'discount' as const,
+      id: "1",
+      title: "🎉 Primeira Compra",
+      description: "10% de desconto na primeira compra com cupom PRIMEIRA10",
+      type: "discount" as const,
       value: 10,
-      validUntil: '2025-12-31',
-      active: true
+      validUntil: "2025-12-31",
+      active: true,
     },
     {
-      id: '2',
-      title: '🚚 Entrega Grátis',
-      description: 'Entrega grátis em pedidos acima de R$ 30,00',
-      type: 'free_delivery' as const,
+      id: "2",
+      title: "🚚 Entrega Grátis",
+      description: "Entrega grátis em pedidos acima de R$ 30,00",
+      type: "free_delivery" as const,
       value: 5,
-      validUntil: '2025-12-31',
-      active: true
-    }
-  ]
+      validUntil: "2025-12-31",
+      active: true,
+    },
+  ];
 
   // Filtrar produtos - versão simplificada para Server Component
-  const filteredProducts = config?.menu?.products?.filter(p => p.active) || []
+  const filteredProducts =
+    config?.menu?.products?.filter((p: any) => p.active) || [];
 
   const addToCart = (product: Product) => {
     // Função estática para demonstração
-    console.log('Produto adicionado ao carrinho:', product.name)
-  }
+    console.log("Produto adicionado ao carrinho:", product.name);
+  };
 
   // Mostrar erro se a loja não for encontrada
   if (error) {
@@ -155,10 +166,9 @@ export default async function StorePage({ params }: PageProps) {
           <p className="text-gray-600 mb-6">
             {error === `Loja '${slug}' não encontrada`
               ? `A loja "${slug}" não foi encontrada ou não está mais disponível.`
-              : error === 'Loja inativa ou não aprovada'
-                ? 'Esta loja está temporariamente indisponível.'
-                : 'Ocorreu um erro ao carregar os dados da loja.'
-            }
+              : error === "Loja inativa ou não aprovada"
+              ? "Esta loja está temporariamente indisponível."
+              : "Ocorreu um erro ao carregar os dados da loja."}
           </p>
           <div className="space-y-3">
             <Link
@@ -176,7 +186,7 @@ export default async function StorePage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Loading state - removido pois não há mais loading state
@@ -186,24 +196,32 @@ export default async function StorePage({ params }: PageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loja não encontrada</h1>
-          <p className="text-gray-600 mb-4">{error || 'Esta loja não existe ou está temporariamente indisponível.'}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Loja não encontrada
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {error ||
+              "Esta loja não existe ou está temporariamente indisponível."}
+          </p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => (window.location.href = "/")}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Voltar ao início
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen" style={{
-      backgroundColor: config?.branding?.backgroundColor || '#ffffff',
-      color: config?.branding?.textColor || '#000000'
-    }}>
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: config?.branding?.backgroundColor || "#ffffff",
+        color: config?.branding?.textColor || "#000000",
+      }}
+    >
       {/* Promotions Banner */}
       <PromotionsBanner promotions={promotions} />
 
@@ -220,7 +238,10 @@ export default async function StorePage({ params }: PageProps) {
                   className="h-10 w-auto hover-scale"
                 />
               )}
-              <h1 className="text-2xl font-bold animate-float" style={{ color: config?.branding?.primaryColor || '#000' }}>
+              <h1
+                className="text-2xl font-bold animate-float"
+                style={{ color: config?.branding?.primaryColor || "#000" }}
+              >
                 {config.name}
               </h1>
             </div>
@@ -234,7 +255,12 @@ export default async function StorePage({ params }: PageProps) {
                   placeholder="Buscar produtos..."
                   defaultValue=""
                   className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white search-focus transition-all duration-300"
-                  style={{ '--tw-ring-color': config?.branding?.primaryColor || '#f97316' } as any}
+                  style={
+                    {
+                      "--tw-ring-color":
+                        config?.branding?.primaryColor || "#f97316",
+                    } as any
+                  }
                   readOnly
                 />
               </div>
@@ -245,7 +271,7 @@ export default async function StorePage({ params }: PageProps) {
               {/* Login/Profile Button */}
               <button
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                style={{ color: config?.branding?.primaryColor || '#f97316' }}
+                style={{ color: config?.branding?.primaryColor || "#f97316" }}
                 title="Fazer Login"
               >
                 <User className="h-5 w-5" />
@@ -255,7 +281,7 @@ export default async function StorePage({ params }: PageProps) {
               {/* Cart Button */}
               <button
                 className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
-                style={{ color: config?.branding?.primaryColor || '#f97316' }}
+                style={{ color: config?.branding?.primaryColor || "#f97316" }}
               >
                 <ShoppingCart className="h-5 w-5 transition-transform" />
                 <span className="hidden sm:block">Carrinho</span>
@@ -266,17 +292,21 @@ export default async function StorePage({ params }: PageProps) {
       </header>
 
       {/* Banner */}
-      {config?.branding?.bannerImage && (
+      {config?.branding?.banner && (
         <div className="relative h-48 md:h-64 overflow-hidden animate-fade-in">
           <img
-            src={config.branding.bannerImage}
+            src={config.branding.banner}
             alt={config.name}
             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
             <div className="text-center text-white animate-scale-in animate-delay-300">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 animate-slide-in-top animate-delay-500">{config.name}</h2>
-              <p className="text-lg animate-slide-in-top animate-delay-700">{config.description}</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2 animate-slide-in-top animate-delay-500">
+                {config.name}
+              </h2>
+              <p className="text-lg animate-slide-in-top animate-delay-700">
+                {config.description}
+              </p>
             </div>
           </div>
         </div>
@@ -307,10 +337,17 @@ export default async function StorePage({ params }: PageProps) {
                 <div className="flex items-center space-x-2">
                   <Truck className="h-4 w-4 text-gray-500" />
                   <span className="text-sm">
-                    Entrega: R$ {config.delivery.fee?.toFixed(2).replace('.', ',') || '0,00'}
+                    Entrega: R${" "}
+                    {config.delivery.fee?.toFixed(2).replace(".", ",") ||
+                      "0,00"}
                     {config.delivery.freeDeliveryMinimum && (
                       <span className="text-green-600">
-                        {' '}(Grátis acima de R$ {config.delivery.freeDeliveryMinimum.toFixed(2).replace('.', ',')})
+                        {" "}
+                        (Grátis acima de R${" "}
+                        {config.delivery.freeDeliveryMinimum
+                          .toFixed(2)
+                          .replace(".", ",")}
+                        )
                       </span>
                     )}
                   </span>
@@ -319,7 +356,9 @@ export default async function StorePage({ params }: PageProps) {
               {config?.delivery?.estimatedTime && (
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">{config.delivery.estimatedTime} min</span>
+                  <span className="text-sm">
+                    {config.delivery.estimatedTime} min
+                  </span>
                 </div>
               )}
             </div>
@@ -331,25 +370,33 @@ export default async function StorePage({ params }: PageProps) {
       <section className="bg-white border-b animate-slide-in-left animate-delay-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
-            <div
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
-            >
+            <div className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700">
               <span className="font-medium">Todos</span>
-              <span className="text-sm opacity-75">({config?.menu?.products?.filter(p => p.active).length || 0})</span>
+              <span className="text-sm opacity-75">
+                (
+                {config?.menu?.products?.filter((p: any) => p.active).length ||
+                  0}
+                )
+              </span>
             </div>
 
-            {config?.menu?.categories?.filter(c => c.active).map((category) => {
-              const count = config?.menu?.products?.filter(p => p.active && p.categoryId === category.id).length || 0
-              return (
-                <div
-                  key={category.id}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
-                >
-                  <span className="font-medium">{category.name}</span>
-                  <span className="text-sm opacity-75">({count})</span>
-                </div>
-              )
-            })}
+            {config?.menu?.categories
+              ?.filter((c: any) => c.active)
+              .map((category: any) => {
+                const count =
+                  config?.menu?.products?.filter(
+                    (p: any) => p.active && p.categoryId === category.id
+                  ).length || 0;
+                return (
+                  <div
+                    key={category.id}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
+                  >
+                    <span className="font-medium">{category.name}</span>
+                    <span className="text-sm opacity-75">({count})</span>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </section>
@@ -360,8 +407,15 @@ export default async function StorePage({ params }: PageProps) {
           {/* Results Info */}
           <div className="mb-6">
             <p className="text-gray-600">
-              {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
-              {selectedCategory !== 'todos' && ` em ${config?.menu?.categories?.find(c => c.id === selectedCategory)?.name}`}
+              {filteredProducts.length} produto
+              {filteredProducts.length !== 1 ? "s" : ""} encontrado
+              {filteredProducts.length !== 1 ? "s" : ""}
+              {selectedCategory !== "todos" &&
+                ` em ${
+                  config?.menu?.categories?.find(
+                    (c: any) => c.id === selectedCategory
+                  )?.name
+                }`}
               {searchQuery && ` para "${searchQuery}"`}
             </p>
           </div>
@@ -371,14 +425,16 @@ export default async function StorePage({ params }: PageProps) {
               <div className="text-gray-400 mb-4">
                 <MagnifyingGlass className="w-16 h-16 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Nenhum produto encontrado
+              </h3>
               <p className="text-gray-600">
                 Tente ajustar os filtros ou buscar por outro termo
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProducts.map((product, index) => (
+              {filteredProducts.map((product: any, index: number) => (
                 <div
                   key={product.id}
                   className="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover stagger-item"
@@ -402,17 +458,23 @@ export default async function StorePage({ params }: PageProps) {
                   <div className="p-4">
                     {/* Name and Rating */}
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {product.name}
+                      </h3>
                       {product.preparationTime && (
                         <div className="flex items-center space-x-1 text-gray-500">
                           <Clock className="h-4 w-4" />
-                          <span className="text-sm">{product.preparationTime}min</span>
+                          <span className="text-sm">
+                            {product.preparationTime}min
+                          </span>
                         </div>
                       )}
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
 
                     {/* Ingredients */}
                     <div className="mb-3">
@@ -425,7 +487,7 @@ export default async function StorePage({ params }: PageProps) {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg font-bold text-gray-900">
-                          R$ {product.price.toFixed(2).replace('.', ',')}
+                          R$ {product.price.toFixed(2).replace(".", ",")}
                         </span>
                         {/* Preço original removido - não existe no tipo Product */}
                       </div>
@@ -435,9 +497,13 @@ export default async function StorePage({ params }: PageProps) {
                     <button
                       disabled={!isOpen}
                       className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                      style={{ backgroundColor: isOpen ? (config?.branding?.primaryColor || '#f97316') : '#9ca3af' }}
+                      style={{
+                        backgroundColor: isOpen
+                          ? config?.branding?.primaryColor || "#f97316"
+                          : "#9ca3af",
+                      }}
                     >
-                      {isOpen ? '+ Adicionar ao Carrinho' : 'Loja Fechada'}
+                      {isOpen ? "+ Adicionar ao Carrinho" : "Loja Fechada"}
                     </button>
                   </div>
                 </div>
@@ -451,15 +517,18 @@ export default async function StorePage({ params }: PageProps) {
       <footer className="bg-gray-900 text-white py-8 animate-fade-in">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2 animate-slide-in-top">{config.name}</h3>
-            <p className="text-gray-400 mb-4 animate-slide-in-top animate-delay-200">{config.description}</p>
+            <h3 className="text-lg font-semibold mb-2 animate-slide-in-top">
+              {config.name}
+            </h3>
+            <p className="text-gray-400 mb-4 animate-slide-in-top animate-delay-200">
+              {config.description}
+            </p>
             <div className="flex justify-center space-x-4 animate-slide-in-top animate-delay-300">
               {/* Social media removido - não existe no tipo business */}
             </div>
           </div>
         </div>
       </footer>
-
     </div>
-  )
+  );
 }

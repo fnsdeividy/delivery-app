@@ -1,17 +1,26 @@
-export { Badge, badgeVariants } from "./badge"
-export { Button, buttonVariants } from "./button"
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card"
-export { Container } from "./container"
-export { NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, NavigationMenuViewport, navigationMenuTriggerStyle } from "./navigation-menu"
-export { Section } from "./section"
-export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./sheet"
+// Componentes UI reutilizáveis
+export { default as ColorInput } from "./ColorInput";
+export { default as FileUpload } from "./FileUpload";
 
-// Animated Components
-export { 
-  Animated, 
-  StaggerList, 
-  StaggerItem, 
-  Hero, 
-  AnimatedCard 
-} from "./animated"
-
+// Re-exportar componentes existentes
+export {
+  Animated,
+  AnimatedCard,
+  Hero,
+  StaggerItem,
+  StaggerList,
+} from "./animated";
+export { Badge, badgeVariants } from "./badge";
+export { Button, buttonVariants } from "./button";
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";

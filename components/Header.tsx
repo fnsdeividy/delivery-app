@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Logo } from './Logo'
-import { MobileMenu } from './MobileMenu'
+import Link from "next/link";
+import { Logo } from "./Logo";
+import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
   return (
@@ -24,7 +24,7 @@ export function Header() {
                 Login
               </Link>
               <Link
-                href="/register"
+                href="/register/loja"
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-medium"
               >
                 Cadastrar
@@ -40,5 +40,5 @@ export function Header() {
       {/* Spacer para compensar o header fixo */}
       <div className="h-16" data-testid="header-spacer" />
     </>
-  )
-} 
+  );
+}

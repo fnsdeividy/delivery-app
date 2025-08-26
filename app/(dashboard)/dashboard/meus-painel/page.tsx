@@ -1,28 +1,35 @@
-'use client'
+"use client";
 
-import { useStores } from '@/hooks'
-import { Storefront, Package, ShoppingBag, ChartBar, Gear, ArrowRight, Plus } from '@phosphor-icons/react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useStores } from "@/hooks";
+import {
+  ArrowRight,
+  Gear,
+  Package,
+  ShoppingBag,
+  Storefront,
+} from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function MinhasLojas() {
-  const router = useRouter()
-  const { data: storesData, isLoading, error } = useStores()
-  const [searchTerm, setSearchTerm] = useState('')
-  
-  const stores = storesData?.data || []
-  const filteredStores = stores.filter(store => 
-    store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    store.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const router = useRouter();
+  const { data: storesData, isLoading, error } = useStores();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const stores = storesData?.data || [];
+  const filteredStores = stores.filter(
+    (store) =>
+      store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      store.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleStoreClick = (storeSlug: string) => {
-    router.push(`/dashboard/${storeSlug}`)
-  }
+    router.push(`/dashboard/${storeSlug}`);
+  };
 
   const handleCreateStore = () => {
-    router.push('/dashboard/gerenciar-lojas')
-  }
+    router.push("/dashboard/gerenciar-lojas");
+  };
 
   if (isLoading) {
     return (
@@ -32,7 +39,7 @@ export default function MinhasLojas() {
           <p className="text-gray-600">Carregando suas lojas...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -40,9 +47,13 @@ export default function MinhasLojas() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Erro ao carregar lojas</h1>
-          <p className="text-gray-600 mb-4">Não foi possível carregar suas lojas. Tente novamente.</p>
-          <button 
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Erro ao carregar lojas
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Não foi possível carregar suas lojas. Tente novamente.
+          </p>
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
@@ -50,7 +61,7 @@ export default function MinhasLojas() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -64,17 +75,12 @@ export default function MinhasLojas() {
                 <Storefront className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Minhas Lojas</h1>
-                <p className="text-sm text-gray-500">Gerencie e acesse suas lojas</p>
+                <h1 className="text-xl font-bold text-gray-900">Minha Loja</h1>
+                <p className="text-sm text-gray-500">
+                  Gerencie e acesse sua loja
+                </p>
               </div>
             </div>
-            <button
-              onClick={handleCreateStore}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Loja
-            </button>
           </div>
         </div>
       </div>
@@ -99,7 +105,11 @@ export default function MinhasLojas() {
               </div>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>{filteredStores.length} loja{filteredStores.length !== 1 ? 's' : ''} encontrada{filteredStores.length !== 1 ? 's' : ''}</span>
+              <span>
+                {filteredStores.length} loja
+                {filteredStores.length !== 1 ? "s" : ""} encontrada
+                {filteredStores.length !== 1 ? "s" : ""}
+              </span>
             </div>
           </div>
         </div>
@@ -109,23 +119,15 @@ export default function MinhasLojas() {
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">🏪</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm ? 'Nenhuma loja encontrada' : 'Você ainda não tem lojas'}
+              {searchTerm
+                ? "Nenhuma loja encontrada"
+                : "Você ainda não tem uma loja"}
             </h3>
             <p className="text-gray-500 mb-6">
-              {searchTerm 
-                ? 'Tente ajustar os termos de busca.'
-                : 'Comece criando sua primeira loja para gerenciar produtos e pedidos.'
-              }
+              {searchTerm
+                ? "Tente ajustar os termos de busca."
+                : "Entre em contato com o suporte para criar sua loja."}
             </p>
-            {!searchTerm && (
-              <button
-                onClick={handleCreateStore}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Criar Primeira Loja
-              </button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -169,8 +171,8 @@ export default function MinhasLojas() {
                   <div className="flex space-x-2">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/dashboard/${store.slug}/produtos`)
+                        e.stopPropagation();
+                        router.push(`/dashboard/${store.slug}/produtos`);
                       }}
                       className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
                     >
@@ -179,8 +181,8 @@ export default function MinhasLojas() {
                     </button>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/dashboard/${store.slug}/pedidos`)
+                        e.stopPropagation();
+                        router.push(`/dashboard/${store.slug}/pedidos`);
                       }}
                       className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
                     >
@@ -189,8 +191,8 @@ export default function MinhasLojas() {
                     </button>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/dashboard/${store.slug}/configuracoes`)
+                        e.stopPropagation();
+                        router.push(`/dashboard/${store.slug}/configuracoes`);
                       }}
                       className="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
                     >
@@ -205,5 +207,5 @@ export default function MinhasLojas() {
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

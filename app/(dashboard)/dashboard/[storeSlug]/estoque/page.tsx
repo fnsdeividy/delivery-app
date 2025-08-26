@@ -1,268 +1,302 @@
-'use client'
+"use client";
 
-import LoadingSpinner from '@/components/LoadingSpinner'
-import { useCardapioAuth } from '@/hooks'
-import { Alert, CheckCircle, Filter, Package, Plus, Search, TrendingDown, TrendingUp } from '@phosphor-icons/react'
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { useCardapioAuth } from "@/hooks";
+import { apiClient } from "@/lib/api-client";
+import {
+  CheckCircle,
+  Package,
+  Plus,
+  TrendUp,
+  Warning,
+} from "@phosphor-icons/react";
+import { Filter, Search, TrendingDown, TrendingUp } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface InventoryItem {
-  id: string
-  quantity: number
-  minStock: number
-  maxStock?: number
+  id: string;
+  quantity: number;
+  minStock: number;
+  maxStock?: number;
   product: {
-    id: string
-    name: string
-    description: string
-    price: number
-    image: string
-    active: boolean
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+    active: boolean;
     category: {
-      id: string
-      name: string
-    }
-  }
+      id: string;
+      name: string;
+    };
+  };
 }
 
 interface InventorySummary {
-  totalProducts: number
-  totalStock: number
-  lowStockProducts: number
-  outOfStockProducts: number
-  reservedStock: number
-  availableStock: number
+  totalProducts: number;
+  totalStock: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  reservedStock: number;
+  availableStock: number;
 }
 
 interface StockMovement {
-  id: string
-  type: 'ENTRADA' | 'SAIDA' | 'AJUSTE' | 'DEVOLUCAO'
-  quantity: number
-  reason?: string
-  reference?: string
-  createdAt: string
+  id: string;
+  type: "ENTRADA" | "SAIDA" | "AJUSTE" | "DEVOLUCAO";
+  quantity: number;
+  reason?: string;
+  reference?: string;
+  createdAt: string;
   product: {
-    id: string
-    name: string
-    image: string
-  }
+    id: string;
+    name: string;
+    image: string;
+  };
   user: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface PaginatedResponse<T> {
-  data: T[]
+  data: T[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export default function EstoquePage() {
-  const params = useParams()
-  const router = useRouter()
-  const slug = params.storeSlug as string
-  const { isAuthenticated, getCurrentToken } = useCardapioAuth()
-  
-  const [isLoading, setIsLoading] = useState(true)
-  const [inventory, setInventory] = useState<InventoryItem[]>([])
-  const [summary, setSummary] = useState<InventorySummary | null>(null)
-  const [movements, setMovements] = useState<StockMovement[]>([])
+  const params = useParams();
+  const router = useRouter();
+  const slug = params.storeSlug as string;
+  const { isAuthenticated, getCurrentToken } = useCardapioAuth();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [summary, setSummary] = useState<InventorySummary | null>(null);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
-    totalPages: 0
-  })
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedType, setSelectedType] = useState<string>('')
-  const [showLowStock, setShowLowStock] = useState(false)
-  const [activeTab, setActiveTab] = useState<'inventory' | 'movements'>('inventory')
+    totalPages: 0,
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [showLowStock, setShowLowStock] = useState(false);
+  const [activeTab, setActiveTab] = useState<"inventory" | "movements">(
+    "inventory"
+  );
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         if (!isAuthenticated()) {
-          router.push('/login/lojista')
-          return
+          router.push("/login");
+          return;
         }
 
-        const token = getCurrentToken()
+        const token = getCurrentToken();
         if (!token) {
-          router.push('/login/lojista')
-          return
+          router.push("/login");
+          return;
         }
 
         // Decodificar token JWT
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        
-        if (payload.role === 'SUPER_ADMIN' || 
-            (payload.role === 'ADMIN' && payload.storeSlug === slug)) {
-          loadInventorySummary()
-          loadInventory()
-          loadMovements()
+        const payload = JSON.parse(atob(token.split(".")[1]));
+
+        if (
+          payload.role === "SUPER_ADMIN" ||
+          (payload.role === "ADMIN" && payload.storeSlug === slug)
+        ) {
+          loadInventorySummary();
+          loadInventory();
+          loadMovements();
         } else {
-          router.push('/unauthorized')
+          router.push("/unauthorized");
         }
       } catch (error) {
-        router.push('/login/lojista')
+        router.push("/login");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    checkAuth()
-  }, [slug, isAuthenticated, getCurrentToken, router])
+    checkAuth();
+  }, [slug, isAuthenticated, getCurrentToken, router]);
 
   const loadInventorySummary = async () => {
     try {
-      const response = await fetch(`/api/v1/inventory/store/${slug}/summary`)
-      if (response.ok) {
-        const data: InventorySummary = await response.json()
-        setSummary(data)
-      }
+      const data = await apiClient.get<InventorySummary>(
+        `/inventory/store/${slug}/summary`
+      );
+      setSummary(data);
     } catch (error) {
-      console.error('Erro ao carregar resumo do estoque:', error)
+      console.error("Erro ao carregar resumo do estoque:", error);
     }
-  }
+  };
 
   const loadInventory = async () => {
     try {
-      const response = await fetch(`/api/v1/inventory/store/${slug}?page=${pagination.page}&limit=${pagination.limit}&lowStock=${showLowStock}`)
-      
-      if (response.ok) {
-        const data: PaginatedResponse<InventoryItem> = await response.json()
-        setInventory(data.data)
-        setPagination(data.pagination)
-      }
+      const data = await apiClient.get<PaginatedResponse<InventoryItem>>(
+        `/inventory/store/${slug}?page=${pagination.page}&limit=${pagination.limit}&lowStock=${showLowStock}`
+      );
+      setInventory(data.data);
+      setPagination(data.pagination);
     } catch (error) {
-      console.error('Erro ao carregar inventário:', error)
+      console.error("Erro ao carregar inventário:", error);
     }
-  }
+  };
 
   const loadMovements = async () => {
     try {
-      const response = await fetch(`/api/v1/inventory/store/${slug}/movements?page=${pagination.page}&limit=${pagination.limit}${selectedType ? `&type=${selectedType}` : ''}`)
-      
-      if (response.ok) {
-        const data: PaginatedResponse<StockMovement> = await response.json()
-        setMovements(data.data)
-        setPagination(data.pagination)
-      }
+      const data = await apiClient.get<PaginatedResponse<StockMovement>>(
+        `/inventory/store/${slug}/movements?page=${pagination.page}&limit=${
+          pagination.limit
+        }${selectedType ? `&type=${selectedType}` : ""}`
+      );
+      setMovements(data.data);
+      setPagination(data.pagination);
     } catch (error) {
-      console.error('Erro ao carregar movimentações:', error)
+      console.error("Erro ao carregar movimentações:", error);
     }
-  }
+  };
 
   const searchInventory = async () => {
-    if (searchQuery.trim().length < 2) return
+    if (searchQuery.trim().length < 2) return;
 
     try {
       // Implementar busca no inventário
-      console.log('Busca implementada:', searchQuery)
+      console.log("Busca implementada:", searchQuery);
     } catch (error) {
-      console.error('Erro ao buscar no inventário:', error)
+      console.error("Erro ao buscar no inventário:", error);
     }
-  }
+  };
 
   const updateInventory = async (inventoryId: string, newQuantity: number) => {
     try {
-      const response = await fetch(`/api/v1/inventory/${inventoryId}?storeSlug=${slug}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getCurrentToken()}`
-        },
-        body: JSON.stringify({ quantity: newQuantity })
-      })
+      await apiClient.patch(`/inventory/${inventoryId}?storeSlug=${slug}`, {
+        quantity: newQuantity,
+      });
 
-      if (response.ok) {
-        // Atualizar estado local
-        setInventory(prev => prev.map(item => 
+      // Atualizar estado local
+      setInventory((prev) =>
+        prev.map((item) =>
           item.id === inventoryId ? { ...item, quantity: newQuantity } : item
-        ))
-        loadInventorySummary() // Recarregar resumo
-      }
+        )
+      );
+      loadInventorySummary(); // Recarregar resumo
     } catch (error) {
-      console.error('Erro ao atualizar inventário:', error)
+      console.error("Erro ao atualizar inventário:", error);
     }
-  }
+  };
 
-  const createStockMovement = async (productId: string, type: 'ENTRADA' | 'SAIDA', quantity: number, reason: string) => {
+  const createStockMovement = async (
+    productId: string,
+    type: "ENTRADA" | "SAIDA",
+    quantity: number,
+    reason: string
+  ) => {
     try {
-      const response = await fetch(`/api/v1/inventory/movements?storeSlug=${slug}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getCurrentToken()}`
-        },
-        body: JSON.stringify({
-          productId,
-          type,
-          quantity,
-          reason
-        })
-      })
+      await apiClient.post(`/inventory/movements?storeSlug=${slug}`, {
+        productId,
+        type,
+        quantity,
+        reason,
+      });
 
-      if (response.ok) {
-        loadInventory() // Recarregar inventário
-        loadMovements() // Recarregar movimentações
-        loadInventorySummary() // Recarregar resumo
-      }
+      loadInventory(); // Recarregar inventário
+      loadMovements(); // Recarregar movimentações
+      loadInventorySummary(); // Recarregar resumo
     } catch (error) {
-      console.error('Erro ao criar movimentação:', error)
+      console.error("Erro ao criar movimentação:", error);
     }
-  }
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(price)
-  }
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(price);
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const getStockStatus = (quantity: number, minStock: number) => {
-    if (quantity <= 0) return { text: 'Sem estoque', color: 'text-red-600 bg-red-100', icon: Alert }
-    if (quantity <= minStock) return { text: 'Estoque baixo', color: 'text-yellow-600 bg-yellow-100', icon: Alert }
-    return { text: 'Em estoque', color: 'text-green-600 bg-green-100', icon: CheckCircle }
-  }
+    if (quantity <= 0)
+      return {
+        text: "Sem estoque",
+        color: "text-red-600 bg-red-100",
+        icon: Warning,
+      };
+    if (quantity <= minStock)
+      return {
+        text: "Estoque baixo",
+        color: "text-yellow-600 bg-yellow-100",
+        icon: Warning,
+      };
+    return {
+      text: "Em estoque",
+      color: "text-green-600 bg-green-100",
+      icon: CheckCircle,
+    };
+  };
 
   const getMovementTypeInfo = (type: string) => {
     switch (type) {
-      case 'ENTRADA':
-        return { text: 'Entrada', color: 'text-green-600 bg-green-100', icon: TrendingUp }
-      case 'SAIDA':
-        return { text: 'Saída', color: 'text-red-600 bg-red-100', icon: TrendingDown }
-      case 'AJUSTE':
-        return { text: 'Ajuste', color: 'text-blue-600 bg-blue-100', icon: Package }
-      case 'DEVOLUCAO':
-        return { text: 'Devolução', color: 'text-purple-600 bg-purple-100', icon: Package }
+      case "ENTRADA":
+        return {
+          text: "Entrada",
+          color: "text-green-600 bg-green-100",
+          icon: TrendingUp,
+        };
+      case "SAIDA":
+        return {
+          text: "Saída",
+          color: "text-red-600 bg-red-100",
+          icon: TrendingDown,
+        };
+      case "AJUSTE":
+        return {
+          text: "Ajuste",
+          color: "text-blue-600 bg-blue-100",
+          icon: Package,
+        };
+      case "DEVOLUCAO":
+        return {
+          text: "Devolução",
+          color: "text-purple-600 bg-purple-100",
+          icon: Package,
+        };
       default:
-        return { text: type, color: 'text-gray-600 bg-gray-100', icon: Package }
+        return {
+          text: type,
+          color: "text-gray-600 bg-gray-100",
+          icon: Package,
+        };
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />
       </div>
-    )
+    );
   }
 
   return (
@@ -276,7 +310,9 @@ export default function EstoquePage() {
                 <Package className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Gerenciar Estoque</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Gerenciar Estoque
+                </h1>
                 <p className="text-sm text-gray-600">Loja: {slug}</p>
               </div>
             </div>
@@ -307,7 +343,9 @@ export default function EstoquePage() {
             <li aria-current="page">
               <div className="flex items-center">
                 <span className="mx-2 text-gray-400">/</span>
-                <span className="text-sm font-medium text-gray-500">Estoque</span>
+                <span className="text-sm font-medium text-gray-500">
+                  Estoque
+                </span>
               </div>
             </li>
           </ol>
@@ -320,8 +358,12 @@ export default function EstoquePage() {
               <div className="flex items-center">
                 <Package className="w-8 h-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total de Produtos</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.totalProducts}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total de Produtos
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.totalProducts}
+                  </p>
                 </div>
               </div>
             </div>
@@ -330,38 +372,52 @@ export default function EstoquePage() {
               <div className="flex items-center">
                 <Package className="w-8 h-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total em Estoque</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.totalStock}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total em Estoque
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.totalStock}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center">
-                <Alert className="w-8 h-8 text-yellow-600" />
+                <Warning className="w-8 h-8 text-yellow-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Estoque Baixo</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.lowStockProducts}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Estoque Baixo
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.lowStockProducts}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center">
-                <Alert className="w-8 h-8 text-red-600" />
+                <Warning className="w-8 h-8 text-red-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Sem Estoque</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.outOfStockProducts}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Sem Estoque
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.outOfStockProducts}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <TrendUp className="w-8 h-8 text-purple-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Reservado</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.reservedStock}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.reservedStock}
+                  </p>
                 </div>
               </div>
             </div>
@@ -370,8 +426,12 @@ export default function EstoquePage() {
               <div className="flex items-center">
                 <CheckCircle className="w-8 h-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Disponível</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.availableStock}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Disponível
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {summary.availableStock}
+                  </p>
                 </div>
               </div>
             </div>
@@ -383,21 +443,21 @@ export default function EstoquePage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab('inventory')}
+                onClick={() => setActiveTab("inventory")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'inventory'
-                    ? 'border-green-500 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeTab === "inventory"
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Inventário
               </button>
               <button
-                onClick={() => setActiveTab('movements')}
+                onClick={() => setActiveTab("movements")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'movements'
-                    ? 'border-green-500 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeTab === "movements"
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Movimentações
@@ -417,14 +477,14 @@ export default function EstoquePage() {
                     placeholder="Buscar produtos..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && searchInventory()}
+                    onKeyPress={(e) => e.key === "Enter" && searchInventory()}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
                 </div>
               </div>
 
               {/* Filtros específicos por tab */}
-              {activeTab === 'inventory' && (
+              {activeTab === "inventory" && (
                 <div className="flex items-center">
                   <label className="flex items-center">
                     <input
@@ -433,12 +493,14 @@ export default function EstoquePage() {
                       onChange={(e) => setShowLowStock(e.target.checked)}
                       className="mr-2 rounded border-gray-300 text-green-600 focus:ring-green-500"
                     />
-                    <span className="text-sm text-gray-700">Apenas estoque baixo</span>
+                    <span className="text-sm text-gray-700">
+                      Apenas estoque baixo
+                    </span>
                   </label>
                 </div>
               )}
 
-              {activeTab === 'movements' && (
+              {activeTab === "movements" && (
                 <div>
                   <select
                     value={selectedType}
@@ -457,7 +519,9 @@ export default function EstoquePage() {
               {/* Botão de ação */}
               <div>
                 <button
-                  onClick={activeTab === 'inventory' ? loadInventory : loadMovements}
+                  onClick={
+                    activeTab === "inventory" ? loadInventory : loadMovements
+                  }
                   className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 >
                   <Filter className="w-4 h-4 mr-2" />
@@ -467,7 +531,7 @@ export default function EstoquePage() {
             </div>
 
             {/* Conteúdo das Tabs */}
-            {activeTab === 'inventory' && (
+            {activeTab === "inventory" && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Inventário ({pagination.total})
@@ -476,13 +540,19 @@ export default function EstoquePage() {
                 {inventory.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Nenhum produto encontrado
+                    </h3>
                     <p className="text-gray-500 mb-4">
-                      {showLowStock ? 'Nenhum produto com estoque baixo' : 'Comece criando produtos'}
+                      {showLowStock
+                        ? "Nenhum produto com estoque baixo"
+                        : "Comece criando produtos"}
                     </p>
                     {!showLowStock && (
                       <button
-                        onClick={() => router.push(`/dashboard/${slug}/produtos/novo`)}
+                        onClick={() =>
+                          router.push(`/dashboard/${slug}/produtos/novo`)
+                        }
                         className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                       >
                         <Plus className="w-5 h-5 mr-2" />
@@ -517,9 +587,12 @@ export default function EstoquePage() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {inventory.map((item) => {
-                          const status = getStockStatus(item.quantity, item.minStock)
-                          const StatusIcon = status.icon
-                          
+                          const status = getStockStatus(
+                            item.quantity,
+                            item.minStock
+                          );
+                          const StatusIcon = status.icon;
+
                           return (
                             <tr key={item.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -530,13 +603,17 @@ export default function EstoquePage() {
                                     className="w-12 h-12 rounded-lg object-cover mr-3"
                                   />
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
-                                    <div className="text-sm text-gray-500">{item.product.description}</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {item.product.name}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {item.product.description}
+                                    </div>
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {item.product.category?.name || 'Sem categoria'}
+                                {item.product.category?.name || "Sem categoria"}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
@@ -550,7 +627,9 @@ export default function EstoquePage() {
                                 {item.minStock} unidades
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${status.color}`}>
+                                <div
+                                  className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${status.color}`}
+                                >
                                   <StatusIcon className="w-3 h-3 mr-1" />
                                   {status.text}
                                 </div>
@@ -559,9 +638,18 @@ export default function EstoquePage() {
                                 <div className="flex justify-end space-x-2">
                                   <button
                                     onClick={() => {
-                                      const newQuantity = prompt(`Nova quantidade para ${item.product.name}:`, item.quantity.toString())
-                                      if (newQuantity && !isNaN(Number(newQuantity))) {
-                                        updateInventory(item.id, Number(newQuantity))
+                                      const newQuantity = prompt(
+                                        `Nova quantidade para ${item.product.name}:`,
+                                        item.quantity.toString()
+                                      );
+                                      if (
+                                        newQuantity &&
+                                        !isNaN(Number(newQuantity))
+                                      ) {
+                                        updateInventory(
+                                          item.id,
+                                          Number(newQuantity)
+                                        );
                                       }
                                     }}
                                     className="text-blue-600 hover:text-blue-900"
@@ -571,10 +659,22 @@ export default function EstoquePage() {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      const quantity = prompt(`Quantidade para entrada de ${item.product.name}:`)
-                                      const reason = prompt('Motivo da entrada:')
-                                      if (quantity && reason && !isNaN(Number(quantity))) {
-                                        createStockMovement(item.product.id, 'ENTRADA', Number(quantity), reason)
+                                      const quantity = prompt(
+                                        `Quantidade para entrada de ${item.product.name}:`
+                                      );
+                                      const reason =
+                                        prompt("Motivo da entrada:");
+                                      if (
+                                        quantity &&
+                                        reason &&
+                                        !isNaN(Number(quantity))
+                                      ) {
+                                        createStockMovement(
+                                          item.product.id,
+                                          "ENTRADA",
+                                          Number(quantity),
+                                          reason
+                                        );
                                       }
                                     }}
                                     className="text-green-600 hover:text-green-900"
@@ -584,10 +684,21 @@ export default function EstoquePage() {
                                   </button>
                                   <button
                                     onClick={() => {
-                                      const quantity = prompt(`Quantidade para saída de ${item.product.name}:`)
-                                      const reason = prompt('Motivo da saída:')
-                                      if (quantity && reason && !isNaN(Number(quantity))) {
-                                        createStockMovement(item.product.id, 'SAIDA', Number(quantity), reason)
+                                      const quantity = prompt(
+                                        `Quantidade para saída de ${item.product.name}:`
+                                      );
+                                      const reason = prompt("Motivo da saída:");
+                                      if (
+                                        quantity &&
+                                        reason &&
+                                        !isNaN(Number(quantity))
+                                      ) {
+                                        createStockMovement(
+                                          item.product.id,
+                                          "SAIDA",
+                                          Number(quantity),
+                                          reason
+                                        );
                                       }
                                     }}
                                     className="text-red-600 hover:text-red-900"
@@ -598,7 +709,7 @@ export default function EstoquePage() {
                                 </div>
                               </td>
                             </tr>
-                          )
+                          );
                         })}
                       </tbody>
                     </table>
@@ -607,7 +718,7 @@ export default function EstoquePage() {
               </div>
             )}
 
-            {activeTab === 'movements' && (
+            {activeTab === "movements" && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Movimentações ({pagination.total})
@@ -616,7 +727,9 @@ export default function EstoquePage() {
                 {movements.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma movimentação encontrada</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Nenhuma movimentação encontrada
+                    </h3>
                     <p className="text-gray-500 mb-4">
                       As movimentações de estoque aparecerão aqui
                     </p>
@@ -648,9 +761,9 @@ export default function EstoquePage() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {movements.map((movement) => {
-                          const typeInfo = getMovementTypeInfo(movement.type)
-                          const TypeIcon = typeInfo.icon
-                          
+                          const typeInfo = getMovementTypeInfo(movement.type);
+                          const TypeIcon = typeInfo.icon;
+
                           return (
                             <tr key={movement.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -663,11 +776,15 @@ export default function EstoquePage() {
                                     alt={movement.product.name}
                                     className="w-8 h-8 rounded-lg object-cover mr-2"
                                   />
-                                  <span className="text-sm font-medium text-gray-900">{movement.product.name}</span>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {movement.product.name}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${typeInfo.color}`}>
+                                <div
+                                  className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${typeInfo.color}`}
+                                >
                                   <TypeIcon className="w-3 h-3 mr-1" />
                                   {typeInfo.text}
                                 </div>
@@ -676,13 +793,13 @@ export default function EstoquePage() {
                                 {movement.quantity} unidades
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {movement.reason || '-'}
+                                {movement.reason || "-"}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {movement.user.name || movement.user.email}
                               </td>
                             </tr>
-                          )
+                          );
                         })}
                       </tbody>
                     </table>
@@ -700,8 +817,10 @@ export default function EstoquePage() {
               <button
                 onClick={() => {
                   if (pagination.page > 1) {
-                    setPagination(prev => ({ ...prev, page: prev.page - 1 }))
-                    activeTab === 'inventory' ? loadInventory() : loadMovements()
+                    setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+                    activeTab === "inventory"
+                      ? loadInventory()
+                      : loadMovements();
                   }
                 }}
                 disabled={pagination.page === 1}
@@ -709,16 +828,18 @@ export default function EstoquePage() {
               >
                 Anterior
               </button>
-              
+
               <span className="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-700">
                 Página {pagination.page} de {pagination.totalPages}
               </span>
-              
+
               <button
                 onClick={() => {
                   if (pagination.page < pagination.totalPages) {
-                    setPagination(prev => ({ ...prev, page: prev.page + 1 }))
-                    activeTab === 'inventory' ? loadInventory() : loadMovements()
+                    setPagination((prev) => ({ ...prev, page: prev.page + 1 }));
+                    activeTab === "inventory"
+                      ? loadInventory()
+                      : loadMovements();
                   }
                 }}
                 disabled={pagination.page === pagination.totalPages}
@@ -731,5 +852,5 @@ export default function EstoquePage() {
         )}
       </main>
     </div>
-  )
-} 
+  );
+}

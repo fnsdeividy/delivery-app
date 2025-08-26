@@ -1,158 +1,181 @@
-import AdminPedidos from '@/app/(dashboard)/dashboard/admin/pedidos/page'
-import { useCardapioAuth } from '@/hooks'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { useRouter } from 'next/navigation'
+import AdminPedidos from "@/app/(dashboard)/dashboard/admin/pedidos/page";
+import { useCardapioAuth } from "@/hooks";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useRouter } from "next/navigation";
 
 // Mock dos hooks
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn()
-}))
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(),
+}));
 
-jest.mock('@/hooks', () => ({
-  useCardapioAuth: jest.fn()
-}))
+jest.mock("@/hooks", () => ({
+  useCardapioAuth: jest.fn(),
+}));
 
 // Mock dos ícones do Phosphor
-jest.mock('@phosphor-icons/react', () => ({
-  Crown: ({ className }: { className?: string }) => <div data-testid="crown-icon" className={className} />,
-  Shield: ({ className }: { className?: string }) => <div data-testid="shield-icon" className={className} />,
-  Package: ({ className }: { className?: string }) => <div data-testid="package-icon" className={className} />
-}))
+jest.mock("@phosphor-icons/react", () => ({
+  Crown: ({ className }: { className?: string }) => (
+    <div data-testid="crown-icon" className={className} />
+  ),
+  Shield: ({ className }: { className?: string }) => (
+    <div data-testid="shield-icon" className={className} />
+  ),
+  Package: ({ className }: { className?: string }) => (
+    <div data-testid="package-icon" className={className} />
+  ),
+}));
 
 // Mock do componente AdminOrderManagement
-jest.mock('@/components/AdminOrderManagement', () => ({
-  AdminOrderManagement: () => <div data-testid="admin-order-management">AdminOrderManagement Component</div>
-}))
+jest.mock("@/components/AdminOrderManagement", () => ({
+  AdminOrderManagement: () => (
+    <div data-testid="admin-order-management">
+      AdminOrderManagement Component
+    </div>
+  ),
+}));
 
 const mockRouter = {
-  push: jest.fn()
-}
+  push: jest.fn(),
+};
 
 const mockUseCardapioAuth = {
   isAuthenticated: jest.fn(),
-  getCurrentToken: jest.fn()
-}
+  getCurrentToken: jest.fn(),
+};
 
-describe('AdminPedidos', () => {
+describe("AdminPedidos", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
-    ;(useCardapioAuth as jest.Mock).mockReturnValue(mockUseCardapioAuth)
-  })
+    jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    (useCardapioAuth as jest.Mock).mockReturnValue(mockUseCardapioAuth);
+  });
 
-  it('redireciona para login quando não autenticado', () => {
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(false)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(null)
+  it("redireciona para login quando não autenticado", () => {
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(false);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(null);
 
-    render(<AdminPedidos />)
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/login/lojista')
-  })
+    render(<AdminPedidos />);
 
-  it('redireciona para login quando não há token', () => {
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(null)
+    expect(mockRouter.push).toHaveBeenCalledWith("/login");
+  });
 
-    render(<AdminPedidos />)
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/login/lojista')
-  })
+  it("redireciona para login quando não há token", () => {
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(null);
 
-  it('redireciona para unauthorized quando não é admin', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiTE9KSVNUQSIsImVtYWlsIjoibG9qaXN0YUB0ZXN0ZS5jb20iLCJpYXQiOjE2MzQ1Njc4NzJ9.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+    render(<AdminPedidos />);
 
-    render(<AdminPedidos />)
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/unauthorized')
-  })
+    expect(mockRouter.push).toHaveBeenCalledWith("/login");
+  });
 
-  it('renderiza página quando é SUPER_ADMIN', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+  it("redireciona para unauthorized quando não é admin", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiTE9KSVNUQSIsImVtYWlsIjoibG9qaXN0YUB0ZXN0ZS5jb20iLCJpYXQiOjE2MzQ1Njc4NzJ9.test";
 
-    render(<AdminPedidos />)
-    
-    expect(screen.getByText('Gestão de Pedidos')).toBeInTheDocument()
-    expect(screen.getByText('Monitore todos os pedidos do sistema')).toBeInTheDocument()
-    expect(screen.getByText('Super Admin')).toBeInTheDocument()
-    expect(screen.getByTestId('admin-order-management')).toBeInTheDocument()
-  })
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
 
-  it('renderiza página quando é ADMIN', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+    render(<AdminPedidos />);
 
-    render(<AdminPedidos />)
-    
-    expect(screen.getByText('Gestão de Pedidos')).toBeInTheDocument()
-    expect(screen.getByText('Admin')).toBeInTheDocument()
-    expect(screen.getByTestId('admin-order-management')).toBeInTheDocument()
-  })
+    expect(mockRouter.push).toHaveBeenCalledWith("/unauthorized");
+  });
 
-  it('exibe informações sobre a visão geral dos pedidos', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+  it("renderiza página quando é SUPER_ADMIN", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
 
-    render(<AdminPedidos />)
-    
-    expect(screen.getByText('Visão Geral dos Pedidos')).toBeInTheDocument()
-    expect(screen.getByText(/Esta seção permite visualizar e gerenciar todos os pedidos/)).toBeInTheDocument()
-  })
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
 
-  it('exibe botão voltar ao dashboard', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+    render(<AdminPedidos />);
 
-    render(<AdminPedidos />)
-    
-    const backButton = screen.getByText('Voltar ao Dashboard')
-    expect(backButton).toBeInTheDocument()
-    
-    fireEvent.click(backButton)
-    expect(mockRouter.push).toHaveBeenCalledWith('/dashboard/admin')
-  })
+    expect(screen.getByText("Gestão de Pedidos")).toBeInTheDocument();
+    expect(
+      screen.getByText("Monitore todos os pedidos do sistema")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Super Admin")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-order-management")).toBeInTheDocument();
+  });
 
-  it('renderiza ícones corretamente', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+  it("renderiza página quando é ADMIN", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
 
-    render(<AdminPedidos />)
-    
-    expect(screen.getByTestId('package-icon')).toBeInTheDocument()
-  })
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
 
-  it('redireciona para login em caso de erro', () => {
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
+    render(<AdminPedidos />);
+
+    expect(screen.getByText("Gestão de Pedidos")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-order-management")).toBeInTheDocument();
+  });
+
+  it("exibe informações sobre a visão geral dos pedidos", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
+
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
+
+    render(<AdminPedidos />);
+
+    expect(screen.getByText("Visão Geral dos Pedidos")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Esta seção permite visualizar e gerenciar todos os pedidos/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it("exibe botão voltar ao dashboard", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
+
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
+
+    render(<AdminPedidos />);
+
+    const backButton = screen.getByText("Voltar ao Dashboard");
+    expect(backButton).toBeInTheDocument();
+
+    fireEvent.click(backButton);
+    expect(mockRouter.push).toHaveBeenCalledWith("/dashboard/admin");
+  });
+
+  it("renderiza ícones corretamente", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
+
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
+
+    render(<AdminPedidos />);
+
+    expect(screen.getByTestId("package-icon")).toBeInTheDocument();
+  });
+
+  it("redireciona para login em caso de erro", () => {
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
     mockUseCardapioAuth.getCurrentToken.mockImplementation(() => {
-      throw new Error('Token inválido')
-    })
+      throw new Error("Token inválido");
+    });
 
-    render(<AdminPedidos />)
-    
-    expect(mockRouter.push).toHaveBeenCalledWith('/login/lojista')
-  })
+    render(<AdminPedidos />);
 
-  it('exibe informações do usuário logado', () => {
-    const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test'
-    
-    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true)
-    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken)
+    expect(mockRouter.push).toHaveBeenCalledWith("/login");
+  });
 
-    render(<AdminPedidos />)
-    
-    expect(screen.getByText('admin@cardap.io')).toBeInTheDocument()
-  })
-}) 
+  it("exibe informações do usuário logado", () => {
+    const mockToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJlbWFpbCI6ImFkbWluQHRlc3RlLmNvbSIsImlhdCI6MTYzNDU2Nzg3Mn0.test";
+
+    mockUseCardapioAuth.isAuthenticated.mockReturnValue(true);
+    mockUseCardapioAuth.getCurrentToken.mockReturnValue(mockToken);
+
+    render(<AdminPedidos />);
+
+    expect(screen.getByText("admin@cardap.io")).toBeInTheDocument();
+  });
+});

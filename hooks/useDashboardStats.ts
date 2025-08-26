@@ -1,130 +1,99 @@
-import { apiClient } from '@/lib/api-client'
-import { useQuery } from '@tanstack/react-query'
+import { apiClient } from "@/lib/api-client";
+import { useQuery } from "@tanstack/react-query";
 
 export interface DashboardStats {
-  totalStores: number
-  activeStores: number
-  pendingStores: number
-  totalProducts: number
-  totalOrders: number
-  totalRevenue: number
-  totalUsers: number
+  totalProducts: number;
+  totalOrders: number;
+  pendingOrders: number;
+  dailySales: number;
+  isLoading: boolean;
+  error: Error | null;
 }
 
-export function useDashboardStats(userRole: string | null, storeSlug?: string | null) {
-  return useQuery({
-    queryKey: ['dashboard', 'stats', userRole, storeSlug],
-    queryFn: async (): Promise<DashboardStats> => {
-      try {
-        let stats: DashboardStats = {
-          totalStores: 0,
-          activeStores: 0,
-          pendingStores: 0,
-          totalProducts: 0,
-          totalOrders: 0,
-          totalRevenue: 0,
-          totalUsers: 0
-        }
+export function useDashboardStats(storeSlug: string): DashboardStats {
+  // Buscar estatísticas da loja
+  const {
+    data: storeStats,
+    isLoading: storeStatsLoading,
+    error: storeStatsError,
+  } = useQuery({
+    queryKey: ["store", storeSlug, "stats"],
+    queryFn: () => apiClient.getStoreStats(storeSlug),
+    enabled: !!storeSlug,
+  });
 
-        if (userRole === 'SUPER_ADMIN') {
-          // Super admin vê todas as estatísticas do sistema
-          const storesStatsResponse = await apiClient.get('/stores/stats')
-          const storesStats = storesStatsResponse as any
+  // Buscar estatísticas de pedidos
+  const {
+    data: orderStats,
+    isLoading: orderStatsLoading,
+    error: orderStatsError,
+  } = useQuery({
+    queryKey: ["orders", storeSlug, "stats"],
+    queryFn: () => apiClient.getOrderStats(storeSlug),
+    enabled: !!storeSlug,
+  });
 
-          stats.totalStores = storesStats.total || 0
-          stats.activeStores = storesStats.active || 0
-          stats.pendingStores = storesStats.pending || 0
-
-          try {
-            const allStoresResponse = await apiClient.get('/stores')
-            const allStores = (allStoresResponse as any).data || []
-
-            let totalProducts = 0
-            let totalOrders = 0
-            let totalRevenue = 0
-
-            // Para cada loja, buscar produtos e pedidos
-            for (const store of allStores) {
-              try {
-                // Buscar produtos da loja
-                const productsResponse = await apiClient.get(`/stores/${store.slug}/products`)
-                const products = (productsResponse as any).data || []
-                totalProducts += products.length
-
-                // Buscar pedidos da loja
-                const ordersResponse = await apiClient.get(`/stores/${store.slug}/orders`)
-                const orders = (ordersResponse as any).data || []
-                totalOrders += orders.length
-
-                // Calcular receita total
-                totalRevenue += orders.reduce((sum: number, order: any) => {
-                  return sum + (parseFloat(order.total) || 0)
-                }, 0)
-              } catch (error) {
-                console.warn(`Erro ao buscar dados da loja ${store.slug}:`, error)
-              }
-            }
-
-            stats.totalProducts = totalProducts
-            stats.totalOrders = totalOrders
-            stats.totalRevenue = totalRevenue
-
-          } catch (error) {
-            console.warn('Erro ao buscar estatísticas gerais:', error)
-          }
-
-
-        } else if (userRole === 'ADMIN' && storeSlug) {
-
-          // ADMIN vê estatísticas apenas da sua loja
-          try {
-            // Buscar dados da loja específica
-            const store = await apiClient.getStoreBySlug(storeSlug)
-
-            if (store) {
-              stats.totalStores = 1
-              stats.activeStores = store.active ? 1 : 0
-              stats.pendingStores = store.approved ? 0 : 1
-
-              // Buscar produtos da loja
-              try {
-                const productsResponse = await apiClient.getProducts(storeSlug, 1, 1000)
-                stats.totalProducts = (productsResponse.data || []).length
-              } catch (error) {
-                console.warn('Erro ao buscar produtos da loja:', error)
-                stats.totalProducts = 0
-              }
-
-              // Buscar pedidos da loja
-              try {
-                const ordersResponse = await apiClient.getOrders(storeSlug, 1, 1000)
-                const orders = ordersResponse.data || []
-                stats.totalOrders = orders.length
-
-                // Calcular receita
-                stats.totalRevenue = orders.reduce((sum: number, order: any) => {
-                  return sum + (parseFloat(order.total) || 0)
-                }, 0)
-              } catch (error) {
-                console.warn('Erro ao buscar pedidos da loja:', error)
-                stats.totalOrders = 0
-                stats.totalRevenue = 0
-              }
-            }
-          } catch (error) {
-            console.error('Erro ao buscar dados da loja:', error)
-          }
-        }
-
-        return stats
-
-      } catch (error) {
-        console.error('Erro ao buscar estatísticas:', error)
-        throw error
-      }
+  // Buscar produtos para contar total
+  const {
+    data: products,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useQuery({
+    queryKey: ["products", storeSlug, "all"],
+    queryFn: async () => {
+      // Buscar todos os produtos (sem paginação para contar total)
+      const response = await apiClient.getProducts(storeSlug, 1, 1000);
+      return response;
     },
-    enabled: !!userRole, // Só executa quando userRole estiver disponível
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
-  })
-} 
+    enabled: !!storeSlug,
+  });
+
+  // Buscar pedidos para contar pendentes
+  const {
+    data: orders,
+    isLoading: ordersLoading,
+    error: ordersError,
+  } = useQuery({
+    queryKey: ["orders", storeSlug, "all"],
+    queryFn: async () => {
+      // Buscar todos os pedidos (sem paginação para contar total)
+      const response = await apiClient.getOrders(storeSlug, 1, 1000);
+      return response;
+    },
+    enabled: !!storeSlug,
+  });
+
+  // Calcular estatísticas
+  const totalProducts = products?.data?.length || 0;
+  const totalOrders = storeStats?.totalOrders || 0;
+  const pendingOrders =
+    orders?.data?.filter(
+      (order) => order.status === "RECEIVED" || order.status === "CONFIRMED"
+    )?.length || 0;
+
+  // Calcular vendas do dia
+  const today = new Date();
+  const startOfDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+  const dailySales =
+    orders?.data
+      ?.filter((order) => new Date(order.createdAt) >= startOfDay)
+      ?.reduce((total, order) => total + order.total, 0) || 0;
+
+  const isLoading =
+    storeStatsLoading || orderStatsLoading || productsLoading || ordersLoading;
+  const error =
+    storeStatsError || orderStatsError || productsError || ordersError;
+
+  return {
+    totalProducts,
+    totalOrders,
+    pendingOrders,
+    dailySales,
+    isLoading,
+    error,
+  };
+}
