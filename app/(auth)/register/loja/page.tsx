@@ -121,7 +121,7 @@ export default function RegisterLojaPage() {
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       };
-      
+
       const validation = await ownerValidation.validateForm(ownerData);
       if (!validation.isValid) {
         return;
@@ -139,7 +139,7 @@ export default function RegisterLojaPage() {
         state: formData.state,
         zipCode: formData.zipCode,
       };
-      
+
       const validation = await storeValidation.validateForm(storeData);
       if (!validation.isValid) {
         return;
@@ -321,11 +321,10 @@ export default function RegisterLojaPage() {
                   value={String(formData.ownerName)}
                   onChange={handleInputChange}
                   onBlur={() => ownerValidation.handleFieldBlur("ownerName", formData.ownerName)}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                    ownerValidation.shouldShowError("ownerName") 
-                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                      : "border-gray-300"
-                  }`}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${ownerValidation.shouldShowError("ownerName")
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                    }`}
                   placeholder="Seu nome completo"
                 />
                 {ownerValidation.shouldShowError("ownerName") && (
@@ -344,11 +343,10 @@ export default function RegisterLojaPage() {
                   value={String(formData.ownerEmail)}
                   onChange={handleInputChange}
                   onBlur={() => ownerValidation.handleFieldBlur("ownerEmail", formData.ownerEmail)}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                    ownerValidation.shouldShowError("ownerEmail") 
-                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                      : "border-gray-300"
-                  }`}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${ownerValidation.shouldShowError("ownerEmail")
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                    }`}
                   placeholder="seu@email.com"
                 />
                 {ownerValidation.shouldShowError("ownerEmail") && (
@@ -366,11 +364,10 @@ export default function RegisterLojaPage() {
                   value={String(formData.ownerPhone)}
                   onChange={handleInputChange}
                   onBlur={() => ownerValidation.handleFieldBlur("ownerPhone", formData.ownerPhone)}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                    ownerValidation.shouldShowError("ownerPhone") 
-                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                      : "border-gray-300"
-                  }`}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${ownerValidation.shouldShowError("ownerPhone")
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                    }`}
                   placeholder="(11) 99999-9999"
                 />
                 {ownerValidation.shouldShowError("ownerPhone") && (
@@ -390,11 +387,10 @@ export default function RegisterLojaPage() {
                     value={String(formData.password)}
                     onChange={handleInputChange}
                     onBlur={() => ownerValidation.handleFieldBlur("password", formData.password)}
-                    className={`block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                      ownerValidation.shouldShowError("password") 
-                        ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                        : "border-gray-300"
-                    }`}
+                    className={`block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${ownerValidation.shouldShowError("password")
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300"
+                      }`}
                     placeholder="••••••••"
                   />
                   <button
@@ -425,11 +421,10 @@ export default function RegisterLojaPage() {
                   value={String(formData.confirmPassword)}
                   onChange={handleInputChange}
                   onBlur={() => ownerValidation.handleFieldBlur("confirmPassword", formData.confirmPassword)}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
-                    ownerValidation.shouldShowError("confirmPassword") 
-                      ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
-                      : "border-gray-300"
-                  }`}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${ownerValidation.shouldShowError("confirmPassword")
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                    }`}
                   placeholder="••••••••"
                 />
                 {ownerValidation.shouldShowError("confirmPassword") && (
