@@ -225,6 +225,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Persistir dados do usuário no localStorage
       localStorage.setItem("user", JSON.stringify(userDataWithDates));
 
+      // Forçar atualização do contexto para garantir que o usuário seja marcado como autenticado
+      // Isso é importante para o redirecionamento funcionar corretamente
+      await refreshUserData();
+
       return response;
     } catch (error) {
       throw error;

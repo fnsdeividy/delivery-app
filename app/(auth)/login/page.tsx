@@ -1,6 +1,7 @@
 "use client";
 
-import { useCardapioAuth } from "@/hooks";
+import { useCardapioAuth, useFormValidation } from "@/hooks";
+import { loginSchema, LoginFormData } from "@/lib/validation/schemas";
 import { Eye, EyeSlash, SignIn } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,16 +12,36 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, isLoading, error } = useCardapioAuth();
+  
+  // Hook de validação
+  const {
+    errors,
+    validateForm,
+    handleFieldBlur,
+    shouldShowError,
+    getFieldError,
+    clearErrors,
+  } = useFormValidation(loginSchema, formData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Limpar erros anteriores
+    clearErrors();
+    
+    // Validar formulário
+    const validation = await validateForm(formData);
+    if (!validation.isValid) {
+      return;
+    }
+
     if (!formData.email || !formData.password) return;
 
     try {
@@ -36,10 +57,20 @@ export default function LoginPage() {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+    
+    // Limpar erro do campo quando o usuário começa a digitar
+    if (errors[name as keyof LoginFormData]) {
+      clearErrors();
+    }
+  };
+
+  const handleInputBlur = (fieldName: keyof LoginFormData) => {
+    handleFieldBlur(fieldName, formData[fieldName]);
   };
 
   return (
@@ -91,10 +122,14 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
+                  onBlur={() => handleInputBlur("email")}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 
                   focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="seu@email.com"
                 />
+                {shouldShowError("email") && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError("email")}</p>
+                )}
               </div>
             </div>
 
@@ -115,6 +150,7 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
+                  onBlur={() => handleInputBlur("password")}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 
                   focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="••••••••"
@@ -130,6 +166,9 @@ export default function LoginPage() {
                     <Eye className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
+                {shouldShowError("password") && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError("password")}</p>
+                )}
               </div>
             </div>
 

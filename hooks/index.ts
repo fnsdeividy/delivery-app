@@ -6,6 +6,7 @@ export { useCardapioAuth } from "./useCardapioAuth";
 export { useCreateStore } from "./useCreateStore";
 export { useDashboardMetrics } from "./useDashboardMetrics";
 export { useDashboardStats } from "./useDashboardStats";
+export { useFormValidation } from "./useFormValidation";
 export { useHybridAuth } from "./useHybridAuth";
 export {
   useCancelOrder,

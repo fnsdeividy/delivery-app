@@ -84,12 +84,18 @@ export function useCreateStore(): CreateStoreHookReturn {
           // Redirecionar para o dashboard da nova loja
           await redirectAfterStoreCreation(data);
         } else {
-          console.log("⚠️ Usuário não autenticado, redirecionando para login");
-          // Se não estiver autenticado, redirecionar para login
-          // Mas primeiro, vamos tentar redirecionar diretamente para o dashboard
-          // O middleware deve permitir se o token estiver correto
+          console.log("⚠️ Usuário não autenticado no contexto, mas token foi armazenado");
           console.log("🔄 Tentando redirecionamento direto para dashboard...");
-          window.location.href = `/dashboard/${data.slug}`;
+          
+          // Forçar redirecionamento para o dashboard da nova loja
+          // O token foi armazenado durante o registro, então deve funcionar
+          try {
+            await redirectAfterStoreCreation(data);
+          } catch (redirectError) {
+            console.error("❌ Erro no redirecionamento:", redirectError);
+            // Fallback: redirecionar diretamente
+            window.location.href = `/dashboard/${data.slug}`;
+          }
         }
       } catch (error) {
         console.error("❌ Erro no processamento pós-criação:", error);
