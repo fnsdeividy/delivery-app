@@ -41,6 +41,7 @@ export default function RegisterLojaPage() {
     minimumOrder: "20.00",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [creationStep, setCreationStep] = useState<'idle' | 'creating-user' | 'creating-store' | 'redirecting'>('idle');
 
   const {
     registerMutation,
@@ -112,6 +113,9 @@ export default function RegisterLojaPage() {
         return;
       }
 
+      setCreationStep('creating-user');
+      console.log("🚀 Iniciando processo de criação da loja...");
+
       // 1. Criar usuário proprietário
       const userData: CreateUserDto = {
         email: formData.ownerEmail,
@@ -120,10 +124,14 @@ export default function RegisterLojaPage() {
         role: UserRole.ADMIN,
       };
 
+      console.log("👤 Criando usuário proprietário...");
       const userResponse = await registerMutation.mutateAsync(userData);
+      console.log("✅ Usuário criado com sucesso:", userResponse);
 
       // 2. Aguardar um momento para garantir que o token foi armazenado
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      setCreationStep('creating-store');
+      console.log("⏳ Aguardando token ser armazenado...");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 3. Criar loja
       const storeData: CreateStoreDto = {
@@ -153,12 +161,19 @@ export default function RegisterLojaPage() {
         },
       };
 
+      console.log("🏪 Criando loja...");
       const storeResponse = await createStore(storeData);
+      console.log("✅ Loja criada com sucesso:", storeResponse);
 
       // 4. O redirecionamento será feito automaticamente pelo hook useCreateStore
+      // O hook já está configurado para redirecionar para /dashboard/${storeSlug}
+      setCreationStep('redirecting');
+      console.log("🎯 Aguardando redirecionamento automático...");
+
     } catch (err: any) {
       // Em caso de erro, mostrar erro mas não redirecionar automaticamente
       console.error("❌ Erro durante o processo de registro:", err);
+      setCreationStep('idle');
 
       // Se for erro de criação de loja, o hook já tratou
       // Se for erro de registro de usuário, mostrar mensagem apropriada
@@ -212,8 +227,8 @@ export default function RegisterLojaPage() {
               <div
                 key={stepNumber}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= stepNumber
-                    ? "bg-white/20 text-white border-2 border-white/30"
-                    : "bg-white/10 text-white/60 border-2 border-white/20"
+                  ? "bg-white/20 text-white border-2 border-white/30"
+                  : "bg-white/10 text-white/60 border-2 border-white/20"
                   }`}
               >
                 {stepNumber}
@@ -226,6 +241,23 @@ export default function RegisterLojaPage() {
             <span className="text-xs text-white/80">Confirmação</span>
           </div>
         </div>
+
+        {/* Progresso da Criação */}
+        {creationStep !== 'idle' && (
+          <div className="mt-4">
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span className="text-sm text-white/90">
+                  {creationStep === 'creating-user' && "Criando conta de usuário..."}
+                  {creationStep === 'creating-store' && "Configurando sua loja..."}
+                  {creationStep === 'redirecting' && "Preparando dashboard..."}
+                </span>
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Card de Registro */}
@@ -585,10 +617,13 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || creationStep !== 'idle'}
                 className="flex-1 py-2 px-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-md hover:from-green-700 hover:to-blue-700 font-medium disabled:opacity-50 transition-all shadow-md"
               >
-                {isLoading ? "Criando..." : "Criar Loja"}
+                {creationStep === 'creating-user' && "Criando usuário..."}
+                {creationStep === 'creating-store' && "Criando loja..."}
+                {creationStep === 'redirecting' && "Redirecionando..."}
+                {creationStep === 'idle' && (isLoading ? "Criando..." : "Criar Loja")}
               </button>
             )}
           </div>
