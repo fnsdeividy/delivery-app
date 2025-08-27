@@ -95,6 +95,9 @@ export interface CreateProductDto {
   nutritionalInfo?: NutritionalInfo;
   tags: string[];
   tagColor?: string;
+  order?: number;
+  initialStock?: number;
+  minStock?: number;
 }
 
 export interface UpdateProductDto {
@@ -111,6 +114,7 @@ export interface UpdateProductDto {
   nutritionalInfo?: NutritionalInfo;
   tags?: string[];
   tagColor?: string;
+  order?: number;
 }
 
 export interface ProductIngredientDto {
@@ -180,6 +184,7 @@ export interface CreateCategoryDto {
   active: boolean;
   image?: string;
   storeSlug: string;
+  parentCategoryId?: string; // Para subcategorias
 }
 
 export interface UpdateCategoryDto {
@@ -188,6 +193,7 @@ export interface UpdateCategoryDto {
   order?: number;
   active?: boolean;
   image?: string;
+  parentCategoryId?: string; // Para subcategorias
 }
 
 export interface CreateInventoryDto {
@@ -356,6 +362,9 @@ export interface Category {
   active: boolean;
   image?: string;
   storeSlug: string;
+  parentCategoryId?: string; // Para subcategorias
+  parentCategory?: Category; // Categoria pai
+  subcategories?: Category[]; // Subcategorias
   createdAt: string;
   updatedAt: string;
 }

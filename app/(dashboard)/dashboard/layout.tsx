@@ -133,12 +133,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: Package,
             current: pathname.startsWith(`/dashboard/${slug}/produtos`),
           },
-          {
-            name: "Categorias",
-            href: `/dashboard/${slug}/categorias`,
-            icon: Package,
-            current: pathname.startsWith(`/dashboard/${slug}/categorias`),
-          },
+
           {
             name: "Pedidos",
             href: `/dashboard/${slug}/pedidos`,
@@ -295,6 +290,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p className="text-sm text-gray-500">
                   Navegação não disponível
                 </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Slug: {slug || "não definido"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Rota especial: {isSpecialRoute ? "sim" : "não"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Rota admin: {isAdminRoute ? "sim" : "não"}
+                </p>
               </div>
             )}
           </div>
@@ -408,7 +412,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="dashboard-main-content">
-          <div className="dashboard-container">{children}</div>
+          <div className="dashboard-content-wrapper">
+            <div className="dashboard-container">{children}</div>
+          </div>
         </main>
       </div>
 

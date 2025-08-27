@@ -17,6 +17,30 @@ interface DashboardStats {
   averagePreparationTime: number;
 }
 
+// Função helper para formatar preço
+const formatPrice = (price: any): string => {
+  if (price === null || price === undefined) return "0.00";
+
+  // Se for string, converter para número
+  if (typeof price === "string") {
+    const numPrice = parseFloat(price);
+    return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2);
+  }
+
+  // Se for número, usar toFixed
+  if (typeof price === "number") {
+    return price.toFixed(2);
+  }
+
+  // Se for objeto Decimal do Prisma, usar toString
+  if (price && typeof price === "object" && "toString" in price) {
+    const numPrice = parseFloat(price.toString());
+    return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2);
+  }
+
+  return "0.00";
+};
+
 export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
@@ -79,16 +103,10 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
       color: "bg-blue-500",
       description: `${stats.activeProducts} ativos`,
     },
-    {
-      title: "Categorias",
-      value: stats.totalCategories,
-      icon: Package,
-      color: "bg-green-500",
-      description: `${stats.activeCategories} ativas`,
-    },
+
     {
       title: "Receita Estimada",
-      value: `R$ ${stats.estimatedRevenue.toFixed(2)}`,
+      value: `R$ ${formatPrice(stats.estimatedRevenue)}`,
       icon: ArrowUp,
       color: "bg-orange-500",
       description: "Baseado em preços dos produtos",
@@ -103,7 +121,6 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
   ];
 
   const recentProducts = productsData?.data.slice(0, 5) || [];
-  const recentCategories = categoriesData?.slice(0, 5) || [];
 
   return (
     <div className="space-y-6">
@@ -137,52 +154,6 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
 
       {/* Gráficos e Análises */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Produtos por Categoria */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Produtos por Categoria
-          </h3>
-          {categoriesData && categoriesData.length > 0 ? (
-            <div className="space-y-3">
-              {categoriesData.map((category) => {
-                const productCount =
-                  productsData?.data.filter((p) => p.categoryId === category.id)
-                    .length || 0;
-                const percentage =
-                  stats.totalProducts > 0
-                    ? (productCount / stats.totalProducts) * 100
-                    : 0;
-
-                return (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="text-sm font-medium text-gray-700">
-                      {category.name}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-orange-500 h-2 rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-gray-500 w-8 text-right">
-                        {productCount}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              Nenhuma categoria encontrada
-            </p>
-          )}
-        </div>
-
         {/* Status dos Produtos */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -284,7 +255,7 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      R$ {product.price.toFixed(2)}
+                      R$ {formatPrice(product.price)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

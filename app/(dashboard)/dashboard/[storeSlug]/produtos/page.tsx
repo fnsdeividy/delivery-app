@@ -1,40 +1,40 @@
 "use client";
 
-import LoadingSpinner from "@/components/LoadingSpinner";
 import { ProtectedProductRoute } from "@/components/ProtectedProductRoute";
 import { useToast } from "@/components/Toast";
+import { DataCardList } from "@/components/ui/DataCardList";
+import { DataTable } from "@/components/ui/DataTable";
+import { FilterPanel } from "@/components/ui/FilterPanel";
+import { SearchBar } from "@/components/ui/SearchBar";
 import { useApiErrorHandler, useCardapioAuth } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
-import {
-  ArrowsClockwise,
-  Eye,
-  EyeSlash,
-  Funnel,
-  FunnelSimple,
-  MagnifyingGlass,
-  Pencil,
-  Plus,
-  Trash,
-} from "@phosphor-icons/react";
+import { EyeSlash, Pencil, Plus, Trash } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 interface Product {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  image: string;
+  description?: string | null;
+  price: number | string;
+  image?: string | null;
   active: boolean;
-  category: {
+  category?: {
     id: string;
     name: string;
-  };
-  inventory: {
+  } | null;
+  inventory?: {
     quantity: number;
-    minStock: number;
-  };
-  _count: {
+    minStock?: number | null;
+  } | null;
+  _count?: {
     orderItems: number;
   };
 }
@@ -49,15 +49,36 @@ interface PaginatedResponse<T> {
   };
 }
 
+type CategoryDTO =
+  | Array<{ id: string; name: string }>
+  | {
+      data?: Array<{ id: string; name: string }>;
+      categories?: Array<{ id: string; name: string }>;
+    };
+
 export default function ProdutosPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.storeSlug as string;
+
   const { isAuthenticated } = useCardapioAuth();
   const { handleErrorWithRedirect } = useApiErrorHandler();
-  const { success, error: showError } = useToast();
+  const { success } = useToast();
 
+  /** guards */
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  /** ui states */
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+
+  /** data states */
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -65,142 +86,180 @@ export default function ProdutosPage() {
     total: 0,
     totalPages: 0,
   });
+
+  /** filters */
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [showInactive, setShowInactive] = useState(false);
-  const [categories, setCategories] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Garantir que categories seja sempre um array válido
+  /** categories */
+  const [categories, setCategories] = useState<CategoryDTO>([]);
   const safeCategories = useMemo(() => {
     if (!categories) return [];
     if (Array.isArray(categories)) return categories;
-    if (categories && typeof categories === "object") {
-      const catObj = categories as any;
-      if (catObj.data && Array.isArray(catObj.data)) return catObj.data;
-      if (catObj.categories && Array.isArray(catObj.categories))
-        return catObj.categories;
+    if (typeof categories === "object" && categories !== null) {
+      const maybe = categories as any;
+      if (maybe.data && Array.isArray(maybe.data)) return maybe.data;
+      if (maybe.categories && Array.isArray(maybe.categories))
+        return maybe.categories;
     }
     console.warn("Formato inesperado de categorias:", categories);
     return [];
   }, [categories]);
 
-  // Função para carregar produtos
-  const loadProducts = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const data = await apiClient.get<PaginatedResponse<Product>>(
-        `/stores/${slug}/products?page=${pagination.page}&limit=${
-          pagination.limit
-        }&active=${!showInactive}${
-          selectedCategory ? `&categoryId=${selectedCategory}` : ""
-        }${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ""}`
-      );
+  /** query params memo (evita reconstrução de strings em cada render) */
+  const baseQuery = useMemo(() => {
+    const p = new URLSearchParams();
+    p.set("page", String(pagination.page));
+    p.set("limit", String(pagination.limit));
+    p.set("active", String(!showInactive));
+    if (selectedCategory) p.set("categoryId", selectedCategory);
+    return p;
+  }, [pagination.page, pagination.limit, selectedCategory, showInactive]);
 
-      if (data && data.data && Array.isArray(data.data)) {
-        setProducts(data.data);
-        setPagination(
-          data.pagination || {
-            page: 1,
-            limit: 10,
-            total: data.data.length,
-            totalPages: 1,
-          }
+  /** Busca de categorias */
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    let abort = false;
+
+    (async () => {
+      try {
+        const data = await apiClient.get<CategoryDTO>(
+          `/stores/${slug}/categories`
         );
-      } else if (Array.isArray(data)) {
-        setProducts(data);
-        setPagination({
-          page: 1,
-          limit: 10,
-          total: data.length,
-          totalPages: 1,
-        });
-      } else {
-        console.warn("Formato inesperado de produtos:", data);
-        setProducts([]);
-        setPagination({
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-        });
+        if (abort || !mountedRef.current) return;
+        if (data) setCategories(data);
+      } catch (err) {
+        console.error("Erro ao carregar categorias:", err);
+        // Mantém silencioso; filtro continua funcionando mesmo sem categorias
       }
-    } catch (error: any) {
-      console.error("Erro ao carregar produtos:", error);
-      handleErrorWithRedirect(error, "Erro ao carregar produtos");
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
-      setIsSearching(false);
-    }
+    })();
+
+    return () => {
+      abort = true;
+    };
+  }, [slug, isAuthenticated]);
+
+  /** Função interna para aplicar dados recebidos no estado */
+  const applyProductResponse = useCallback(
+    (resp: PaginatedResponse<Product>) => {
+      setProducts(resp.data ?? []);
+      setPagination((prev) => ({
+        ...prev,
+        total: resp.pagination?.total ?? 0,
+        totalPages: resp.pagination?.totalPages ?? 0,
+      }));
+    },
+    []
+  );
+
+  /** Carregar produtos (lista padrão) */
+  const loadProducts = useCallback(
+    async (signal?: AbortSignal) => {
+      setIsLoading(true);
+      try {
+        const endpoint = `/stores/${slug}/products?${baseQuery.toString()}`;
+        const data = await apiClient.get<PaginatedResponse<Product>>(endpoint, {
+          signal,
+        } as any);
+        if (!mountedRef.current || signal?.aborted) return;
+        if (data?.data) applyProductResponse(data);
+      } catch (error: any) {
+        if (error?.name === "AbortError") return;
+        console.error("Erro ao carregar produtos:", error);
+        handleErrorWithRedirect(error, "Erro ao carregar produtos");
+      } finally {
+        if (mountedRef.current) setIsLoading(false);
+      }
+    },
+    [slug, baseQuery, applyProductResponse, handleErrorWithRedirect]
+  );
+
+  /** Buscar produtos (search) */
+  const searchProducts = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!searchQuery.trim()) {
+        return loadProducts(signal);
+      }
+      setIsSearching(true);
+      try {
+        const p = new URLSearchParams(baseQuery.toString());
+        p.set("q", searchQuery.trim());
+        const endpoint = `/stores/${slug}/products/search?${p.toString()}`;
+        const data = await apiClient.get<PaginatedResponse<Product>>(endpoint, {
+          signal,
+        } as any);
+        if (!mountedRef.current || signal?.aborted) return;
+        if (data?.data) applyProductResponse(data);
+      } catch (error: any) {
+        if (error?.name === "AbortError") return;
+        console.error("Erro na busca de produtos:", error);
+        handleErrorWithRedirect(error, "Erro na busca de produtos");
+      } finally {
+        if (mountedRef.current) setIsSearching(false);
+      }
+    },
+    [
+      slug,
+      searchQuery,
+      baseQuery,
+      applyProductResponse,
+      handleErrorWithRedirect,
+      loadProducts,
+    ]
+  );
+
+  /** Carregamento inicial */
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    const controller = new AbortController();
+    loadProducts(controller.signal);
+    return () => controller.abort();
+  }, [isAuthenticated, loadProducts]);
+
+  /** Recarregar ao alterar filtros (exceto searchQuery, que tem debounce próprio) */
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    const controller = new AbortController();
+    // quando filtros mudam, incluindo paginação, recarrega modo atual (busca ou lista)
+    const runner = searchQuery.trim() ? searchProducts : loadProducts;
+    runner(controller.signal);
+    return () => controller.abort();
   }, [
-    slug,
+    isAuthenticated,
+    selectedCategory,
+    showInactive,
     pagination.page,
     pagination.limit,
-    showInactive,
-    selectedCategory,
     searchQuery,
-    handleErrorWithRedirect,
+    loadProducts,
+    searchProducts,
   ]);
 
-  // Carregar categorias
-  const loadCategories = useCallback(async () => {
-    try {
-      const data = await apiClient.get<Array<{ id: string; name: string }>>(
-        `/stores/${slug}/categories`
-      );
-
-      if (Array.isArray(data)) {
-        setCategories(data);
-        setCategoriesError(null);
-      } else if (data && typeof data === "object") {
-        const dataObj = data as any;
-        if (dataObj.data && Array.isArray(dataObj.data)) {
-          setCategories(dataObj.data);
-          setCategoriesError(null);
-        } else if (dataObj.categories && Array.isArray(dataObj.categories)) {
-          setCategories(dataObj.categories);
-          setCategoriesError(null);
-        } else {
-          console.warn("Formato inesperado de categorias:", data);
-          setCategories([]);
-          setCategoriesError("Formato de dados inesperado");
-        }
-      } else {
-        console.warn("Formato inesperado de categorias:", data);
-        setCategories([]);
-        setCategoriesError("Formato de dados inesperado");
-      }
-    } catch (error: any) {
-      console.error("Erro ao carregar categorias:", error);
-      handleErrorWithRedirect(error, "Erro ao carregar categorias");
-      setCategories([]);
-      setCategoriesError("Erro ao carregar categorias");
-    }
-  }, [slug, handleErrorWithRedirect]);
-
-  // Efeito para carregar dados
+  /** Debounce para searchQuery + reset da página para 1 ao digitar */
   useEffect(() => {
-    if (isAuthenticated()) {
-      loadProducts();
-      loadCategories();
-    }
-  }, [isAuthenticated, loadProducts, loadCategories]);
+    if (!isAuthenticated()) return;
+    const controller = new AbortController();
 
-  // Buscar produtos
-  const searchProducts = useCallback(async () => {
-    if (searchQuery.trim().length < 2 && searchQuery.trim() !== "") return;
+    // ao mudar o texto de busca, volta para a página 1
+    setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
 
-    setIsSearching(true);
-    setPagination((prev) => ({ ...prev, page: 1 }));
-    await loadProducts();
-  }, [searchQuery, loadProducts]);
+    const t = setTimeout(
+      () => {
+        searchProducts(controller.signal);
+      },
+      searchQuery.trim() ? 350 : 0
+    );
 
-  // Alternar status do produto
+    return () => {
+      controller.abort();
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  /** Alternar status do produto */
   const toggleProductStatus = async (
     productId: string,
     currentStatus: boolean
@@ -210,17 +269,16 @@ export default function ProdutosPage() {
         `/products/${productId}/toggle-status?storeSlug=${slug}`,
         {}
       );
+      if (!mountedRef.current) return;
 
       setProducts((prev) =>
-        prev.map((product) =>
-          product.id === productId
-            ? { ...product, active: !currentStatus }
-            : product
+        prev.map((p) =>
+          p.id === productId ? { ...p, active: !currentStatus } : p
         )
       );
 
       success(
-        "Status Alterado",
+        "Status alterado",
         `Produto ${currentStatus ? "desativado" : "ativado"} com sucesso`
       );
     } catch (error: any) {
@@ -229,44 +287,48 @@ export default function ProdutosPage() {
     }
   };
 
-  // Excluir produto
+  /** Excluir produto */
   const deleteProduct = async (productId: string) => {
     if (!confirm("Tem certeza que deseja excluir este produto?")) return;
-
     try {
       await apiClient.delete(`/products/${productId}?storeSlug=${slug}`);
+      if (!mountedRef.current) return;
 
-      setProducts((prev) => prev.filter((product) => product.id !== productId));
-      success("Produto Excluído", "Produto excluído com sucesso");
+      const removedLastOfPage = products.length === 1 && pagination.page > 1;
 
-      if (products.length === 1 && pagination.page > 1) {
-        setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
-        loadProducts();
-      }
+      startTransition(() => {
+        setProducts((prev) => prev.filter((p) => p.id !== productId));
+        if (removedLastOfPage) {
+          setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+        } else {
+          // revalida a listagem da página atual
+          loadProducts();
+        }
+      });
+
+      success("Produto excluído", "Produto excluído com sucesso");
     } catch (error: any) {
       console.error("Erro ao excluir produto:", error);
       handleErrorWithRedirect(error, "Erro ao excluir produto");
     }
   };
 
-  // Manipulador de mudança de categoria
+  /** Handlers de filtro/paginação */
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  // Manipulador de mudança de status
   const handleShowInactiveChange = (show: boolean) => {
     setShowInactive(show);
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  // Manipulador de mudança de página
   const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
-  // Limpar filtros
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
@@ -274,307 +336,452 @@ export default function ProdutosPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  // Efeito para recarregar produtos quando os filtros mudam
-  useEffect(() => {
-    if (isAuthenticated()) {
-      const timeoutId = setTimeout(() => {
-        loadProducts();
-      }, 300);
+  /** Formatter de preço */
+  const formatPrice = (price: any): string => {
+    if (price === null || price === undefined) return "0,00";
+    const toNum = (v: any) => {
+      if (typeof v === "number") return v;
+      if (typeof v === "string") return parseFloat(v);
+      if (v && typeof v === "object" && "toString" in v)
+        return parseFloat(v.toString());
+      return NaN;
+    };
+    const n = toNum(price);
+    return isNaN(n) ? "0,00" : n.toFixed(2);
+  };
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [
-    pagination.page,
-    selectedCategory,
-    showInactive,
-    isAuthenticated,
-    loadProducts,
-  ]);
-
-  // Se não estiver autenticado, não renderizar nada
-  if (!isAuthenticated()) {
-    return null;
-  }
+  if (!isAuthenticated()) return null;
 
   return (
     <ProtectedProductRoute storeSlug={slug}>
-      <div className="space-y-6 p-4 md:p-6">
+      <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2 sm:p-3 md:p-4 lg:p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
-            <p className="text-gray-600">Gerencie os produtos da sua loja</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 md:gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
+              Produtos
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 truncate">
+              Gerencie os produtos da sua loja
+            </p>
           </div>
           <button
             onClick={() => router.push(`/dashboard/${slug}/produtos/novo`)}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 w-full sm:w-auto justify-center"
+            className="bg-purple-600 text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg hover:bg-purple-700 flex items-center gap-2 w-full sm:w-auto justify-center text-sm md:text-base transition-colors duration-200"
           >
-            <Plus size={20} />
-            Novo Produto
+            <Plus size={16} className="md:w-5 md:h-5 flex-shrink-0" />
+            <span className="truncate">Novo Produto</span>
           </button>
         </div>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-          <div className="flex flex-col gap-4">
-            {/* Barra de busca e botão de filtros */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlass size={20} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Buscar produtos por nome ou descrição..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && searchProducts()}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={searchProducts}
-                  disabled={isSearching}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isSearching ? (
-                    <ArrowsClockwise className="animate-spin" size={16} />
-                  ) : (
-                    <MagnifyingGlass size={16} />
-                  )}
-                  Buscar
-                </button>
-
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 flex items-center gap-2 md:hidden"
-                >
-                  {showFilters ? (
-                    <FunnelSimple size={16} />
-                  ) : (
-                    <Funnel size={16} />
-                  )}
-                  Filtros
-                </button>
-              </div>
+        <div className="bg-white rounded-lg shadow-sm p-2 sm:p-3 md:p-4 lg:p-6">
+          <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
+            {/* Barra de busca - sempre visível */}
+            <div className="w-full">
+              <SearchBar
+                placeholder="Buscar produtos por nome ou descrição..."
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={() => searchProducts()}
+                isLoading={isSearching}
+                className="w-full"
+              />
             </div>
 
-            {/* Filtros expandíveis (sempre visíveis em desktop, expandíveis em mobile) */}
-            <div
-              className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${
-                showFilters ? "block" : "hidden md:grid"
-              }`}
-            >
-              {/* Categoria */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Categoria
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Todas as categorias</option>
-                  {safeCategories.map(
-                    (category: { id: string; name: string }) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    )
-                  )}
-                </select>
-                {categoriesError && (
-                  <p className="text-xs text-red-500 mt-1">{categoriesError}</p>
-                )}
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={showInactive ? "inactive" : "active"}
-                  onChange={(e) =>
-                    handleShowInactiveChange(e.target.value === "inactive")
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="active">Ativos</option>
-                  <option value="inactive">Inativos</option>
-                </select>
-              </div>
-
-              {/* Limpar filtros */}
-              <div className="flex items-end">
-                <button
-                  onClick={clearFilters}
-                  className="w-full px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2"
-                >
-                  <ArrowsClockwise size={16} />
-                  Limpar Filtros
-                </button>
-              </div>
-            </div>
+            {/* Filtros com toggle para mobile */}
+            <FilterPanel
+              categories={safeCategories.map(
+                (c: { id: string; name: string }) => ({
+                  value: c.id,
+                  label: c.name,
+                })
+              )}
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
+              showInactive={showInactive}
+              onShowInactiveChange={handleShowInactiveChange}
+              onClearFilters={clearFilters}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters((s) => !s)}
+              isMobile={true}
+            />
           </div>
         </div>
 
         {/* Lista de Produtos */}
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-            <div className="text-gray-400 text-6xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenhum produto encontrado
-            </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery || selectedCategory || showInactive
-                ? "Tente ajustar os filtros de busca"
-                : "Comece adicionando seu primeiro produto"}
-            </p>
-            {!searchQuery && !selectedCategory && !showInactive && (
-              <button
-                onClick={() => router.push(`/dashboard/${slug}/produtos/novo`)}
-                className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
-              >
-                Adicionar Primeiro Produto
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Produto
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                      Categoria
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Preço
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                      Estoque
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {product.image && (
-                            <img
-                              className="h-10 w-10 rounded-full object-cover mr-3"
-                              src={product.image}
-                              alt={product.name}
-                            />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {product.name}
-                            </div>
-                            {product.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
-                                {product.description}
-                              </div>
-                            )}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Desktop - oculto em mobile */}
+          <div className="hidden lg:block">
+            <DataTable
+              data={products}
+              columns={[
+                {
+                  key: "product",
+                  header: "Produto",
+                  render: (product: Product) => (
+                    <div className="flex items-center min-w-0">
+                      {!!product.image && (
+                        <img
+                          className="h-10 w-10 rounded-lg object-cover mr-3 flex-shrink-0"
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </div>
+                        {product.description && (
+                          <div className="text-sm text-gray-500 truncate">
+                            {product.description}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                        {product.category?.name || "Sem categoria"}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        R$ {product.price.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
-                        <div className="flex items-center space-x-2">
-                          <span>{product.inventory?.quantity || 0}</span>
-                          {product.inventory?.minStock && (
-                            <span className="text-xs text-gray-400">
-                              (mín: {product.inventory.minStock})
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            product.active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {product.active ? "Ativo" : "Inativo"}
+                        )}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "category",
+                  header: "Categoria",
+                  render: (product: Product) => (
+                    <div className="text-sm text-gray-500 truncate max-w-32">
+                      {product.category?.name ?? "Sem categoria"}
+                    </div>
+                  ),
+                },
+                {
+                  key: "price",
+                  header: "Preço",
+                  render: (product: Product) => (
+                    <div className="text-sm font-medium text-gray-900 text-right">
+                      R$ {formatPrice(product.price)}
+                    </div>
+                  ),
+                },
+                {
+                  key: "inventory",
+                  header: "Estoque",
+                  render: (product: Product) => (
+                    <div className="text-sm text-gray-900 text-right">
+                      {product.inventory?.quantity ?? 0}
+                      {product.inventory?.minStock ? (
+                        <span className="text-xs text-gray-400 ml-1">
+                          (mín: {product.inventory.minStock})
                         </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() =>
-                              toggleProductStatus(product.id, product.active)
-                            }
-                            className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                            title={product.active ? "Desativar" : "Ativar"}
-                          >
-                            {product.active ? (
-                              <EyeSlash size={16} />
-                            ) : (
-                              <Eye size={16} />
-                            )}
-                          </button>
-                          <button
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/${slug}/produtos/${product.id}/editar`
-                              )
-                            }
-                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50"
-                            title="Editar"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            onClick={() => deleteProduct(product.id)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                            title="Excluir"
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      ) : null}
+                    </div>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  render: (product: Product) => (
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {product.active ? "Ativo" : "Inativo"}
+                    </span>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  key: "toggleStatus",
+                  label: "Alternar Status",
+                  onClick: (product: Product) =>
+                    toggleProductStatus(product.id, product.active),
+                  icon: <EyeSlash size={16} />,
+                  className:
+                    "text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50",
+                  title: (product: Product) =>
+                    product.active ? "Desativar" : "Ativar",
+                },
+                {
+                  key: "edit",
+                  label: "Editar",
+                  onClick: (product: Product) =>
+                    router.push(
+                      `/dashboard/${slug}/produtos/${product.id}/editar`
+                    ),
+                  icon: <Pencil size={16} />,
+                  className:
+                    "text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50",
+                  title: () => "Editar",
+                },
+                {
+                  key: "delete",
+                  label: "Excluir",
+                  onClick: (product: Product) => deleteProduct(product.id),
+                  icon: <Trash size={16} />,
+                  className:
+                    "text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50",
+                  title: () => "Excluir",
+                },
+              ]}
+              emptyMessage={
+                searchQuery || selectedCategory || showInactive
+                  ? "Tente ajustar os filtros de busca"
+                  : "Nenhum produto cadastrado"
+              }
+              emptyMessageSubtitle={
+                !searchQuery && !selectedCategory && !showInactive
+                  ? "Comece adicionando seu primeiro produto"
+                  : undefined
+              }
+              isLoading={isLoading}
+            />
           </div>
-        )}
+
+          {/* Tablet - visível apenas em tablets */}
+          <div className="hidden md:block lg:hidden">
+            <DataTable
+              data={products}
+              columns={[
+                {
+                  key: "product",
+                  header: "Produto",
+                  render: (product: Product) => (
+                    <div className="flex items-center min-w-0">
+                      {!!product.image && (
+                        <img
+                          className="h-8 w-8 rounded-lg object-cover mr-2 flex-shrink-0"
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </div>
+                        {product.description && (
+                          <div className="text-xs text-gray-500 truncate">
+                            {product.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "category",
+                  header: "Categoria",
+                  render: (product: Product) => (
+                    <div className="text-xs text-gray-500 truncate max-w-24">
+                      {product.category?.name ?? "Sem categoria"}
+                    </div>
+                  ),
+                },
+                {
+                  key: "price",
+                  header: "Preço",
+                  render: (product: Product) => (
+                    <div className="text-sm font-medium text-gray-900 text-right">
+                      R$ {formatPrice(product.price)}
+                    </div>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  render: (product: Product) => (
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {product.active ? "A" : "I"}
+                    </span>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  key: "toggleStatus",
+                  label: "Alternar Status",
+                  onClick: (product: Product) =>
+                    toggleProductStatus(product.id, product.active),
+                  icon: <EyeSlash size={14} />,
+                  className:
+                    "text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50",
+                  title: (product: Product) =>
+                    product.active ? "Desativar" : "Ativar",
+                },
+                {
+                  key: "edit",
+                  label: "Editar",
+                  onClick: (product: Product) =>
+                    router.push(
+                      `/dashboard/${slug}/produtos/${product.id}/editar`
+                    ),
+                  icon: <Pencil size={14} />,
+                  className:
+                    "text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50",
+                  title: () => "Editar",
+                },
+                {
+                  key: "delete",
+                  label: "Excluir",
+                  onClick: (product: Product) => deleteProduct(product.id),
+                  icon: <Trash size={14} />,
+                  className:
+                    "text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50",
+                  title: () => "Excluir",
+                },
+              ]}
+              emptyMessage={
+                searchQuery || selectedCategory || showInactive
+                  ? "Tente ajustar os filtros de busca"
+                  : "Nenhum produto cadastrado"
+              }
+              emptyMessageSubtitle={
+                !searchQuery && !selectedCategory && !showInactive
+                  ? "Comece adicionando seu primeiro produto"
+                  : undefined
+              }
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* Mobile - visível apenas em mobile */}
+          <DataCardList
+            data={products}
+            cardRenderer={{
+              key: "product",
+              render: (product: Product) => (
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 min-w-0 flex-1">
+                      {!!product.image && (
+                        <img
+                          className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </h3>
+                        {product.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {product.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ml-2 ${
+                        product.active
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {product.active ? "Ativo" : "Inativo"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <div>
+                      <span className="font-medium text-gray-700">
+                        Categoria:
+                      </span>
+                      <span className="ml-1 truncate block">
+                        {product.category?.name ?? "Sem categoria"}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-medium text-gray-700">Preço:</span>
+                      <span className="ml-1 font-semibold text-gray-900">
+                        R$ {formatPrice(product.price)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>
+                      Estoque:{" "}
+                      <span className="font-medium text-gray-700">
+                        {product.inventory?.quantity ?? 0}
+                      </span>
+                      {product.inventory?.minStock ? (
+                        <span className="text-gray-400 ml-1">
+                          (mín: {product.inventory.minStock})
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                </div>
+              ),
+            }}
+            actions={[
+              {
+                key: "toggleStatus",
+                label: "Alternar Status",
+                onClick: (product: Product) =>
+                  toggleProductStatus(product.id, product.active),
+                icon: <EyeSlash size={16} />,
+                className:
+                  "text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50",
+                title: (product: Product) =>
+                  product.active ? "Desativar" : "Ativar",
+              },
+              {
+                key: "edit",
+                label: "Editar",
+                onClick: (product: Product) =>
+                  router.push(
+                    `/dashboard/${slug}/produtos/${product.id}/editar`
+                  ),
+                icon: <Pencil size={16} />,
+                className:
+                  "text-green-600 hover:text-green-900 p-2 rounded hover:bg-green-50",
+                title: () => "Editar",
+              },
+              {
+                key: "delete",
+                label: "Excluir",
+                onClick: (product: Product) => deleteProduct(product.id),
+                icon: <Trash size={16} />,
+                className:
+                  "text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50",
+                title: () => "Excluir",
+              },
+            ]}
+            emptyMessage={
+              searchQuery || selectedCategory || showInactive
+                ? "Tente ajustar os filtros de busca"
+                : "Nenhum produto cadastrado"
+            }
+            emptyMessageSubtitle={
+              !searchQuery && !selectedCategory && !showInactive
+                ? "Comece adicionando seu primeiro produto"
+                : undefined
+            }
+            isLoading={isLoading}
+          />
+        </div>
 
         {/* Paginação */}
         {!isLoading && pagination.totalPages > 1 && (
-          <div className="flex justify-center mt-6">
-            <nav className="flex flex-wrap justify-center gap-2">
+          <div className="flex justify-center mt-4 md:mt-6">
+            <nav className="flex flex-wrap justify-center gap-1 md:gap-2">
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="px-3 py-2 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 md:px-3 py-2 rounded-md text-xs md:text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 transition-colors duration-200"
               >
                 Anterior
               </button>
@@ -582,7 +789,7 @@ export default function ProdutosPage() {
               {Array.from(
                 { length: Math.min(5, pagination.totalPages) },
                 (_, i) => {
-                  let pageNum;
+                  let pageNum: number;
                   if (pagination.totalPages <= 5) {
                     pageNum = i + 1;
                   } else if (pagination.page <= 3) {
@@ -597,10 +804,10 @@ export default function ProdutosPage() {
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      className={`px-2 md:px-3 py-2 rounded-md text-xs md:text-sm font-medium border transition-colors duration-200 ${
                         pagination.page === pageNum
-                          ? "bg-purple-600 text-white"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
+                          ? "bg-purple-600 text-white border-purple-600"
+                          : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
                       }`}
                     >
                       {pageNum}
@@ -612,7 +819,7 @@ export default function ProdutosPage() {
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page === pagination.totalPages}
-                className="px-3 py-2 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 md:px-3 py-2 rounded-md text-xs md:text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 transition-colors duration-200"
               >
                 Próxima
               </button>

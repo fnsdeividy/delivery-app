@@ -89,19 +89,28 @@
   background: var(--dashboard-bg);
   color: var(--dashboard-text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .dashboard-container {
-  max-width: 1920px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  position: relative;
 }
 
 .dashboard-main-layout {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 100vh;
   margin-left: 0;
   transition: margin-left 0.3s ease;
+  position: relative;
 }
 
 @media (min-width: 1024px) {
@@ -352,17 +361,20 @@
 }
 
 .dashboard-main-content {
+  flex: 1;
   padding: var(--space-lg);
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   background: linear-gradient(
     135deg,
-    rgba(248, 250, 252, 0.8) 0%,
-    rgba(241, 245, 249, 0.6) 100%
+    rgba(248, 250, 252, 0.95) 0%,
+    rgba(241, 245, 249, 0.9) 100%
   );
   border-radius: 24px 24px 0 0;
-  backdrop-filter: blur(8px);
-  min-height: calc(100vh - var(--header-height));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Content responsivo */
@@ -371,13 +383,17 @@
     padding: var(--space-md);
     border-radius: 16px 16px 0 0;
     margin: var(--space-xs);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 1023px) {
   .dashboard-main-content {
     padding: var(--space-xl);
     border-radius: 20px 20px 0 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }
 
@@ -385,6 +401,8 @@
   .dashboard-main-content {
     padding: var(--space-2xl);
     border-radius: 24px 24px 0 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 }
 
@@ -526,15 +544,7 @@
   }
 }
 
-@media (min-width: 640px) and (max-width: 1023px) {
-  .dashboard-main-content {
-    padding: var(--space-lg) var(--space-xl);
-  }
-
-  .dashboard-main-layout {
-    margin-left: 0 !important;
-  }
-}
+/* Removido media query duplicada - já definida acima */
 
 /* Fallbacks para browsers antigos */
 .dashboard-sidebar {
@@ -604,6 +614,23 @@
 /* ========================================
    🔧 UTILITÁRIOS RESPONSIVOS
 ======================================== */
+
+/* Garantir que o conteúdo seja exibido corretamente */
+.dashboard-content-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Melhorar scroll em dispositivos móveis */
+@media (max-width: 768px) {
+  .dashboard-content-wrapper {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
 .hide-mobile {
   display: none;
 }
@@ -633,12 +660,24 @@
   position: relative;
   width: 100%;
   overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Melhorar performance de renderização */
+.dashboard-main-content {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Mobile first - garantir que funcione em telas pequenas */
 @media (max-width: 480px) {
   .dashboard-main-content {
     padding: var(--space-sm) var(--space-md);
+    border-radius: 12px 12px 0 0;
+    margin: var(--space-xs);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .dashboard-metric-card {
@@ -732,5 +771,18 @@
   .dashboard-main-card {
     border-width: 2px;
     border-color: #000;
+  }
+}
+
+/* Telas muito pequenas - garantir que o conteúdo seja exibido */
+@media (max-width: 320px) {
+  .dashboard-main-content {
+    padding: var(--space-sm);
+    border-radius: 8px 8px 0 0;
+    margin: 0;
+  }
+
+  .dashboard-container {
+    padding: 0;
   }
 }

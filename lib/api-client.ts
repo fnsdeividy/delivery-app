@@ -3,7 +3,6 @@ import {
   AuthContext,
   AuthResponse,
   Category,
-  CreateCategoryDto,
   CreateOrderDto,
   CreateProductDto,
   CreateStockMovementDto,
@@ -19,7 +18,6 @@ import {
   StockMovement,
   Store,
   StoreStats,
-  UpdateCategoryDto,
   UpdateInventoryDto,
   UpdateOrderDto,
   UpdateProductDto,
@@ -55,16 +53,16 @@ interface ApiError extends Error {
 // Configuração do cliente HTTP
 class ApiClient {
   private client: AxiosInstance;
-  private baseURL: string;
-  private isDev: boolean;
+  private _baseURL: string;
+  private _isDev: boolean;
   private lastLoggedToken: string | null = null;
 
   constructor() {
-    this.baseURL = apiConfig.api.baseURL;
-    this.isDev = apiConfig.env.isDevelopment;
+    this._baseURL = apiConfig.api.baseURL;
+    this._isDev = apiConfig.env.isDevelopment;
 
     this.client = axios.create({
-      baseURL: this.baseURL,
+      baseURL: this._baseURL,
       timeout: apiConfig.api.timeout,
       headers: {
         "Content-Type": "application/json",
@@ -325,14 +323,6 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      // Debug: Log dos dados que serão enviados
-      console.log("🔍 API Client - Dados que serão enviados:", data);
-      console.log("🔍 API Client - Tipo dos dados:", typeof data);
-      console.log(
-        "🔍 API Client - Estrutura dos dados:",
-        JSON.stringify(data, null, 2)
-      );
-
       const response = await this.client.patch<T>(url, data, config);
       return response.data;
     } catch (error) {
@@ -803,21 +793,6 @@ class ApiClient {
     return this.get<Category[]>(`/stores/${storeSlug}/categories`);
   }
 
-  async createCategory(categoryData: CreateCategoryDto): Promise<Category> {
-    return this.post<Category>("/categories", categoryData);
-  }
-
-  async updateCategory(
-    id: string,
-    categoryData: UpdateCategoryDto
-  ): Promise<Category> {
-    return this.patch<Category>(`/categories/${id}`, categoryData);
-  }
-
-  async deleteCategory(id: string): Promise<void> {
-    return this.delete<void>(`/categories/${id}`);
-  }
-
   // ===== PRODUTOS =====
 
   async getProducts(
@@ -917,8 +892,40 @@ class ApiClient {
     period: "daily" | "weekly" | "monthly" = "daily"
   ): Promise<AnalyticsData> {
     return this.get<AnalyticsData>(
-      `/stores/${storeSlug}/analytics?period=${period}`
+      `/analytics/store/${storeSlug}?period=${period}`
     );
+  }
+
+  async getStoreMetrics(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/metrics`);
+  }
+
+  async getTopProducts(storeSlug: string, limit: number = 5): Promise<any> {
+    return this.get(
+      `/analytics/store/${storeSlug}/top-products?limit=${limit}`
+    );
+  }
+
+  async getCustomerMetrics(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/customer-metrics`);
+  }
+
+  async getPeakHours(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/peak-hours`);
+  }
+
+  // ===== GETTERS PÚBLICOS =====
+
+  get baseURL(): string {
+    return this._baseURL;
+  }
+
+  get timeout(): number {
+    return apiConfig.api.timeout;
+  }
+
+  get isDev(): boolean {
+    return this._isDev;
   }
 
   // ===== UTILITÁRIOS =====
