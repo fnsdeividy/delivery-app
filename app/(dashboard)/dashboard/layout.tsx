@@ -4,7 +4,6 @@ import {
   ChartBar,
   Clock,
   CreditCard,
-  Crown,
   Gear,
   Layout,
   List,
@@ -44,17 +43,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Extrair slug da URL - considerar rotas especiais
   const pathParts = pathname.split("/");
   let slug = "";
+  let isAdminRoute = false;
+  let isSpecialRoute = false;
 
-  // Para rotas especiais, não extrair slug
+  // Identificar rotas especiais e administrativas
   if (
     pathname.startsWith("/dashboard/editar-loja/") ||
-    pathname.startsWith("/dashboard/gerenciar-lojas") ||
     pathname.startsWith("/dashboard/meus-painel") ||
     pathname.startsWith("/dashboard/admin") ||
     pathname.startsWith("/dashboard/superadmin") ||
     pathname === "/dashboard"
   ) {
-    slug = "";
+    isSpecialRoute = true;
+    if (pathname.startsWith("/dashboard/admin")) {
+      isAdminRoute = true;
+    }
   } else if (pathParts.length > 2) {
     // Filtrar partes vazias e encontrar o primeiro slug válido
     const validParts = pathParts.filter((part) => part && part.trim() !== "");
@@ -77,13 +80,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig =
-    slug &&
-    slug !== "editar-loja" &&
-    slug !== "gerenciar-lojas" &&
-    slug !== "meus-painel" &&
-    slug !== "admin" &&
-    slug !== "superadmin";
+  const shouldLoadStoreConfig = slug && !isSpecialRoute;
 
   // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
   const { config, loading, error } = useStoreConfig(
@@ -118,24 +115,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Navegação principal sempre disponível
-  const mainNavigation: NavigationItem[] = [
-    {
-      name: "Painel Geral",
-      href: "/dashboard/admin",
-      icon: Crown,
-      current: pathname === "/dashboard/admin",
-    },
-    {
-      name: "Gerenciar Lojas",
-      href: "/dashboard/gerenciar-lojas",
-      icon: Storefront,
-      current: pathname === "/dashboard/gerenciar-lojas",
-    },
-  ];
+  const mainNavigation: NavigationItem[] = [];
 
   // Navegação por loja específica
   const storeNavigation: NavigationItem[] =
-    slug && slug !== "undefined"
+    slug && slug !== "undefined" && !isSpecialRoute
       ? [
           {
             name: "Visão Geral",
@@ -148,6 +132,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             href: `/dashboard/${slug}/produtos`,
             icon: Package,
             current: pathname.startsWith(`/dashboard/${slug}/produtos`),
+          },
+          {
+            name: "Categorias",
+            href: `/dashboard/${slug}/categorias`,
+            icon: Package,
+            current: pathname.startsWith(`/dashboard/${slug}/categorias`),
           },
           {
             name: "Pedidos",
@@ -199,8 +189,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         ]
       : [];
 
-  // Navegação completa
-  const navigation = [...mainNavigation, ...storeNavigation];
+  // Navegação baseada no contexto
+  let navigation: NavigationItem[] = [];
+
+  if (slug && !isSpecialRoute) {
+    // Em loja específica, mostrar navegação da loja
+    navigation = storeNavigation;
+  } else if (isAdminRoute || isSpecialRoute) {
+    // Em rotas administrativas ou especiais, não mostrar navegação lateral
+    navigation = [];
+  } else {
+    // Fallback para página raiz do dashboard
+    navigation = [];
+  }
 
   return (
     <div className="dashboard-layout">
@@ -312,7 +313,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     key={store.slug}
                     href={`/dashboard/${store.slug}`}
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      pathname === `/dashboard/${store.slug}`
+                      pathname === `/dashboard/${store.slug}` ||
+                      (slug === store.slug && !isSpecialRoute)
                         ? "bg-blue-50 text-blue-700"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
@@ -373,12 +375,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Breadcrumb */}
               <nav className="breadcrumb">
                 <span className="breadcrumb-item">Dashboard</span>
-                {slug && slug !== "gerenciar-lojas" && slug !== "undefined" && (
-                  <span className="breadcrumb-item">{slug}</span>
+                {isAdminRoute && (
+                  <span className="breadcrumb-item">Administração</span>
+                )}
+                {pathname.startsWith("/dashboard/gerenciar-lojas") && (
+                  <span className="breadcrumb-item">Gerenciar Lojas</span>
+                )}
+                {slug && !isSpecialRoute && (
+                  <span className="breadcrumb-item">
+                    {config?.name || slug}
+                  </span>
                 )}
               </nav>
 
-              {slug && slug !== "gerenciar-lojas" && slug !== "undefined" && (
+              {slug && !isSpecialRoute && (
                 <a
                   href={`/loja/${slug}`}
                   target="_blank"
