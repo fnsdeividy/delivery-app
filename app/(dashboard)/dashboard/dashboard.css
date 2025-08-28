@@ -140,10 +140,22 @@
     bottom: 0;
     z-index: 50;
     transform: translateX(-100%);
+    width: 100%;
+    max-width: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .dashboard-sidebar.open {
     transform: translateX(0);
+  }
+
+  /* Melhorar posicionamento do header do sidebar no mobile */
+  .dashboard-sidebar > div:first-child {
+    position: sticky;
+    top: 0;
+    background: var(--sidebar-bg);
+    z-index: 10;
   }
 }
 

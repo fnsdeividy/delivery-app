@@ -13,7 +13,6 @@ import { OrderStatus, UserRole } from "@/types/cardapio-api";
 import { useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { OrderManagement } from "./OrderManagement";
-import { ProductManagement } from "./ProductManagement";
 import { StoreManagement } from "./StoreManagement";
 import { UserManagement } from "./UserManagement";
 
@@ -479,15 +478,6 @@ export function Dashboard({ storeSlug }: DashboardProps) {
               <h3 className="text-lg font-medium text-gray-900">
                 Gerenciamento de Produtos
               </h3>
-            </div>
-            <div className="p-6">
-              {storeSlug ? (
-                <ProductManagement storeSlug={storeSlug} />
-              ) : (
-                <p className="text-gray-500">
-                  Selecione uma loja para gerenciar produtos.
-                </p>
-              )}
             </div>
           </div>
         )}

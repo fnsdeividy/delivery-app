@@ -226,7 +226,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <div className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/60">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
             {config?.branding?.logo ? (
               <img
                 src={config.branding.logo}
@@ -238,16 +238,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Storefront className="h-5 w-5 text-white" />
               </div>
             )}
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
-              {config?.name || "Dashboard"}
+            <h2 className="text-lg font-semibold text-gray-900 truncate ml-3">
+              {config?.name || slug || "Dashboard"}
             </h2>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          {/* Botão de fechar sidebar - só mostra quando sidebar está aberto */}
+          {sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         <nav className="mt-6 px-3">
@@ -329,22 +332,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </span>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">
                   {user?.name || "Usuário"}
                 </p>
-                <p className="text-xs text-gray-500 font-medium">
-                  {user?.role === "SUPER_ADMIN"
-                    ? "Super Administrador"
-                    : user?.role === "ADMIN"
-                    ? "Administrador"
-                    : "Usuário"}
+                <p className="text-xs text-gray-500 font-medium truncate">
+                  {slug && !isSpecialRoute ? (
+                    <span className="flex items-center space-x-1">
+                      <Storefront className="h-3 w-3" />
+                      <span>{slug}</span>
+                    </span>
+                  ) : user?.role === "SUPER_ADMIN" ? (
+                    "Super Administrador"
+                  ) : user?.role === "ADMIN" ? (
+                    "Administrador"
+                  ) : (
+                    "Usuário"
+                  )}
                 </p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 flex-shrink-0"
               title="Sair"
             >
               <SignOut className="h-5 w-5" />
