@@ -805,23 +805,31 @@ class ApiClient {
     );
   }
 
-  async getProductById(id: string): Promise<Product> {
-    return this.get<Product>(`/products/${id}`);
+  async getProductById(id: string, storeSlug: string): Promise<Product> {
+    return this.get<Product>(`/products/${id}?storeSlug=${storeSlug}`);
   }
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
-    return this.post<Product>("/products", productData);
+    const { storeSlug, ...productDataWithoutStoreSlug } = productData;
+    return this.post<Product>(
+      `/products?storeSlug=${storeSlug}`,
+      productDataWithoutStoreSlug
+    );
   }
 
   async updateProduct(
     id: string,
     productData: UpdateProductDto
   ): Promise<Product> {
-    return this.patch<Product>(`/products/${id}`, productData);
+    const { storeSlug, ...productDataWithoutStoreSlug } = productData;
+    return this.patch<Product>(
+      `/products/${id}?storeSlug=${storeSlug}`,
+      productDataWithoutStoreSlug
+    );
   }
 
-  async deleteProduct(id: string): Promise<void> {
-    return this.delete<void>(`/products/${id}`);
+  async deleteProduct(id: string, storeSlug: string): Promise<void> {
+    return this.delete<void>(`/products/${id}?storeSlug=${storeSlug}`);
   }
 
   async searchProducts(storeSlug: string, query: string): Promise<Product[]> {

@@ -81,10 +81,12 @@ export default function NovoProdutoPage() {
 
   const loadCategories = async () => {
     try {
-      const data = await apiClient.get<Category[]>(
-        `/stores/${slug}/categories`
-      );
-      setCategories(data);
+      const response = await apiClient.get<any>(`/stores/${slug}/categories`);
+
+      // O backend retorna um objeto PaginatedResponse devido ao interceptor
+      // Precisamos extrair o array de categorias da propriedade 'data'
+      const categoriesData = response.data || response;
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error: any) {
       console.error("Erro ao carregar categorias:", error);
 
