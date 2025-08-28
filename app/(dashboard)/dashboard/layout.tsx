@@ -14,12 +14,13 @@ import {
   Truck,
   X,
 } from "@phosphor-icons/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import { UserStoreStatus } from "../../../components/UserStoreStatus";
 import WelcomeNotification from "../../../components/WelcomeNotification";
+import { useAuthContext } from "../../../contexts/AuthContext";
 import { useStores } from "../../../hooks";
 import { useStoreConfig } from "../../../lib/store/useStoreConfig";
 import "./dashboard.css";
@@ -38,7 +39,9 @@ interface NavigationItem {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthContext();
 
   // Extrair slug da URL - considerar rotas especiais
   const pathParts = pathname.split("/");
@@ -198,6 +201,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     navigation = [];
   }
 
+  // Função para fazer logout
+  const handleLogout = async () => {
+    try {
+      logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       {/* Mobile menu overlay */}
@@ -303,40 +316,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             )}
           </div>
 
-          {/* Seletor de Loja Ativa */}
-          {userStores.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200/60">
-              <div className="px-3 mb-3">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Lojas Disponíveis
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {userStores.slice(0, 5).map((store) => (
-                  <a
-                    key={store.slug}
-                    href={`/dashboard/${store.slug}`}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      pathname === `/dashboard/${store.slug}` ||
-                      (slug === store.slug && !isSpecialRoute)
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Storefront className="mr-3 h-4 w-4 text-gray-400" />
-                    <span className="truncate">{store.name}</span>
-                  </a>
-                ))}
-                {userStores.length > 5 && (
-                  <div className="px-3 py-2">
-                    <p className="text-xs text-gray-500">
-                      +{userStores.length - 5} mais lojas
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Seletor de Loja Ativa - REMOVIDO */}
+          {/* A seção "LOJAS DISPONÍVEIS" foi removida conforme solicitado */}
         </nav>
 
         {/* User section */}
@@ -344,16 +325,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                <span className="text-sm">U</span>
+                <span className="text-sm">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Usuário</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {user?.name || "Usuário"}
+                </p>
                 <p className="text-xs text-gray-500 font-medium">
-                  Administrador
+                  {user?.role === "SUPER_ADMIN"
+                    ? "Super Administrador"
+                    : user?.role === "ADMIN"
+                    ? "Administrador"
+                    : "Usuário"}
                 </p>
               </div>
             </div>
             <button
+              onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
               title="Sair"
             >
