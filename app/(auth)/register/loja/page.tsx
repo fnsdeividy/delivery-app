@@ -736,11 +736,11 @@ export default function RegisterLojaPage() {
                   <p className="text-sm text-gray-600">
                     {String(formData.ownerEmail)}
                   </p>
-                  {formData.ownerPhone && (
+                  {formData.ownerPhone ? (
                     <p className="text-sm text-gray-600">
                       {String(formData.ownerPhone)}
                     </p>
-                  )}
+                  ) : null}
                 </div>
 
                 <div>

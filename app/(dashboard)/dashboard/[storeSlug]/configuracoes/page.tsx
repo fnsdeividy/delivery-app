@@ -2,7 +2,6 @@
 
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
-  Bell,
   CheckCircle,
   Clock,
   CreditCard,
@@ -37,7 +36,6 @@ interface StoreStatus {
   hasScheduleConfig: boolean;
   hasPaymentConfig: boolean;
   hasDeliveryConfig: boolean;
-  hasNotificationConfig: boolean;
   hasSecurityConfig: boolean;
 }
 
@@ -86,7 +84,6 @@ export default function ConfiguracoesPage() {
     hasScheduleConfig: false,
     hasPaymentConfig: false,
     hasDeliveryConfig: false,
-    hasNotificationConfig: false,
     hasSecurityConfig: false,
   });
 
@@ -103,7 +100,6 @@ export default function ConfiguracoesPage() {
           config.payments?.card
         ),
         hasDeliveryConfig: !!config.delivery?.enabled,
-        hasNotificationConfig: !!config.settings?.orderNotifications,
         hasSecurityConfig: false, // Implementar quando necessário
       });
     }
@@ -147,15 +143,6 @@ export default function ConfiguracoesPage() {
       href: `/dashboard/${storeSlug}/configuracoes/entrega`,
       status: storeStatus.hasDeliveryConfig ? "completed" : "optional",
       badge: storeStatus.hasDeliveryConfig ? "Configurado" : "Opcional",
-    },
-    {
-      id: "notificacoes",
-      title: "Notificações",
-      description: "Configure alertas de pedidos, emails e notificações push",
-      icon: Bell,
-      href: `/dashboard/${storeSlug}/configuracoes/notificacoes`,
-      status: storeStatus.hasNotificationConfig ? "completed" : "optional",
-      badge: storeStatus.hasNotificationConfig ? "Configurado" : "Opcional",
     },
     {
       id: "seguranca",
@@ -431,7 +418,8 @@ export default function ConfiguracoesPage() {
                   • <strong>Entrega:</strong> Defina zonas e taxas de entrega
                 </li>
                 <li>
-                  • <strong>Notificações:</strong> Mantenha clientes informados
+                  • <strong>Segurança:</strong> Configure configurações de
+                  segurança
                 </li>
               </ul>
             </div>
