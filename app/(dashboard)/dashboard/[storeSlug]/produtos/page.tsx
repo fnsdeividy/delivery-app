@@ -109,14 +109,7 @@ export default function ProdutosPage() {
   }, [categories]);
 
   /** query params memo (evita reconstrução de strings em cada render) */
-  const baseQuery = useMemo(() => {
-    const p = new URLSearchParams();
-    p.set("page", String(pagination.page));
-    p.set("limit", String(pagination.limit));
-    p.set("active", String(!showInactive));
-    if (selectedCategory) p.set("categoryId", selectedCategory);
-    return p;
-  }, [pagination.page, pagination.limit, selectedCategory, showInactive]);
+  // Removido baseQuery - agora construímos os parâmetros diretamente nas funções
 
   /** Busca de categorias */
   useEffect(() => {
@@ -154,110 +147,126 @@ export default function ProdutosPage() {
     []
   );
 
-  /** Carregar produtos (lista padrão) */
-  const loadProducts = useCallback(
-    async (signal?: AbortSignal) => {
-      setIsLoading(true);
+  /** Função base para carregar produtos */
+  const fetchProducts = useCallback(
+    async (signal?: AbortSignal, isSearch = false, query = "") => {
+      if (isSearch) {
+        setIsSearching(true);
+      } else {
+        setIsLoading(true);
+      }
+
       try {
-        const endpoint = `/stores/${slug}/products?${baseQuery.toString()}`;
+        const p = new URLSearchParams();
+        p.set("page", String(pagination.page));
+        p.set("limit", String(pagination.limit));
+        p.set("active", String(!showInactive));
+        if (selectedCategory) p.set("categoryId", selectedCategory);
+        if (isSearch && query.trim()) {
+          p.set("q", query.trim());
+        }
+
+        const endpoint = isSearch
+          ? `/stores/${slug}/products/search?${p.toString()}`
+          : `/stores/${slug}/products?${p.toString()}`;
+
         const data = await apiClient.get<PaginatedResponse<Product>>(endpoint, {
           signal,
         } as any);
+
         if (!mountedRef.current || signal?.aborted) return;
         if (data?.data) applyProductResponse(data);
       } catch (error: any) {
-        if (error?.name === "AbortError") return;
-        console.error("Erro ao carregar produtos:", error);
-        handleErrorWithRedirect(error, "Erro ao carregar produtos");
+        // Ignorar erros de cancelamento e AbortError
+        if (
+          error?.name === "AbortError" ||
+          error?.code === "ERR_CANCELED" ||
+          error?.message === "Requisição cancelada"
+        ) {
+          return;
+        }
+        console.error(
+          `Erro ao ${isSearch ? "buscar" : "carregar"} produtos:`,
+          error
+        );
+        handleErrorWithRedirect(
+          error,
+          `Erro ao ${isSearch ? "buscar" : "carregar"} produtos`
+        );
       } finally {
-        if (mountedRef.current) setIsLoading(false);
+        if (mountedRef.current) {
+          if (isSearch) {
+            setIsSearching(false);
+          } else {
+            setIsLoading(false);
+          }
+        }
       }
     },
-    [slug, baseQuery, applyProductResponse, handleErrorWithRedirect]
+    [
+      slug,
+      pagination.page,
+      pagination.limit,
+      selectedCategory,
+      showInactive,
+      applyProductResponse,
+      handleErrorWithRedirect,
+    ]
+  );
+
+  /** Carregar produtos (lista padrão) */
+  const loadProducts = useCallback(
+    async (signal?: AbortSignal) => {
+      return fetchProducts(signal, false);
+    },
+    [fetchProducts]
   );
 
   /** Buscar produtos (search) */
   const searchProducts = useCallback(
     async (signal?: AbortSignal) => {
       if (!searchQuery.trim()) {
-        return loadProducts(signal);
+        return fetchProducts(signal, false);
       }
-      setIsSearching(true);
-      try {
-        const p = new URLSearchParams(baseQuery.toString());
-        p.set("q", searchQuery.trim());
-        const endpoint = `/stores/${slug}/products/search?${p.toString()}`;
-        const data = await apiClient.get<PaginatedResponse<Product>>(endpoint, {
-          signal,
-        } as any);
-        if (!mountedRef.current || signal?.aborted) return;
-        if (data?.data) applyProductResponse(data);
-      } catch (error: any) {
-        if (error?.name === "AbortError") return;
-        console.error("Erro na busca de produtos:", error);
-        handleErrorWithRedirect(error, "Erro na busca de produtos");
-      } finally {
-        if (mountedRef.current) setIsSearching(false);
-      }
+      return fetchProducts(signal, true, searchQuery);
     },
-    [
-      slug,
-      searchQuery,
-      baseQuery,
-      applyProductResponse,
-      handleErrorWithRedirect,
-      loadProducts,
-    ]
+    [fetchProducts, searchQuery]
   );
 
-  /** Carregamento inicial */
+  /** Carregamento inicial e recarregamento por filtros */
   useEffect(() => {
     if (!isAuthenticated()) return;
-    const controller = new AbortController();
-    loadProducts(controller.signal);
-    return () => controller.abort();
-  }, [isAuthenticated, loadProducts]);
 
-  /** Recarregar ao alterar filtros (exceto searchQuery, que tem debounce próprio) */
-  useEffect(() => {
-    if (!isAuthenticated()) return;
     const controller = new AbortController();
-    // quando filtros mudam, incluindo paginação, recarrega modo atual (busca ou lista)
-    const runner = searchQuery.trim() ? searchProducts : loadProducts;
-    runner(controller.signal);
+
+    // Determinar se deve fazer busca ou carregamento normal
+    if (searchQuery.trim()) {
+      fetchProducts(controller.signal, true, searchQuery);
+    } else {
+      fetchProducts(controller.signal, false);
+    }
+
     return () => controller.abort();
   }, [
     isAuthenticated,
+    slug,
     selectedCategory,
     showInactive,
     pagination.page,
     pagination.limit,
     searchQuery,
-    loadProducts,
-    searchProducts,
+    fetchProducts,
   ]);
 
   /** Debounce para searchQuery + reset da página para 1 ao digitar */
   useEffect(() => {
     if (!isAuthenticated()) return;
-    const controller = new AbortController();
 
     // ao mudar o texto de busca, volta para a página 1
     setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
 
-    const t = setTimeout(
-      () => {
-        searchProducts(controller.signal);
-      },
-      searchQuery.trim() ? 350 : 0
-    );
-
-    return () => {
-      controller.abort();
-      clearTimeout(t);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+    // Não executar imediatamente, apenas resetar página
+  }, [searchQuery, isAuthenticated]);
 
   /** Alternar status do produto */
   const toggleProductStatus = async (

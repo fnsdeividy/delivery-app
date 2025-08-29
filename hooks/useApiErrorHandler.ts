@@ -12,6 +12,15 @@ export function useApiErrorHandler() {
 
   const handleError = useCallback(
     (error: ApiError, context?: string) => {
+      // Ignorar erros de cancelamento
+      if (error.status === 0 && error.message === "Requisição cancelada") {
+        return {
+          type: "cancelled",
+          message: "Requisição cancelada",
+          shouldRedirect: false,
+        };
+      }
+
       console.error(`❌ Erro na API ${context ? `(${context})` : ""}:`, error);
 
       // Tratar erros específicos sem fazer logout desnecessário

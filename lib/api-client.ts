@@ -150,6 +150,11 @@ class ApiClient {
   }
 
   private handleResponseError(error: AxiosError): void {
+    // Não logar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      return;
+    }
+
     this.log("❌ Response Error", {
       status: error.response?.status,
       url: error.config?.url,
@@ -173,6 +178,11 @@ class ApiClient {
   }
 
   private processErrorWithHandler(error: AxiosError): void {
+    // Não processar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      return;
+    }
+
     if (typeof window !== "undefined") {
       import("./error-handler")
         .then(({ ErrorHandler }) => {
@@ -348,12 +358,14 @@ class ApiClient {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await this.client.post<T>(url, formData, {
+      const axiosConfig = {
         ...config,
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+      };
+
+      const response = await this.client.post<T>(url, formData, axiosConfig);
       return response.data;
     } catch (error) {
       throw this.createApiError(error);
@@ -963,6 +975,13 @@ class ApiClient {
   private createAxiosError(error: AxiosError): ApiError {
     const apiError = new Error() as ApiError;
     apiError.isAxiosError = true;
+
+    // Tratar erros de cancelamento especificamente
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      apiError.message = "Requisição cancelada";
+      apiError.status = 0; // Status especial para requisições canceladas
+      return apiError;
+    }
 
     if (error.response) {
       const { status, data } = error.response;
