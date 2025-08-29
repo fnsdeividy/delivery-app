@@ -3,7 +3,6 @@ import {
   AuthContext,
   AuthResponse,
   Category,
-  CreateCategoryDto,
   CreateOrderDto,
   CreateProductDto,
   CreateStockMovementDto,
@@ -19,7 +18,6 @@ import {
   StockMovement,
   Store,
   StoreStats,
-  UpdateCategoryDto,
   UpdateInventoryDto,
   UpdateOrderDto,
   UpdateProductDto,
@@ -55,16 +53,16 @@ interface ApiError extends Error {
 // Configuração do cliente HTTP
 class ApiClient {
   private client: AxiosInstance;
-  private baseURL: string;
-  private isDev: boolean;
+  private _baseURL: string;
+  private _isDev: boolean;
   private lastLoggedToken: string | null = null;
 
   constructor() {
-    this.baseURL = apiConfig.api.baseURL;
-    this.isDev = apiConfig.env.isDevelopment;
+    this._baseURL = apiConfig.api.baseURL;
+    this._isDev = apiConfig.env.isDevelopment;
 
     this.client = axios.create({
-      baseURL: this.baseURL,
+      baseURL: this._baseURL,
       timeout: apiConfig.api.timeout,
       headers: {
         "Content-Type": "application/json",
@@ -152,6 +150,11 @@ class ApiClient {
   }
 
   private handleResponseError(error: AxiosError): void {
+    // Não logar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      return;
+    }
+
     this.log("❌ Response Error", {
       status: error.response?.status,
       url: error.config?.url,
@@ -175,6 +178,11 @@ class ApiClient {
   }
 
   private processErrorWithHandler(error: AxiosError): void {
+    // Não processar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      return;
+    }
+
     if (typeof window !== "undefined") {
       import("./error-handler")
         .then(({ ErrorHandler }) => {
@@ -325,14 +333,6 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      // Debug: Log dos dados que serão enviados
-      console.log("🔍 API Client - Dados que serão enviados:", data);
-      console.log("🔍 API Client - Tipo dos dados:", typeof data);
-      console.log(
-        "🔍 API Client - Estrutura dos dados:",
-        JSON.stringify(data, null, 2)
-      );
-
       const response = await this.client.patch<T>(url, data, config);
       return response.data;
     } catch (error) {
@@ -358,12 +358,14 @@ class ApiClient {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await this.client.post<T>(url, formData, {
+      const axiosConfig = {
         ...config,
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+      };
+
+      const response = await this.client.post<T>(url, formData, axiosConfig);
       return response.data;
     } catch (error) {
       throw this.createApiError(error);
@@ -803,21 +805,6 @@ class ApiClient {
     return this.get<Category[]>(`/stores/${storeSlug}/categories`);
   }
 
-  async createCategory(categoryData: CreateCategoryDto): Promise<Category> {
-    return this.post<Category>("/categories", categoryData);
-  }
-
-  async updateCategory(
-    id: string,
-    categoryData: UpdateCategoryDto
-  ): Promise<Category> {
-    return this.patch<Category>(`/categories/${id}`, categoryData);
-  }
-
-  async deleteCategory(id: string): Promise<void> {
-    return this.delete<void>(`/categories/${id}`);
-  }
-
   // ===== PRODUTOS =====
 
   async getProducts(
@@ -830,23 +817,31 @@ class ApiClient {
     );
   }
 
-  async getProductById(id: string): Promise<Product> {
-    return this.get<Product>(`/products/${id}`);
+  async getProductById(id: string, storeSlug: string): Promise<Product> {
+    return this.get<Product>(`/products/${id}?storeSlug=${storeSlug}`);
   }
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
-    return this.post<Product>("/products", productData);
+    const { storeSlug, ...productDataWithoutStoreSlug } = productData;
+    return this.post<Product>(
+      `/products?storeSlug=${storeSlug}`,
+      productDataWithoutStoreSlug
+    );
   }
 
   async updateProduct(
     id: string,
     productData: UpdateProductDto
   ): Promise<Product> {
-    return this.patch<Product>(`/products/${id}`, productData);
+    const { storeSlug, ...productDataWithoutStoreSlug } = productData;
+    return this.patch<Product>(
+      `/products/${id}?storeSlug=${storeSlug}`,
+      productDataWithoutStoreSlug
+    );
   }
 
-  async deleteProduct(id: string): Promise<void> {
-    return this.delete<void>(`/products/${id}`);
+  async deleteProduct(id: string, storeSlug: string): Promise<void> {
+    return this.delete<void>(`/products/${id}?storeSlug=${storeSlug}`);
   }
 
   async searchProducts(storeSlug: string, query: string): Promise<Product[]> {
@@ -917,8 +912,40 @@ class ApiClient {
     period: "daily" | "weekly" | "monthly" = "daily"
   ): Promise<AnalyticsData> {
     return this.get<AnalyticsData>(
-      `/stores/${storeSlug}/analytics?period=${period}`
+      `/analytics/store/${storeSlug}?period=${period}`
     );
+  }
+
+  async getStoreMetrics(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/metrics`);
+  }
+
+  async getTopProducts(storeSlug: string, limit: number = 5): Promise<any> {
+    return this.get(
+      `/analytics/store/${storeSlug}/top-products?limit=${limit}`
+    );
+  }
+
+  async getCustomerMetrics(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/customer-metrics`);
+  }
+
+  async getPeakHours(storeSlug: string): Promise<any> {
+    return this.get(`/analytics/store/${storeSlug}/peak-hours`);
+  }
+
+  // ===== GETTERS PÚBLICOS =====
+
+  get baseURL(): string {
+    return this._baseURL;
+  }
+
+  get timeout(): number {
+    return apiConfig.api.timeout;
+  }
+
+  get isDev(): boolean {
+    return this._isDev;
   }
 
   // ===== UTILITÁRIOS =====
@@ -948,6 +975,13 @@ class ApiClient {
   private createAxiosError(error: AxiosError): ApiError {
     const apiError = new Error() as ApiError;
     apiError.isAxiosError = true;
+
+    // Tratar erros de cancelamento especificamente
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
+      apiError.message = "Requisição cancelada";
+      apiError.status = 0; // Status especial para requisições canceladas
+      return apiError;
+    }
 
     if (error.response) {
       const { status, data } = error.response;

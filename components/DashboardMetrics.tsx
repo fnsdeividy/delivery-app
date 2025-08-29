@@ -13,6 +13,30 @@ interface DashboardMetricsProps {
   storeSlug: string;
 }
 
+// Função helper para formatar preço
+const formatPrice = (price: any): string => {
+  if (price === null || price === undefined) return "0.00";
+
+  // Se for string, converter para número
+  if (typeof price === "string") {
+    const numPrice = parseFloat(price);
+    return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2);
+  }
+
+  // Se for número, usar toFixed
+  if (typeof price === "number") {
+    return price.toFixed(2);
+  }
+
+  // Se for objeto Decimal do Prisma, usar toString
+  if (price && typeof price === "object" && "toString" in price) {
+    const numPrice = parseFloat(price.toString());
+    return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2);
+  }
+
+  return "0.00";
+};
+
 export function DashboardMetrics({
   metrics,
   storeSlug,
@@ -42,7 +66,7 @@ export function DashboardMetrics({
     {
       icon: CurrencyDollar,
       label: "Vendas do Dia",
-      value: `R$ ${metrics.todaySales.toFixed(2)}`,
+      value: `R$ ${formatPrice(metrics.todaySales)}`,
       color: "text-purple-600",
       href: `/dashboard/${storeSlug}/analytics`,
     },

@@ -4,7 +4,6 @@ import {
   ChartBar,
   Clock,
   CreditCard,
-  Crown,
   Gear,
   Layout,
   List,
@@ -15,12 +14,13 @@ import {
   Truck,
   X,
 } from "@phosphor-icons/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import { UserStoreStatus } from "../../../components/UserStoreStatus";
 import WelcomeNotification from "../../../components/WelcomeNotification";
+import { useAuthContext } from "../../../contexts/AuthContext";
 import { useStores } from "../../../hooks";
 import { useStoreConfig } from "../../../lib/store/useStoreConfig";
 import "./dashboard.css";
@@ -39,22 +39,28 @@ interface NavigationItem {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthContext();
 
   // Extrair slug da URL - considerar rotas especiais
   const pathParts = pathname.split("/");
   let slug = "";
+  let isAdminRoute = false;
+  let isSpecialRoute = false;
 
-  // Para rotas especiais, não extrair slug
+  // Identificar rotas especiais e administrativas
   if (
     pathname.startsWith("/dashboard/editar-loja/") ||
-    pathname.startsWith("/dashboard/gerenciar-lojas") ||
     pathname.startsWith("/dashboard/meus-painel") ||
     pathname.startsWith("/dashboard/admin") ||
     pathname.startsWith("/dashboard/superadmin") ||
     pathname === "/dashboard"
   ) {
-    slug = "";
+    isSpecialRoute = true;
+    if (pathname.startsWith("/dashboard/admin")) {
+      isAdminRoute = true;
+    }
   } else if (pathParts.length > 2) {
     // Filtrar partes vazias e encontrar o primeiro slug válido
     const validParts = pathParts.filter((part) => part && part.trim() !== "");
@@ -77,13 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig =
-    slug &&
-    slug !== "editar-loja" &&
-    slug !== "gerenciar-lojas" &&
-    slug !== "meus-painel" &&
-    slug !== "admin" &&
-    slug !== "superadmin";
+  const shouldLoadStoreConfig = slug && !isSpecialRoute;
 
   // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
   const { config, loading, error } = useStoreConfig(
@@ -118,24 +118,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Navegação principal sempre disponível
-  const mainNavigation: NavigationItem[] = [
-    {
-      name: "Painel Geral",
-      href: "/dashboard/admin",
-      icon: Crown,
-      current: pathname === "/dashboard/admin",
-    },
-    {
-      name: "Gerenciar Lojas",
-      href: "/dashboard/gerenciar-lojas",
-      icon: Storefront,
-      current: pathname === "/dashboard/gerenciar-lojas",
-    },
-  ];
+  const mainNavigation: NavigationItem[] = [];
 
   // Navegação por loja específica
   const storeNavigation: NavigationItem[] =
-    slug && slug !== "undefined"
+    slug && slug !== "undefined" && !isSpecialRoute
       ? [
           {
             name: "Visão Geral",
@@ -149,6 +136,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: Package,
             current: pathname.startsWith(`/dashboard/${slug}/produtos`),
           },
+
           {
             name: "Pedidos",
             href: `/dashboard/${slug}/pedidos`,
@@ -199,8 +187,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         ]
       : [];
 
-  // Navegação completa
-  const navigation = [...mainNavigation, ...storeNavigation];
+  // Navegação baseada no contexto
+  let navigation: NavigationItem[] = [];
+
+  if (slug && !isSpecialRoute) {
+    // Em loja específica, mostrar navegação da loja
+    navigation = storeNavigation;
+  } else if (isAdminRoute || isSpecialRoute) {
+    // Em rotas administrativas ou especiais, não mostrar navegação lateral
+    navigation = [];
+  } else {
+    // Fallback para página raiz do dashboard
+    navigation = [];
+  }
+
+  // Função para fazer logout
+  const handleLogout = async () => {
+    try {
+      logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
 
   return (
     <div className="dashboard-layout">
@@ -217,7 +226,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <div className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/60">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
             {config?.branding?.logo ? (
               <img
                 src={config.branding.logo}
@@ -229,16 +238,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Storefront className="h-5 w-5 text-white" />
               </div>
             )}
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
-              {config?.name || "Dashboard"}
+            <h2 className="text-lg font-semibold text-gray-900 truncate ml-3">
+              {config?.name || slug || "Dashboard"}
             </h2>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          {/* Botão de fechar sidebar - só mostra quando sidebar está aberto */}
+          {sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         <nav className="mt-6 px-3">
@@ -294,43 +306,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p className="text-sm text-gray-500">
                   Navegação não disponível
                 </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Slug: {slug || "não definido"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Rota especial: {isSpecialRoute ? "sim" : "não"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Rota admin: {isAdminRoute ? "sim" : "não"}
+                </p>
               </div>
             )}
           </div>
 
-          {/* Seletor de Loja Ativa */}
-          {userStores.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200/60">
-              <div className="px-3 mb-3">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Lojas Disponíveis
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {userStores.slice(0, 5).map((store) => (
-                  <a
-                    key={store.slug}
-                    href={`/dashboard/${store.slug}`}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      pathname === `/dashboard/${store.slug}`
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Storefront className="mr-3 h-4 w-4 text-gray-400" />
-                    <span className="truncate">{store.name}</span>
-                  </a>
-                ))}
-                {userStores.length > 5 && (
-                  <div className="px-3 py-2">
-                    <p className="text-xs text-gray-500">
-                      +{userStores.length - 5} mais lojas
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Seletor de Loja Ativa - REMOVIDO */}
+          {/* A seção "LOJAS DISPONÍVEIS" foi removida conforme solicitado */}
         </nav>
 
         {/* User section */}
@@ -338,17 +328,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                <span className="text-sm">U</span>
+                <span className="text-sm">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Usuário</p>
-                <p className="text-xs text-gray-500 font-medium">
-                  Administrador
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {user?.name || "Usuário"}
+                </p>
+                <p className="text-xs text-gray-500 font-medium truncate">
+                  {slug && !isSpecialRoute ? (
+                    <span className="flex items-center space-x-1">
+                      <Storefront className="h-3 w-3" />
+                      <span>{slug}</span>
+                    </span>
+                  ) : user?.role === "SUPER_ADMIN" ? (
+                    "Super Administrador"
+                  ) : user?.role === "ADMIN" ? (
+                    "Administrador"
+                  ) : (
+                    "Usuário"
+                  )}
                 </p>
               </div>
             </div>
             <button
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+              onClick={handleLogout}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 flex-shrink-0"
               title="Sair"
             >
               <SignOut className="h-5 w-5" />
@@ -373,12 +379,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Breadcrumb */}
               <nav className="breadcrumb">
                 <span className="breadcrumb-item">Dashboard</span>
-                {slug && slug !== "gerenciar-lojas" && slug !== "undefined" && (
-                  <span className="breadcrumb-item">{slug}</span>
+                {isAdminRoute && (
+                  <span className="breadcrumb-item">Administração</span>
+                )}
+                {pathname.startsWith("/dashboard/gerenciar-lojas") && (
+                  <span className="breadcrumb-item">Gerenciar Lojas</span>
+                )}
+                {slug && !isSpecialRoute && (
+                  <span className="breadcrumb-item">
+                    {config?.name || slug}
+                  </span>
                 )}
               </nav>
 
-              {slug && slug !== "gerenciar-lojas" && slug !== "undefined" && (
+              {slug && !isSpecialRoute && (
                 <a
                   href={`/loja/${slug}`}
                   target="_blank"
@@ -398,7 +412,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="dashboard-main-content">
-          <div className="dashboard-container">{children}</div>
+          <div className="dashboard-content-wrapper">
+            <div className="dashboard-container">{children}</div>
+          </div>
         </main>
       </div>
 

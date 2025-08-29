@@ -157,8 +157,14 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             logo: (data as any).config?.logo || "",
             favicon: (data as any).config?.favicon || "",
             banner: (data as any).config?.banner || "",
-            primaryColor: (data as any).config?.primaryColor || "#f97316",
-            secondaryColor: (data as any).config?.secondaryColor || "#ea580c",
+            primaryColor:
+              (data as any).config?.theme?.primaryColor ||
+              (data as any).config?.primaryColor ||
+              "#f97316",
+            secondaryColor:
+              (data as any).config?.theme?.secondaryColor ||
+              (data as any).config?.secondaryColor ||
+              "#ea580c",
             backgroundColor: (data as any).config?.backgroundColor || "#ffffff",
             textColor: (data as any).config?.textColor || "#000000",
             accentColor: (data as any).config?.accentColor || "#f59e0b",

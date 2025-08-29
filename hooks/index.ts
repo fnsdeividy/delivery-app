@@ -1,4 +1,11 @@
 // Hooks para autenticação e usuários
+export {
+  useAnalytics,
+  useCustomerMetrics,
+  usePeakHours,
+  useStoreMetrics,
+  useTopProducts,
+} from "./useAnalytics";
 export { useApiErrorHandler } from "./useApiErrorHandler";
 export { useAuth } from "./useAuth";
 export { useAuthContext } from "./useAuthContext";
@@ -17,15 +24,14 @@ export {
 } from "./useOrders";
 export { useOrdersByStore, useUpdateOrderStatus } from "./useOrderStatus";
 export {
+  useActiveProducts,
   useCategories,
-  useCreateCategory,
   useCreateProduct,
-  useDeleteCategory,
   useDeleteProduct,
   useProduct,
   useProducts,
+  useProductsByCategory,
   useSearchProducts,
-  useUpdateCategory,
   useUpdateProduct,
 } from "./useProducts";
 export { useStore } from "./useStore";

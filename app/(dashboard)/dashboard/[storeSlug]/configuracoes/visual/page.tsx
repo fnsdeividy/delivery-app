@@ -130,7 +130,11 @@ export default function VisualConfigPage() {
 
   // Carregar configuração atual
   useEffect(() => {
+    console.log("🔍 useEffect - config recebido:", config);
+    console.log("🔍 useEffect - config.branding:", config?.branding);
+
     if (config?.branding) {
+      console.log("🔍 useEffect - Atualizando branding com:", config.branding);
       setBranding({
         logo: config.branding.logo || "",
         favicon: config.branding.favicon || "",
@@ -141,8 +145,17 @@ export default function VisualConfigPage() {
         textColor: config.branding.textColor || "#1f2937",
         accentColor: config.branding.accentColor || "#f59e0b",
       });
+    } else {
+      console.log(
+        "🔍 useEffect - config.branding não encontrado, usando valores padrão"
+      );
     }
   }, [config]);
+
+  // Debug: Monitorar mudanças no estado branding
+  useEffect(() => {
+    console.log("🔍 Estado branding atualizado:", branding);
+  }, [branding]);
 
   // Aplicar esquema de cores
   const applyColorScheme = (scheme: ColorScheme) => {

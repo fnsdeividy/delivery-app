@@ -20,7 +20,7 @@ export const config = {
       orders: "/orders",
       health: "/health",
       status: "/status",
-      analytics: "/audit/analytics",
+      analytics: "/analytics",
     },
   },
 

@@ -5,6 +5,14 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+# Yarn
+.yarn/
+.yarnrc
+.yarnrc.yml
+yarn.lock
+# NPM
+package-lock.json
+.npmrc
 
 # testing
 /coverage

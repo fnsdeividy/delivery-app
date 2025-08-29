@@ -17,6 +17,30 @@ interface PageProps {
   };
 }
 
+// Função helper para formatar preço
+const formatPrice = (price: any): string => {
+  if (price === null || price === undefined) return "0,00";
+
+  // Se for string, converter para número
+  if (typeof price === "string") {
+    const numPrice = parseFloat(price);
+    return isNaN(numPrice) ? "0,00" : numPrice.toFixed(2).replace(".", ",");
+  }
+
+  // Se for número, usar toFixed e substituir ponto por vírgula
+  if (typeof price === "number") {
+    return price.toFixed(2).replace(".", ",");
+  }
+
+  // Se for objeto Decimal do Prisma, usar toString
+  if (price && typeof price === "object" && "toString" in price) {
+    const numPrice = parseFloat(price.toString());
+    return isNaN(numPrice) ? "0,00" : numPrice.toFixed(2).replace(".", ",");
+  }
+
+  return "0,00";
+};
+
 async function getStoreConfig(slug: string) {
   try {
     const response = await fetch(
@@ -487,7 +511,7 @@ export default async function StorePage({ params }: PageProps) {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg font-bold text-gray-900">
-                          R$ {product.price.toFixed(2).replace(".", ",")}
+                          R$ {formatPrice(product.price)}
                         </span>
                         {/* Preço original removido - não existe no tipo Product */}
                       </div>

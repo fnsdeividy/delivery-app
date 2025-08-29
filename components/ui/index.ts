@@ -1,16 +1,7 @@
-// Componentes UI reutilizáveis
-export { default as ColorInput } from "./ColorInput";
-export { default as FileUpload } from "./FileUpload";
-
-// Re-exportar componentes existentes
-export {
-  Animated,
-  AnimatedCard,
-  Hero,
-  StaggerItem,
-  StaggerList,
-} from "./animated";
-export { Badge, badgeVariants } from "./badge";
+export { DataCardList } from "./DataCardList";
+export { DataTable } from "./DataTable";
+export { FilterPanel } from "./FilterPanel";
+export { SearchBar } from "./SearchBar";
 export { Button, buttonVariants } from "./button";
 export {
   Sheet,
@@ -24,3 +15,14 @@ export {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
+export { 
+  Animated, 
+  AnimatedCard, 
+  Hero, 
+  StaggerItem, 
+  StaggerList 
+} from "./animated";
+
+export type { CardRenderer } from "./DataCardList";
+export type { Action, Column } from "./DataTable";
+export type { ButtonProps } from "./button";
