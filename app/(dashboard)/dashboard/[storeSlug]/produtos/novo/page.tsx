@@ -22,12 +22,53 @@ interface Ingredient {
 
 interface Addon {
   name: string;
-  price: number;
+  price: number; // valor numérico em reais (ex.: 12.34)
   category: string;
   maxQuantity: number;
   active: boolean;
 }
 
+/** ===================== Helpers de moeda BRL ===================== */
+const brl = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * Recebe a string digitada (qualquer coisa), mantém apenas dígitos,
+ * converte para número em reais (centavos/100). Retorna {text, value}
+ * onde text é "R$ 1.234,56" e value é 1234.56.
+ */
+function parseAndFormatBRL(raw: string): { text: string; value: number } {
+  const onlyDigits = (raw ?? "").replace(/\D+/g, "");
+  if (!onlyDigits) return { text: "", value: 0 };
+  const safeDigits = onlyDigits.slice(0, 15);
+  const cents = Number(safeDigits);
+  const value = cents / 100;
+  return { text: brl.format(value), value };
+}
+
+/** Formata número (reais) -> "R$ 12,30" */
+function formatBRL(value: number): string {
+  try {
+    return brl.format(isFinite(value) ? value : 0);
+  } catch {
+    return "R$ 0,00";
+  }
+}
+
+function parseIntegerDigits(raw: string, maxLen = 9): { text: string; value: number } {
+  const digits = (raw ?? "").replace(/\D+/g, "").slice(0, maxLen);
+  if (!digits) return { text: "", value: 0 };
+  // normaliza para remover zeros à esquerda
+  const normalized = String(parseInt(digits, 10));
+  const safe = Number.isFinite(Number(normalized)) ? Number(normalized) : 0;
+  return { text: normalized, value: safe };
+}
+
+/** ===================== Página ===================== */
 export default function NovoProdutoPage() {
   const params = useParams();
   const router = useRouter();
@@ -36,6 +77,7 @@ export default function NovoProdutoPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+
   const [formData, setFormData] = useState<CreateProductDto>({
     name: "",
     description: "",
@@ -43,7 +85,7 @@ export default function NovoProdutoPage() {
     originalPrice: 0,
     categoryId: "",
     storeSlug: slug,
-    image: "",
+    image: undefined,
     active: true,
     ingredients: [],
     addons: [],
@@ -57,7 +99,17 @@ export default function NovoProdutoPage() {
     },
     tags: [],
     tagColor: "#3B82F6",
+    initialStock: 0,
+    minStock: 5,
   });
+
+  // Estados de exibição formatada (preço)
+  const [priceText, setPriceText] = useState<string>("");
+  const [originalPriceText, setOriginalPriceText] = useState<string>("");
+
+  // Estados de exibição para estoque (inteiro sem zeros à esquerda)
+  const [initialStockText, setInitialStockText] = useState<string>("");
+  const [minStockText, setMinStockText] = useState<string>("");
 
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
@@ -72,6 +124,7 @@ export default function NovoProdutoPage() {
     maxQuantity: 1,
     active: true,
   });
+  const [newAddonPriceText, setNewAddonPriceText] = useState<string>("");
 
   const [newTag, setNewTag] = useState("");
 
@@ -79,17 +132,25 @@ export default function NovoProdutoPage() {
     loadCategories();
   }, [slug]);
 
+  // Sincroniza textos quando a página monta (caso venha com valores pré-carregados)
+  useEffect(() => {
+    setPriceText(formData.price ? formatBRL(formData.price) : "");
+    setOriginalPriceText(formData.originalPrice ? formatBRL(formData.originalPrice) : "");
+    setInitialStockText(
+      formData.initialStock && formData.initialStock > 0 ? String(formData.initialStock) : ""
+    );
+    setMinStockText(
+      formData.minStock && formData.minStock > 0 ? String(formData.minStock) : ""
+    );
+  }, []); // mount only
+
   const loadCategories = async () => {
     try {
       const response = await apiClient.get<any>(`/stores/${slug}/categories`);
-
-      // O backend retorna um objeto PaginatedResponse devido ao interceptor
-      // Precisamos extrair o array de categorias da propriedade 'data'
       const categoriesData = response.data || response;
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error: any) {
       console.error("Erro ao carregar categorias:", error);
-
       if (error.status === 403) {
         router.push("/unauthorized");
       } else if (error.status === 401) {
@@ -98,29 +159,109 @@ export default function NovoProdutoPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    // Criar toast nativo
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition-all duration-300 transform translate-x-full ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Animar entrada
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+      toast.style.transform = 'translateX(full)';
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  };
 
-    if (!formData.name || !formData.categoryId || formData.price <= 0) {
-      alert("Por favor, preencha todos os campos obrigatórios");
+  const handleSubmit = async (e: React.FormEvent) => {
+    console.log("🎯 handleSubmit CHAMADO - Evento:", e.type);
+    e.preventDefault();
+    
+    console.log("🚀 Iniciando criação de produto...");
+    console.log("📋 Dados do formulário:", formData);
+
+    // Verificar autenticação antes de prosseguir
+    const token = getCurrentToken();
+    const authStatus = isAuthenticated();
+    console.log("🔐 Status de autenticação:", { 
+      isAuthenticated: authStatus, 
+      hasToken: !!token,
+      tokenLength: token?.length || 0 
+    });
+
+    if (!authStatus || !token) {
+      console.error("❌ Usuário não autenticado");
+      showToast("Sessão expirada. Faça login novamente.", 'error');
+      setTimeout(() => router.push("/login"), 1000);
       return;
     }
 
+    if (!formData.name || !formData.categoryId || formData.price <= 0) {
+      const errorMsg = "Por favor, preencha todos os campos obrigatórios";
+      console.error("❌ Validação falhou:", errorMsg);
+      showToast(errorMsg, 'error');
+      return;
+    }
+
+    // Preparar dados para envio - remover campos vazios opcionais
+    const dataToSend = {
+      ...formData,
+      image: formData.image?.trim() || undefined,
+      description: formData.description?.trim() || "",
+      originalPrice: (formData.originalPrice || 0) > 0 ? formData.originalPrice : undefined,
+      initialStock: (formData.initialStock || 0) > 0 ? formData.initialStock : undefined,
+      minStock: (formData.minStock || 0) > 0 ? formData.minStock : undefined,
+    };
+
+    console.log("📤 Dados preparados para envio:", dataToSend);
+    console.log("🏪 Store slug:", slug);
+    console.log("🌐 URL da API que será chamada:", `/products?storeSlug=${slug}`);
+
     try {
       setIsLoading(true);
-      await apiClient.createProduct(formData);
-
-      // Redirecionar para a lista de produtos com mensagem de sucesso
-      router.push(`/dashboard/${slug}/produtos?success=created`);
+      console.log("⏳ Enviando requisição para o backend...");
+      console.log("🔑 Token sendo usado:", token.substring(0, 20) + "...");
+      
+      const result = await apiClient.createProduct(dataToSend);
+      
+      console.log("✅ Produto criado com sucesso:", result);
+      showToast("Produto criado com sucesso!", 'success');
+      
+      // Aguardar um pouco para o usuário ver o toast antes de redirecionar
+      setTimeout(() => {
+        router.push(`/dashboard/${slug}/produtos`);
+      }, 1000);
+      
     } catch (error: any) {
-      console.error("Erro ao criar produto:", error);
-
+      console.error("❌ Erro ao criar produto:", error);
+      console.error("📊 Detalhes completos do erro:", {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+        response: error.response,
+        isAxiosError: error.isAxiosError,
+        config: error.config
+      });
+      
       if (error.status === 403) {
-        router.push("/unauthorized");
+        showToast("Acesso negado. Você não tem permissão para criar produtos.", 'error');
+        setTimeout(() => router.push("/unauthorized"), 2000);
       } else if (error.status === 401) {
-        router.push("/login");
+        showToast("Sessão expirada. Faça login novamente.", 'error');
+        setTimeout(() => router.push("/login"), 2000);
       } else {
-        alert(`Erro ao criar produto: ${error.message}`);
+        const errorMessage = error.message || "Erro desconhecido ao criar produto";
+        showToast(`Erro ao criar produto: ${errorMessage}`, 'error');
       }
     } finally {
       setIsLoading(false);
@@ -150,6 +291,7 @@ export default function NovoProdutoPage() {
         ...prev,
         addons: [...prev.addons, { ...newAddon }],
       }));
+      // reset addon
       setNewAddon({
         name: "",
         price: 0,
@@ -157,6 +299,7 @@ export default function NovoProdutoPage() {
         maxQuantity: 1,
         active: true,
       });
+      setNewAddonPriceText("");
     }
   };
 
@@ -184,6 +327,7 @@ export default function NovoProdutoPage() {
     }));
   };
 
+  /** ===================== Render ===================== */
   return (
     <ProtectedProductRoute storeSlug={slug} requiredAction="write">
       <div className="p-6 max-w-4xl mx-auto">
@@ -192,6 +336,7 @@ export default function NovoProdutoPage() {
           <button
             onClick={() => router.push(`/dashboard/${slug}/produtos`)}
             className="p-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100"
+            type="button"
           >
             <ArrowLeft size={20} />
           </button>
@@ -200,7 +345,7 @@ export default function NovoProdutoPage() {
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {/* Informações Básicas */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
@@ -248,44 +393,57 @@ export default function NovoProdutoPage() {
                 </select>
               </div>
 
+              {/* ===== Preço (BRL) com máscara ===== */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preço (R$) *
+                  Preço *
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      price: parseFloat(e.target.value) || 0,
-                    }))
-                  }
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  value={priceText}
+                  onChange={(e) => {
+                    const { text, value } = parseAndFormatBRL(e.target.value);
+                    setPriceText(text);
+                    setFormData((prev) => ({ ...prev, price: value }));
+                  }}
+                  onBlur={() => {
+                    setPriceText(formData.price ? formatBRL(formData.price) : "");
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="0.00"
+                  placeholder="R$ 0,00"
+                  aria-label="Preço em reais"
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Digite apenas números (ex.: 1234 vira R$ 12,34)
+                </p>
               </div>
 
+              {/* ===== Preço Original (BRL) com máscara ===== */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preço Original (R$)
+                  Preço Original
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.originalPrice}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      originalPrice: parseFloat(e.target.value) || 0,
-                    }))
-                  }
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  value={originalPriceText}
+                  onChange={(e) => {
+                    const { text, value } = parseAndFormatBRL(e.target.value);
+                    setOriginalPriceText(text);
+                    setFormData((prev) => ({ ...prev, originalPrice: value }));
+                  }}
+                  onBlur={() => {
+                    setOriginalPriceText(
+                      formData.originalPrice ? formatBRL(formData.originalPrice) : ""
+                    );
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="0.00"
+                  placeholder="R$ 0,00"
+                  aria-label="Preço original em reais"
                 />
               </div>
             </div>
@@ -314,9 +472,9 @@ export default function NovoProdutoPage() {
               </label>
               <input
                 type="url"
-                value={formData.image}
+                value={formData.image || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, image: e.target.value }))
+                  setFormData((prev) => ({ ...prev, image: e.target.value || undefined }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="https://exemplo.com/imagem.jpg"
@@ -324,49 +482,74 @@ export default function NovoProdutoPage() {
             </div>
           </div>
 
-          {/* Estoque */}
+          {/* Controle de Estoque */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Controle de Estoque
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Estoque Inicial (somente dígitos, sem zeros à esquerda) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Estoque Inicial
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  value={formData.initialStock}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      initialStock: parseInt(e.target.value) || 0,
-                    }))
-                  }
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  value={initialStockText}
+                  onChange={(e) => {
+                    const { text, value } = parseIntegerDigits(e.target.value);
+                    setInitialStockText(text);
+                    setFormData((prev) => ({ ...prev, initialStock: value }));
+                  }}
+                  onBlur={() => {
+                    // Normaliza visualmente: se 0, deixar vazio; senão, mostra o número
+                    setInitialStockText(
+                      formData.initialStock && formData.initialStock > 0
+                        ? String(formData.initialStock)
+                        : ""
+                    );
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="0"
+                  aria-label="Estoque inicial (inteiro)"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Somente números. Ex.: digite <code>02</code> → exibe <code>2</code>.
+                </p>
               </div>
 
+              {/* Estoque Mínimo (somente dígitos, sem zeros à esquerda) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Estoque Mínimo
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  value={formData.minStock}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      minStock: parseInt(e.target.value) || 5,
-                    }))
-                  }
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  value={minStockText}
+                  onChange={(e) => {
+                    const { text, value } = parseIntegerDigits(e.target.value);
+                    setMinStockText(text);
+                    setFormData((prev) => ({ ...prev, minStock: value }));
+                  }}
+                  onBlur={() => {
+                    setMinStockText(
+                      formData.minStock && formData.minStock > 0
+                        ? String(formData.minStock)
+                        : ""
+                    );
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="5"
+                  aria-label="Estoque mínimo (inteiro)"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Somente números. Ex.: digite <code>02</code> → exibe <code>2</code>.
+                </p>
               </div>
             </div>
           </div>
@@ -489,19 +672,25 @@ export default function NovoProdutoPage() {
                 placeholder="Nome do addon"
               />
 
+              {/* Preço do addon com máscara BRL */}
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={newAddon.price}
-                onChange={(e) =>
-                  setNewAddon((prev) => ({
-                    ...prev,
-                    price: parseFloat(e.target.value) || 0,
-                  }))
-                }
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
+                value={newAddonPriceText}
+                onChange={(e) => {
+                  const { text, value } = parseAndFormatBRL(e.target.value);
+                  setNewAddonPriceText(text);
+                  setNewAddon((prev) => ({ ...prev, price: value }));
+                }}
+                onBlur={() => {
+                  setNewAddonPriceText(
+                    newAddon.price ? formatBRL(newAddon.price) : ""
+                  );
+                }}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Preço"
+                placeholder="R$ 0,00"
+                aria-label="Preço do addon em reais"
               />
 
               <input
@@ -516,12 +705,12 @@ export default function NovoProdutoPage() {
 
               <input
                 type="number"
-                min="1"
+                min={1}
                 value={newAddon.maxQuantity}
                 onChange={(e) =>
                   setNewAddon((prev) => ({
                     ...prev,
-                    maxQuantity: parseInt(e.target.value) || 1,
+                    maxQuantity: Number.parseInt(e.target.value || "1", 10) || 1,
                   }))
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -548,7 +737,7 @@ export default function NovoProdutoPage() {
                     <div className="flex items-center gap-3">
                       <span className="font-medium">{addon.name}</span>
                       <span className="text-sm text-gray-600">
-                        R$ {addon.price.toFixed(2)}
+                        {formatBRL(addon.price)}
                       </span>
                       <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
                         {addon.category || "Sem categoria"}
@@ -581,9 +770,12 @@ export default function NovoProdutoPage() {
                 onChange={(e) => setNewTag(e.target.value)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Nova tag"
-                onKeyPress={(e) =>
-                  e.key === "Enter" && (e.preventDefault(), addTag())
-                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
               />
               <button
                 type="button"

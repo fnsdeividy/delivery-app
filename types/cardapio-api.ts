@@ -85,7 +85,7 @@ export interface CreateProductDto {
   description: string;
   price: number;
   originalPrice?: number;
-  image: string;
+  image?: string;
   active: boolean;
   preparationTime?: number;
   categoryId: string;
