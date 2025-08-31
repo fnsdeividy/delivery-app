@@ -132,9 +132,9 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             categories: (data as any).categories || [],
           },
           settings: {
-            preparationTime: (data as any).config?.preparationTime || 30,
+            preparationTime: (data as any).config?.settings?.preparationTime || (data as any).config?.preparationTime || 30,
             orderNotifications:
-              (data as any).config?.orderNotifications !== false,
+              (data as any).config?.settings?.orderNotifications !== false,
           },
           delivery: {
             fee: (data as any).config?.deliveryFee || 0,
@@ -171,7 +171,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           schedule: {
             timezone: "America/Sao_Paulo",
-            workingHours: (data as any).config?.businessHours || {},
+            workingHours: (data as any).config?.schedule?.workingHours || (data as any).config?.businessHours || {},
           },
           business: {
             phone: (data as any).config?.phone || "",
@@ -214,7 +214,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             categories: storeConfig.menu?.categories || [],
           },
           settings: {
-            preparationTime: storeConfig.settings?.preparationTime || 30,
+            preparationTime: storeConfig.config?.settings?.preparationTime || storeConfig.settings?.preparationTime || 30,
             orderNotifications:
               storeConfig.settings?.orderNotifications !== false,
           },
@@ -244,7 +244,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           schedule: {
             timezone: "America/Sao_Paulo",
-            workingHours: storeConfig.schedule?.workingHours || {},
+            workingHours: storeConfig.config?.schedule?.workingHours || storeConfig.schedule?.workingHours || {},
           },
           business: {
             phone: storeConfig.business?.phone || "",
