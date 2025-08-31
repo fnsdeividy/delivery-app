@@ -43,22 +43,17 @@ export function useCreateStore(): CreateStoreHookReturn {
         const response = await apiClient.createStore(storeData);
         return response;
       } catch (error: any) {
-        console.error("❌ Erro ao criar loja:", error);
         throw new Error(error.message || "Erro ao criar loja");
       }
     },
     onSuccess: async (data) => {
       try {
-        console.log("🎉 Loja criada com sucesso:", data);
-
         // Mostrar toast de sucesso e redirecionamento
         addToast(
           "success",
           "Loja Criada com Sucesso! 🎉",
           "Aguarde alguns segundos, você está sendo redirecionado para o dashboard da sua loja. Seja bem-vindo!"
         );
-
-        console.log("✅ Toast adicionado com sucesso");
 
         // Invalidar queries relacionadas a lojas
         queryClient.invalidateQueries({ queryKey: ["stores"] });
@@ -67,45 +62,26 @@ export function useCreateStore(): CreateStoreHookReturn {
         queryClient.invalidateQueries({ queryKey: ["user-context"] });
         queryClient.invalidateQueries({ queryKey: ["user-stores"] });
 
-        console.log("✅ Queries invalidadas");
-
         // Aguardar um momento para o usuário ver o toast
-        console.log("⏳ Aguardando 2 segundos antes do redirecionamento...");
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        console.log(
-          "🔄 Iniciando redirecionamento para:",
-          `/dashboard/${data.slug}`
-        );
 
         // Verificar se o usuário está autenticado antes de redirecionar
         if (isAuthenticated) {
-          console.log("✅ Usuário autenticado, redirecionando para dashboard");
           // Redirecionar para o dashboard da nova loja
           await redirectAfterStoreCreation(data);
         } else {
-          console.log("⚠️ Usuário não autenticado no contexto, mas token foi armazenado");
-          console.log("🔄 Tentando redirecionamento direto para dashboard...");
-          
-          // Forçar redirecionamento para o dashboard da nova loja
-          // O token foi armazenado durante o registro, então deve funcionar
           try {
             await redirectAfterStoreCreation(data);
           } catch (redirectError) {
-            console.error("❌ Erro no redirecionamento:", redirectError);
-            // Fallback: redirecionar diretamente
             window.location.href = `/dashboard/${data.slug}`;
           }
         }
       } catch (error) {
-        console.error("❌ Erro no processamento pós-criação:", error);
-        // Fallback: redirecionar diretamente para o dashboard
-        console.log("🔄 Fallback: redirecionamento direto para dashboard...");
         window.location.href = `/dashboard/${data.slug}`;
       }
     },
     onError: (error: any) => {
-      console.error("❌ Erro na criação da loja:", error);
+      throw new Error(error.message || "Erro ao criar loja");
     },
   });
 

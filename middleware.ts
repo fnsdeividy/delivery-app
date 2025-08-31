@@ -42,8 +42,6 @@ export async function middleware(request: NextRequest) {
 async function protectDashboardRoute(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  console.log("🔒 Middleware: Protegendo rota do dashboard:", pathname);
-
   // Verificar token JWT nos cookies, headers ou localStorage (via cookie de fallback)
   let token =
     request.cookies.get("cardapio_token")?.value ||
@@ -57,10 +55,7 @@ async function protectDashboardRoute(request: NextRequest) {
     }
   }
 
-  console.log("🔑 Middleware: Token encontrado:", token ? "Sim" : "Não");
-
   if (!token) {
-    console.log("❌ Middleware: Sem token, redirecionando para login");
     // Redirecionar para login se não houver token
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -68,14 +63,9 @@ async function protectDashboardRoute(request: NextRequest) {
   try {
     // Decodificar token para verificações básicas
     const payload = JSON.parse(atob(token.split(".")[1]));
-    console.log("🔍 Middleware: Payload do token:", {
-      role: payload.role,
-      exp: payload.exp,
-    });
 
     // Verificar se token não expirou
     if (payload.exp && payload.exp < Date.now() / 1000) {
-      console.log("❌ Middleware: Token expirado, redirecionando para login");
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
@@ -83,7 +73,6 @@ async function protectDashboardRoute(request: NextRequest) {
     const storeSlugMatch = pathname.match(/^\/dashboard\/([^\/]+)/);
     if (storeSlugMatch) {
       const storeSlug = storeSlugMatch[1];
-      console.log("🏪 Middleware: Rota de loja detectada:", storeSlug);
 
       // Rotas especiais que não requerem slug específico
       const specialRoutes = [
@@ -93,7 +82,6 @@ async function protectDashboardRoute(request: NextRequest) {
         "selecionar-loja",
       ];
       if (specialRoutes.includes(storeSlug)) {
-        console.log("✅ Middleware: Rota especial, permitindo acesso");
         return NextResponse.next();
       }
 
@@ -104,23 +92,12 @@ async function protectDashboardRoute(request: NextRequest) {
         payload.role === "OWNER" ||
         payload.role === "LOJA_ADMIN"
       ) {
-        console.log(
-          "✅ Middleware: Usuário tem role válido, permitindo acesso"
-        );
-        return NextResponse.next();
+            return NextResponse.next();
       }
-
-      console.log(
-        "❌ Middleware: Usuário não tem role válido para acessar loja"
-      );
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
-
-    console.log("✅ Middleware: Rota permitida");
     return NextResponse.next();
   } catch (error) {
-    console.error("❌ Middleware: Erro ao processar token:", error);
-    // Token inválido, redirecionar para login
     return NextResponse.redirect(new URL("/login", request.url));
   }
 }

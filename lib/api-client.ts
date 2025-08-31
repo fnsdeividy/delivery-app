@@ -831,7 +831,7 @@ class ApiClient {
 
   async updateProduct(
     id: string,
-    productData: UpdateProductDto
+    productData: UpdateProductDto & { storeSlug: string }
   ): Promise<Product> {
     const { storeSlug, ...productDataWithoutStoreSlug } = productData;
     return this.patch<Product>(

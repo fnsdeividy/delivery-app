@@ -256,8 +256,6 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
         setConfig(transformedConfig);
       } catch (err: any) {
-        console.error("Erro ao buscar configuração da loja:", err);
-
         // Mapear mensagens de erro para mensagens mais amigáveis
         let userMessage = "Erro ao carregar dados da loja";
 

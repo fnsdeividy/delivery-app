@@ -16,25 +16,13 @@ export function useStoreRedirect() {
   const redirectAfterStoreCreation = useCallback(
     async (createdStore: Store) => {
       try {
-        console.log(
-          "🔄 useStoreRedirect: Iniciando redirecionamento para loja:",
-          createdStore.slug
-        );
-
-        // Definir a nova loja como atual
-        console.log("🔄 Tentando definir loja como atual...");
         await apiClient.updateStoreContext(createdStore.slug);
-        console.log("✅ Loja definida como atual com sucesso");
 
-        // Redirecionar para o dashboard da nova loja
         const targetUrl = `/dashboard/${createdStore.slug}`;
-        console.log("🔄 Redirecionando para:", targetUrl);
         router.push(targetUrl);
       } catch (error) {
         console.error("❌ Erro ao definir loja atual após criação:", error);
-        // Fallback: redirecionar mesmo sem definir como atual
         const targetUrl = `/dashboard/${createdStore.slug}`;
-        console.log("🔄 Fallback: redirecionando para:", targetUrl);
         router.push(targetUrl);
       }
     },
