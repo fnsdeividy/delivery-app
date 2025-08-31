@@ -115,6 +115,8 @@ export interface UpdateProductDto {
   tags?: string[];
   tagColor?: string;
   order?: number;
+  initialStock?: number;
+  minStock?: number;
 }
 
 export interface ProductIngredientDto {
@@ -334,6 +336,8 @@ export interface Product {
   tags: string[];
   tagColor: string;
   inventory?: Inventory;
+  initialStock?: number;
+  minStock?: number;
   createdAt: string;
   updatedAt: string;
 }
