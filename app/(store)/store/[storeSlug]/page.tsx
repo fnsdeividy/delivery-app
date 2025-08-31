@@ -44,7 +44,7 @@ const formatPrice = (price: any): string => {
 async function getStoreConfig(slug: string) {
   try {
     const response = await fetch(
-      `http://localhost:3001/api/store-public/${slug}`,
+      `http://localhost:3001/api/v1/stores/public/${slug}`,
       {
         cache: "no-store",
       }
@@ -116,12 +116,12 @@ async function getStoreConfig(slug: string) {
   }
 }
 
+// Tipo utilitário baseado no retorno de getStoreConfig
+type StoreData = Awaited<ReturnType<typeof getStoreConfig>>;
+
 export default async function StorePage({ params }: PageProps) {
   const { storeSlug: slug } = params;
-
-  console.log(`🏪 StorePage render - slug: ${slug}, params:`, params);
-
-  let config;
+  let config: StoreData | null = null;
   let error: string | null = null;
 
   try {

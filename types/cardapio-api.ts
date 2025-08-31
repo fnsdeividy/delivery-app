@@ -85,7 +85,7 @@ export interface CreateProductDto {
   description: string;
   price: number;
   originalPrice?: number;
-  image: string;
+  image?: string;
   active: boolean;
   preparationTime?: number;
   categoryId: string;
@@ -115,6 +115,8 @@ export interface UpdateProductDto {
   tags?: string[];
   tagColor?: string;
   order?: number;
+  initialStock?: number;
+  minStock?: number;
 }
 
 export interface ProductIngredientDto {
@@ -334,6 +336,8 @@ export interface Product {
   tags: string[];
   tagColor: string;
   inventory?: Inventory;
+  initialStock?: number;
+  minStock?: number;
   createdAt: string;
   updatedAt: string;
 }

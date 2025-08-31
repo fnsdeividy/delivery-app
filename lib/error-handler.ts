@@ -196,12 +196,10 @@ export class ErrorHandler {
         return;
       }
 
-      console.group(`🚨 Error${context ? ` in ${context}` : ""}`);
       console.error("Error:", error);
       if (context) {
         console.log("Context:", context);
       }
-      console.groupEnd();
     }
   }
 }
@@ -222,11 +220,7 @@ export function useErrorHandler() {
       .then(({ useToast }) => {
         try {
           const { addToast } = useToast();
-          addToast({
-            type: "error",
-            title: "Erro",
-            message: error.message,
-          });
+          addToast("error", "Erro", error.message);
         } catch {
           // Fallback para console se o toast não estiver disponível
           console.error("Error Toast:", error.message);
@@ -242,11 +236,7 @@ export function useErrorHandler() {
       .then(({ useToast }) => {
         try {
           const { addToast } = useToast();
-          addToast({
-            type: "success",
-            title,
-            message,
-          });
+          addToast("success", title, message);
         } catch {
           console.log("Success Toast:", title, message);
         }

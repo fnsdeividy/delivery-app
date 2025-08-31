@@ -81,12 +81,6 @@ export default function RegisterLojaPage() {
     zipCode: formData.zipCode,
   });
 
-  // Debug: verificar estado dos hooks de validação
-  console.log("🔍 Estado dos hooks de validação:");
-  console.log("🔍 ownerValidation:", ownerValidation);
-  console.log("🔍 storeValidation:", storeValidation);
-  console.log("🔍 formData atual:", formData);
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -108,7 +102,6 @@ export default function RegisterLojaPage() {
           [name]: stringValue,
         };
 
-        console.log("🔍 handleInputChange:", { name, value, newData });
         return newData;
       });
 
@@ -129,12 +122,8 @@ export default function RegisterLojaPage() {
   };
 
   const handleNextStep = async () => {
-    console.log("🔍 handleNextStep chamado - step:", step);
-    console.log("🔍 formData atual:", formData);
-
     // Validações por step usando Yup
     if (step === 1) {
-      console.log("🔍 Validando step 1 (proprietário)");
       const ownerData = {
         ownerName: formData.ownerName,
         ownerEmail: formData.ownerEmail,
@@ -143,18 +132,14 @@ export default function RegisterLojaPage() {
         confirmPassword: formData.confirmPassword,
       };
 
-      console.log("🔍 Dados do proprietário:", ownerData);
       const validation = await ownerValidation.validateForm(ownerData);
-      console.log("🔍 Resultado validação proprietário:", validation);
 
       if (!validation.isValid) {
-        console.log("❌ Validação do proprietário falhou");
         return;
       }
     }
 
     if (step === 2) {
-      console.log("🔍 Validando step 2 (loja)");
       const storeData = {
         storeName: formData.storeName,
         storeSlug: formData.storeSlug,
@@ -166,25 +151,18 @@ export default function RegisterLojaPage() {
         zipCode: formData.zipCode,
       };
 
-      console.log("🔍 Dados da loja:", storeData);
       const validation = await storeValidation.validateForm(storeData);
-      console.log("🔍 Resultado validação loja:", validation);
 
       if (!validation.isValid) {
-        console.log("❌ Validação da loja falhou");
         return;
       }
     }
-
-    console.log("✅ Validação passou, avançando para step:", step + 1);
     setStep(step + 1);
   };
 
   const handleSubmit = async () => {
     try {
       // Validações completas antes de enviar
-      console.log("🔍 Validando dados antes do envio...");
-
       // Validar dados do proprietário
       const ownerData = {
         ownerName: formData.ownerName,
@@ -198,11 +176,6 @@ export default function RegisterLojaPage() {
         ownerData
       );
       if (!ownerValidationResult.isValid) {
-        console.error(
-          "❌ Validação do proprietário falhou:",
-          ownerValidationResult.errors
-        );
-        // Mostrar erros específicos
         Object.entries(ownerValidationResult.errors).forEach(
           ([field, error]) => {
             console.error(`❌ Campo ${field}: ${error}`);
@@ -227,11 +200,6 @@ export default function RegisterLojaPage() {
         storeData
       );
       if (!storeValidationResult.isValid) {
-        console.error(
-          "❌ Validação da loja falhou:",
-          storeValidationResult.errors
-        );
-        // Mostrar erros específicos
         Object.entries(storeValidationResult.errors).forEach(
           ([field, error]) => {
             console.error(`❌ Campo ${field}: ${error}`);
@@ -241,41 +209,34 @@ export default function RegisterLojaPage() {
       }
 
       setCreationStep("creating-user");
-      console.log("🚀 Iniciando processo de criação da loja...");
-
       // 1. Criar usuário proprietário
       const userData: CreateUserDto = {
-        email: String(formData.ownerEmail),
-        name: String(formData.ownerName),
-        password: String(formData.password),
+        email: typeof formData.ownerEmail === 'string' ? formData.ownerEmail : '',
+        name: typeof formData.ownerName === 'string' ? formData.ownerName : '',
+        password: typeof formData.password === 'string' ? formData.password : '',
         role: UserRole.ADMIN,
       };
 
-      console.log("👤 Criando usuário proprietário...");
       const userResponse = await registerMutation.mutateAsync(userData);
-      console.log("✅ Usuário criado com sucesso:", userResponse);
 
       // 2. Aguardar um momento para garantir que o token foi armazenado
       setCreationStep("creating-store");
-      console.log("⏳ Aguardando token ser armazenado...");
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 3. Criar loja
       const storeCreationData: CreateStoreDto = {
-        name: String(formData.storeName),
-        slug: String(formData.storeSlug),
-        description: String(formData.description || ""),
+        name: typeof formData.storeName === 'string' ? formData.storeName : '',
+        slug: typeof formData.storeSlug === 'string' ? formData.storeSlug : '',
+        description: typeof formData.description === 'string' ? formData.description : '',
         config: {
-          address: `${String(formData.address)}, ${String(
-            formData.city
-          )} - ${String(formData.state)} ${String(formData.zipCode || "")}`,
-          phone: String(formData.ownerPhone || ""),
-          email: String(formData.ownerEmail),
+          address: `${typeof formData.address === 'string' ? formData.address : ''}, ${typeof formData.city === 'string' ? formData.city : ''} - ${typeof formData.state === 'string' ? formData.state : ''} ${typeof formData.zipCode === 'string' || typeof formData.zipCode === 'number' ? formData.zipCode : ''}`,
+          phone: typeof formData.ownerPhone === 'string' ? formData.ownerPhone : '',
+          email: typeof formData.ownerEmail === 'string' ? formData.ownerEmail : '',
           logo: "",
           banner: "",
-          category: String(formData.category),
-          deliveryFee: parseFloat(String(formData.deliveryFee)),
-          minimumOrder: parseFloat(String(formData.minimumOrder)),
+          category: typeof formData.category === 'string' ? formData.category : '',
+          deliveryFee: typeof formData.deliveryFee === 'number' ? formData.deliveryFee : typeof formData.deliveryFee === 'string' ? parseFloat(formData.deliveryFee) || 0 : 0,
+          minimumOrder: typeof formData.minimumOrder === 'number' ? formData.minimumOrder : typeof formData.minimumOrder === 'string' ? parseFloat(formData.minimumOrder) || 0 : 0,
           estimatedDeliveryTime: 30,
           businessHours: {
             monday: { open: true, openTime: "08:00", closeTime: "18:00" },
@@ -290,27 +251,17 @@ export default function RegisterLojaPage() {
         },
       };
 
-      console.log("🏪 Criando loja...");
       const storeResponse = await createStore(storeCreationData);
-      console.log("✅ Loja criada com sucesso:", storeResponse);
 
-      // 4. O redirecionamento será feito automaticamente pelo hook useCreateStore
-      // O hook já está configurado para redirecionar para /dashboard/${storeSlug}
       setCreationStep("redirecting");
-      console.log("🎯 Aguardando redirecionamento automático...");
     } catch (err: any) {
-      // Em caso de erro, mostrar erro mas não redirecionar automaticamente
       console.error("❌ Erro durante o processo de registro:", err);
       setCreationStep("idle");
 
-      // Se for erro de criação de loja, o hook já tratou
-      // Se for erro de registro de usuário, mostrar mensagem apropriada
       if (err.message?.includes("já possui uma loja")) {
-        // Erro já tratado pelo hook
         return;
       }
 
-      // Outros erros podem ser mostrados aqui se necessário
       console.error("Erro não tratado:", err);
     }
   };
@@ -405,7 +356,7 @@ export default function RegisterLojaPage() {
                   type="text"
                   name="ownerName"
                   required
-                  value={String(formData.ownerName)}
+                  value={typeof formData.ownerName === 'string' ? formData.ownerName : ''}
                   onChange={handleInputChange}
                   onBlur={() =>
                     ownerValidation.handleFieldBlur(
@@ -435,7 +386,7 @@ export default function RegisterLojaPage() {
                   type="email"
                   name="ownerEmail"
                   required
-                  value={String(formData.ownerEmail)}
+                  value={typeof formData.ownerEmail === 'string' ? formData.ownerEmail : ''}
                   onChange={handleInputChange}
                   onBlur={() =>
                     ownerValidation.handleFieldBlur(
@@ -464,7 +415,7 @@ export default function RegisterLojaPage() {
                 <input
                   type="tel"
                   name="ownerPhone"
-                  value={String(formData.ownerPhone)}
+                  value={typeof formData.ownerPhone === 'string' ? formData.ownerPhone : ''}
                   onChange={handleInputChange}
                   onBlur={() =>
                     ownerValidation.handleFieldBlur(
@@ -495,7 +446,7 @@ export default function RegisterLojaPage() {
                     type={showPassword ? "text" : "password"}
                     name="password"
                     required
-                    value={String(formData.password)}
+                    value={typeof formData.password === 'string' ? formData.password : ''}
                     onChange={handleInputChange}
                     onBlur={() =>
                       ownerValidation.handleFieldBlur(
@@ -537,7 +488,7 @@ export default function RegisterLojaPage() {
                   type="password"
                   name="confirmPassword"
                   required
-                  value={String(formData.confirmPassword)}
+                  value={typeof formData.confirmPassword === 'string' ? formData.confirmPassword : ''}
                   onChange={handleInputChange}
                   onBlur={() =>
                     ownerValidation.handleFieldBlur(
@@ -572,7 +523,7 @@ export default function RegisterLojaPage() {
                   type="text"
                   name="storeName"
                   required
-                  value={String(formData.storeName)}
+                  value={typeof formData.storeName === 'string' ? formData.storeName : ''}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="Ex: Pizzaria do João"
@@ -591,7 +542,7 @@ export default function RegisterLojaPage() {
                     type="text"
                     name="storeSlug"
                     required
-                    value={String(formData.storeSlug)}
+                    value={typeof formData.storeSlug === 'string' ? formData.storeSlug : ''}
                     onChange={handleInputChange}
                     className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="pizzaria-do-joao"
@@ -609,7 +560,7 @@ export default function RegisterLojaPage() {
                 <select
                   name="category"
                   required
-                  value={String(formData.category)}
+                  value={typeof formData.category === 'string' ? formData.category : ''}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                 >
@@ -634,7 +585,7 @@ export default function RegisterLojaPage() {
                 <textarea
                   name="description"
                   rows={3}
-                  value={String(formData.description || "")}
+                  value={typeof formData.description === 'string' ? formData.description : ''}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="Descreva sua loja..."
@@ -655,7 +606,7 @@ export default function RegisterLojaPage() {
                     type="text"
                     name="address"
                     required
-                    value={String(formData.address)}
+                    value={typeof formData.address === 'string' ? formData.address : ''}
                     onChange={handleInputChange}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="Rua, número, bairro"
@@ -671,7 +622,7 @@ export default function RegisterLojaPage() {
                       type="text"
                       name="city"
                       required
-                      value={String(formData.city)}
+                      value={typeof formData.city === 'string' ? formData.city : ''}
                       onChange={handleInputChange}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                       placeholder="Sua cidade"
@@ -686,7 +637,7 @@ export default function RegisterLojaPage() {
                       type="text"
                       name="state"
                       required
-                      value={String(formData.state)}
+                      value={typeof formData.state === 'string' ? formData.state : ''}
                       onChange={handleInputChange}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                       placeholder="SP, RJ, MG..."
@@ -705,7 +656,7 @@ export default function RegisterLojaPage() {
                   <input
                     type="text"
                     name="zipCode"
-                    value={String(formData.zipCode || "")}
+                    value={typeof formData.zipCode === 'string' || typeof formData.zipCode === 'number' ? String(formData.zipCode) : ''}
                     onChange={handleInputChange}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                     placeholder="00000-000"
@@ -731,14 +682,14 @@ export default function RegisterLojaPage() {
                 <div>
                   <h4 className="font-medium text-gray-900">Proprietário</h4>
                   <p className="text-sm text-gray-600">
-                    {String(formData.ownerName)}
+                    {typeof formData.ownerName === 'string' ? formData.ownerName : ''}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {String(formData.ownerEmail)}
+                    {typeof formData.ownerEmail === 'string' ? formData.ownerEmail : ''}
                   </p>
                   {formData.ownerPhone ? (
                     <p className="text-sm text-gray-600">
-                      {String(formData.ownerPhone)}
+                      {typeof formData.ownerPhone === 'string' ? formData.ownerPhone : ''}
                     </p>
                   ) : null}
                 </div>
@@ -746,17 +697,17 @@ export default function RegisterLojaPage() {
                 <div>
                   <h4 className="font-medium text-gray-900">Loja</h4>
                   <p className="text-sm text-gray-600">
-                    {String(formData.storeName)}
+                    {typeof formData.storeName === 'string' ? formData.storeName : ''}
                   </p>
                   <p className="text-sm text-gray-500">
-                    cardap.io/store/{String(formData.storeSlug)}
+                    {typeof formData.storeSlug === 'string' ? formData.storeSlug : ''}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {String(formData.category)}
+                    {typeof formData.category === 'string' ? formData.category : ''}
                   </p>
-                  {formData.description && (
+                  {Boolean(formData.description) && (
                     <p className="text-sm text-gray-500 italic">
-                      {String(formData.description)}
+                      {formData.description ? String(formData.description) : ''}
                     </p>
                   )}
                 </div>
@@ -764,16 +715,14 @@ export default function RegisterLojaPage() {
                 <div>
                   <h4 className="font-medium text-gray-900">Endereço</h4>
                   <p className="text-sm text-gray-600">
-                    {String(formData.address)}
+                    {typeof formData.address === 'string' ? formData.address : ''}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {String(formData.city)}, {String(formData.state)}
+                    {typeof formData.city === 'string' ? formData.city : ''} - {typeof formData.state === 'string' ? formData.state : ''}
                   </p>
-                  {formData.zipCode && (
-                    <p className="text-sm text-gray-600">
-                      CEP: {String(formData.zipCode)}
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-600">
+                    {typeof formData.zipCode === 'string' || typeof formData.zipCode === 'number' ? String(formData.zipCode) : ''}
+                  </p>
                 </div>
 
                 <div>
@@ -785,10 +734,24 @@ export default function RegisterLojaPage() {
                   {formData.deliveryEnabled && (
                     <>
                       <p className="text-sm text-gray-600">
-                        Taxa de entrega: R$ {String(formData.deliveryFee)}
+                        Taxa de entrega: R$ {(() => {
+                          const fee = typeof formData.deliveryFee === 'number' 
+                            ? formData.deliveryFee 
+                            : typeof formData.deliveryFee === 'string' 
+                              ? parseFloat(formData.deliveryFee) 
+                              : 0;
+                          return !isNaN(fee) ? fee.toFixed(2) : '0.00';
+                        })()}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Pedido mínimo: R$ {String(formData.minimumOrder)}
+                        Pedido mínimo: R$ {(() => {
+                          const minOrder = typeof formData.minimumOrder === 'number' 
+                            ? formData.minimumOrder 
+                            : typeof formData.minimumOrder === 'string' 
+                              ? parseFloat(formData.minimumOrder) 
+                              : 0;
+                          return !isNaN(minOrder) ? minOrder.toFixed(2) : '0.00';
+                        })()}
                       </p>
                     </>
                   )}

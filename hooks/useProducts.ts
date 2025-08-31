@@ -13,8 +13,19 @@ export function useProducts(storeSlug: string, page = 1, limit = 10) {
 export function useProduct(id: string) {
   return useQuery({
     queryKey: ["product", id],
-    queryFn: () => apiClient.getProductById(id),
+    // Agora exige storeSlug, então este hook deve receber storeSlug via closure externa
+    // Mantenho compat por sobrecarga criando uma função alternativa abaixo
+    queryFn: () => Promise.reject(new Error("useProduct(id) requer storeSlug. Use useProductInStore.")),
     enabled: !!id,
+  });
+}
+
+// Versão correta recebendo storeSlug explicitamente
+export function useProductInStore(id: string, storeSlug: string) {
+  return useQuery({
+    queryKey: ["product", id, storeSlug],
+    queryFn: () => apiClient.getProductById(id, storeSlug),
+    enabled: !!id && !!storeSlug,
   });
 }
 
@@ -50,14 +61,16 @@ export function useUpdateProduct() {
     mutationFn: ({
       id,
       productData,
+      storeSlug,
     }: {
       id: string;
       productData: UpdateProductDto;
-    }) => apiClient.updateProduct(id, productData),
-    onSuccess: (_, { id, productData }) => {
-      queryClient.invalidateQueries({ queryKey: ["product", id] });
+      storeSlug: string;
+    }) => apiClient.updateProduct(id, { ...productData, storeSlug }),
+    onSuccess: (_, { id, storeSlug }) => {
+      queryClient.invalidateQueries({ queryKey: ["product", id, storeSlug] });
       // Invalidar todas as queries de produtos para garantir atualização
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products", storeSlug] });
     },
   });
 }
@@ -67,7 +80,7 @@ export function useDeleteProduct() {
 
   return useMutation({
     mutationFn: ({ id, storeSlug }: { id: string; storeSlug: string }) =>
-      apiClient.deleteProduct(id),
+      apiClient.deleteProduct(id, storeSlug),
     onSuccess: (_, { storeSlug }) => {
       queryClient.invalidateQueries({ queryKey: ["products", storeSlug] });
     },

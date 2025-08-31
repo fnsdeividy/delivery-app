@@ -48,7 +48,6 @@ export default function ConfiguracoesPage() {
 
   // Validar se o storeSlug existe
   if (!storeSlug || storeSlug === "undefined") {
-    console.error("❌ StoreSlug inválido:", storeSlug);
     return (
       <div className="bg-red-50 border border-red-200 rounded-md p-6">
         <div className="flex">
@@ -107,6 +106,16 @@ export default function ConfiguracoesPage() {
 
   const configSections: ConfigSection[] = [
     {
+      id: "basicas",
+      title: "Informações Básicas",
+      description:
+        "Configure nome da loja, email de contato e telefone",
+      icon: Storefront,
+      href: `/dashboard/${storeSlug}/configuracoes/basicas`,
+      status: config?.name ? "completed" : "pending",
+      badge: config?.name ? "Configurado" : "Obrigatório",
+    },
+    {
       id: "visual",
       title: "Aparência Visual",
       description:
@@ -145,18 +154,9 @@ export default function ConfiguracoesPage() {
       badge: storeStatus.hasDeliveryConfig ? "Configurado" : "Opcional",
     },
     {
-      id: "seguranca",
-      title: "Segurança e Privacidade",
-      description: "Configurações de segurança, privacidade e conformidade",
-      icon: Shield,
-      href: `/dashboard/${storeSlug}/configuracoes/seguranca`,
-      status: storeStatus.hasSecurityConfig ? "completed" : "optional",
-      badge: storeStatus.hasSecurityConfig ? "Configurado" : "Opcional",
-    },
-    {
       id: "integracao",
       title: "Integrações",
-      description: "Conecte com iFood, WhatsApp, Google Business e outros",
+      description: "Conecte com WhatsApp, Google Business e outros",
       icon: Lightning,
       href: `/dashboard/${storeSlug}/configuracoes/integracao`,
       status: "optional",
@@ -177,24 +177,6 @@ export default function ConfiguracoesPage() {
       description: "Configure relatórios automáticos e exportação de dados",
       icon: FileText,
       href: `/dashboard/${storeSlug}/configuracoes/relatorios`,
-      status: "optional",
-      badge: "Em breve",
-    },
-    {
-      id: "domino",
-      title: "Domínio Personalizado",
-      description: "Configure seu próprio domínio para a loja",
-      icon: Globe,
-      href: `/dashboard/${storeSlug}/configuracoes/dominio`,
-      status: "optional",
-      badge: "Em breve",
-    },
-    {
-      id: "app",
-      title: "App Mobile",
-      description: "Configure notificações push e funcionalidades do app",
-      icon: DeviceMobile,
-      href: `/dashboard/${storeSlug}/configuracoes/app`,
       status: "optional",
       badge: "Em breve",
     },

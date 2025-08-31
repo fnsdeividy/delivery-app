@@ -34,9 +34,6 @@ export function useCreateStore() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error("❌ Erro na criação da loja:", error.message);
-
-      // Log específico para diferentes tipos de erro
       if (error.message.includes("Conflito")) {
         console.warn("🚫 Conflito detectado - possivelmente slug duplicado");
       } else if (error.message.includes("Validação")) {
@@ -87,9 +84,6 @@ export function useApproveStore() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error(`❌ Erro ao aprovar loja:`, error.message);
-
-      // Log específico para diferentes tipos de erro
       if (error.message.includes("401")) {
         console.warn("🔒 Erro de autenticação - verificar token");
       } else if (error.message.includes("403")) {
@@ -112,9 +106,6 @@ export function useRejectStore() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
     },
     onError: (error: Error) => {
-      console.error(`❌ Erro ao rejeitar loja:`, error.message);
-
-      // Log específico para diferentes tipos de erro
       if (error.message.includes("401")) {
         console.warn("🔒 Erro de autenticação - verificar token");
       } else if (error.message.includes("403")) {

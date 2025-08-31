@@ -299,7 +299,20 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
+      console.log("🌐 POST Request iniciado:", {
+        url: this._baseURL + url,
+        hasData: !!data,
+        dataKeys: data ? Object.keys(data) : [],
+        hasToken: !!this.getAuthToken()
+      });
+
       const response = await this.client.post<T>(url, data, config);
+
+      console.log("✅ POST Response recebido:", {
+        status: response.status,
+        statusText: response.statusText,
+        hasData: !!response.data
+      });
 
       if (response.status === 200 || response.status === 201) {
         return response.data;
@@ -307,6 +320,13 @@ class ApiClient {
 
       throw new Error(`Status inesperado: ${response.status}`);
     } catch (error) {
+      console.error("❌ POST Request falhou:", {
+        url: this._baseURL + url,
+        error: error,
+        status: (error as any)?.response?.status,
+        message: (error as any)?.message
+      });
+      
       if (apiConfig.api.debug) {
         this.log("❌ Erro na requisição POST", { error });
       }
@@ -823,15 +843,33 @@ class ApiClient {
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
     const { storeSlug, ...productDataWithoutStoreSlug } = productData;
-    return this.post<Product>(
-      `/products?storeSlug=${storeSlug}`,
-      productDataWithoutStoreSlug
-    );
+    
+    console.log("🔧 ApiClient.createProduct chamado");
+    console.log("📋 Dados recebidos:", productData);
+    console.log("🏪 StoreSlug extraído:", storeSlug);
+    console.log("📤 Dados sem storeSlug:", productDataWithoutStoreSlug);
+    console.log("🌐 URL completa:", `/products?storeSlug=${storeSlug}`);
+    
+    const token = this.getAuthToken();
+    console.log("🔐 Token disponível:", !!token);
+    console.log("🔑 Token preview:", token ? token.substring(0, 20) + "..." : "NENHUM");
+    
+    try {
+      const result = await this.post<Product>(
+        `/products?storeSlug=${storeSlug}`,
+        productDataWithoutStoreSlug
+      );
+      console.log("✅ ApiClient.createProduct - Sucesso:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ ApiClient.createProduct - Erro:", error);
+      throw error;
+    }
   }
 
   async updateProduct(
     id: string,
-    productData: UpdateProductDto
+    productData: UpdateProductDto & { storeSlug: string }
   ): Promise<Product> {
     const { storeSlug, ...productDataWithoutStoreSlug } = productData;
     return this.patch<Product>(

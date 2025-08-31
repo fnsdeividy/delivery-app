@@ -25,7 +25,6 @@ interface WorkingHours {
 interface StoreSettings {
   workingHours: WorkingHours;
   preparationTime: number;
-  timezone: string;
 }
 
 export default function HorariosConfigPage() {
@@ -87,7 +86,6 @@ export default function HorariosConfigPage() {
       sunday: { open: "08:00", close: "18:00", closed: true },
     },
     preparationTime: 25,
-    timezone: "America/Sao_Paulo",
   });
 
   // Carregar configuração atual
@@ -96,67 +94,66 @@ export default function HorariosConfigPage() {
       setSettings((prev) => ({
         ...prev,
         preparationTime: config.settings.preparationTime || 25,
-        timezone: config.schedule?.timezone || "America/Sao_Paulo",
-        workingHours: config.schedule?.workingHours
+            workingHours: config.schedule?.workingHours
           ? {
               monday: {
                 open:
-                  config.schedule.workingHours.monday.hours[0]?.start ||
+                  config.schedule.workingHours.monday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.monday.hours[0]?.end || "18:00",
-                closed: !config.schedule.workingHours.monday.open,
+                  config.schedule.workingHours.monday?.hours?.[0]?.end || "18:00",
+                closed: !config.schedule.workingHours.monday?.open,
               },
               tuesday: {
                 open:
-                  config.schedule.workingHours.tuesday.hours[0]?.start ||
+                  config.schedule.workingHours.tuesday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.tuesday.hours[0]?.end || "18:00",
-                closed: !config.schedule.workingHours.tuesday.open,
+                  config.schedule.workingHours.tuesday?.hours?.[0]?.end || "18:00",
+                closed: !config.schedule.workingHours.tuesday?.open,
               },
               wednesday: {
                 open:
-                  config.schedule.workingHours.wednesday.hours[0]?.start ||
+                  config.schedule.workingHours.wednesday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.wednesday.hours[0]?.end ||
+                  config.schedule.workingHours.wednesday?.hours?.[0]?.end ||
                   "18:00",
-                closed: !config.schedule.workingHours.wednesday.open,
+                closed: !config.schedule.workingHours.wednesday?.open,
               },
               thursday: {
                 open:
-                  config.schedule.workingHours.thursday.hours[0]?.start ||
+                  config.schedule.workingHours.thursday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.thursday.hours[0]?.end ||
+                  config.schedule.workingHours.thursday?.hours?.[0]?.end ||
                   "18:00",
-                closed: !config.schedule.workingHours.thursday.open,
+                closed: !config.schedule.workingHours.thursday?.open,
               },
               friday: {
                 open:
-                  config.schedule.workingHours.friday.hours[0]?.start ||
+                  config.schedule.workingHours.friday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.friday.hours[0]?.end || "18:00",
-                closed: !config.schedule.workingHours.friday.open,
+                  config.schedule.workingHours.friday?.hours?.[0]?.end || "18:00",
+                closed: !config.schedule.workingHours.friday?.open,
               },
               saturday: {
                 open:
-                  config.schedule.workingHours.saturday.hours[0]?.start ||
+                  config.schedule.workingHours.saturday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.saturday.hours[0]?.end ||
+                  config.schedule.workingHours.saturday?.hours?.[0]?.end ||
                   "18:00",
-                closed: !config.schedule.workingHours.saturday.open,
+                closed: !config.schedule.workingHours.saturday?.open,
               },
               sunday: {
                 open:
-                  config.schedule.workingHours.sunday.hours[0]?.start ||
+                  config.schedule.workingHours.sunday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.sunday.hours[0]?.end || "18:00",
-                closed: !config.schedule.workingHours.sunday.open,
+                  config.schedule.workingHours.sunday?.hours?.[0]?.end || "18:00",
+                closed: !config.schedule.workingHours.sunday?.open,
               },
             }
           : prev.workingHours,
@@ -297,7 +294,6 @@ export default function HorariosConfigPage() {
       // Preparar dados para salvar
       const configData = {
         schedule: {
-          timezone: settings.timezone,
           workingHours: {
             monday: {
               open: !settings.workingHours.monday.closed,
@@ -754,34 +750,6 @@ export default function HorariosConfigPage() {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fuso Horário
-                  </label>
-                  <select
-                    value={settings.timezone}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        timezone: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
-                    <option value="America/Manaus">Manaus (GMT-4)</option>
-                    <option value="America/Belem">Belém (GMT-3)</option>
-                    <option value="America/Fortaleza">Fortaleza (GMT-3)</option>
-                    <option value="America/Recife">Recife (GMT-3)</option>
-                    <option value="America/Bahia">Salvador (GMT-3)</option>
-                    <option value="America/Maceio">Maceió (GMT-3)</option>
-                    <option value="America/Aracaju">Aracaju (GMT-3)</option>
-                    <option value="America/Noronha">
-                      Fernando de Noronha (GMT-2)
-                    </option>
-                  </select>
                 </div>
               </div>
             </div>

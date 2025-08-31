@@ -2,8 +2,10 @@
 
 import { useStore, useUpdateStore } from "@/hooks";
 import { UpdateStoreDto } from "@/types/cardapio-api";
+import { apiClient } from "@/lib/api-client";
 import { Eye, EyeSlash, Upload } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface StoreVisualConfigProps {
   storeSlug: string;
@@ -34,6 +36,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   // Buscar dados da loja
   const { data: storeData, isLoading: isLoadingStore } = useStore(storeSlug);
@@ -92,24 +95,38 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
   const handleFileUpload = async (file: File, type: "logo" | "banner") => {
     if (!file) return;
 
-    // Simular upload (em produção, isso seria feito para um serviço como AWS S3)
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
+    try {
+      // Fazer upload usando o apiClient
+      const uploadResult = await apiClient.upload<{
+        success: boolean;
+        fileName: string;
+        fileSize: number;
+        mimeType: string;
+        url: string;
+        path: string;
+        message: string;
+      }>(`/stores/${storeSlug}/upload`, file);
+      
+      // Atualizar o estado com a URL retornada pelo backend
       setFormData((prev) => ({
         ...prev,
         config: {
           ...prev.config,
-          [type]: result,
+          [type]: uploadResult.url,
         },
       }));
-    };
-    reader.readAsDataURL(file);
 
-    if (type === "logo") {
-      setUploadingLogo(false);
-    } else {
-      setUploadingBanner(false);
+      console.log(`Upload de ${type} realizado com sucesso:`, uploadResult);
+    } catch (error: unknown) {
+      console.error(`Erro ao fazer upload de ${type}:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      alert(`Erro ao fazer upload da imagem: ${errorMessage}`);
+    } finally {
+      if (type === "logo") {
+        setUploadingLogo(false);
+      } else {
+        setUploadingBanner(false);
+      }
     }
   };
 
@@ -219,21 +236,33 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
           >
             {/* Banner */}
             {formData.config?.banner && (
-              <img
-                src={formData.config.banner}
-                alt="Banner da loja"
-                className="w-full h-full object-cover"
-              />
+              <div className="relative w-full h-full">
+                <Image
+                  src={formData.config.banner}
+                  alt="Banner da loja"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  onError={() => setImageErrors(prev => ({ ...prev, banner: true }))}
+                  onLoad={() => setImageErrors(prev => ({ ...prev, banner: false }))}
+                />
+              </div>
             )}
 
             {/* Logo */}
             {formData.config?.logo && (
               <div className="absolute top-4 left-4">
-                <img
-                  src={formData.config.logo}
-                  alt="Logo da loja"
-                  className="w-16 h-16 rounded-lg object-cover"
-                />
+                <div className="relative w-16 h-16">
+                  <Image
+                    src={formData.config.logo}
+                    alt="Logo da loja"
+                    fill
+                    className="rounded-lg object-cover"
+                    unoptimized
+                    onError={() => setImageErrors(prev => ({ ...prev, logo: true }))}
+                    onLoad={() => setImageErrors(prev => ({ ...prev, logo: false }))}
+                  />
+                </div>
               </div>
             )}
 
@@ -284,11 +313,23 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
             <div className="space-y-4">
               {formData.config?.logo && (
                 <div className="flex justify-center">
-                  <img
-                    src={formData.config.logo}
-                    alt="Logo atual"
-                    className="w-24 h-24 rounded-lg object-cover border border-gray-200"
-                  />
+                  <div className="relative w-24 h-24">
+                    {imageErrors.logoPreview ? (
+                      <div className="w-24 h-24 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-gray-500">Erro ao carregar</span>
+                      </div>
+                    ) : (
+                      <Image
+                        src={formData.config.logo}
+                        alt="Logo atual"
+                        fill
+                        className="rounded-lg object-cover border border-gray-200"
+                        unoptimized
+                        onError={() => setImageErrors(prev => ({ ...prev, logoPreview: true }))}
+                        onLoad={() => setImageErrors(prev => ({ ...prev, logoPreview: false }))}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -332,11 +373,23 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
             <div className="space-y-4">
               {formData.config?.banner && (
                 <div className="flex justify-center">
-                  <img
-                    src={formData.config.banner}
-                    alt="Banner atual"
-                    className="w-full h-24 rounded-lg object-cover border border-gray-200"
-                  />
+                  <div className="relative w-full h-24">
+                    {imageErrors.bannerPreview ? (
+                      <div className="w-full h-24 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-gray-500">Erro ao carregar banner</span>
+                      </div>
+                    ) : (
+                      <Image
+                        src={formData.config.banner}
+                        alt="Banner atual"
+                        fill
+                        className="rounded-lg object-cover border border-gray-200"
+                        unoptimized
+                        onError={() => setImageErrors(prev => ({ ...prev, bannerPreview: true }))}
+                        onLoad={() => setImageErrors(prev => ({ ...prev, bannerPreview: false }))}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
 

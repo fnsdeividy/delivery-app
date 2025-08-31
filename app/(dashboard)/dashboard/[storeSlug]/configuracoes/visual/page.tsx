@@ -130,11 +130,7 @@ export default function VisualConfigPage() {
 
   // Carregar configuração atual
   useEffect(() => {
-    console.log("🔍 useEffect - config recebido:", config);
-    console.log("🔍 useEffect - config.branding:", config?.branding);
-
     if (config?.branding) {
-      console.log("🔍 useEffect - Atualizando branding com:", config.branding);
       setBranding({
         logo: config.branding.logo || "",
         favicon: config.branding.favicon || "",
@@ -145,10 +141,6 @@ export default function VisualConfigPage() {
         textColor: config.branding.textColor || "#1f2937",
         accentColor: config.branding.accentColor || "#f59e0b",
       });
-    } else {
-      console.log(
-        "🔍 useEffect - config.branding não encontrado, usando valores padrão"
-      );
     }
   }, [config]);
 
@@ -233,21 +225,12 @@ export default function VisualConfigPage() {
         },
       };
 
-      // Debug: Log dos dados que serão enviados
-      console.log("🔍 Dados que serão enviados:", configData);
-      console.log("🔍 Tipo dos dados:", typeof configData);
-      console.log(
-        "🔍 Estrutura dos dados:",
-        JSON.stringify(configData, null, 2)
-      );
 
       // Chamar API para salvar
       const response = await apiClient.patch(
         `/stores/${storeSlug}/config`,
         configData
       );
-
-      console.log("✅ Resposta da API:", response);
 
       setMessage({
         type: "success",
