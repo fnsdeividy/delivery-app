@@ -6,6 +6,7 @@ import { StoreEditForm } from "@/components/StoreEditForm";
 import { StoreVisualConfig } from "@/components/StoreVisualConfig";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useStore } from "@/hooks";
+import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
   ArrowLeft,
   ChartLine,
@@ -31,6 +32,9 @@ export default function EditarLojaPage() {
 
   // Buscar dados da loja
   const { data: storeData, isLoading: isLoadingStore } = useStore(storeId);
+
+  // Buscar configuração da loja para obter a logo
+  const { config: storeConfig } = useStoreConfig(storeData?.slug || "");
 
   // Verificar autorização do usuário
   useEffect(() => {
@@ -186,12 +190,22 @@ export default function EditarLojaPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div className="flex items-center">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                  <Storefront className="w-5 h-5 text-orange-600" />
-                </div>
+                {storeConfig?.branding?.logo ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden mr-3 flex-shrink-0">
+                    <img
+                      src={storeConfig.branding.logo}
+                      alt={storeConfig.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                    <Storefront className="w-5 h-5 text-orange-600" />
+                  </div>
+                )}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {storeData?.name || "Editar Loja"}
+                    {storeConfig?.name || storeData?.name || "Editar Loja"}
                   </h1>
                   <p className="text-sm text-gray-600">
                     Gerencie sua loja de forma completa e eficiente

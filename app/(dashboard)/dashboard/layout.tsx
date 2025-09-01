@@ -386,7 +386,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span className="breadcrumb-item">Gerenciar Lojas</span>
                 )}
                 {slug && !isSpecialRoute && (
-                  <span className="breadcrumb-item">
+                  <span className="breadcrumb-item flex items-center">
+                    {config?.branding?.logo && (
+                      <img
+                        src={config.branding.logo}
+                        alt={config.name}
+                        className="w-4 h-4 rounded mr-2 object-cover"
+                      />
+                    )}
                     {config?.name || slug}
                   </span>
                 )}

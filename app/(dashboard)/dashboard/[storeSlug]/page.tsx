@@ -4,6 +4,7 @@ import { DashboardMetrics } from "@/components/DashboardMetrics";
 import { DashboardQuickActions } from "@/components/DashboardQuickActions";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
+import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
   Calendar,
   CheckCircle,
@@ -38,6 +39,8 @@ export default function DashboardPage() {
     loading: metricsLoading,
     error: metricsError,
   } = useDashboardMetrics(slug);
+
+  const { config: storeConfig } = useStoreConfig(slug);
 
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -158,15 +161,25 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 md:py-6 gap-4">
             <div className="flex items-center">
-              <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                <Storefront className="w-4 md:w-5 h-4 md:h-5 text-white" />
-              </div>
+              {storeConfig?.branding?.logo ? (
+                <div className="w-8 md:w-10 h-8 md:h-10 rounded-lg overflow-hidden mr-3 flex-shrink-0">
+                  <img
+                    src={storeConfig.branding.logo}
+                    alt={storeConfig.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                  <Storefront className="w-4 md:w-5 h-4 md:h-5 text-white" />
+                </div>
+              )}
               <div>
                 <h1 className="text-lg md:text-2xl font-bold text-gray-900">
                   Dashboard Geral da Loja
                 </h1>
                 <p className="text-xs md:text-sm text-gray-600">
-                  {storeInfo?.name || `Loja: ${slug}`}
+                  {storeConfig?.name || storeInfo?.name || `Loja: ${slug}`}
                 </p>
                 {/* Indicador de dados mock */}
                 <div className="mt-1">
@@ -375,7 +388,9 @@ export default function DashboardPage() {
             >
               <X className="w-4 md:w-5 h-4 md:h-5 text-red-600 mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-red-900">Cancelados</p>
+                <p className="text-xs md:text-sm font-medium text-red-900">
+                  Cancelados
+                </p>
                 <p className="text-xs text-red-600">Pedidos cancelados</p>
               </div>
             </Link>
@@ -408,7 +423,9 @@ export default function DashboardPage() {
                     Usuários com acesso ao painel
                   </p>
                 </div>
-                <span className="text-base md:text-lg font-bold text-blue-600">3</span>
+                <span className="text-base md:text-lg font-bold text-blue-600">
+                  3
+                </span>
               </div>
             </div>
             <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -419,7 +436,9 @@ export default function DashboardPage() {
                   </p>
                   <p className="text-xs text-gray-600">Aguardando aceitação</p>
                 </div>
-                <span className="text-base md:text-lg font-bold text-yellow-600">1</span>
+                <span className="text-base md:text-lg font-bold text-yellow-600">
+                  1
+                </span>
               </div>
             </div>
           </div>
@@ -458,7 +477,9 @@ export default function DashboardPage() {
                 <h3 className="text-base md:text-lg font-medium text-gray-900">
                   Formas de Pagamento
                 </h3>
-                <p className="text-xs md:text-sm text-gray-600">PIX, Cartão, Dinheiro</p>
+                <p className="text-xs md:text-sm text-gray-600">
+                  PIX, Cartão, Dinheiro
+                </p>
               </div>
             </div>
           </div>
@@ -467,8 +488,12 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <Truck className="w-6 md:w-8 h-6 md:h-8 text-blue-600 flex-shrink-0" />
               <div className="ml-3 md:ml-4 min-w-0">
-                <h3 className="text-base md:text-lg font-medium text-gray-900">Delivery</h3>
-                <p className="text-xs md:text-sm text-gray-600">Entrega em até 40 min</p>
+                <h3 className="text-base md:text-lg font-medium text-gray-900">
+                  Delivery
+                </h3>
+                <p className="text-xs md:text-sm text-gray-600">
+                  Entrega em até 40 min
+                </p>
               </div>
             </div>
           </div>

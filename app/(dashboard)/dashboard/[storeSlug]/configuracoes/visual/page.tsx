@@ -128,6 +128,21 @@ export default function VisualConfigPage() {
     },
   ];
 
+  // Carregar logo atual do servidor
+  const loadCurrentLogo = async () => {
+    try {
+      const logoResponse = await apiClient.getStoreLogo(storeSlug);
+      if (logoResponse.success && logoResponse.logo) {
+        setBranding((prev) => ({
+          ...prev,
+          logo: logoResponse.logo,
+        }));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar logo atual:", error);
+    }
+  };
+
   // Carregar configuração atual
   useEffect(() => {
     if (config?.branding) {
@@ -142,7 +157,10 @@ export default function VisualConfigPage() {
         accentColor: config.branding.accentColor || "#f59e0b",
       });
     }
-  }, [config]);
+
+    // Carregar logo atual do servidor
+    loadCurrentLogo();
+  }, [config, storeSlug]);
 
   // Debug: Monitorar mudanças no estado branding
   useEffect(() => {
@@ -225,7 +243,6 @@ export default function VisualConfigPage() {
         },
       };
 
-
       // Chamar API para salvar
       const response = await apiClient.patch(
         `/stores/${storeSlug}/config`,
@@ -281,10 +298,17 @@ export default function VisualConfigPage() {
 
       setMessage(null);
 
-      const response = await apiClient.upload(
-        `/stores/${storeSlug}/upload`,
-        file
-      );
+      let response;
+
+      // Usar método específico para logo
+      if (type === "logo") {
+        response = await apiClient.uploadLogo(storeSlug, file);
+      } else {
+        response = await apiClient.upload(
+          `/stores/${storeSlug}/upload?type=${type}`,
+          file
+        );
+      }
 
       // Atualizar estado local com nova URL
       const responseData = response as any;
@@ -336,12 +360,56 @@ export default function VisualConfigPage() {
   };
 
   // Remover arquivo
-  const handleRemoveFile = (type: "logo" | "favicon" | "banner") => {
-    setBranding((prev) => ({
-      ...prev,
-      [type === "logo" ? "logo" : type === "favicon" ? "favicon" : "banner"]:
-        "",
-    }));
+  const handleRemoveFile = async (type: "logo" | "favicon" | "banner") => {
+    try {
+      setMessage(null);
+
+      // Usar método específico para logo
+      if (type === "logo") {
+        await apiClient.removeStoreLogo(storeSlug);
+      } else {
+        // Para outros tipos, apenas remover do estado local por enquanto
+        // TODO: Implementar endpoints específicos para favicon e banner
+      }
+
+      setBranding((prev) => ({
+        ...prev,
+        [type === "logo" ? "logo" : type === "favicon" ? "favicon" : "banner"]:
+          "",
+      }));
+
+      setMessage({
+        type: "success",
+        text: `${
+          type === "logo" ? "Logo" : type === "favicon" ? "Favicon" : "Banner"
+        } removido com sucesso!`,
+      });
+
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error: any) {
+      console.error(`Erro ao remover ${type}:`, error);
+
+      let errorMessage = `Erro ao remover ${type}`;
+
+      if (error?.status === 403) {
+        errorMessage = "Acesso negado. Você não tem permissão para remover.";
+      } else if (error?.status === 404) {
+        errorMessage = `${
+          type === "logo" ? "Logo" : type === "favicon" ? "Favicon" : "Banner"
+        } não encontrado.`;
+      } else if (error?.status === 500) {
+        errorMessage = "Erro interno do servidor. Tente novamente mais tarde.";
+      } else if (error?.status === 401) {
+        errorMessage = "Sessão expirada. Faça login novamente.";
+      }
+
+      setMessage({
+        type: "error",
+        text: errorMessage,
+      });
+
+      setTimeout(() => setMessage(null), 5000);
+    }
   };
 
   // Renderizar loading

@@ -45,6 +45,18 @@ const formatPrice = (price: any): string => {
   return "0,00";
 };
 
+// Helper para normalizar URLs de imagem
+const normalizeImageUrl = (url: string): string => {
+  if (!url) return url;
+
+  // Se for URL absoluta do localhost, converter para relativa para usar o proxy
+  if (url.startsWith("http://localhost:3001/")) {
+    return url.replace("http://localhost:3001", "");
+  }
+
+  return url;
+};
+
 async function getStoreConfig(slug: string) {
   try {
     const response = await fetch(
@@ -91,7 +103,7 @@ async function getStoreConfig(slug: string) {
         coupons: data.config?.coupons || [],
       },
       branding: {
-        logo: data.config?.logo || "",
+        logo: data.config?.logo || data.config?.branding?.logo || "",
         favicon: data.config?.favicon || "",
         banner: data.config?.banner || "",
         primaryColor: data.config?.branding?.primaryColor || "#f97316",
@@ -302,13 +314,13 @@ export default function StorePage({ params }: PageProps) {
             <div className="flex items-center space-x-4">
               {config?.branding?.logo && (
                 <img
-                  src={config.branding.logo}
-                  alt={config.name}
-                  className="h-10 w-auto"
+                  src={normalizeImageUrl(config.branding.logo)}
+                  alt={`Logo ${config.name}`}
+                  className="h-10 w-auto object-contain"
                 />
               )}
               <h1 className="text-2xl font-bold" style={{ color: primary }}>
-                {config.name}
+                {config?.slug || config?.name}
               </h1>
             </div>
 

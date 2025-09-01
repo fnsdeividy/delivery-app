@@ -303,7 +303,7 @@ class ApiClient {
         url: this._baseURL + url,
         hasData: !!data,
         dataKeys: data ? Object.keys(data) : [],
-        hasToken: !!this.getAuthToken()
+        hasToken: !!this.getAuthToken(),
       });
 
       const response = await this.client.post<T>(url, data, config);
@@ -311,7 +311,7 @@ class ApiClient {
       console.log("✅ POST Response recebido:", {
         status: response.status,
         statusText: response.statusText,
-        hasData: !!response.data
+        hasData: !!response.data,
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -324,9 +324,9 @@ class ApiClient {
         url: this._baseURL + url,
         error: error,
         status: (error as any)?.response?.status,
-        message: (error as any)?.message
+        message: (error as any)?.message,
       });
-      
+
       if (apiConfig.api.debug) {
         this.log("❌ Erro na requisição POST", { error });
       }
@@ -390,6 +390,47 @@ class ApiClient {
     } catch (error) {
       throw this.createApiError(error);
     }
+  }
+
+  // ===== GESTÃO DE LOGO =====
+
+  /**
+   * Faz upload de uma logo para uma loja
+   */
+  async uploadLogo(
+    storeSlug: string,
+    file: File
+  ): Promise<{
+    success: boolean;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    url: string;
+    path: string;
+    message: string;
+  }> {
+    return this.upload(`/stores/${storeSlug}/upload?type=logo`, file);
+  }
+
+  /**
+   * Obtém a logo atual de uma loja
+   */
+  async getStoreLogo(storeSlug: string): Promise<{
+    success: boolean;
+    logo: string | null;
+    message: string;
+  }> {
+    return this.get(`/stores/${storeSlug}/logo`);
+  }
+
+  /**
+   * Remove a logo de uma loja
+   */
+  async removeStoreLogo(storeSlug: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.delete(`/stores/${storeSlug}/logo`);
   }
 
   // ===== AUTENTICAÇÃO =====
@@ -843,17 +884,20 @@ class ApiClient {
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
     const { storeSlug, ...productDataWithoutStoreSlug } = productData;
-    
+
     console.log("🔧 ApiClient.createProduct chamado");
     console.log("📋 Dados recebidos:", productData);
     console.log("🏪 StoreSlug extraído:", storeSlug);
     console.log("📤 Dados sem storeSlug:", productDataWithoutStoreSlug);
     console.log("🌐 URL completa:", `/products?storeSlug=${storeSlug}`);
-    
+
     const token = this.getAuthToken();
     console.log("🔐 Token disponível:", !!token);
-    console.log("🔑 Token preview:", token ? token.substring(0, 20) + "..." : "NENHUM");
-    
+    console.log(
+      "🔑 Token preview:",
+      token ? token.substring(0, 20) + "..." : "NENHUM"
+    );
+
     try {
       const result = await this.post<Product>(
         `/products?storeSlug=${storeSlug}`,
@@ -945,12 +989,18 @@ class ApiClient {
 
   // ===== PEDIDOS PÚBLICOS (CLIENTES) =====
 
-  async createPublicOrder(orderData: CreateOrderDto, storeSlug: string): Promise<Order> {
+  async createPublicOrder(
+    orderData: CreateOrderDto,
+    storeSlug: string
+  ): Promise<Order> {
     return this.post<Order>(`/orders?storeSlug=${storeSlug}`, orderData);
   }
 
-  async getPublicOrders(storeSlug: string, customerId?: string): Promise<Order[]> {
-    const url = customerId 
+  async getPublicOrders(
+    storeSlug: string,
+    customerId?: string
+  ): Promise<Order[]> {
+    const url = customerId
       ? `/orders?storeSlug=${storeSlug}&customerId=${customerId}`
       : `/orders?storeSlug=${storeSlug}`;
     return this.get<Order[]>(url);
