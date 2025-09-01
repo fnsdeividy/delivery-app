@@ -70,59 +70,15 @@ export default function CartModal({
     }, 3000);
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cart.items.length === 0) {
       showToast("Carrinho vazio", "error");
       return;
     }
 
-    // Verificar se o usuário está autenticado
-    if (!isAuthenticated) {
-      // Redirecionar para login com redirect para checkout
-      const currentPath = `/store/${storeSlug}/checkout`;
-      router.push(
-        `/store/${storeSlug}/login?redirect=${encodeURIComponent(currentPath)}`
-      );
-      onClose();
-      return;
-    }
-
-    setIsCheckingOut(true);
-
-    try {
-      // Criar dados do pedido
-      const orderData: CreateOrderDto = {
-        customerId: "guest-" + Date.now(), // Cliente temporário
-        storeSlug,
-        type: OrderType.DELIVERY,
-        paymentMethod: "PIX",
-        deliveryFee: 5.0, // Taxa fixa por enquanto
-        discount: 0,
-        subtotal: cart.total,
-        total: cart.total + 5.0,
-        items: cart.items.map((item) => ({
-          productId: item.product.id,
-          name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price,
-          customizations: {
-            removedIngredients: [],
-            addons: [],
-            observations: item.notes || "",
-          },
-        })),
-      };
-
-      const order = await createOrder(orderData);
-
-      showToast("Pedido realizado com sucesso!", "success");
-      clearCart();
-      onClose();
-    } catch (error) {
-      showToast("Erro ao finalizar pedido. Tente novamente.", "error");
-    } finally {
-      setIsCheckingOut(false);
-    }
+    // Navegar para a página de checkout
+    router.push(`/store/${storeSlug}/checkout`);
+    onClose();
   };
 
   return (
@@ -243,14 +199,14 @@ export default function CartModal({
                   style={{ backgroundColor: primaryColor }}
                 >
                   {isCheckingOut ? (
-                    "Finalizando..."
+                    "Redirecionando..."
                   ) : !isAuthenticated ? (
                     <>
                       <SignIn className="h-4 w-4" />
-                      Entrar para finalizar pedido
+                      Entrar para continuar
                     </>
                   ) : (
-                    "Finalizar Pedido"
+                    "Ir para Checkout"
                   )}
                 </button>
 
