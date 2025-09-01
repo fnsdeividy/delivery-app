@@ -14,33 +14,48 @@ export interface Cart {
   itemCount: number;
 }
 
+const initialCart: Cart = {
+  items: [],
+  total: 0,
+  itemCount: 0,
+};
+
 export function useCart() {
-  const [cart, setCart] = useState<Cart>({
-    items: [],
-    total: 0,
-    itemCount: 0,
-  });
+  const [cart, setCart] = useState<Cart>(initialCart);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Carregar carrinho do localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('delivery-cart');
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        setCart(parsedCart);
-      } catch (error) {
-        console.error('Erro ao carregar carrinho:', error);
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('delivery-cart');
+      console.log('🔍 Carregando carrinho do localStorage:', savedCart);
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          console.log('✅ Carrinho carregado com sucesso:', parsedCart);
+          setCart(parsedCart);
+        } catch (error) {
+          console.error('❌ Erro ao carregar carrinho:', error);
+        }
+      } else {
+        console.log('📝 Nenhum carrinho salvo encontrado');
       }
     }
+    setIsInitialized(true);
   }, []);
 
-  // Salvar carrinho no localStorage
+  // Salvar carrinho no localStorage (apenas após inicialização)
   useEffect(() => {
-    localStorage.setItem('delivery-cart', JSON.stringify(cart));
-  }, [cart]);
+    if (isInitialized && typeof window !== 'undefined') {
+      console.log('💾 Salvando carrinho no localStorage:', cart);
+      localStorage.setItem('delivery-cart', JSON.stringify(cart));
+    }
+  }, [cart, isInitialized]);
 
   const addToCart = (product: Product, quantity: number = 1, notes?: string) => {
+    console.log('🛒 Adicionando produto ao carrinho:', { product: product.name, quantity, notes });
     setCart(prevCart => {
+      console.log('📋 Estado anterior do carrinho:', prevCart);
       const existingItemIndex = prevCart.items.findIndex(
         item => item.product.id === product.id
       );
@@ -48,6 +63,7 @@ export function useCart() {
       let newItems: CartItem[];
 
       if (existingItemIndex >= 0) {
+        console.log('🔄 Produto já existe, atualizando quantidade');
         // Produto já existe no carrinho, atualizar quantidade
         newItems = prevCart.items.map((item, index) =>
           index === existingItemIndex
@@ -55,6 +71,7 @@ export function useCart() {
             : item
         );
       } else {
+        console.log('➕ Novo produto sendo adicionado');
         // Novo produto no carrinho
         newItems = [
           ...prevCart.items,
@@ -77,11 +94,14 @@ export function useCart() {
         0
       );
 
-      return {
+      const newCart = {
         items: newItems,
         total,
         itemCount,
       };
+
+      console.log('✨ Novo estado do carrinho:', newCart);
+      return newCart;
     });
   };
 

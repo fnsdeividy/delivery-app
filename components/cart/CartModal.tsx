@@ -33,6 +33,8 @@ export default function CartModal({ isOpen, onClose, primaryColor = "#f97316", s
   const { createOrder } = usePublicOrders(storeSlug);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
+  console.log('🛒 CartModal renderizado - Estado do carrinho:', cart);
+
   if (!isOpen) return null;
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
