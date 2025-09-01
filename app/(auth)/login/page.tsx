@@ -5,12 +5,17 @@ import { loginSchema, LoginFormData } from "@/lib/validation/schemas";
 import { Eye, EyeSlash, SignIn } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Head from "next/head";
+import Script from "next/script";
+import { getBackendUrl } from "@/lib/config/environment";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
+  const backendUrl = getBackendUrl() || "http://localhost:3001";
+  const loginCssUrl = `${backendUrl}/static/css/login.css`;
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -73,47 +78,65 @@ export default function LoginPage() {
     handleFieldBlur(fieldName, formData[fieldName]);
   };
 
+  useEffect(() => {
+    // Adicionar o CSS do backend dinamicamente
+    const linkElement = document.createElement("link");
+    linkElement.rel = "stylesheet";
+    linkElement.href = loginCssUrl;
+    linkElement.id = "backend-login-css";
+    document.head.appendChild(linkElement);
+
+    return () => {
+      // Remover o CSS quando o componente for desmontado
+      const existingLink = document.getElementById("backend-login-css");
+      if (existingLink) {
+        document.head.removeChild(existingLink);
+      }
+    };
+  }, [loginCssUrl]);
+
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Ícone */}
-        <div className="flex justify-center">
-          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg">
+    <>
+      <Head>
+        <title>Login - Cardapio Digital</title>
+        <meta name="description" content="Faça login para acessar seu dashboard" />
+      </Head>
+
+      <div className="login-container">
+        <div className="login-header">
+          {/* Ícone */}
+          <div className="login-icon-wrapper">
             <SignIn className="w-7 h-7 text-white" />
           </div>
+
+          {/* Título */}
+          <h2 className="login-title">
+            Acesse seu Dashboard
+          </h2>
+          <p className="login-subtitle">
+            Faça login para gerenciar sua loja
+          </p>
         </div>
 
-        {/* Título */}
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
-          Acesse seu Dashboard
-        </h2>
-        <p className="mt-2 text-center text-sm text-white/80">
-          Faça login para gerenciar sua loja
-        </p>
-      </div>
-
-      {/* Card de Login */}
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white rounded-xl shadow-lg py-8 px-6 sm:px-10">
+        {/* Card de Login */}
+        <div className="login-card">
           {/* Mensagem de sucesso */}
           {message && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-3">
-              <p className="text-green-700 text-sm">
-                {decodeURIComponent(message)}
-              </p>
+            <div className="success-message mb-6">
+              <p>{decodeURIComponent(message)}</p>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="login-form" onSubmit={handleSubmit}>
             {/* Email */}
-            <div>
+            <div className="form-group">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-800"
+                className="form-label"
               >
                 Email
               </label>
-              <div className="mt-1">
+              <div>
                 <input
                   id="email"
                   name="email"
@@ -123,25 +146,24 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={() => handleInputBlur("email")}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 
-                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
+                  className="form-input"
                   placeholder="seu@email.com"
                 />
                 {shouldShowError("email") && (
-                  <p className="text-red-500 text-xs mt-1">{getFieldError("email")}</p>
+                  <p className="input-error">{getFieldError("email")}</p>
                 )}
               </div>
             </div>
 
             {/* Senha */}
-            <div>
+            <div className="form-group">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-800"
+                className="form-label"
               >
                 Senha
               </label>
-              <div className="mt-1 relative">
+              <div className="password-input-container">
                 <input
                   id="password"
                   name="password"
@@ -151,31 +173,30 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={() => handleInputBlur("password")}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 
-                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
+                  className="form-input"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeSlash className="h-5 w-5 text-gray-400" />
+                    <EyeSlash className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
                 {shouldShowError("password") && (
-                  <p className="text-red-500 text-xs mt-1">{getFieldError("password")}</p>
+                  <p className="input-error">{getFieldError("password")}</p>
                 )}
               </div>
             </div>
 
             {/* Erro */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-red-700 text-sm">{error}</p>
+              <div className="error-message">
+                <p>{error}</p>
               </div>
             )}
 
@@ -184,26 +205,23 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold 
-                rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed 
-                shadow-md transition-all"
+                className="submit-button"
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </button>
             </div>
 
             {/* Links adicionais */}
-            <div className="flex items-center justify-between">
+            <div className="links-container">
               <Link
                 href="/forgot-password"
-                className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
+                className="link"
               >
                 Esqueceu a senha?
               </Link>
               <Link
                 href="/register/loja"
-                className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
+                className="link"
               >
                 Criar nova loja
               </Link>
@@ -211,6 +229,6 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
-    </div>
+    </>
   );
 }

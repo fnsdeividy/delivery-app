@@ -59,7 +59,10 @@ function formatBRL(value: number): string {
   }
 }
 
-function parseIntegerDigits(raw: string, maxLen = 9): { text: string; value: number } {
+function parseIntegerDigits(
+  raw: string,
+  maxLen = 9
+): { text: string; value: number } {
   const digits = (raw ?? "").replace(/\D+/g, "").slice(0, maxLen);
   if (!digits) return { text: "", value: 0 };
   // normaliza para remover zeros à esquerda
@@ -135,12 +138,18 @@ export default function NovoProdutoPage() {
   // Sincroniza textos quando a página monta (caso venha com valores pré-carregados)
   useEffect(() => {
     setPriceText(formData.price ? formatBRL(formData.price) : "");
-    setOriginalPriceText(formData.originalPrice ? formatBRL(formData.originalPrice) : "");
+    setOriginalPriceText(
+      formData.originalPrice ? formatBRL(formData.originalPrice) : ""
+    );
     setInitialStockText(
-      formData.initialStock && formData.initialStock > 0 ? String(formData.initialStock) : ""
+      formData.initialStock && formData.initialStock > 0
+        ? String(formData.initialStock)
+        : ""
     );
     setMinStockText(
-      formData.minStock && formData.minStock > 0 ? String(formData.minStock) : ""
+      formData.minStock && formData.minStock > 0
+        ? String(formData.minStock)
+        : ""
     );
   }, []); // mount only
 
@@ -159,24 +168,27 @@ export default function NovoProdutoPage() {
     }
   };
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
     // Criar toast nativo
-    const toast = document.createElement('div');
+    const toast = document.createElement("div");
     toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition-all duration-300 transform translate-x-full ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      type === "success" ? "bg-green-500" : "bg-red-500"
     }`;
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     // Animar entrada
     setTimeout(() => {
-      toast.style.transform = 'translateX(0)';
+      toast.style.transform = "translateX(0)";
     }, 100);
-    
+
     // Remover após 3 segundos
     setTimeout(() => {
-      toast.style.transform = 'translateX(full)';
+      toast.style.transform = "translateX(full)";
       setTimeout(() => {
         document.body.removeChild(toast);
       }, 300);
@@ -184,24 +196,20 @@ export default function NovoProdutoPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("🎯 handleSubmit CHAMADO - Evento:", e.type);
     e.preventDefault();
-    
-    console.log("🚀 Iniciando criação de produto...");
-    console.log("📋 Dados do formulário:", formData);
 
     // Verificar autenticação antes de prosseguir
     const token = getCurrentToken();
     const authStatus = isAuthenticated();
-    console.log("🔐 Status de autenticação:", { 
-      isAuthenticated: authStatus, 
+    console.log("🔐 Status de autenticação:", {
+      isAuthenticated: authStatus,
       hasToken: !!token,
-      tokenLength: token?.length || 0 
+      tokenLength: token?.length || 0,
     });
 
     if (!authStatus || !token) {
       console.error("❌ Usuário não autenticado");
-      showToast("Sessão expirada. Faça login novamente.", 'error');
+      showToast("Sessão expirada. Faça login novamente.", "error");
       setTimeout(() => router.push("/login"), 1000);
       return;
     }
@@ -209,7 +217,7 @@ export default function NovoProdutoPage() {
     if (!formData.name || !formData.categoryId || formData.price <= 0) {
       const errorMsg = "Por favor, preencha todos os campos obrigatórios";
       console.error("❌ Validação falhou:", errorMsg);
-      showToast(errorMsg, 'error');
+      showToast(errorMsg, "error");
       return;
     }
 
@@ -218,30 +226,24 @@ export default function NovoProdutoPage() {
       ...formData,
       image: formData.image?.trim() || undefined,
       description: formData.description?.trim() || "",
-      originalPrice: (formData.originalPrice || 0) > 0 ? formData.originalPrice : undefined,
-      initialStock: (formData.initialStock || 0) > 0 ? formData.initialStock : undefined,
+      originalPrice:
+        (formData.originalPrice || 0) > 0 ? formData.originalPrice : undefined,
+      initialStock:
+        (formData.initialStock || 0) > 0 ? formData.initialStock : undefined,
       minStock: (formData.minStock || 0) > 0 ? formData.minStock : undefined,
     };
 
-    console.log("📤 Dados preparados para envio:", dataToSend);
-    console.log("🏪 Store slug:", slug);
-    console.log("🌐 URL da API que será chamada:", `/products?storeSlug=${slug}`);
-
     try {
       setIsLoading(true);
-      console.log("⏳ Enviando requisição para o backend...");
-      console.log("🔑 Token sendo usado:", token.substring(0, 20) + "...");
-      
+
       const result = await apiClient.createProduct(dataToSend);
-      
-      console.log("✅ Produto criado com sucesso:", result);
-      showToast("Produto criado com sucesso!", 'success');
-      
+
+      showToast("Produto criado com sucesso!", "success");
+
       // Aguardar um pouco para o usuário ver o toast antes de redirecionar
       setTimeout(() => {
         router.push(`/dashboard/${slug}/produtos`);
       }, 1000);
-      
     } catch (error: any) {
       console.error("❌ Erro ao criar produto:", error);
       console.error("📊 Detalhes completos do erro:", {
@@ -250,18 +252,22 @@ export default function NovoProdutoPage() {
         data: error.data,
         response: error.response,
         isAxiosError: error.isAxiosError,
-        config: error.config
+        config: error.config,
       });
-      
+
       if (error.status === 403) {
-        showToast("Acesso negado. Você não tem permissão para criar produtos.", 'error');
+        showToast(
+          "Acesso negado. Você não tem permissão para criar produtos.",
+          "error"
+        );
         setTimeout(() => router.push("/unauthorized"), 2000);
       } else if (error.status === 401) {
-        showToast("Sessão expirada. Faça login novamente.", 'error');
+        showToast("Sessão expirada. Faça login novamente.", "error");
         setTimeout(() => router.push("/login"), 2000);
       } else {
-        const errorMessage = error.message || "Erro desconhecido ao criar produto";
-        showToast(`Erro ao criar produto: ${errorMessage}`, 'error');
+        const errorMessage =
+          error.message || "Erro desconhecido ao criar produto";
+        showToast(`Erro ao criar produto: ${errorMessage}`, "error");
       }
     } finally {
       setIsLoading(false);
@@ -409,7 +415,9 @@ export default function NovoProdutoPage() {
                     setFormData((prev) => ({ ...prev, price: value }));
                   }}
                   onBlur={() => {
-                    setPriceText(formData.price ? formatBRL(formData.price) : "");
+                    setPriceText(
+                      formData.price ? formatBRL(formData.price) : ""
+                    );
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="R$ 0,00"
@@ -438,7 +446,9 @@ export default function NovoProdutoPage() {
                   }}
                   onBlur={() => {
                     setOriginalPriceText(
-                      formData.originalPrice ? formatBRL(formData.originalPrice) : ""
+                      formData.originalPrice
+                        ? formatBRL(formData.originalPrice)
+                        : ""
                     );
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -474,7 +484,10 @@ export default function NovoProdutoPage() {
                 type="url"
                 value={formData.image || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, image: e.target.value || undefined }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    image: e.target.value || undefined,
+                  }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="https://exemplo.com/imagem.jpg"
@@ -517,7 +530,8 @@ export default function NovoProdutoPage() {
                   aria-label="Estoque inicial (inteiro)"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Somente números. Ex.: digite <code>02</code> → exibe <code>2</code>.
+                  Somente números. Ex.: digite <code>02</code> → exibe{" "}
+                  <code>2</code>.
                 </p>
               </div>
 
@@ -548,7 +562,8 @@ export default function NovoProdutoPage() {
                   aria-label="Estoque mínimo (inteiro)"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Somente números. Ex.: digite <code>02</code> → exibe <code>2</code>.
+                  Somente números. Ex.: digite <code>02</code> → exibe{" "}
+                  <code>2</code>.
                 </p>
               </div>
             </div>
@@ -710,7 +725,8 @@ export default function NovoProdutoPage() {
                 onChange={(e) =>
                   setNewAddon((prev) => ({
                     ...prev,
-                    maxQuantity: Number.parseInt(e.target.value || "1", 10) || 1,
+                    maxQuantity:
+                      Number.parseInt(e.target.value || "1", 10) || 1,
                   }))
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"

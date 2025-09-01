@@ -3,20 +3,20 @@
 import {
   Clock,
   House,
+  Image as ImageIcon,
   MagnifyingGlass,
   Receipt,
   ShoppingCart,
   Storefront,
   User,
-  Image as ImageIcon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SearchModal from "../../../../components/SearchModal";
 import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
-import { Product } from "../../../../types/cardapio-api";
 import { useCart } from "../../../../hooks/useCart";
+import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
   params: {
@@ -112,7 +112,6 @@ async function getStoreConfig(slug: string) {
       status: data.status || { isOpen: false, reason: "Indisponível" },
     };
   } catch (error) {
-    console.error("Erro ao buscar configuração da loja:", error);
     throw error;
   }
 }
@@ -162,26 +161,29 @@ export default function StorePage({ params }: PageProps) {
   const handleAddToCart = (product: Product) => {
     addToCart(product, 1);
     // Toast de sucesso
-    showToast(`${product.name} adicionado ao carrinho!`, 'success');
+    showToast(`${product.name} adicionado ao carrinho!`, "success");
   };
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    const toast = document.createElement('div');
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
+    const toast = document.createElement("div");
     toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      type === "success" ? "bg-green-500" : "bg-red-500"
     }`;
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     // Animação de entrada
     setTimeout(() => {
-      toast.classList.remove('translate-x-full', 'opacity-0');
+      toast.classList.remove("translate-x-full", "opacity-0");
     }, 100);
-    
+
     // Remover após 3 segundos
     setTimeout(() => {
-      toast.classList.add('translate-x-full', 'opacity-0');
+      toast.classList.add("translate-x-full", "opacity-0");
       setTimeout(() => {
         if (document.body.contains(toast)) {
           document.body.removeChild(toast);
@@ -190,27 +192,30 @@ export default function StorePage({ params }: PageProps) {
     }, 3000);
   };
 
-  const filteredProducts = config?.menu?.products?.filter((p: any) => {
-    if (!p.active) return false;
-    
-    // Filtro por categoria
-    if (selectedCategory !== "todos") {
-      const category = config?.menu?.categories?.find((c: any) => c.name === selectedCategory);
-      if (category && p.categoryId !== category.id) return false;
-    }
-    
-    // Filtro por busca
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        p.name.toLowerCase().includes(searchLower) ||
-        p.description?.toLowerCase().includes(searchLower) ||
-        p.subtitle?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    return true;
-  }) || [];
+  const filteredProducts =
+    config?.menu?.products?.filter((p: any) => {
+      if (!p.active) return false;
+
+      // Filtro por categoria
+      if (selectedCategory !== "todos") {
+        const category = config?.menu?.categories?.find(
+          (c: any) => c.name === selectedCategory
+        );
+        if (category && p.categoryId !== category.id) return false;
+      }
+
+      // Filtro por busca
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(searchLower) ||
+          p.description?.toLowerCase().includes(searchLower) ||
+          p.subtitle?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    }) || [];
 
   if (loading) {
     return (
@@ -341,7 +346,7 @@ export default function StorePage({ params }: PageProps) {
                   <Receipt className="h-5 w-5" />
                   <span>Pedidos</span>
                 </button>
-                
+
                 <button
                   onClick={() => setIsCartModalOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 relative"
@@ -351,24 +356,25 @@ export default function StorePage({ params }: PageProps) {
                   <ShoppingCart className="h-5 w-5" />
                   <span>Carrinho</span>
                   {cart.itemCount > 0 && (
-                    <span 
+                    <span
                       className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                       style={{ backgroundColor: primary }}
                     >
-                      {cart.itemCount > 99 ? '99+' : cart.itemCount}
+                      {cart.itemCount > 99 ? "99+" : cart.itemCount}
                     </span>
                   )}
                 </button>
               </div>
-              
-              <button
+
+              <Link
+                href={`/store/${slug}/login`}
                 className="flex items-center space-x-2 hover:opacity-75"
                 style={{ color: primary }}
                 title="Fazer Login"
               >
                 <User className="h-5 w-5" />
                 <span className="hidden sm:block">Login</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -405,7 +411,8 @@ export default function StorePage({ params }: PageProps) {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
               style={{
-                backgroundColor: selectedCategory === "todos" ? primary : undefined,
+                backgroundColor:
+                  selectedCategory === "todos" ? primary : undefined,
               }}
             >
               <span className="font-medium">Todos</span>
@@ -424,10 +431,10 @@ export default function StorePage({ params }: PageProps) {
                   config?.menu?.products?.filter(
                     (p: any) => p.active && p.categoryId === category.id
                   ).length || 0;
-                
+
                 // Não mostrar categoria se tiver 0 produtos
                 if (count === 0) return null;
-                
+
                 return (
                   <button
                     key={category.id}
@@ -438,7 +445,10 @@ export default function StorePage({ params }: PageProps) {
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                     style={{
-                      backgroundColor: selectedCategory === category.name ? primary : undefined,
+                      backgroundColor:
+                        selectedCategory === category.name
+                          ? primary
+                          : undefined,
                     }}
                   >
                     <span className="font-medium">{category.name}</span>
@@ -549,19 +559,21 @@ export default function StorePage({ params }: PageProps) {
                             }`}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const placeholder = target.nextElementSibling as HTMLElement;
-                              if (placeholder) placeholder.style.display = 'flex';
+                              target.style.display = "none";
+                              const placeholder =
+                                target.nextElementSibling as HTMLElement;
+                              if (placeholder)
+                                placeholder.style.display = "flex";
                             }}
                           />
                         ) : null}
-                        
+
                         {/* Placeholder para imagem ausente */}
-                        <div 
+                        <div
                           className={`w-full h-full flex items-center justify-center bg-gray-200 ${
-                            product.image ? 'hidden' : 'flex'
+                            product.image ? "hidden" : "flex"
                           }`}
-                          style={{ display: product.image ? 'none' : 'flex' }}
+                          style={{ display: product.image ? "none" : "flex" }}
                         >
                           <ImageIcon className="w-8 h-8 text-gray-400" />
                         </div>
@@ -591,26 +603,26 @@ export default function StorePage({ params }: PageProps) {
             </span>
           </button>
 
-          <button 
-            onClick={() => setIsOrdersModalOpen(true)}
+          <Link
+            href={`/store/${slug}/orders`}
             className="flex flex-col items-center py-2 px-4 min-w-0 flex-1"
           >
             <Receipt className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Pedidos</span>
-          </button>
+          </Link>
 
-          <button 
+          <button
             onClick={() => setIsCartModalOpen(true)}
             className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
           >
             <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Carrinho</span>
             {cart.itemCount > 0 && (
-              <span 
+              <span
                 className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                 style={{ backgroundColor: primary }}
               >
-                {cart.itemCount > 99 ? '99+' : cart.itemCount}
+                {cart.itemCount > 99 ? "99+" : cart.itemCount}
               </span>
             )}
           </button>
@@ -629,14 +641,14 @@ export default function StorePage({ params }: PageProps) {
         primaryColor={config?.branding?.primaryColor}
         accentColor={config?.branding?.accentColor}
       />
-      
+
       <CartModal
         isOpen={isCartModalOpen}
         onClose={() => setIsCartModalOpen(false)}
         primaryColor={config?.branding?.primaryColor}
         storeSlug={slug}
       />
-      
+
       <OrdersModal
         isOpen={isOrdersModalOpen}
         onClose={() => setIsOrdersModalOpen(false)}
