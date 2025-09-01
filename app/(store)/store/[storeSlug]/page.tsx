@@ -8,7 +8,6 @@ import {
   User,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import PromotionsBanner from "../../../../components/PromotionsBanner";
 import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
@@ -146,26 +145,26 @@ export default async function StorePage({ params }: PageProps) {
   const isLoginOpen = false;
 
   // Promoções de exemplo (em produção viriam do banco/config)
-  const promotions = [
-    {
-      id: "1",
-      title: "🎉 Primeira Compra",
-      description: "10% de desconto na primeira compra com cupom PRIMEIRA10",
-      type: "discount" as const,
-      value: 10,
-      validUntil: "2025-12-31",
-      active: true,
-    },
-    {
-      id: "2",
-      title: "🚚 Entrega Grátis",
-      description: "Entrega grátis em pedidos acima de R$ 30,00",
-      type: "free_delivery" as const,
-      value: 5,
-      validUntil: "2025-12-31",
-      active: true,
-    },
-  ];
+  // const promotions = [
+  //   {
+  //     id: "1",
+  //     title: "🎉 Primeira Compra",
+  //     description: "10% de desconto na primeira compra com cupom PRIMEIRA10",
+  //     type: "discount" as const,
+  //     value: 10,
+  //     validUntil: "2025-12-31",
+  //     active: true,
+  //   },
+  //   {
+  //     id: "2",
+  //     title: "🚚 Entrega Grátis",
+  //     description: "Entrega grátis em pedidos acima de R$ 30,00",
+  //     type: "free_delivery" as const,
+  //     value: 5,
+  //     validUntil: "2025-12-31",
+  //     active: true,
+  //   },
+  // ];
 
   // Filtrar produtos - versão simplificada para Server Component
   const filteredProducts =
@@ -247,7 +246,7 @@ export default async function StorePage({ params }: PageProps) {
       }}
     >
       {/* Promotions Banner */}
-      <PromotionsBanner promotions={promotions} />
+      {/* <PromotionsBanner promotions={promotions} /> */}
 
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50 animate-slide-in-top">

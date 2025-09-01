@@ -95,13 +95,7 @@ export default function HomePage() {
                   href="/register/loja"
                   className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
-                  ➕ Criar Minha Loja Grátis
-                </Link>
-                <Link
-                  href="/lojas"
-                  className="px-6 md:px-8 py-3 md:py-4 border-2 border-white text-white rounded-lg font-semibold text-base md:text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
-                >
-                  🛍️ Ver Lojas Próximas
+                  ➕ Criar Minha Loja
                 </Link>
               </Animated>
             </Hero>
@@ -115,7 +109,7 @@ export default function HomePage() {
       </section>
 
       {/* Social Proof Section */}
-      <section className="py-6 md:py-8 bg-gray-100">
+      {/* <section className="py-6 md:py-8 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Animated
@@ -145,7 +139,7 @@ export default function HomePage() {
             </Animated>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Benefits Section */}
       <section className="py-12 md:py-16 bg-white">
@@ -309,7 +303,9 @@ export default function HomePage() {
                         </p>
                       </div>
                     </div>
-                    <p className="text-gray-700 italic text-sm md:text-base">"{testimonial.text}"</p>
+                    <p className="text-gray-700 italic text-sm md:text-base">
+                      "{testimonial.text}"
+                    </p>
                     <div className="flex mt-3 md:mt-4">
                       {[...Array(5)].map((_, i) => (
                         <Star
@@ -355,10 +351,6 @@ export default function HomePage() {
                   <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
                     <li className="flex items-center">
                       <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>1 loja</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
                       <span>Até 20 produtos</span>
                     </li>
                     <li className="flex items-center">
@@ -384,13 +376,13 @@ export default function HomePage() {
                     Plano Premium
                   </h3>
                   <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                    R$ 79<span className="text-base md:text-lg font-normal">/mês</span>
+                    R$ 79
+                    <span className="text-base md:text-lg font-normal">
+                      /mês
+                    </span>
                   </div>
                   <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>3 lojas</span>
-                    </li>
+                    <li className="flex items-center"></li>
                     <li className="flex items-center">
                       <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
                       <span>Produtos ilimitados</span>
@@ -419,7 +411,10 @@ export default function HomePage() {
                     Plano Empresarial
                   </h3>
                   <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                    R$ 149<span className="text-base md:text-lg font-normal">/mês</span>
+                    R$ 149
+                    <span className="text-base md:text-lg font-normal">
+                      /mês
+                    </span>
                   </div>
                   <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
                     <li className="flex items-center">
@@ -475,7 +470,7 @@ export default function HomePage() {
               href="/register/loja"
               className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
-              Criar Minha Loja Grátis
+              Criar Minha Loja
             </Link>
             <Link
               href="/login"
@@ -506,7 +501,9 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               <StaggerItem animation="fadeIn">
                 <div>
-                  <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Cardap.IO</h3>
+                  <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
+                    Cardap.IO
+                  </h3>
                   <p className="text-gray-400 text-sm md:text-base">
                     A melhor plataforma para conectar clientes e lojistas locais
                   </p>
@@ -515,7 +512,9 @@ export default function HomePage() {
 
               <StaggerItem animation="fadeIn">
                 <div>
-                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">Para Clientes</h4>
+                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">
+                    Para Clientes
+                  </h4>
                   <ul className="space-y-2 text-gray-400 text-sm md:text-base">
                     <li>
                       <Link
@@ -547,7 +546,9 @@ export default function HomePage() {
 
               <StaggerItem animation="fadeIn">
                 <div>
-                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">Para Lojistas</h4>
+                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">
+                    Para Lojistas
+                  </h4>
                   <ul className="space-y-2 text-gray-400 text-sm md:text-base">
                     <li>
                       <Link
@@ -579,7 +580,9 @@ export default function HomePage() {
 
               <StaggerItem animation="fadeIn">
                 <div>
-                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">Suporte</h4>
+                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">
+                    Suporte
+                  </h4>
                   <ul className="space-y-2 text-gray-400 text-sm md:text-base">
                     <li>
                       <Link
@@ -616,7 +619,9 @@ export default function HomePage() {
             config={{ delay: 0.5 }}
             className="border-t border-gray-800 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-gray-400"
           >
-            <p className="text-sm md:text-base">&copy; 2024 Cardap.IO. Todos os direitos reservados.</p>
+            <p className="text-sm md:text-base">
+              &copy; 2024 Cardap.IO. Todos os direitos reservados.
+            </p>
           </Animated>
         </div>
       </footer>
