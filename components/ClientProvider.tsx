@@ -19,7 +19,8 @@ export function ClientProvider({ children }: ClientProviderProps) {
       <AuthProvider>
         <ToastProvider>
           {children}
-          <ReactQueryDevtools initialIsOpen={false} />
+          {/* Temporariamente removido para testes */}
+          {/* <ReactQueryDevtools initialIsOpen={false} /> */}
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -1,13 +1,18 @@
+"use client";
+
 import {
   Clock,
+  House,
   MagnifyingGlass,
-  Phone,
+  Receipt,
   ShoppingCart,
   Storefront,
-  Truck,
+  Tag,
   User,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import SearchModal from "../../../../components/SearchModal";
 import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
@@ -118,16 +123,29 @@ async function getStoreConfig(slug: string) {
 // Tipo utilitário baseado no retorno de getStoreConfig
 type StoreData = Awaited<ReturnType<typeof getStoreConfig>>;
 
-export default async function StorePage({ params }: PageProps) {
+export default function StorePage({ params }: PageProps) {
   const { storeSlug: slug } = params;
-  let config: StoreData | null = null;
-  let error: string | null = null;
+  const [config, setConfig] = useState<StoreData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  try {
-    config = await getStoreConfig(slug);
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Erro desconhecido";
-  }
+  // Carregar dados da loja
+  useEffect(() => {
+    const loadStoreData = async () => {
+      try {
+        setLoading(true);
+        const storeData = await getStoreConfig(slug);
+        setConfig(storeData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStoreData();
+  }, [slug]);
 
   // Determinar se a loja está aberta
   const isOpen = config?.status?.isOpen || false;
@@ -136,13 +154,21 @@ export default async function StorePage({ params }: PageProps) {
   // Estado estático para demonstração
   const status = "unauthenticated";
   const session = null;
-  const searchQuery = "";
   const selectedCategory = "todos";
-  const searchResults = null;
   const cartItems: any[] = [];
   const isCartOpen = false;
   const isProfileOpen = false;
   const isLoginOpen = false;
+
+  // Handlers
+  const handleSearchClick = () => {
+    setIsSearchModalOpen(true);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    console.log("Produto selecionado:", product.name);
+    // Aqui você pode implementar lógica adicional, como scroll até o produto
+  };
 
   // Promoções de exemplo (em produção viriam do banco/config)
   // const promotions = [
@@ -166,9 +192,21 @@ export default async function StorePage({ params }: PageProps) {
   //   },
   // ];
 
-  // Filtrar produtos - versão simplificada para Server Component
+  // Filtrar produtos
   const filteredProducts =
     config?.menu?.products?.filter((p: any) => p.active) || [];
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando loja...</p>
+        </div>
+      </div>
+    );
+  }
 
   const addToCart = (product: Product) => {
     // Função estática para demonstração
@@ -239,9 +277,9 @@ export default async function StorePage({ params }: PageProps) {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen flex flex-col bg-white overflow-hidden"
       style={{
-        backgroundColor: config?.branding?.backgroundColor || "#ffffff",
+        backgroundColor: config.branding?.backgroundColor || "#ffffff",
         color: config?.branding?.textColor || "#000000",
       }}
     >
@@ -269,25 +307,32 @@ export default async function StorePage({ params }: PageProps) {
               </h1>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
-              <div className="relative">
+            {/* Search Bar - Desktop */}
+            <div className="hidden md:flex flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
+              <button
+                onClick={handleSearchClick}
+                className="w-full flex items-center pl-12 pr-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-300 text-left"
+                style={
+                  {
+                    "--tw-ring-color":
+                      config?.branding?.primaryColor || "#f97316",
+                  } as any
+                }
+              >
                 <MagnifyingGlass className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Buscar produtos..."
-                  defaultValue=""
-                  className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:bg-white search-focus transition-all duration-300"
-                  style={
-                    {
-                      "--tw-ring-color":
-                        config?.branding?.primaryColor || "#f97316",
-                    } as any
-                  }
-                  readOnly
-                />
-              </div>
+                <span className="text-gray-500">Buscar produtos...</span>
+              </button>
             </div>
+
+            {/* Search Icon - Mobile */}
+            <button
+              onClick={handleSearchClick}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              style={{ color: config?.branding?.primaryColor || "#f97316" }}
+              title="Buscar produtos"
+            >
+              <MagnifyingGlass className="h-6 w-6" />
+            </button>
 
             {/* Actions */}
             <div className="flex items-center space-x-4 animate-slide-in-right">
@@ -299,15 +344,6 @@ export default async function StorePage({ params }: PageProps) {
               >
                 <User className="h-5 w-5" />
                 <span className="hidden sm:block">Login</span>
-              </button>
-
-              {/* Cart Button */}
-              <button
-                className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 relative hover-lift"
-                style={{ color: config?.branding?.primaryColor || "#f97316" }}
-              >
-                <ShoppingCart className="h-5 w-5 transition-transform" />
-                <span className="hidden sm:block">Carrinho</span>
               </button>
             </div>
           </div>
@@ -346,7 +382,7 @@ export default async function StorePage({ params }: PageProps) {
       )} */}
 
       {/* Info da Loja */}
-      <div className="bg-white border-b">
+      {/* <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center space-x-6">
@@ -387,7 +423,7 @@ export default async function StorePage({ params }: PageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Categories */}
       <section className="bg-white border-b animate-slide-in-left animate-delay-300">
@@ -425,8 +461,8 @@ export default async function StorePage({ params }: PageProps) {
       </section>
 
       {/* Products Grid */}
-      <main className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Results Info */}
           <div className="mb-6">
             <p className="text-gray-600">
@@ -439,7 +475,6 @@ export default async function StorePage({ params }: PageProps) {
                     (c: any) => c.id === selectedCategory
                   )?.name
                 }`}
-              {searchQuery && ` para "${searchQuery}"`}
             </p>
           </div>
 
@@ -536,22 +571,66 @@ export default async function StorePage({ params }: PageProps) {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 animate-fade-in">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2 animate-slide-in-top">
-              {config.name}
-            </h3>
-            <p className="text-gray-400 mb-4 animate-slide-in-top animate-delay-200">
-              {config.description}
-            </p>
-            <div className="flex justify-center space-x-4 animate-slide-in-top animate-delay-300">
-              {/* Social media removido - não existe no tipo business */}
-            </div>
-          </div>
+      {/* Mobile Bottom Menu */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden">
+        <div className="flex items-center justify-around py-2">
+          {/* Início */}
+          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+            <House
+              className="h-6 w-6 mb-1"
+              style={{ color: config?.branding?.primaryColor || "#f97316" }}
+            />
+            <span
+              className="text-xs font-medium"
+              style={{ color: config?.branding?.primaryColor || "#f97316" }}
+            >
+              Início
+            </span>
+          </button>
+
+          {/* Pedidos */}
+          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+            <Receipt className="h-6 w-6 mb-1 text-gray-500" />
+            <span className="text-xs font-medium text-gray-500">Pedidos</span>
+          </button>
+
+          {/* Promos */}
+          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+            <Tag className="h-6 w-6 mb-1 text-gray-500" />
+            <span className="text-xs font-medium text-gray-500">Promos</span>
+          </button>
+
+          {/* Carrinho */}
+          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative">
+            <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
+            <span className="text-xs font-medium text-gray-500">Carrinho</span>
+            {/* Badge do carrinho */}
+            {cartItems.length > 0 && (
+              <div
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                style={{
+                  backgroundColor: config?.branding?.primaryColor || "#f97316",
+                }}
+              >
+                {cartItems.length > 9 ? "9+" : cartItems.length}
+              </div>
+            )}
+          </button>
         </div>
-      </footer>
+      </div>
+
+      {/* Padding bottom para compensar o menu fixo no mobile */}
+      <div className="h-16 md:hidden"></div>
+
+      {/* Search Modal */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        products={filteredProducts}
+        onProductSelect={handleProductSelect}
+        primaryColor={config?.branding?.primaryColor}
+        accentColor={config?.branding?.accentColor}
+      />
     </div>
   );
 }
