@@ -49,9 +49,21 @@ const formatPrice = (price: any): string => {
 const normalizeImageUrl = (url: string): string => {
   if (!url) return url;
 
-  // Se for URL absoluta do localhost, converter para relativa para usar o proxy
-  if (url.startsWith("http://localhost:3001/")) {
-    return url.replace("http://localhost:3001", "");
+  // se já for relativa, mantém
+  if (url.startsWith("/")) return url;
+
+  // normaliza hosts locais comuns para usar o proxy do Next
+  const hostsLocais = [
+    "http://localhost:3001",
+    "https://localhost:3001",
+    "http://127.0.0.1:3001",
+    "https://127.0.0.1:3001",
+  ];
+
+  for (const host of hostsLocais) {
+    if (url.startsWith(host + "/")) {
+      return url.replace(host, "");
+    }
   }
 
   return url;
@@ -102,10 +114,11 @@ async function getStoreConfig(slug: string) {
       promotions: {
         coupons: data.config?.coupons || [],
       },
+      // ⚠️ Fallbacks corrigidos para banner e logo
       branding: {
         logo: data.config?.logo || data.config?.branding?.logo || "",
-        favicon: data.config?.favicon || "",
-        banner: data.config?.banner || "",
+        favicon: data.config?.favicon || data.config?.branding?.favicon || "",
+        banner: data.config?.banner || data.config?.branding?.banner || "",
         primaryColor: data.config?.branding?.primaryColor || "#f97316",
         secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
         backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
@@ -156,23 +169,19 @@ export default function StorePage({ params }: PageProps) {
   }, [slug]);
 
   const isOpen = config?.status?.isOpen || false;
-  const currentMessage = config?.status?.reason || "Loja fechada";
 
-  const status = "unauthenticated";
-  const session = null;
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const { cart, addToCart } = useCart();
 
   const handleSearchClick = () => setIsSearchModalOpen(true);
 
-  const handleProductSelect = (product: Product) => {
-    console.log("Produto selecionado:", product.name);
+  const handleProductSelect = (_product: Product) => {
+    // ação futura (navegar para detalhes, etc.)
   };
 
   const handleAddToCart = (product: Product) => {
     addToCart(product, 1);
-    // Toast de sucesso
     showToast(`${product.name} adicionado ao carrinho!`, "success");
   };
 
@@ -188,12 +197,10 @@ export default function StorePage({ params }: PageProps) {
 
     document.body.appendChild(toast);
 
-    // Animação de entrada
     setTimeout(() => {
       toast.classList.remove("translate-x-full", "opacity-0");
     }, 100);
 
-    // Remover após 3 segundos
     setTimeout(() => {
       toast.classList.add("translate-x-full", "opacity-0");
       setTimeout(() => {
@@ -251,11 +258,7 @@ export default function StorePage({ params }: PageProps) {
             Loja não encontrada
           </h1>
           <p className="text-gray-600 mb-6">
-            {error === `Loja '${slug}' não encontrada`
-              ? `A loja "${slug}" não foi encontrada ou não está mais disponível.`
-              : error === "Loja inativa ou não aprovada"
-              ? "Esta loja está temporariamente indisponível."
-              : "Ocorreu um erro ao carregar os dados da loja."}
+            Ocorreu um erro ao carregar os dados da loja.
           </p>
           <div className="space-y-3">
             <Link
@@ -392,25 +395,6 @@ export default function StorePage({ params }: PageProps) {
         </div>
       </header>
 
-      {/* Banner */}
-      {config?.branding?.banner && (
-        <div className="relative h-48 md:h-64 overflow-hidden">
-          <img
-            src={config.branding.banner}
-            alt={config.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                {config.name}
-              </h2>
-              <p className="text-lg">{config.description}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Categorias */}
       <section className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -444,7 +428,6 @@ export default function StorePage({ params }: PageProps) {
                     (p: any) => p.active && p.categoryId === category.id
                   ).length || 0;
 
-                // Não mostrar categoria se tiver 0 produtos
                 if (count === 0) return null;
 
                 return (
@@ -472,6 +455,27 @@ export default function StorePage({ params }: PageProps) {
         </div>
       </section>
 
+      {/* Banner */}
+      {config?.branding?.banner && (
+        <div className="relative h-48 md:h-64 overflow-hidden">
+          <img
+            src={normalizeImageUrl(config.branding.banner)}
+            alt={config.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="text-center text-white">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                {config.name}
+              </h2>
+              {!!config.description && (
+                <p className="text-lg">{config.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de Produtos — 1 por linha */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -498,7 +502,7 @@ export default function StorePage({ params }: PageProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredProducts.map((product: any, index: number) => {
+              {filteredProducts.map((product: any) => {
                 const isSoldOut =
                   product?.stock === 0 ||
                   product?.available === false ||
@@ -516,7 +520,6 @@ export default function StorePage({ params }: PageProps) {
                           {product.name}
                         </h3>
 
-                        {/* Subdescrição/observações */}
                         {product?.subtitle ? (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                             {product.subtitle}
@@ -540,7 +543,6 @@ export default function StorePage({ params }: PageProps) {
                           )}
                         </div>
 
-                        {/* CTA (opcional) */}
                         <div className="mt-3">
                           <button
                             onClick={() => handleAddToCart(product)}
