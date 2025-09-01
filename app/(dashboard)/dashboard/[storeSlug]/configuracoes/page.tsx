@@ -10,6 +10,7 @@ import {
   Gear,
   Globe,
   Lightning,
+  ChatCircle,
   Palette,
   Shield,
   Storefront,
@@ -37,6 +38,7 @@ interface StoreStatus {
   hasPaymentConfig: boolean;
   hasDeliveryConfig: boolean;
   hasSecurityConfig: boolean;
+  hasWhatsAppConfig: boolean;
 }
 
 export default function ConfiguracoesPage() {
@@ -84,6 +86,7 @@ export default function ConfiguracoesPage() {
     hasPaymentConfig: false,
     hasDeliveryConfig: false,
     hasSecurityConfig: false,
+    hasWhatsAppConfig: false,
   });
 
   // Verificar status das configurações
@@ -100,6 +103,7 @@ export default function ConfiguracoesPage() {
         ),
         hasDeliveryConfig: !!config.delivery?.enabled,
         hasSecurityConfig: false, // Implementar quando necessário
+        hasWhatsAppConfig: !!(config as any).whatsapp?.enabled,
       });
     }
   }, [config]);
@@ -154,9 +158,18 @@ export default function ConfiguracoesPage() {
       badge: storeStatus.hasDeliveryConfig ? "Configurado" : "Opcional",
     },
     {
+      id: "whatsapp",
+      title: "Integração WhatsApp",
+      description: "Configure mensagens automáticas e notificações via WhatsApp",
+      icon: ChatCircle,
+      href: `/dashboard/${storeSlug}/configuracoes/whatsapp`,
+      status: storeStatus.hasWhatsAppConfig ? "completed" : "optional",
+      badge: storeStatus.hasWhatsAppConfig ? "Configurado" : "Opcional",
+    },
+    {
       id: "integracao",
-      title: "Integrações",
-      description: "Conecte com WhatsApp, Google Business e outros",
+      title: "Outras Integrações",
+      description: "Conecte com Google Business e outros serviços",
       icon: Lightning,
       href: `/dashboard/${storeSlug}/configuracoes/integracao`,
       status: "optional",
@@ -301,30 +314,27 @@ export default function ConfiguracoesPage() {
           {configSections.map((section) => (
             <div
               key={section.id}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer ${
-                section.status === "completed" ? "ring-2 ring-green-200" : ""
-              }`}
+              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer ${section.status === "completed" ? "ring-2 ring-green-200" : ""
+                }`}
               onClick={() => router.push(section.href)}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      section.status === "completed"
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${section.status === "completed"
                         ? "bg-green-100"
                         : section.status === "pending"
-                        ? "bg-orange-100"
-                        : "bg-gray-100"
-                    }`}
+                          ? "bg-orange-100"
+                          : "bg-gray-100"
+                      }`}
                   >
                     <section.icon
-                      className={`h-5 w-5 ${
-                        section.status === "completed"
+                      className={`h-5 w-5 ${section.status === "completed"
                           ? "text-green-600"
                           : section.status === "pending"
-                          ? "text-orange-600"
-                          : "text-gray-600"
-                      }`}
+                            ? "text-orange-600"
+                            : "text-gray-600"
+                        }`}
                     />
                   </div>
                   <div>

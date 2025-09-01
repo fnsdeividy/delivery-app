@@ -51,3 +51,6 @@ export {
   useUser,
   useUsers,
 } from "./useUsers";
+
+// Hook para configuração WhatsApp
+export { useWhatsAppConfig } from "./useWhatsAppConfig";
