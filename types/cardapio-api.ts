@@ -80,13 +80,38 @@ export interface DaySchedule {
   breakEnd?: string; // HH:mm
 }
 
+export interface TimeRange {
+  start: string; // formato 'HH:MM'
+  end: string; // formato 'HH:MM'
+}
+
+export interface DayAvailability {
+  available: boolean;
+  hours: TimeRange[];
+}
+
+export interface ProductAvailability {
+  alwaysAvailable: boolean;
+  availableDays: {
+    monday: DayAvailability;
+    tuesday: DayAvailability;
+    wednesday: DayAvailability;
+    thursday: DayAvailability;
+    friday: DayAvailability;
+    saturday: DayAvailability;
+    sunday: DayAvailability;
+  };
+}
+
 export interface CreateProductDto {
   name: string;
   description: string;
   price: number;
   originalPrice?: number;
+  promotionalPrice?: number;
   image?: string;
   active: boolean;
+  featured?: boolean;
   preparationTime?: number;
   categoryId: string;
   storeSlug: string;
@@ -98,6 +123,18 @@ export interface CreateProductDto {
   order?: number;
   initialStock?: number;
   minStock?: number;
+  maxStock?: number;
+  stockAlerts?: boolean;
+  autoRestock?: boolean;
+  unit?: string;
+  stockType?: string; // 'unit' | 'box' | 'infinite'
+  volume?: number;
+  volumeUnit?: string; // 'ml' | 'l'
+  returnable?: boolean;
+  temperature?: string; // 'cold' | 'hot' | 'room'
+  classifications?: string[];
+  availability?: ProductAvailability;
+  status?: string; // 'active' | 'inactive' | 'draft' | 'scheduled'
 }
 
 export interface UpdateProductDto {
@@ -117,6 +154,17 @@ export interface UpdateProductDto {
   order?: number;
   initialStock?: number;
   minStock?: number;
+  maxStock?: number;
+  stockAlerts?: boolean;
+  autoRestock?: boolean;
+  classifications?: string[];
+  availability?: ProductAvailability;
+  unit?: string;
+  stockType?: string;
+  volume?: number;
+  volumeUnit?: string;
+  returnable?: boolean;
+  temperature?: string;
 }
 
 export interface ProductIngredientDto {

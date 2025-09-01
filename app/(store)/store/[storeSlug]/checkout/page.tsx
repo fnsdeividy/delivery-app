@@ -32,6 +32,7 @@ interface FormErrors {
   customerEmail?: string;
   postalCode?: string;
   deliveryAddress?: string;
+  deliveryNumber?: string;
   deliveryNeighborhood?: string;
   deliveryCity?: string;
 }
@@ -106,6 +107,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     customerEmail: user?.email || "",
     postalCode: "",
     deliveryAddress: "",
+    deliveryNumber: "",
     deliveryNeighborhood: "",
     deliveryCity: "",
     deliveryReference: "",
@@ -209,14 +211,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }
 
     if (formData.orderType === OrderType.DELIVERY) {
-      if (!formData.postalCode.trim()) {
-        errors.postalCode = "CEP é obrigatório";
-      } else if (formData.postalCode.replace(/\D/g, "").length !== 8) {
+      if (!formData.postalCode.trim() || formData.postalCode.replace(/\D/g, "").length !== 8) {
         errors.postalCode = "CEP inválido";
       }
-      
+
       if (!formData.deliveryAddress.trim()) {
         errors.deliveryAddress = "Endereço é obrigatório";
+      }
+
+      if (!formData.deliveryNumber.trim()) {
+        errors.deliveryNumber = "Número é obrigatório";
       }
 
       if (!formData.deliveryNeighborhood.trim()) {
@@ -323,7 +327,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           formData.customerPhone
         }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
           formData.orderType === OrderType.DELIVERY
-            ? `\nCEP: ${formData.postalCode}\nEndereço: ${formData.deliveryAddress}, ${
+            ? `\nCEP: ${formData.postalCode}\nEndereço: ${formData.deliveryAddress}, ${formData.deliveryNumber}, ${
                 formData.deliveryNeighborhood
               }, ${formData.deliveryCity}${
                 formData.deliveryReference
@@ -803,7 +807,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
                 <div id="deliveryAddress">
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Endereço completo *
+                    Endereço (Logradouro) *
                   </label>
                   <input
                     type="text"
@@ -826,7 +830,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         "--tw-ring-color": brandingColors.primary + "80",
                       } as React.CSSProperties
                     }
-                    placeholder="Rua, número, complemento"
+                    placeholder="Rua, Avenida..."
                   />
                   {formErrors.deliveryAddress && (
                     <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
@@ -836,7 +840,41 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div id="deliveryNumber">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Número *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.deliveryNumber}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          deliveryNumber: e.target.value,
+                        }))
+                      }
+                      onBlur={() => validateForm()}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                        formErrors.deliveryNumber
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-300 hover:border-gray-400 focus:bg-white"
+                      }`}
+                      style={
+                        {
+                          "--tw-ring-color": brandingColors.primary + "80",
+                        } as React.CSSProperties
+                      }
+                      placeholder="123"
+                    />
+                    {formErrors.deliveryNumber && (
+                      <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                        <WarningCircle size={14} />
+                        {formErrors.deliveryNumber}
+                      </p>
+                    )}
+                  </div>
                   <div id="deliveryNeighborhood">
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Bairro *

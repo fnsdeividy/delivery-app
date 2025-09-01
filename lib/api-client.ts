@@ -863,7 +863,8 @@ class ApiClient {
   // ===== CATEGORIAS =====
 
   async getCategories(storeSlug: string): Promise<Category[]> {
-    return this.get<Category[]>(`/stores/${storeSlug}/categories`);
+    const response = await this.get<{data: Category[], pagination: any}>(`/stores/${storeSlug}/categories`);
+    return response.data;
   }
 
   // ===== PRODUTOS =====
@@ -930,6 +931,49 @@ class ApiClient {
     return this.get<Product[]>(
       `/stores/${storeSlug}/products/search?q=${encodeURIComponent(query)}`
     );
+  }
+
+  /**
+   * Faz upload de uma imagem para um produto
+   */
+  async uploadProductImage(
+    product: CreateProductDto | Product,
+    file: File
+  ): Promise<{
+    success: boolean;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    url: string;
+    path: string;
+    message: string;
+  }> {
+    const { storeSlug } = product;
+    if (!storeSlug) {
+      throw new Error('storeSlug é obrigatório para upload de imagem do produto');
+    }
+    
+    console.log('📤 Upload de imagem para produto iniciado', { storeSlug });
+    return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
+  }
+
+  /**
+   * Faz upload de uma imagem para produto usando apenas storeSlug
+   */
+  async uploadProductImageByStore(
+    storeSlug: string,
+    file: File
+  ): Promise<{
+    success: boolean;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    url: string;
+    path: string;
+    message: string;
+  }> {
+    console.log('📤 Upload de imagem para produto iniciado', { storeSlug });
+    return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
 
   // ===== ESTOQUE =====
