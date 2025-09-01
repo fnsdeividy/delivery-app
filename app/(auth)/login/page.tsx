@@ -1,21 +1,16 @@
 "use client";
 
 import { useCardapioAuth, useFormValidation } from "@/hooks";
-import { loginSchema, LoginFormData } from "@/lib/validation/schemas";
+import { LoginFormData, loginSchema } from "@/lib/validation/schemas";
 import { Eye, EyeSlash, SignIn } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import Head from "next/head";
-import Script from "next/script";
-import { getBackendUrl } from "@/lib/config/environment";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
-  const backendUrl = getBackendUrl() || "http://localhost:3001";
-  const loginCssUrl = `${backendUrl}/static/css/login.css`;
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -24,7 +19,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, isLoading, error } = useCardapioAuth();
-  
+
   // Hook de validação
   const {
     errors,
@@ -37,10 +32,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Limpar erros anteriores
     clearErrors();
-    
+
     // Validar formulário
     const validation = await validateForm(formData);
     if (!validation.isValid) {
@@ -67,7 +62,7 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
-    
+
     // Limpar erro do campo quando o usuário começa a digitar
     if (errors[name as keyof LoginFormData]) {
       clearErrors();
@@ -78,65 +73,47 @@ export default function LoginPage() {
     handleFieldBlur(fieldName, formData[fieldName]);
   };
 
-  useEffect(() => {
-    // Adicionar o CSS do backend dinamicamente
-    const linkElement = document.createElement("link");
-    linkElement.rel = "stylesheet";
-    linkElement.href = loginCssUrl;
-    linkElement.id = "backend-login-css";
-    document.head.appendChild(linkElement);
-
-    return () => {
-      // Remover o CSS quando o componente for desmontado
-      const existingLink = document.getElementById("backend-login-css");
-      if (existingLink) {
-        document.head.removeChild(existingLink);
-      }
-    };
-  }, [loginCssUrl]);
-
   return (
-    <>
-      <Head>
-        <title>Login - Cardapio Digital</title>
-        <meta name="description" content="Faça login para acessar seu dashboard" />
-      </Head>
-
-      <div className="login-container">
-        <div className="login-header">
-          {/* Ícone */}
-          <div className="login-icon-wrapper">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Ícone */}
+        <div className="flex justify-center">
+          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg">
             <SignIn className="w-7 h-7 text-white" />
           </div>
-
-          {/* Título */}
-          <h2 className="login-title">
-            Acesse seu Dashboard
-          </h2>
-          <p className="login-subtitle">
-            Faça login para gerenciar sua loja
-          </p>
         </div>
 
-        {/* Card de Login */}
-        <div className="login-card">
+        {/* Título */}
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
+          Acesse seu Dashboard
+        </h2>
+        <p className="mt-2 text-center text-sm text-white/80">
+          Faça login para gerenciar sua loja
+        </p>
+      </div>
+
+      {/* Card de Login */}
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white rounded-xl shadow-lg py-8 px-6 sm:px-10">
           {/* Mensagem de sucesso */}
           {message && (
-            <div className="success-message mb-6">
-              <p>{decodeURIComponent(message)}</p>
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-3">
+              <p className="text-green-700 text-sm">
+                {decodeURIComponent(message)}
+              </p>
             </div>
           )}
 
-          <form className="login-form" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email */}
-            <div className="form-group">
+            <div>
               <label
                 htmlFor="email"
-                className="form-label"
+                className="block text-sm font-medium text-gray-800"
               >
                 Email
               </label>
-              <div>
+              <div className="mt-1">
                 <input
                   id="email"
                   name="email"
@@ -146,24 +123,27 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={() => handleInputBlur("email")}
-                  className="form-input"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="seu@email.com"
                 />
                 {shouldShowError("email") && (
-                  <p className="input-error">{getFieldError("email")}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {getFieldError("email")}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Senha */}
-            <div className="form-group">
+            <div>
               <label
                 htmlFor="password"
-                className="form-label"
+                className="block text-sm font-medium text-gray-800"
               >
                 Senha
               </label>
-              <div className="password-input-container">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
@@ -173,30 +153,33 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={() => handleInputBlur("password")}
-                  className="form-input"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeSlash className="h-5 w-5" />
+                    <EyeSlash className="h-5 w-5 text-gray-400" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
                 {shouldShowError("password") && (
-                  <p className="input-error">{getFieldError("password")}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {getFieldError("password")}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Erro */}
             {error && (
-              <div className="error-message">
-                <p>{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-700 text-sm">{error}</p>
               </div>
             )}
 
@@ -205,23 +188,26 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="submit-button"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold
+                rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
+                shadow-md transition-all"
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </button>
             </div>
 
             {/* Links adicionais */}
-            <div className="links-container">
+            <div className="flex items-center justify-between">
               <Link
                 href="/forgot-password"
-                className="link"
+                className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
               >
                 Esqueceu a senha?
               </Link>
               <Link
                 href="/register/loja"
-                className="link"
+                className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
               >
                 Criar nova loja
               </Link>
@@ -229,6 +215,6 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }
