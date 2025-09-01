@@ -8,11 +8,15 @@ import {
   ShoppingCart,
   Storefront,
   User,
+  Image as ImageIcon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SearchModal from "../../../../components/SearchModal";
+import CartModal from "../../../../components/cart/CartModal";
+import OrdersModal from "../../../../components/cart/OrdersModal";
 import { Product } from "../../../../types/cardapio-api";
+import { useCart } from "../../../../hooks/useCart";
 
 interface PageProps {
   params: {
@@ -121,6 +125,8 @@ export default function StorePage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -143,8 +149,9 @@ export default function StorePage({ params }: PageProps) {
 
   const status = "unauthenticated";
   const session = null;
-  const selectedCategory = "todos";
-  const cartItems: any[] = [];
+  const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [searchTerm, setSearchTerm] = useState("");
+  const { cart, addToCart } = useCart();
 
   const handleSearchClick = () => setIsSearchModalOpen(true);
 
@@ -152,8 +159,58 @@ export default function StorePage({ params }: PageProps) {
     console.log("Produto selecionado:", product.name);
   };
 
-  const filteredProducts =
-    config?.menu?.products?.filter((p: any) => p.active) || [];
+  const handleAddToCart = (product: Product) => {
+    addToCart(product, 1);
+    // Toast de sucesso
+    showToast(`${product.name} adicionado ao carrinho!`, 'success');
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Animação de entrada
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+      toast.classList.add('translate-x-full', 'opacity-0');
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
+  };
+
+  const filteredProducts = config?.menu?.products?.filter((p: any) => {
+    if (!p.active) return false;
+    
+    // Filtro por categoria
+    if (selectedCategory !== "todos") {
+      const category = config?.menu?.categories?.find((c: any) => c.name === selectedCategory);
+      if (category && p.categoryId !== category.id) return false;
+    }
+    
+    // Filtro por busca
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        p.name.toLowerCase().includes(searchLower) ||
+        p.description?.toLowerCase().includes(searchLower) ||
+        p.subtitle?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return true;
+  }) || [];
 
   if (loading) {
     return (
@@ -273,6 +330,37 @@ export default function StorePage({ params }: PageProps) {
             </button>
 
             <div className="flex items-center space-x-4">
+              {/* Desktop Menu */}
+              <div className="hidden md:flex items-center space-x-4">
+                <button
+                  onClick={() => setIsOrdersModalOpen(true)}
+                  className="flex items-center space-x-2 hover:opacity-75"
+                  style={{ color: primary }}
+                  title="Meus Pedidos"
+                >
+                  <Receipt className="h-5 w-5" />
+                  <span>Pedidos</span>
+                </button>
+                
+                <button
+                  onClick={() => setIsCartModalOpen(true)}
+                  className="flex items-center space-x-2 hover:opacity-75 relative"
+                  style={{ color: primary }}
+                  title="Carrinho"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  <span>Carrinho</span>
+                  {cart.itemCount > 0 && (
+                    <span 
+                      className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
+                      style={{ backgroundColor: primary }}
+                    >
+                      {cart.itemCount > 99 ? '99+' : cart.itemCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+              
               <button
                 className="flex items-center space-x-2 hover:opacity-75"
                 style={{ color: primary }}
@@ -309,7 +397,17 @@ export default function StorePage({ params }: PageProps) {
       <section className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
-            <div className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700">
+            <button
+              onClick={() => setSelectedCategory("todos")}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                selectedCategory === "todos"
+                  ? "text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              style={{
+                backgroundColor: selectedCategory === "todos" ? primary : undefined,
+              }}
+            >
               <span className="font-medium">Todos</span>
               <span className="text-sm opacity-75">
                 (
@@ -317,7 +415,7 @@ export default function StorePage({ params }: PageProps) {
                   0}
                 )
               </span>
-            </div>
+            </button>
 
             {config?.menu?.categories
               ?.filter((c: any) => c.active)
@@ -326,14 +424,26 @@ export default function StorePage({ params }: PageProps) {
                   config?.menu?.products?.filter(
                     (p: any) => p.active && p.categoryId === category.id
                   ).length || 0;
+                
+                // Não mostrar categoria se tiver 0 produtos
+                if (count === 0) return null;
+                
                 return (
-                  <div
+                  <button
                     key={category.id}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700"
+                    onClick={() => setSelectedCategory(category.name)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                      selectedCategory === category.name
+                        ? "text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                    style={{
+                      backgroundColor: selectedCategory === category.name ? primary : undefined,
+                    }}
                   >
                     <span className="font-medium">{category.name}</span>
                     <span className="text-sm opacity-75">({count})</span>
-                  </div>
+                  </button>
                 );
               })}
           </div>
@@ -411,8 +521,9 @@ export default function StorePage({ params }: PageProps) {
                         {/* CTA (opcional) */}
                         <div className="mt-3">
                           <button
+                            onClick={() => handleAddToCart(product)}
                             disabled={!isOpen || isSoldOut}
-                            className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
                             style={{
                               backgroundColor:
                                 !isOpen || isSoldOut ? "#9ca3af" : primary,
@@ -428,14 +539,32 @@ export default function StorePage({ params }: PageProps) {
                       </div>
 
                       {/* Imagem à direita */}
-                      <div className="relative shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className={`w-full h-full object-cover transition-transform duration-300 ${
-                            isSoldOut ? "grayscale" : ""
+                      <div className="relative shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-100">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className={`w-full h-full object-cover transition-transform duration-300 ${
+                              isSoldOut ? "grayscale" : ""
+                            }`}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const placeholder = target.nextElementSibling as HTMLElement;
+                              if (placeholder) placeholder.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        
+                        {/* Placeholder para imagem ausente */}
+                        <div 
+                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${
+                            product.image ? 'hidden' : 'flex'
                           }`}
-                        />
+                          style={{ display: product.image ? 'none' : 'flex' }}
+                        >
+                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                        </div>
 
                         {isSoldOut && (
                           <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] sm:text-xs font-semibold px-2 py-1 rounded-md bg-black/70 text-white">
@@ -462,14 +591,28 @@ export default function StorePage({ params }: PageProps) {
             </span>
           </button>
 
-          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+          <button 
+            onClick={() => setIsOrdersModalOpen(true)}
+            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1"
+          >
             <Receipt className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Pedidos</span>
           </button>
 
-          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative">
+          <button 
+            onClick={() => setIsCartModalOpen(true)}
+            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
+          >
             <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Carrinho</span>
+            {cart.itemCount > 0 && (
+              <span 
+                className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
+                style={{ backgroundColor: primary }}
+              >
+                {cart.itemCount > 99 ? '99+' : cart.itemCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -477,14 +620,28 @@ export default function StorePage({ params }: PageProps) {
       {/* Espaço para o menu fixo */}
       <div className="h-16 md:hidden" />
 
-      {/* Search Modal */}
+      {/* Modals */}
       <SearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
-        products={filteredProducts}
+        products={config?.menu?.products?.filter((p: any) => p.active) || []}
         onProductSelect={handleProductSelect}
         primaryColor={config?.branding?.primaryColor}
         accentColor={config?.branding?.accentColor}
+      />
+      
+      <CartModal
+        isOpen={isCartModalOpen}
+        onClose={() => setIsCartModalOpen(false)}
+        primaryColor={config?.branding?.primaryColor}
+        storeSlug={slug}
+      />
+      
+      <OrdersModal
+        isOpen={isOrdersModalOpen}
+        onClose={() => setIsOrdersModalOpen(false)}
+        primaryColor={config?.branding?.primaryColor}
+        storeSlug={slug}
       />
     </div>
   );

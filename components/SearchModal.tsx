@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import { MagnifyingGlass, X, Image as ImageIcon } from '@phosphor-icons/react';
 import { Product } from '../types/cardapio-api';
 
 interface SearchModalProps {
@@ -163,7 +163,7 @@ export default function SearchModal({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <MagnifyingGlass className="h-6 w-6 text-gray-400" />
+                        <ImageIcon className="h-6 w-6 text-gray-400" />
                       </div>
                     )}
                   </div>

@@ -943,6 +943,23 @@ class ApiClient {
     return this.get<OrderStats>(`/stores/${storeSlug}/orders/stats`);
   }
 
+  // ===== PEDIDOS PÚBLICOS (CLIENTES) =====
+
+  async createPublicOrder(orderData: CreateOrderDto, storeSlug: string): Promise<Order> {
+    return this.post<Order>(`/orders?storeSlug=${storeSlug}`, orderData);
+  }
+
+  async getPublicOrders(storeSlug: string, customerId?: string): Promise<Order[]> {
+    const url = customerId 
+      ? `/orders?storeSlug=${storeSlug}&customerId=${customerId}`
+      : `/orders?storeSlug=${storeSlug}`;
+    return this.get<Order[]>(url);
+  }
+
+  async getPublicOrderById(id: string, storeSlug: string): Promise<Order> {
+    return this.get<Order>(`/orders/${id}?storeSlug=${storeSlug}`);
+  }
+
   // ===== ANALYTICS =====
 
   async getAnalytics(
