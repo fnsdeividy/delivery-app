@@ -7,7 +7,6 @@ import {
   Receipt,
   ShoppingCart,
   Storefront,
-  Tag,
   User,
 } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -21,22 +20,19 @@ interface PageProps {
   };
 }
 
-// Função helper para formatar preço
+// Helper para formatar preço
 const formatPrice = (price: any): string => {
   if (price === null || price === undefined) return "0,00";
 
-  // Se for string, converter para número
   if (typeof price === "string") {
     const numPrice = parseFloat(price);
     return isNaN(numPrice) ? "0,00" : numPrice.toFixed(2).replace(".", ",");
   }
 
-  // Se for número, usar toFixed e substituir ponto por vírgula
   if (typeof price === "number") {
     return price.toFixed(2).replace(".", ",");
   }
 
-  // Se for objeto Decimal do Prisma, usar toString
   if (price && typeof price === "object" && "toString" in price) {
     const numPrice = parseFloat(price.toString());
     return isNaN(numPrice) ? "0,00" : numPrice.toFixed(2).replace(".", ",");
@@ -49,9 +45,7 @@ async function getStoreConfig(slug: string) {
   try {
     const response = await fetch(
       `http://localhost:3001/api/v1/stores/public/${slug}`,
-      {
-        cache: "no-store",
-      }
+      { cache: "no-store" }
     );
 
     if (!response.ok) {
@@ -60,7 +54,6 @@ async function getStoreConfig(slug: string) {
 
     const data = await response.json();
 
-    // Mapear resposta da API para StoreConfig
     return {
       id: data.store.id,
       name: data.store.name,
@@ -97,11 +90,11 @@ async function getStoreConfig(slug: string) {
         logo: data.config?.logo || "",
         favicon: data.config?.favicon || "",
         banner: data.config?.banner || "",
-        primaryColor: data.config?.primaryColor || "#f97316",
-        secondaryColor: data.config?.secondaryColor || "#ea580c",
-        backgroundColor: data.config?.backgroundColor || "#ffffff",
-        textColor: data.config?.textColor || "#000000",
-        accentColor: data.config?.accentColor || "#f59e0b",
+        primaryColor: data.config?.branding?.primaryColor || "#f97316",
+        secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
+        backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
+        textColor: data.config?.branding?.textColor || "#000000",
+        accentColor: data.config?.branding?.accentColor || "#f59e0b",
       },
       schedule: {
         timezone: "America/Sao_Paulo",
@@ -120,7 +113,6 @@ async function getStoreConfig(slug: string) {
   }
 }
 
-// Tipo utilitário baseado no retorno de getStoreConfig
 type StoreData = Awaited<ReturnType<typeof getStoreConfig>>;
 
 export default function StorePage({ params }: PageProps) {
@@ -130,7 +122,6 @@ export default function StorePage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  // Carregar dados da loja
   useEffect(() => {
     const loadStoreData = async () => {
       try {
@@ -147,56 +138,23 @@ export default function StorePage({ params }: PageProps) {
     loadStoreData();
   }, [slug]);
 
-  // Determinar se a loja está aberta
   const isOpen = config?.status?.isOpen || false;
   const currentMessage = config?.status?.reason || "Loja fechada";
 
-  // Estado estático para demonstração
   const status = "unauthenticated";
   const session = null;
   const selectedCategory = "todos";
   const cartItems: any[] = [];
-  const isCartOpen = false;
-  const isProfileOpen = false;
-  const isLoginOpen = false;
 
-  // Handlers
-  const handleSearchClick = () => {
-    setIsSearchModalOpen(true);
-  };
+  const handleSearchClick = () => setIsSearchModalOpen(true);
 
   const handleProductSelect = (product: Product) => {
     console.log("Produto selecionado:", product.name);
-    // Aqui você pode implementar lógica adicional, como scroll até o produto
   };
 
-  // Promoções de exemplo (em produção viriam do banco/config)
-  // const promotions = [
-  //   {
-  //     id: "1",
-  //     title: "🎉 Primeira Compra",
-  //     description: "10% de desconto na primeira compra com cupom PRIMEIRA10",
-  //     type: "discount" as const,
-  //     value: 10,
-  //     validUntil: "2025-12-31",
-  //     active: true,
-  //   },
-  //   {
-  //     id: "2",
-  //     title: "🚚 Entrega Grátis",
-  //     description: "Entrega grátis em pedidos acima de R$ 30,00",
-  //     type: "free_delivery" as const,
-  //     value: 5,
-  //     validUntil: "2025-12-31",
-  //     active: true,
-  //   },
-  // ];
-
-  // Filtrar produtos
   const filteredProducts =
     config?.menu?.products?.filter((p: any) => p.active) || [];
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -208,12 +166,6 @@ export default function StorePage({ params }: PageProps) {
     );
   }
 
-  const addToCart = (product: Product) => {
-    // Função estática para demonstração
-    console.log("Produto adicionado ao carrinho:", product.name);
-  };
-
-  // Mostrar erro se a loja não for encontrada
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -250,10 +202,7 @@ export default function StorePage({ params }: PageProps) {
     );
   }
 
-  // Loading state - removido pois não há mais loading state
-
-  // Error state
-  if (error || !config) {
+  if (!config) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -261,8 +210,7 @@ export default function StorePage({ params }: PageProps) {
             Loja não encontrada
           </h1>
           <p className="text-gray-600 mb-4">
-            {error ||
-              "Esta loja não existe ou está temporariamente indisponível."}
+            Esta loja não existe ou está temporariamente indisponível.
           </p>
           <button
             onClick={() => (window.location.href = "/")}
@@ -275,6 +223,8 @@ export default function StorePage({ params }: PageProps) {
     );
   }
 
+  const primary = config?.branding?.primaryColor || "#f97316";
+
   return (
     <div
       className="min-h-screen flex flex-col bg-white overflow-hidden"
@@ -283,63 +233,49 @@ export default function StorePage({ params }: PageProps) {
         color: config?.branding?.textColor || "#000000",
       }}
     >
-      {/* Promotions Banner */}
-      {/* <PromotionsBanner promotions={promotions} /> */}
-
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50 animate-slide-in-top">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo e Nome */}
-            <div className="flex items-center space-x-4 animate-slide-in-left">
+            <div className="flex items-center space-x-4">
               {config?.branding?.logo && (
                 <img
                   src={config.branding.logo}
                   alt={config.name}
-                  className="h-10 w-auto hover-scale"
+                  className="h-10 w-auto"
                 />
               )}
-              <h1
-                className="text-2xl font-bold animate-float"
-                style={{ color: config?.branding?.primaryColor || "#000" }}
-              >
+              <h1 className="text-2xl font-bold" style={{ color: primary }}>
                 {config.name}
               </h1>
             </div>
 
-            {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-2xl mx-8 animate-fade-in animate-delay-200">
+            {/* Search Desktop */}
+            <div className="hidden md:flex flex-1 max-w-2xl mx-8">
               <button
                 onClick={handleSearchClick}
-                className="w-full flex items-center pl-12 pr-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-300 text-left"
-                style={
-                  {
-                    "--tw-ring-color":
-                      config?.branding?.primaryColor || "#f97316",
-                  } as any
-                }
+                className="w-full flex items-center pl-12 pr-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:bg-white transition-all text-left relative"
+                style={{ ["--tw-ring-color" as any]: primary }}
               >
-                <MagnifyingGlass className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 transition-colors" />
+                <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <span className="text-gray-500">Buscar produtos...</span>
               </button>
             </div>
 
-            {/* Search Icon - Mobile */}
+            {/* Search Mobile */}
             <button
               onClick={handleSearchClick}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              style={{ color: config?.branding?.primaryColor || "#f97316" }}
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+              style={{ color: primary }}
               title="Buscar produtos"
             >
               <MagnifyingGlass className="h-6 w-6" />
             </button>
 
-            {/* Actions */}
-            <div className="flex items-center space-x-4 animate-slide-in-right">
-              {/* Login/Profile Button */}
+            <div className="flex items-center space-x-4">
               <button
-                className="flex items-center space-x-2 hover:opacity-75 transition-all duration-300 hover-lift"
-                style={{ color: config?.branding?.primaryColor || "#f97316" }}
+                className="flex items-center space-x-2 hover:opacity-75"
+                style={{ color: primary }}
                 title="Fazer Login"
               >
                 <User className="h-5 w-5" />
@@ -352,81 +288,25 @@ export default function StorePage({ params }: PageProps) {
 
       {/* Banner */}
       {config?.branding?.banner && (
-        <div className="relative h-48 md:h-64 overflow-hidden animate-fade-in">
+        <div className="relative h-48 md:h-64 overflow-hidden">
           <img
             src={config.branding.banner}
             alt={config.name}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="text-center text-white animate-scale-in animate-delay-300">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 animate-slide-in-top animate-delay-500">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="text-center text-white">
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">
                 {config.name}
               </h2>
-              <p className="text-lg animate-slide-in-top animate-delay-700">
-                {config.description}
-              </p>
+              <p className="text-lg">{config.description}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Status da Loja
-      {!isOpen && (
-        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 text-center animate-slide-in-top animate-shake">
-          <div className="flex items-center justify-center space-x-2">
-            <Clock className="h-5 w-5 animate-pulse" />
-            <span>{currentMessage}</span>
-          </div>
-        </div>
-      )} */}
-
-      {/* Info da Loja */}
-      {/* <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-6">
-              {config?.business?.phone && (
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">{config.business.phone}</span>
-                </div>
-              )}
-              {config?.delivery?.enabled && (
-                <div className="flex items-center space-x-2">
-                  <Truck className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
-                    Entrega: R${" "}
-                    {config.delivery.fee?.toFixed(2).replace(".", ",") ||
-                      "0,00"}
-                    {config.delivery.freeDeliveryMinimum && (
-                      <span className="text-green-600">
-                        {" "}
-                        (Grátis acima de R${" "}
-                        {config.delivery.freeDeliveryMinimum
-                          .toFixed(2)
-                          .replace(".", ",")}
-                        )
-                      </span>
-                    )}
-                  </span>
-                </div>
-              )}
-              {config?.delivery?.estimatedTime && (
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
-                    {config.delivery.estimatedTime} min
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Categories */}
-      <section className="bg-white border-b animate-slide-in-left animate-delay-300">
+      {/* Categorias */}
+      <section className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
             <div className="flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700">
@@ -460,21 +340,15 @@ export default function StorePage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Products Grid */}
+      {/* Lista de Produtos — 1 por linha */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Results Info */}
+          {/* Info de resultados */}
           <div className="mb-6">
             <p className="text-gray-600">
               {filteredProducts.length} produto
               {filteredProducts.length !== 1 ? "s" : ""} encontrado
               {filteredProducts.length !== 1 ? "s" : ""}
-              {selectedCategory !== "todos" &&
-                ` em ${
-                  config?.menu?.categories?.find(
-                    (c: any) => c.id === selectedCategory
-                  )?.name
-                }`}
             </p>
           </div>
 
@@ -491,136 +365,117 @@ export default function StorePage({ params }: PageProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredProducts.map((product: any, index: number) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover stagger-item"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {/* Product Image */}
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-48 object-cover transition-transform duration-500 hover:scale-110"
-                    />
+            <div className="space-y-4">
+              {filteredProducts.map((product: any, index: number) => {
+                const isSoldOut =
+                  product?.stock === 0 ||
+                  product?.available === false ||
+                  product?.active === false;
 
-                    {/* Tags */}
-                    <div className="absolute top-3 left-3 flex flex-col space-y-1">
-                      {/* Tags removidas - não existem no tipo Product */}
-                    </div>
-                  </div>
+                return (
+                  <article
+                    key={product.id}
+                    className="w-full bg-white rounded-xl border border-gray-200 overflow-hidden"
+                  >
+                    <div className="flex items-stretch gap-4 p-4 sm:p-5">
+                      {/* Texto à esquerda */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                          {product.name}
+                        </h3>
 
-                  {/* Product Info */}
-                  <div className="p-4">
-                    {/* Name and Rating */}
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 text-lg">
-                        {product.name}
-                      </h3>
-                      {product.preparationTime && (
-                        <div className="flex items-center space-x-1 text-gray-500">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm">
-                            {product.preparationTime}min
+                        {/* Subdescrição/observações */}
+                        {product?.subtitle ? (
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {product.subtitle}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {product.description}
+                          </p>
+                        )}
+
+                        <div className="mt-2 flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-900">
+                            R$ {formatPrice(product.price)}
                           </span>
+
+                          {product?.preparationTime && (
+                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500">
+                              <Clock className="h-4 w-4" />
+                              {product.preparationTime}min
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Description */}
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {product.description}
-                    </p>
+                        {/* CTA (opcional) */}
+                        <div className="mt-3">
+                          <button
+                            disabled={!isOpen || isSoldOut}
+                            className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                              backgroundColor:
+                                !isOpen || isSoldOut ? "#9ca3af" : primary,
+                            }}
+                          >
+                            {!isOpen
+                              ? "Loja Fechada"
+                              : isSoldOut
+                              ? "Indisponível"
+                              : "+ Adicionar"}
+                          </button>
+                        </div>
+                      </div>
 
-                    {/* Ingredients */}
-                    <div className="mb-3">
-                      <div className="flex flex-wrap gap-1">
-                        {/* Ingredients removidos - não existem no tipo Product */}
+                      {/* Imagem à direita */}
+                      <div className="relative shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className={`w-full h-full object-cover transition-transform duration-300 ${
+                            isSoldOut ? "grayscale" : ""
+                          }`}
+                        />
+
+                        {isSoldOut && (
+                          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] sm:text-xs font-semibold px-2 py-1 rounded-md bg-black/70 text-white">
+                            Esgotado
+                          </span>
+                        )}
                       </div>
                     </div>
-
-                    {/* Price */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-gray-900">
-                          R$ {formatPrice(product.price)}
-                        </span>
-                        {/* Preço original removido - não existe no tipo Product */}
-                      </div>
-                    </div>
-
-                    {/* Action Button */}
-                    <button
-                      disabled={!isOpen}
-                      className="w-full px-4 py-2 text-white rounded-lg btn-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                      style={{
-                        backgroundColor: isOpen
-                          ? config?.branding?.primaryColor || "#f97316"
-                          : "#9ca3af",
-                      }}
-                    >
-                      {isOpen ? "+ Adicionar ao Carrinho" : "Loja Fechada"}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
       </main>
 
-      {/* Mobile Bottom Menu */}
+      {/* Menu inferior Mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden">
         <div className="flex items-center justify-around py-2">
-          {/* Início */}
           <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
-            <House
-              className="h-6 w-6 mb-1"
-              style={{ color: config?.branding?.primaryColor || "#f97316" }}
-            />
-            <span
-              className="text-xs font-medium"
-              style={{ color: config?.branding?.primaryColor || "#f97316" }}
-            >
+            <House className="h-6 w-6 mb-1" style={{ color: primary }} />
+            <span className="text-xs font-medium" style={{ color: primary }}>
               Início
             </span>
           </button>
 
-          {/* Pedidos */}
           <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
             <Receipt className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Pedidos</span>
           </button>
 
-          {/* Promos */}
-          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
-            <Tag className="h-6 w-6 mb-1 text-gray-500" />
-            <span className="text-xs font-medium text-gray-500">Promos</span>
-          </button>
-
-          {/* Carrinho */}
           <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative">
             <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500">Carrinho</span>
-            {/* Badge do carrinho */}
-            {cartItems.length > 0 && (
-              <div
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{
-                  backgroundColor: config?.branding?.primaryColor || "#f97316",
-                }}
-              >
-                {cartItems.length > 9 ? "9+" : cartItems.length}
-              </div>
-            )}
           </button>
         </div>
       </div>
 
-      {/* Padding bottom para compensar o menu fixo no mobile */}
-      <div className="h-16 md:hidden"></div>
+      {/* Espaço para o menu fixo */}
+      <div className="h-16 md:hidden" />
 
       {/* Search Modal */}
       <SearchModal
