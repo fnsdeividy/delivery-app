@@ -6,3 +6,6 @@ export * from './next-auth';
 
 // Tipos do WhatsApp
 export * from './whatsapp';
+
+// Tipos do iFood
+export * from './ifood';
