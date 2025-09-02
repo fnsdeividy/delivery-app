@@ -17,6 +17,7 @@ import {
   Truck,
   Users,
   WarningCircle,
+  ForkKnife,
 } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -39,6 +40,7 @@ interface StoreStatus {
   hasDeliveryConfig: boolean;
   hasSecurityConfig: boolean;
   hasWhatsAppConfig: boolean;
+  hasIfoodConfig: boolean;
 }
 
 export default function ConfiguracoesPage() {
@@ -87,6 +89,7 @@ export default function ConfiguracoesPage() {
     hasDeliveryConfig: false,
     hasSecurityConfig: false,
     hasWhatsAppConfig: false,
+    hasIfoodConfig: false,
   });
 
   // Verificar status das configurações
@@ -104,6 +107,7 @@ export default function ConfiguracoesPage() {
         hasDeliveryConfig: !!config.delivery?.enabled,
         hasSecurityConfig: false, // Implementar quando necessário
         hasWhatsAppConfig: !!(config as any).whatsapp?.enabled,
+        hasIfoodConfig: !!(config as any).ifood?.active,
       });
     }
   }, [config]);
@@ -167,6 +171,15 @@ export default function ConfiguracoesPage() {
       badge: storeStatus.hasWhatsAppConfig ? "Configurado" : "Opcional",
     },
     {
+      id: "ifood",
+      title: "Integração iFood",
+      description: "Sincronize seu menu e receba pedidos automaticamente do iFood",
+      icon: ForkKnife,
+      href: `/dashboard/${storeSlug}/configuracoes/ifood`,
+      status: storeStatus.hasIfoodConfig ? "completed" : "optional",
+      badge: storeStatus.hasIfoodConfig ? "Configurado" : "Opcional",
+    },
+    {
       id: "integracao",
       title: "Outras Integrações",
       description: "Conecte com Google Business e outros serviços",
@@ -200,7 +213,7 @@ export default function ConfiguracoesPage() {
       case "completed":
         return "bg-green-100 text-green-800 border-green-200";
       case "pending":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case "optional":
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -211,7 +224,7 @@ export default function ConfiguracoesPage() {
       case "completed":
         return <CheckCircle className="h-5 w-5 text-green-600" />;
       case "pending":
-        return <WarningCircle className="h-5 w-5 text-orange-600" />;
+        return <WarningCircle className="h-5 w-5 text-blue-600" />;
       case "optional":
         return <Gear className="h-5 w-5 text-gray-600" />;
     }
@@ -228,7 +241,7 @@ export default function ConfiguracoesPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando configurações...</p>
         </div>
       </div>
@@ -242,7 +255,7 @@ export default function ConfiguracoesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Gear className="h-6 w-6 text-orange-500" />
+              <Gear className="h-6 w-6 text-blue-500" />
               <h1 className="text-xl font-semibold text-gray-900">
                 Configurações
               </h1>
@@ -277,7 +290,7 @@ export default function ConfiguracoesPage() {
               <p className="text-sm text-gray-600">Configuradas</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-blue-600">
                 {totalRequired}
               </div>
               <p className="text-sm text-gray-600">Pendentes</p>
@@ -300,7 +313,7 @@ export default function ConfiguracoesPage() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                 style={{
                   width: `${(completedCount / configSections.length) * 100}%`,
                 }}
@@ -322,18 +335,18 @@ export default function ConfiguracoesPage() {
                 <div className="flex items-center space-x-3">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${section.status === "completed"
-                        ? "bg-green-100"
-                        : section.status === "pending"
-                          ? "bg-orange-100"
-                          : "bg-gray-100"
+                      ? "bg-green-100"
+                      : section.status === "pending"
+                        ? "bg-blue-100"
+                        : "bg-gray-100"
                       }`}
                   >
                     <section.icon
                       className={`h-5 w-5 ${section.status === "completed"
-                          ? "text-green-600"
-                          : section.status === "pending"
-                            ? "text-orange-600"
-                            : "text-gray-600"
+                        ? "text-green-600"
+                        : section.status === "pending"
+                          ? "text-blue-600"
+                          : "text-gray-600"
                         }`}
                     />
                   </div>
@@ -421,8 +434,8 @@ export default function ConfiguracoesPage() {
         {/* Suporte */}
         <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <Gear className="h-4 w-4 text-orange-600" />
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Gear className="h-4 w-4 text-blue-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">
