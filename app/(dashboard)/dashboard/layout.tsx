@@ -15,7 +15,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import WelcomeNotification from "../../../components/WelcomeNotification";
@@ -36,88 +36,106 @@ interface NavigationItem {
   children?: NavigationItem[];
 }
 
+// Auxiliar para detectar 404 de forma resiliente
+const isNotFoundError = (err: any) => {
+  const code = err?.code ?? err?.status ?? err?.response?.status;
+  const msg = (err?.message || "").toString().toLowerCase();
+  return (
+    Number(code) === 404 ||
+    msg.includes("not found") ||
+    msg.includes("não encontrada")
+  );
+};
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthContext();
 
-  // Extrair slug da URL - considerar rotas especiais
-  const pathParts = pathname.split("/");
-  let slug = "";
-  let isAdminRoute = false;
-  let isSpecialRoute = false;
+  // =========================
+  // 1) DERIVAÇÃO DE CONTEXTO
+  // =========================
 
-  // Identificar rotas especiais e administrativas
-  if (
-    pathname.startsWith("/dashboard/editar-loja/") ||
-    pathname.startsWith("/dashboard/meus-painel") ||
-    pathname.startsWith("/dashboard/superadmin") ||
-    pathname === "/dashboard"
-  ) {
-    isSpecialRoute = true;
-  } else if (pathParts.length > 2) {
-    // Filtrar partes vazias e encontrar o primeiro slug válido
-    const validParts = pathParts.filter((part) => part && part.trim() !== "");
+  // Normaliza path e fatia partes válidas
+  const pathParts = useMemo(
+    () => pathname.split("/").filter(Boolean),
+    [pathname]
+  );
 
-    if (validParts.length > 1) {
-      const possibleSlug = validParts[1]; // [0] é 'dashboard', [1] é o slug
+  // path padrão do dashboard: /dashboard[/...]
+  const isDashboardRoot = pathname === "/dashboard";
 
-      if (
-        ![
-          "editar-loja",
-          "gerenciar-lojas",
-          "meus-painel",
-          "admin",
-          "superadmin",
-        ].includes(possibleSlug)
-      ) {
-        slug = possibleSlug;
-      }
+  // Rotas especiais/administrativas onde NÃO carregamos config de loja
+  const isSpecialRoute = useMemo(() => {
+    if (isDashboardRoot) return true;
+    // Ex.: /dashboard/editar-loja/..., /dashboard/gerenciar-lojas, /dashboard/superadmin, etc.
+    return (
+      pathname.startsWith("/dashboard/editar-loja/") ||
+      pathname.startsWith("/dashboard/meus-painel") ||
+      pathname.startsWith("/dashboard/gerenciar-lojas") ||
+      pathname.startsWith("/dashboard/superadmin")
+    );
+  }, [pathname, isDashboardRoot]);
+
+  // Slug é a 2ª parte após "dashboard": /dashboard/{slug}/...
+  const slug = useMemo(() => {
+    if (pathParts[0] !== "dashboard") return "";
+    const candidate = pathParts[1] || "";
+    if (
+      !candidate ||
+      [
+        "editar-loja",
+        "gerenciar-lojas",
+        "meus-painel",
+        "admin",
+        "superadmin",
+      ].includes(candidate)
+    ) {
+      return "";
     }
-  }
+    if (candidate === "undefined" || candidate === "null") return "";
+    return candidate.trim();
+  }, [pathParts]);
 
-  // Para a página raiz do dashboard, não precisamos carregar configuração de loja
-  const shouldLoadStoreConfig = slug && !isSpecialRoute;
+  // Carregar config SOMENTE quando houver slug e não for rota especial
+  const shouldLoadStoreConfig = !!slug && !isSpecialRoute;
 
-  // Sempre chamar o hook, mas passar slug vazio quando não precisamos carregar
+  // Sempre chamamos o hook, enviando slug vazio quando não precisa (hook idempotente)
   const { config, loading, error } = useStoreConfig(
     shouldLoadStoreConfig ? slug : ""
   );
 
-  // Buscar lojas do usuário para navegação
+  // Buscar lojas (mantém comportamento atual)
   const { data: storesData } = useStores();
   const userStores = storesData?.data || [];
 
-  // Mostrar loading apenas quando estamos carregando configurações de uma loja específica
-  if (loading && shouldLoadStoreConfig && slug) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  // ===================================================
+  // 2) REGRAS DE LOADING x ERRO (prevenir falso negativo)
+  // ===================================================
 
-  // Permitir acesso à página de gerenciar lojas e página raiz do dashboard mesmo sem slug válido
-  if (!config && shouldLoadStoreConfig && slug) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Loja não encontrada
-          </h1>
-          <p className="text-gray-600">Verifique se o endereço está correto.</p>
-        </div>
-      </div>
-    );
-  }
+  // Enquanto estiver carregando a config de loja (quando deveria carregar) -> mostrar spinner
+  const isFetchingStore = shouldLoadStoreConfig && loading;
 
-  // Navegação principal sempre disponível
-  const mainNavigation: NavigationItem[] = [];
+  // Só tratamos "não encontrada" quando for 404 explícito,
+  // evitando mostrar mensagem genérica durante transições/latência
+  const notFound =
+    shouldLoadStoreConfig && slug && error && isNotFoundError(error);
 
-  // Navegação por loja específica
+  // Caso especial: não exibir "não encontrada" se ainda estiver carregando ou a rota mudou
+  const showNotFound = !isFetchingStore && notFound;
+
+  // Enquanto houver uma condição em que "deveria ter config" mas ainda não temos e não há erro 404,
+  // preferimos LOADING para não piscar a mensagem "Verifique se o endereço está correto."
+  const awaitingConfigSafely =
+    shouldLoadStoreConfig && slug && !config && !error;
+
+  // =========================
+  // 3) NAVEGAÇÃO LATERAL
+  // =========================
+
   const storeNavigation: NavigationItem[] =
-    slug && slug !== "undefined" && !isSpecialRoute
+    slug && !isSpecialRoute
       ? [
           {
             name: "Visão Geral",
@@ -131,7 +149,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: Package,
             current: pathname.startsWith(`/dashboard/${slug}/produtos`),
           },
-
           {
             name: "Pedidos",
             href: `/dashboard/${slug}/pedidos`,
@@ -182,21 +199,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         ]
       : [];
 
-  // Navegação baseada no contexto
-  let navigation: NavigationItem[] = [];
+  const navigation: NavigationItem[] =
+    slug && !isSpecialRoute ? storeNavigation : [];
 
-  if (slug && !isSpecialRoute) {
-    // Em loja específica, mostrar navegação da loja
-    navigation = storeNavigation;
-  } else if (isAdminRoute || isSpecialRoute) {
-    // Em rotas administrativas ou especiais, não mostrar navegação lateral
-    navigation = [];
-  } else {
-    // Fallback para página raiz do dashboard
-    navigation = [];
-  }
+  // =========================
+  // 4) AÇÕES
+  // =========================
 
-  // Função para fazer logout
   const handleLogout = async () => {
     try {
       logout();
@@ -205,6 +214,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       console.error("Erro ao fazer logout:", error);
     }
   };
+
+  // =========================
+  // 5) RENDER GUARDS
+  // =========================
+
+  // PRIORIDADE 1: enquanto busca config (ou esperamos por ela), mostrar LOADING
+  if (isFetchingStore || awaitingConfigSafely) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // PRIORIDADE 2: erro 404 explícito -> "Loja não encontrada"
+  if (showNotFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Loja não encontrada
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Verifique se o endereço está correto.
+          </p>
+          <button
+            onClick={() => router.push("/dashboard/gerenciar-lojas")}
+            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Voltar para Gerenciar Lojas
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // 6) LAYOUT
+  // =========================
 
   return (
     <div className="dashboard-layout">
@@ -251,7 +299,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <nav className="mt-6 px-3">
           <div className="space-y-1">
             {navigation.length > 0 ? (
-              navigation.map((item, index) => (
+              navigation.map((item) => (
                 <div key={item.name}>
                   <a
                     href={item.href}
@@ -307,15 +355,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p className="text-xs text-gray-400">
                   Rota especial: {isSpecialRoute ? "sim" : "não"}
                 </p>
-                <p className="text-xs text-gray-400">
-                  Rota admin: {isAdminRoute ? "sim" : "não"}
-                </p>
               </div>
             )}
           </div>
-
-          {/* Seletor de Loja Ativa - REMOVIDO */}
-          {/* A seção "LOJAS DISPONÍVEIS" foi removida conforme solicitado */}
         </nav>
 
         {/* User section */}
@@ -374,9 +416,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Breadcrumb */}
               <nav className="breadcrumb">
                 <span className="breadcrumb-item">Dashboard</span>
-                {isAdminRoute && (
-                  <span className="breadcrumb-item">Administração</span>
-                )}
                 {pathname.startsWith("/dashboard/gerenciar-lojas") && (
                   <span className="breadcrumb-item">Gerenciar Lojas</span>
                 )}
@@ -385,7 +424,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {config?.branding?.logo && (
                       <img
                         src={config.branding.logo}
-                        alt={config.name}
+                        alt={config?.name || slug}
                         className="w-4 h-4 rounded mr-2 object-cover"
                       />
                     )}
@@ -405,7 +444,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   Ver Loja
                 </a>
               )}
-
             </div>
           </div>
         </div>

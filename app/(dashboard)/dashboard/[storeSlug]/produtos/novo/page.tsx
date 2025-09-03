@@ -35,6 +35,8 @@ export default function NovoProdutoPage() {
     image: undefined as string | undefined,
     originalPrice: 0,
     active: true,
+    initialStock: 0,
+    minStock: 5,
   });
 
   // Carregar categorias
@@ -73,6 +75,8 @@ export default function NovoProdutoPage() {
       image: undefined as string | undefined,
       originalPrice: 0,
       active: true,
+      initialStock: 0,
+      minStock: 5,
     });
   };
 
@@ -106,6 +110,8 @@ export default function NovoProdutoPage() {
         ingredients: [],
         addons: [],
         tags: [],
+        initialStock: Number(formData.initialStock) || 0,
+        minStock: Number(formData.minStock) || 5,
       };
 
       await apiClient.createProduct(productData);
@@ -187,6 +193,53 @@ export default function NovoProdutoPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
+              </div>
+
+              {/* Gerenciamento de Estoque */}
+              <div className="space-y-4 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-900">Controle de Estoque</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="initialStock" className="text-sm font-medium text-gray-700">
+                      Estoque Inicial
+                    </label>
+                    <input
+                      id="initialStock"
+                      type="number"
+                      min="0"
+                      value={formData.initialStock}
+                      onChange={(e) =>
+                        handleInputChange("initialStock", Number(e.target.value) || 0)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Quantidade inicial em estoque
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="minStock" className="text-sm font-medium text-gray-700">
+                      Estoque Mínimo
+                    </label>
+                    <input
+                      id="minStock"
+                      type="number"
+                      min="0"
+                      value={formData.minStock}
+                      onChange={(e) =>
+                        handleInputChange("minStock", Number(e.target.value) || 0)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="5"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Alerta quando estoque atingir este valor
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Status Ativo */}

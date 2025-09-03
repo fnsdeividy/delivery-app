@@ -3,16 +3,16 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
-import {
-  CheckCircle,
-  Package,
-  Plus,
-  TrendUp,
-  Warning,
-} from "@phosphor-icons/react";
-import { Filter, Search, TrendingDown, TrendingUp } from "lucide-react";
+import { Package, Plus } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+// Componentes modulares
+import InventoryStatsCards from "./componentes/InventoryStatsCards";
+import InventoryTable from "./componentes/InventoryTable";
+import MovementsTable from "./componentes/MovementsTable";
+import SearchAndFilters from "./componentes/SearchAndFilters";
+import { useToast } from "./componentes/Toast";
 
 interface InventoryItem {
   id: string;
@@ -76,8 +76,10 @@ export default function EstoquePage() {
   const router = useRouter();
   const slug = params.storeSlug as string;
   const { isAuthenticated, getCurrentToken } = useCardapioAuth();
+  const { showToast, ToastContainer } = useToast();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [summary, setSummary] = useState<InventorySummary | null>(null);
   const [movements, setMovements] = useState<StockMovement[]>([]);
@@ -115,9 +117,7 @@ export default function EstoquePage() {
           payload.role === "SUPER_ADMIN" ||
           (payload.role === "ADMIN" && payload.storeSlug === slug)
         ) {
-          loadInventorySummary();
-          loadInventory();
-          loadMovements();
+          await loadInitialData();
         } else {
           router.push("/unauthorized");
         }
@@ -131,6 +131,14 @@ export default function EstoquePage() {
     checkAuth();
   }, [slug, isAuthenticated, getCurrentToken, router]);
 
+  const loadInitialData = async () => {
+    await Promise.all([
+      loadInventorySummary(),
+      loadInventory(),
+      loadMovements(),
+    ]);
+  };
+
   const loadInventorySummary = async () => {
     try {
       const data = await apiClient.get<InventorySummary>(
@@ -139,43 +147,70 @@ export default function EstoquePage() {
       setSummary(data);
     } catch (error) {
       console.error("Erro ao carregar resumo do estoque:", error);
+      showToast("Erro ao carregar resumo do estoque", "error");
     }
   };
 
   const loadInventory = async () => {
+    setDataLoading(true);
     try {
+      const queryParams = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        lowStock: showLowStock.toString(),
+      });
+
+      if (searchQuery.trim()) {
+        queryParams.append("search", searchQuery.trim());
+      }
+
       const data = await apiClient.get<PaginatedResponse<InventoryItem>>(
-        `/inventory/store/${slug}?page=${pagination.page}&limit=${pagination.limit}&lowStock=${showLowStock}`
+        `/inventory/store/${slug}?${queryParams.toString()}`
       );
       setInventory(data.data);
       setPagination(data.pagination);
     } catch (error) {
       console.error("Erro ao carregar inventário:", error);
+      showToast("Erro ao carregar inventário", "error");
+    } finally {
+      setDataLoading(false);
     }
   };
 
   const loadMovements = async () => {
+    setDataLoading(true);
     try {
+      const queryParams = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+      });
+
+      if (selectedType) {
+        queryParams.append("type", selectedType);
+      }
+
+      if (searchQuery.trim()) {
+        queryParams.append("search", searchQuery.trim());
+      }
+
       const data = await apiClient.get<PaginatedResponse<StockMovement>>(
-        `/inventory/store/${slug}/movements?page=${pagination.page}&limit=${
-          pagination.limit
-        }${selectedType ? `&type=${selectedType}` : ""}`
+        `/inventory/store/${slug}/movements?${queryParams.toString()}`
       );
       setMovements(data.data);
       setPagination(data.pagination);
     } catch (error) {
       console.error("Erro ao carregar movimentações:", error);
+      showToast("Erro ao carregar movimentações", "error");
+    } finally {
+      setDataLoading(false);
     }
   };
 
-  const searchInventory = async () => {
-    if (searchQuery.trim().length < 2) return;
-
-    try {
-      // Implementar busca no inventário
-      console.log("Busca implementada:", searchQuery);
-    } catch (error) {
-      console.error("Erro ao buscar no inventário:", error);
+  const handleSearch = () => {
+    if (activeTab === "inventory") {
+      loadInventory();
+    } else {
+      loadMovements();
     }
   };
 
@@ -192,8 +227,10 @@ export default function EstoquePage() {
         )
       );
       loadInventorySummary(); // Recarregar resumo
+      showToast("Estoque atualizado com sucesso", "success");
     } catch (error) {
       console.error("Erro ao atualizar inventário:", error);
+      showToast("Erro ao atualizar estoque", "error");
     }
   };
 
@@ -214,80 +251,32 @@ export default function EstoquePage() {
       loadInventory(); // Recarregar inventário
       loadMovements(); // Recarregar movimentações
       loadInventorySummary(); // Recarregar resumo
+      showToast(
+        `${type === "ENTRADA" ? "Entrada" : "Saída"} de estoque registrada`,
+        "success"
+      );
     } catch (error) {
       console.error("Erro ao criar movimentação:", error);
+      showToast("Erro ao registrar movimentação", "error");
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(price);
+  const handleTabChange = (tab: "inventory" | "movements") => {
+    setActiveTab(tab);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    if (tab === "inventory") {
+      loadInventory();
+    } else {
+      loadMovements();
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStockStatus = (quantity: number, minStock: number) => {
-    if (quantity <= 0)
-      return {
-        text: "Sem estoque",
-        color: "text-red-600 bg-red-100",
-        icon: Warning,
-      };
-    if (quantity <= minStock)
-      return {
-        text: "Estoque baixo",
-        color: "text-yellow-600 bg-yellow-100",
-        icon: Warning,
-      };
-    return {
-      text: "Em estoque",
-      color: "text-green-600 bg-green-100",
-      icon: CheckCircle,
-    };
-  };
-
-  const getMovementTypeInfo = (type: string) => {
-    switch (type) {
-      case "ENTRADA":
-        return {
-          text: "Entrada",
-          color: "text-green-600 bg-green-100",
-          icon: TrendingUp,
-        };
-      case "SAIDA":
-        return {
-          text: "Saída",
-          color: "text-red-600 bg-red-100",
-          icon: TrendingDown,
-        };
-      case "AJUSTE":
-        return {
-          text: "Ajuste",
-          color: "text-blue-600 bg-blue-100",
-          icon: Package,
-        };
-      case "DEVOLUCAO":
-        return {
-          text: "Devolução",
-          color: "text-purple-600 bg-purple-100",
-          icon: Package,
-        };
-      default:
-        return {
-          text: type,
-          color: "text-gray-600 bg-gray-100",
-          icon: Package,
-        };
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+    if (activeTab === "inventory") {
+      loadInventory();
+    } else {
+      loadMovements();
     }
   };
 
@@ -301,13 +290,15 @@ export default function EstoquePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer />
+
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 gap-4">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                <Package className="w-5 h-5 text-green-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                <Package className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
@@ -316,13 +307,22 @@ export default function EstoquePage() {
                 <p className="text-sm text-gray-600">Loja: {slug}</p>
               </div>
             </div>
-            <button
-              onClick={() => router.push(`/dashboard/${slug}/produtos/novo`)}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Novo Produto
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => router.push(`/dashboard/${slug}/produtos`)}
+                className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300"
+              >
+                <Package className="w-5 h-5 mr-2" />
+                Ver Produtos
+              </button>
+              <button
+                onClick={() => router.push(`/dashboard/${slug}/produtos/novo`)}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Novo Produto
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -335,7 +335,7 @@ export default function EstoquePage() {
             <li className="inline-flex items-center">
               <button
                 onClick={() => router.push(`/dashboard/${slug}`)}
-                className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600"
+                className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
               >
                 Dashboard
               </button>
@@ -352,111 +352,41 @@ export default function EstoquePage() {
         </nav>
 
         {/* Resumo do Estoque */}
-        {summary && (
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <Package className="w-8 h-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">
-                    Total de Produtos
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.totalProducts}
-                  </p>
-                </div>
-              </div>
-            </div>
+        {summary && <InventoryStatsCards summary={summary} />}
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <Package className="w-8 h-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">
-                    Total em Estoque
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.totalStock}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <Warning className="w-8 h-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">
-                    Estoque Baixo
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.lowStockProducts}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <Warning className="w-8 h-8 text-red-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">
-                    Sem Estoque
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.outOfStockProducts}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <TrendUp className="w-8 h-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Reservado</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.reservedStock}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">
-                    Disponível
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {summary.availableStock}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Filtros e Busca */}
+        <SearchAndFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearch={handleSearch}
+          activeTab={activeTab}
+          showLowStock={showLowStock}
+          onLowStockChange={setShowLowStock}
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
+          onFilter={handleSearch}
+          isLoading={dataLoading}
+        />
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab("inventory")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                onClick={() => handleTabChange("inventory")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === "inventory"
-                    ? "border-green-500 text-green-600"
+                    ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Inventário
               </button>
               <button
-                onClick={() => setActiveTab("movements")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                onClick={() => handleTabChange("movements")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === "movements"
-                    ? "border-green-500 text-green-600"
+                    ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -466,345 +396,27 @@ export default function EstoquePage() {
           </div>
 
           <div className="p-6">
-            {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {/* Busca */}
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Buscar produtos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && searchInventory()}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-              </div>
-
-              {/* Filtros específicos por tab */}
-              {activeTab === "inventory" && (
-                <div className="flex items-center">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={showLowStock}
-                      onChange={(e) => setShowLowStock(e.target.checked)}
-                      className="mr-2 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Apenas estoque baixo
-                    </span>
-                  </label>
-                </div>
-              )}
-
-              {activeTab === "movements" && (
-                <div>
-                  <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="">Todos os tipos</option>
-                    <option value="ENTRADA">Entrada</option>
-                    <option value="SAIDA">Saída</option>
-                    <option value="AJUSTE">Ajuste</option>
-                    <option value="DEVOLUCAO">Devolução</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Botão de ação */}
-              <div>
-                <button
-                  onClick={
-                    activeTab === "inventory" ? loadInventory : loadMovements
-                  }
-                  className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtrar
-                </button>
-              </div>
-            </div>
-
             {/* Conteúdo das Tabs */}
             {activeTab === "inventory" && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Inventário ({pagination.total})
+                  Inventário ({pagination.total} produtos)
                 </h3>
-
-                {inventory.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Nenhum produto encontrado
-                    </h3>
-                    <p className="text-gray-500 mb-4">
-                      {showLowStock
-                        ? "Nenhum produto com estoque baixo"
-                        : "Comece criando produtos"}
-                    </p>
-                    {!showLowStock && (
-                      <button
-                        onClick={() =>
-                          router.push(`/dashboard/${slug}/produtos/novo`)
-                        }
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                      >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Criar Primeiro Produto
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Produto
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Categoria
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Estoque Atual
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Estoque Mínimo
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ações
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {inventory.map((item) => {
-                          const status = getStockStatus(
-                            item.quantity,
-                            item.minStock
-                          );
-                          const StatusIcon = status.icon;
-
-                          return (
-                            <tr key={item.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <img
-                                    src={item.product.image}
-                                    alt={item.product.name}
-                                    className="w-12 h-12 rounded-lg object-cover mr-3"
-                                  />
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {item.product.name}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {item.product.description}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {item.product.category?.name || "Sem categoria"}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {item.quantity} unidades
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {formatPrice(item.product.price)} cada
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {item.minStock} unidades
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div
-                                  className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${status.color}`}
-                                >
-                                  <StatusIcon className="w-3 h-3 mr-1" />
-                                  {status.text}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div className="flex justify-end space-x-2">
-                                  <button
-                                    onClick={() => {
-                                      const newQuantity = prompt(
-                                        `Nova quantidade para ${item.product.name}:`,
-                                        item.quantity.toString()
-                                      );
-                                      if (
-                                        newQuantity &&
-                                        !isNaN(Number(newQuantity))
-                                      ) {
-                                        updateInventory(
-                                          item.id,
-                                          Number(newQuantity)
-                                        );
-                                      }
-                                    }}
-                                    className="text-blue-600 hover:text-blue-900"
-                                    title="Ajustar estoque"
-                                  >
-                                    <Package className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const quantity = prompt(
-                                        `Quantidade para entrada de ${item.product.name}:`
-                                      );
-                                      const reason =
-                                        prompt("Motivo da entrada:");
-                                      if (
-                                        quantity &&
-                                        reason &&
-                                        !isNaN(Number(quantity))
-                                      ) {
-                                        createStockMovement(
-                                          item.product.id,
-                                          "ENTRADA",
-                                          Number(quantity),
-                                          reason
-                                        );
-                                      }
-                                    }}
-                                    className="text-green-600 hover:text-green-900"
-                                    title="Entrada de estoque"
-                                  >
-                                    <TrendingUp className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const quantity = prompt(
-                                        `Quantidade para saída de ${item.product.name}:`
-                                      );
-                                      const reason = prompt("Motivo da saída:");
-                                      if (
-                                        quantity &&
-                                        reason &&
-                                        !isNaN(Number(quantity))
-                                      ) {
-                                        createStockMovement(
-                                          item.product.id,
-                                          "SAIDA",
-                                          Number(quantity),
-                                          reason
-                                        );
-                                      }
-                                    }}
-                                    className="text-red-600 hover:text-red-900"
-                                    title="Saída de estoque"
-                                  >
-                                    <TrendingDown className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <InventoryTable
+                  inventory={inventory}
+                  isLoading={dataLoading}
+                  onUpdateInventory={updateInventory}
+                  onCreateMovement={createStockMovement}
+                />
               </div>
             )}
 
             {activeTab === "movements" && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Movimentações ({pagination.total})
+                  Movimentações ({pagination.total} registros)
                 </h3>
-
-                {movements.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Nenhuma movimentação encontrada
-                    </h3>
-                    <p className="text-gray-500 mb-4">
-                      As movimentações de estoque aparecerão aqui
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Data/Hora
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Produto
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Tipo
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantidade
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Motivo
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Usuário
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {movements.map((movement) => {
-                          const typeInfo = getMovementTypeInfo(movement.type);
-                          const TypeIcon = typeInfo.icon;
-
-                          return (
-                            <tr key={movement.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {formatDate(movement.createdAt)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <img
-                                    src={movement.product.image}
-                                    alt={movement.product.name}
-                                    className="w-8 h-8 rounded-lg object-cover mr-2"
-                                  />
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {movement.product.name}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div
-                                  className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${typeInfo.color}`}
-                                >
-                                  <TypeIcon className="w-3 h-3 mr-1" />
-                                  {typeInfo.text}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {movement.quantity} unidades
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {movement.reason || "-"}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {movement.user.name || movement.user.email}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <MovementsTable movements={movements} isLoading={dataLoading} />
               </div>
             )}
           </div>
@@ -812,38 +424,24 @@ export default function EstoquePage() {
 
         {/* Paginação */}
         {pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <nav className="inline-flex rounded-md shadow">
+          <div className="flex justify-center">
+            <nav className="inline-flex rounded-md shadow-sm">
               <button
-                onClick={() => {
-                  if (pagination.page > 1) {
-                    setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
-                    activeTab === "inventory"
-                      ? loadInventory()
-                      : loadMovements();
-                  }
-                }}
+                onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
-                className="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Anterior
               </button>
 
-              <span className="px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-700">
+              <span className="px-4 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium text-gray-700">
                 Página {pagination.page} de {pagination.totalPages}
               </span>
 
               <button
-                onClick={() => {
-                  if (pagination.page < pagination.totalPages) {
-                    setPagination((prev) => ({ ...prev, page: prev.page + 1 }));
-                    activeTab === "inventory"
-                      ? loadInventory()
-                      : loadMovements();
-                  }
-                }}
+                onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page === pagination.totalPages}
-                className="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Próxima
               </button>

@@ -88,21 +88,43 @@ interface UseStoreConfigReturn {
 
 export function useStoreConfig(slug: string): UseStoreConfigReturn {
   const [config, setConfig] = useState<StoreConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!slug); // Só inicia loading se há slug
   const [error, setError] = useState<string | null>(null);
 
   // Verificar se estamos no cliente
   const isClient = typeof window !== "undefined";
 
-  const updateConfig = async (data: Partial<StoreConfig>) => {
+  const updateConfig = async (data: Partial<StoreConfig> | Record<string, any>) => {
     try {
+      console.log('🔧 useStoreConfig.updateConfig chamado com:', data);
+      
+      // Todas as atualizações usam o endpoint /stores/{slug}/config
+      console.log('📝 Atualizando configurações da loja via /config endpoint');
       await apiClient.patch(`/stores/${slug}/config`, data);
+      
       // Recarregar configuração após atualização
       if (config) {
         setConfig({ ...config, ...data });
       }
+      
+      console.log('✅ Configuração atualizada com sucesso');
     } catch (error: any) {
-      throw new Error("Erro ao atualizar configurações");
+      console.error('❌ Erro ao atualizar configurações:', error);
+      
+      // Extrair mensagem de erro mais específica
+      let errorMessage = "Erro ao atualizar configurações";
+      
+      if (error.response?.data?.message) {
+        if (Array.isArray(error.response.data.message)) {
+          errorMessage = error.response.data.message.join(', ');
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   };
 
@@ -119,13 +141,18 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
   useEffect(() => {
     if (!slug) {
       setLoading(false);
+      setError(null);
+      setConfig(null);
       return;
     }
 
     // Timeout de segurança para evitar loading infinito
     const timeoutId = setTimeout(() => {
-      setLoading(false);
-    }, 10000);
+      if (loading) {
+        setLoading(false);
+        setError("Tempo limite excedido. Tente recarregar a página.");
+      }
+    }, 15000); // Aumentado para 15 segundos
 
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
@@ -211,6 +238,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
       try {
         setLoading(true);
         setError(null);
+        setConfig(null); // Limpar config anterior
 
         const storeConfig = await fetchConfig(slug);
 
@@ -274,10 +302,12 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
         setConfig(transformedConfig);
       } catch (err: any) {
+        console.error("Erro detalhado ao carregar loja:", err);
+        
         // Mapear mensagens de erro para mensagens mais amigáveis
         let userMessage = "Erro ao carregar dados da loja";
 
-        if (err.message?.includes("Loja não encontrada")) {
+        if (err.message?.includes("404") || err.message?.includes("Loja não encontrada") || err.message?.includes("não encontrada")) {
           userMessage = "Loja não encontrada";
         } else if (err.message?.includes("Loja inativa")) {
           userMessage = "Loja temporariamente indisponível";
@@ -285,11 +315,14 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           userMessage = "Conexão lenta, tente novamente";
         } else if (err.message?.includes("API indisponível")) {
           userMessage = "Serviço temporariamente indisponível";
-        } else if (err.message?.includes("não encontrada")) {
-          userMessage = "Loja não encontrada";
+        } else if (err.message?.includes("Network Error") || err.message?.includes("fetch")) {
+          userMessage = "Erro de conexão. Verifique sua internet.";
         }
 
-        setError(userMessage);
+        // Só definir erro após um pequeno delay para evitar flash
+        setTimeout(() => {
+          setError(userMessage);
+        }, 500);
       } finally {
         setLoading(false);
         clearTimeout(timeoutId);
