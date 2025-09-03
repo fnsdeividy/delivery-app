@@ -55,3 +55,4 @@ export {
 // Hook para configuração WhatsApp
 export { useWhatsAppConfig } from "./useWhatsAppConfig";
 export { useIfoodConfig } from "./useIfoodConfig";
+export { useToast } from "./useToast";

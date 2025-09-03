@@ -4,6 +4,7 @@ import { useTokenSync } from "@/hooks/useTokenSync";
 import { apiClient } from "@/lib/api-client";
 import { apiConfig } from "@/lib/config";
 import { AuthResponse, User, UserStoreAssociation } from "@/types/cardapio-api";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   ReactNode,
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userStores, setUserStores] = useState<UserStoreAssociation[]>([]);
   const [currentStore, setCurrentStoreState] =
     useState<UserStoreAssociation | null>(null);
+  const router = useRouter();
 
   // Sincronizar token entre localStorage e cookies
   const { isSynced } = useTokenSync();
@@ -228,6 +230,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Forçar atualização do contexto para garantir que o usuário seja marcado como autenticado
       // Isso é importante para o redirecionamento funcionar corretamente
       await refreshUserData();
+
+      // Não redirecionar aqui para evitar interferir em fluxos (ex.: criação de loja)
 
       return response;
     } catch (error) {

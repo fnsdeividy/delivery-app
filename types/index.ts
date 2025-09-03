@@ -2,7 +2,7 @@
 export * from './cardapio-api';
 
 // Tipos do NextAuth
-export * from './next-auth';
+export * from './next-auth.d';
 
 // Tipos do WhatsApp
 export * from './whatsapp';

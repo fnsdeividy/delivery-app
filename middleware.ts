@@ -92,7 +92,7 @@ async function protectDashboardRoute(request: NextRequest) {
         payload.role === "OWNER" ||
         payload.role === "LOJA_ADMIN"
       ) {
-            return NextResponse.next();
+        return NextResponse.next();
       }
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }

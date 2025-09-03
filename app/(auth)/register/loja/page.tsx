@@ -1,18 +1,26 @@
 "use client";
 
-import { useCardapioAuth, useCreateStore, useFormValidation } from "@/hooks";
+import { useAuthContext } from "@/contexts/AuthContext";
+import {
+  useCardapioAuth,
+  useCreateStore,
+  useFormValidation,
+  useToast,
+} from "@/hooks";
+import { apiClient } from "@/lib/api-client";
 import {
   RegisterLojaFormData,
   ownerSchema,
   storeSchema,
 } from "@/lib/validation/schemas";
-import { CreateStoreDto, CreateUserDto, UserRole } from "@/types/cardapio-api";
+import { CreateStoreDto, CreateUserDto, UserRole } from "@/types";
 import {
   ArrowLeft,
   Eye,
   EyeSlash,
   Storefront,
 } from "@phosphor-icons/react/dist/ssr";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -34,6 +42,9 @@ interface ViaCepResponse {
 
 export default function RegisterLojaPage() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { refreshUserData } = useAuthContext();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<RegisterLojaFormData>({
     // Dados do proprietário
@@ -222,6 +233,11 @@ export default function RegisterLojaPage() {
       const validation = await ownerValidation.validateForm(ownerData);
 
       if (!validation.isValid) {
+        // Mostrar primeiro erro encontrado
+        const firstError = Object.values(validation.errors)[0];
+        if (firstError) {
+          showToast(firstError, "error");
+        }
         return;
       }
     }
@@ -241,9 +257,17 @@ export default function RegisterLojaPage() {
       const validation = await storeValidation.validateForm(storeData);
 
       if (!validation.isValid) {
+        // Mostrar primeiro erro encontrado
+        const firstError = Object.values(validation.errors)[0];
+        if (firstError) {
+          showToast(firstError, "error");
+        }
         return;
       }
     }
+    
+    // Feedback visual de progresso
+    showToast(`Etapa ${step} concluída!`, "success");
     setStep(step + 1);
   };
 
@@ -312,10 +336,14 @@ export default function RegisterLojaPage() {
       setCreationStep("creating-store");
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // 3. Criar loja
+      // 3. Criar loja com slug único
+      const baseSlug =
+        typeof formData.storeSlug === "string" ? formData.storeSlug : "";
+      const uniqueSlug = `${baseSlug}-${Date.now()}`;
+
       const storeCreationData: CreateStoreDto = {
         name: typeof formData.storeName === "string" ? formData.storeName : "",
-        slug: typeof formData.storeSlug === "string" ? formData.storeSlug : "",
+        slug: uniqueSlug,
         description:
           typeof formData.description === "string" ? formData.description : "",
         config: {
@@ -366,14 +394,107 @@ export default function RegisterLojaPage() {
       const storeResponse = await createStore(storeCreationData);
 
       setCreationStep("redirecting");
+
+      // Invalidar queries para atualizar estado da aplicação
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+
+      // Atualizar dados do usuário no AuthContext
+      await refreshUserData();
+
+      // Mostrar toast de sucesso
+      showToast(
+        "Loja criada com sucesso! Redirecionando para a página inicial...",
+        "success"
+      );
+
+      // 4. Definir loja atual de forma otimista para ajudar os guards
+      try {
+        await apiClient.setCurrentStore({ storeSlug: uniqueSlug });
+      } catch (e) {
+        // se falhar, seguimos com polling
+      }
+
+      // 5. Tela intermediária + polling até ter acesso ao dashboard
+      const start = Date.now();
+      const timeoutMs = 15000; // 15s
+      const intervalMs = 700; // 0.7s
+
+      const canAccessDashboard = async () => {
+        try {
+          // Se conseguir obter a loja pelo slug autenticado, pressupomos acesso
+          await apiClient.getStoreBySlug(uniqueSlug);
+          return true;
+        } catch (err: any) {
+          // 401/403: ainda não propagou permissão; continuar tentando
+          // 404: loja pode não estar disponível imediatamente; continuar tentando
+          return false;
+        }
+      };
+
+      // Loop de polling com timeout
+      while (Date.now() - start < timeoutMs) {
+        const ok = await canAccessDashboard();
+        if (ok) {
+          // Redirecionar para página inicial com usuário logado
+          router.push("/");
+          return;
+        }
+        await new Promise((r) => setTimeout(r, intervalMs));
+      }
+
+      // Se expirou, redirecionar para home mesmo assim
+      showToast(
+        "Loja criada com sucesso! Você já pode acessar sua conta.",
+        "success"
+      );
+      
+      // Aguardar um pouco para o toast aparecer e redirecionar
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
     } catch (err: any) {
       console.error("❌ Erro durante o processo de registro:", err);
       setCreationStep("idle");
 
-      if (err.message?.includes("já possui uma loja")) {
+      // Tratamento específico para conflitos de email/usuário
+      if (err.message?.includes("User with this email already exists")) {
+        showToast(
+          "Este email já está cadastrado. Tente fazer login ou use outro email.",
+          "error"
+        );
+        setStep(1); // Voltar para o step do email
         return;
       }
 
+      // Tratamento específico para conflitos de slug de loja
+      if (
+        err.message?.includes("já existe uma loja com o slug") ||
+        err.message?.includes("Já existe uma loja")
+      ) {
+        showToast("Nome da loja já existe. Tente um nome diferente.", "error");
+        setStep(2); // Voltar para o step da loja
+        return;
+      }
+
+      // Outros erros de conflito
+      if (err.message?.includes("já possui uma loja")) {
+        showToast("Este usuário já possui uma loja cadastrada.", "error");
+        setStep(1); // Voltar para o step do usuário
+        return;
+      }
+
+      // Erros de validação do backend
+      if (err.response?.data?.message) {
+        const backendMessage = Array.isArray(err.response.data.message) 
+          ? err.response.data.message[0] 
+          : err.response.data.message;
+        showToast(backendMessage, "error");
+        return;
+      }
+
+      // Erro genérico
+      showToast("Erro ao criar loja. Verifique os dados e tente novamente.", "error");
       console.error("Erro não tratado:", err);
     }
   };
@@ -445,7 +566,7 @@ export default function RegisterLojaPage() {
                     "Criando conta de usuário..."}
                   {creationStep === "creating-store" &&
                     "Configurando sua loja..."}
-                  {creationStep === "redirecting" && "Preparando dashboard..."}
+                  {creationStep === "redirecting" && "Finalizando cadastro..."}
                 </span>
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               </div>
@@ -974,8 +1095,9 @@ export default function RegisterLojaPage() {
                 </h4>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>
-                    🏪 Poderá acessar o dashboard para configurar produtos
+                    🏠 Será redirecionado para a página inicial como usuário logado
                   </li>
+                  <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
                   <li>🎨 Personalizar cores e logo da loja</li>
                   <li>📱 Configurar horários de funcionamento</li>
                   <li>💳 Configurar métodos de pagamento</li>
@@ -997,9 +1119,10 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                disabled={isLoading || creationStep !== "idle"}
+                className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 transition-colors"
               >
-                Voltar
+                ← Voltar
               </button>
             )}
 
@@ -1007,10 +1130,17 @@ export default function RegisterLojaPage() {
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium transition-all shadow-md"
-                style={{ cursor: "pointer" }}
+                disabled={isLoading}
+                className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all shadow-md flex items-center justify-center"
               >
-                Próximo (Step {step})
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Validando...
+                  </>
+                ) : (
+                  `Continuar (${step}/3)`
+                )}
               </button>
             ) : (
               <button
@@ -1019,11 +1149,30 @@ export default function RegisterLojaPage() {
                 disabled={isLoading || creationStep !== "idle"}
                 className="flex-1 py-2 px-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-md hover:from-green-700 hover:to-blue-700 font-medium disabled:opacity-50 transition-all shadow-md"
               >
-                {creationStep === "creating-user" && "Criando usuário..."}
-                {creationStep === "creating-store" && "Criando loja..."}
-                {creationStep === "redirecting" && "Redirecionando..."}
-                {creationStep === "idle" &&
-                  (isLoading ? "Criando..." : "Criar Loja")}
+                {creationStep === "creating-user" && (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Criando usuário...
+                  </>
+                )}
+                {creationStep === "creating-store" && (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Criando loja...
+                  </>
+                )}
+                {creationStep === "redirecting" && (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Finalizando...
+                  </>
+                )}
+                {creationStep === "idle" && (
+                  <>
+                    {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>}
+                    {isLoading ? "Processando..." : "Criar Loja"}
+                  </>
+                )}
               </button>
             )}
           </div>
