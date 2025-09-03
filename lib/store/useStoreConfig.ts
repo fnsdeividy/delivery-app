@@ -94,36 +94,33 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
   // Verificar se estamos no cliente
   const isClient = typeof window !== "undefined";
 
-  const updateConfig = async (data: Partial<StoreConfig> | Record<string, any>) => {
+  const updateConfig = async (
+    data: Partial<StoreConfig> | Record<string, any>
+  ) => {
     try {
-      console.log('🔧 useStoreConfig.updateConfig chamado com:', data);
-      
       // Todas as atualizações usam o endpoint /stores/{slug}/config
-      console.log('📝 Atualizando configurações da loja via /config endpoint');
       await apiClient.patch(`/stores/${slug}/config`, data);
-      
+
       // Recarregar configuração após atualização
       if (config) {
         setConfig({ ...config, ...data });
       }
-      
-      console.log('✅ Configuração atualizada com sucesso');
     } catch (error: any) {
-      console.error('❌ Erro ao atualizar configurações:', error);
-      
+      console.error("❌ Erro ao atualizar configurações:", error);
+
       // Extrair mensagem de erro mais específica
       let errorMessage = "Erro ao atualizar configurações";
-      
+
       if (error.response?.data?.message) {
         if (Array.isArray(error.response.data.message)) {
-          errorMessage = error.response.data.message.join(', ');
+          errorMessage = error.response.data.message.join(", ");
         } else {
           errorMessage = error.response.data.message;
         }
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     }
   };
@@ -175,7 +172,10 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             categories: (data as any).categories || [],
           },
           settings: {
-            preparationTime: (data as any).config?.settings?.preparationTime || (data as any).config?.preparationTime || 30,
+            preparationTime:
+              (data as any).config?.settings?.preparationTime ||
+              (data as any).config?.preparationTime ||
+              30,
             orderNotifications:
               (data as any).config?.settings?.orderNotifications !== false,
           },
@@ -214,7 +214,10 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           schedule: {
             timezone: "America/Sao_Paulo",
-            workingHours: (data as any).config?.schedule?.workingHours || (data as any).config?.businessHours || {},
+            workingHours:
+              (data as any).config?.schedule?.workingHours ||
+              (data as any).config?.businessHours ||
+              {},
           },
           business: {
             phone: (data as any).config?.phone || "",
@@ -258,7 +261,10 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             categories: storeConfig.menu?.categories || [],
           },
           settings: {
-            preparationTime: storeConfig.config?.settings?.preparationTime || storeConfig.settings?.preparationTime || 30,
+            preparationTime:
+              storeConfig.config?.settings?.preparationTime ||
+              storeConfig.settings?.preparationTime ||
+              30,
             orderNotifications:
               storeConfig.settings?.orderNotifications !== false,
           },
@@ -288,7 +294,10 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
           schedule: {
             timezone: "America/Sao_Paulo",
-            workingHours: storeConfig.config?.schedule?.workingHours || storeConfig.schedule?.workingHours || {},
+            workingHours:
+              storeConfig.config?.schedule?.workingHours ||
+              storeConfig.schedule?.workingHours ||
+              {},
           },
           business: {
             phone: storeConfig.business?.phone || "",
@@ -303,11 +312,15 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
         setConfig(transformedConfig);
       } catch (err: any) {
         console.error("Erro detalhado ao carregar loja:", err);
-        
+
         // Mapear mensagens de erro para mensagens mais amigáveis
         let userMessage = "Erro ao carregar dados da loja";
 
-        if (err.message?.includes("404") || err.message?.includes("Loja não encontrada") || err.message?.includes("não encontrada")) {
+        if (
+          err.message?.includes("404") ||
+          err.message?.includes("Loja não encontrada") ||
+          err.message?.includes("não encontrada")
+        ) {
           userMessage = "Loja não encontrada";
         } else if (err.message?.includes("Loja inativa")) {
           userMessage = "Loja temporariamente indisponível";
@@ -315,7 +328,10 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           userMessage = "Conexão lenta, tente novamente";
         } else if (err.message?.includes("API indisponível")) {
           userMessage = "Serviço temporariamente indisponível";
-        } else if (err.message?.includes("Network Error") || err.message?.includes("fetch")) {
+        } else if (
+          err.message?.includes("Network Error") ||
+          err.message?.includes("fetch")
+        ) {
           userMessage = "Erro de conexão. Verifique sua internet.";
         }
 

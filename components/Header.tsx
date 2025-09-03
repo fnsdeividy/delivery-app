@@ -24,7 +24,7 @@ export function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex justify-between items-center h-20 sm:h-24">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Logo size="md" />
@@ -160,7 +160,7 @@ export function Header() {
       )}
 
       {/* Spacer para compensar o header fixo */}
-      <div className="h-16" data-testid="header-spacer" />
+      <div className="h-20 sm:h-24" data-testid="header-spacer" />
     </>
   );
 }

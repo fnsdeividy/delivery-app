@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
+import { useAuthContext } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   Building,
@@ -44,6 +45,7 @@ export default function ConfiguracoesBasicasPage() {
   const storeSlug = params?.storeSlug as string;
 
   const { config, loading, updateConfig } = useStoreConfig(storeSlug);
+  const { logout } = useAuthContext();
 
   const initialDataRef = useRef<StoreBasicInfo | null>(null);
   const [formData, setFormData] = useState<StoreBasicInfo>({
@@ -98,7 +100,10 @@ export default function ConfiguracoesBasicasPage() {
     );
   };
 
-  const passwordsMatch = (password: string, confirmPassword: string): boolean => {
+  const passwordsMatch = (
+    password: string,
+    confirmPassword: string
+  ): boolean => {
     if (!password && !confirmPassword) return true;
     return password === confirmPassword;
   };
@@ -123,7 +128,8 @@ export default function ConfiguracoesBasicasPage() {
           ? "Mín. 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
           : undefined,
       confirmPassword:
-        data.password && !passwordsMatch(data.password, data.confirmPassword || "")
+        data.password &&
+        !passwordsMatch(data.password, data.confirmPassword || "")
           ? "As senhas não coincidem"
           : undefined,
       slug: !data.slug.trim()
@@ -241,7 +247,8 @@ export default function ConfiguracoesBasicasPage() {
             ? "Mín. 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
             : undefined,
         confirmPassword:
-          formData.confirmPassword && !passwordsMatch(value, formData.confirmPassword)
+          formData.confirmPassword &&
+          !passwordsMatch(value, formData.confirmPassword)
             ? "As senhas não coincidem"
             : undefined,
       }));
@@ -258,7 +265,10 @@ export default function ConfiguracoesBasicasPage() {
       if (!value.trim()) {
         setErrors((e) => ({ ...e, slug: "Slug é obrigatório" }));
       } else if (!isValidSlug(value)) {
-        setErrors((e) => ({ ...e, slug: "Use apenas minúsculas, números e hífens (mín. 3)" }));
+        setErrors((e) => ({
+          ...e,
+          slug: "Use apenas minúsculas, números e hífens (mín. 3)",
+        }));
       } else {
         setErrors((e) => ({ ...e, slug: undefined }));
       }
@@ -312,7 +322,8 @@ export default function ConfiguracoesBasicasPage() {
       }
 
       // Verificar se há token antes de fazer a requisição
-      const token = localStorage.getItem("cardapio_token") || localStorage.getItem("token");
+      const token =
+        localStorage.getItem("cardapio_token") || localStorage.getItem("token");
       if (!token) {
         console.warn("⚠️ Token não encontrado, pulando verificação de slug");
         setSlugError("");
@@ -325,14 +336,12 @@ export default function ConfiguracoesBasicasPage() {
       setIsCheckingSlug(true);
       setSlugError("");
       setSlugAvailable(null);
-      
+
       try {
-        const baseURL = process.env.NEXT_PUBLIC_CARDAPIO_API_URL || "http://localhost:3001/api/v1";
+        const baseURL =
+          process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+          "http://localhost:3001/api/v1";
         const url = `${baseURL}/stores/${debouncedSlug}/check-availability`;
-        
-        console.log("🔍 Verificando disponibilidade do slug:", debouncedSlug);
-        console.log("📡 URL da API:", url);
-        
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -354,13 +363,13 @@ export default function ConfiguracoesBasicasPage() {
         }
 
         const data = await response.json();
-        console.log("📦 Resposta da API:", data);
-        
         if (data.available) {
           setSlugError("");
           setSlugAvailable(true);
         } else {
-          setSlugError(data.message || "Esse endereço já está em uso, escolha outro.");
+          setSlugError(
+            data.message || "Esse endereço já está em uso, escolha outro."
+          );
           setSlugAvailable(false);
         }
       } catch (err) {
@@ -409,7 +418,8 @@ export default function ConfiguracoesBasicasPage() {
     const originalSlug = storeSlug;
     const newSlug = formData.slug.trim();
     const slugChanged = originalSlug !== newSlug;
-    
+    const passwordChanged = formData.password && formData.password.trim() !== "";
+
     try {
       const updateData: Record<string, string> = {
         name: formData.name.trim(),
@@ -417,37 +427,56 @@ export default function ConfiguracoesBasicasPage() {
         phone: formData.phone.trim(),
         slug: newSlug,
       };
-      if (formData.password && formData.password.trim() !== "") {
-        updateData.password = formData.password.trim();
+      if (passwordChanged) {
+        updateData.password = formData.password?.trim() || "";
         updateData.currentPassword = formData.currentPassword?.trim() || "";
       }
 
-      console.log('🚀 Enviando atualização:', updateData);
       await updateConfig(updateData);
 
       // Atualiza baseline para o guard
-      initialDataRef.current = { ...formData, password: "", currentPassword: "", confirmPassword: "" };
-      setFormData((prev) => ({ ...prev, password: "", currentPassword: "", confirmPassword: "" }));
+      initialDataRef.current = {
+        ...formData,
+        password: "",
+        currentPassword: "",
+        confirmPassword: "",
+      };
+      setFormData((prev) => ({
+        ...prev,
+        password: "",
+        currentPassword: "",
+        confirmPassword: "",
+      }));
       setHasChanges(false);
-      
+
+      // Se a senha foi alterada, fazer logout obrigatório por segurança
+      if (passwordChanged) {
+        showToast("Senha alterada com sucesso! Você será deslogado por segurança.", "success");
+        
+        setTimeout(() => {
+          logout();
+          router.push("/login");
+        }, 2500);
+        return;
+      }
+
       showToast("Informações básicas atualizadas com sucesso!", "success");
-      
+
       // Se o slug foi alterado, redirecionar para nova URL após um delay
       if (slugChanged) {
-        console.log('🔄 Slug alterado, redirecionando para:', newSlug);
         setTimeout(() => {
           router.push(`/dashboard/${newSlug}/configuracoes/basicas`);
         }, 1500);
       }
     } catch (error) {
       console.error("Erro ao atualizar informações básicas:", error);
-      
+
       // Extrair mensagem de erro específica
       let errorMessage = "Erro ao salvar. Tente novamente.";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       showToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
@@ -457,7 +486,11 @@ export default function ConfiguracoesBasicasPage() {
   // ------- Reset para valores iniciais -------
   const handleReset = () => {
     if (!initialDataRef.current) return;
-    setFormData({ ...initialDataRef.current, password: "", confirmPassword: "" });
+    setFormData({
+      ...initialDataRef.current,
+      password: "",
+      confirmPassword: "",
+    });
     setErrors({
       name: undefined,
       email: undefined,
@@ -475,13 +508,15 @@ export default function ConfiguracoesBasicasPage() {
   // Desabilita o submit se houver erros conhecidos ou checagem de slug rolando
   const canSubmit = useMemo(() => {
     const anyInlineError = Object.values(errors).some(Boolean);
-    
+
     // Se o slug é o mesmo da loja atual, não bloqueia o submit
     const isCurrentSlug = formData.slug === config?.slug;
-    const hasBlockingSlug = !isCurrentSlug && (
-      Boolean(slugError) || isCheckingSlug === true || slugAvailable === false
-    );
-    
+    const hasBlockingSlug =
+      !isCurrentSlug &&
+      (Boolean(slugError) ||
+        isCheckingSlug === true ||
+        slugAvailable === false);
+
     return hasChanges && !isSubmitting && !anyInlineError && !hasBlockingSlug;
   }, [
     errors,
@@ -604,7 +639,6 @@ export default function ConfiguracoesBasicasPage() {
                 />
               </Field>
 
-
               {/* Slug */}
               <Field
                 id="slug"
@@ -703,7 +737,6 @@ export default function ConfiguracoesBasicasPage() {
                   inputMode="numeric"
                 />
               </Field>
-
             </CardContent>
           </Card>
 
@@ -711,13 +744,24 @@ export default function ConfiguracoesBasicasPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <svg
+                  className="h-5 w-5 text-orange-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
                 </svg>
                 <span>Alterar Senha</span>
               </CardTitle>
               <CardDescription>
-                Para alterar sua senha, preencha os campos abaixo. Deixe em branco se não deseja alterar.
+                Para alterar sua senha, preencha os campos abaixo. Deixe em
+                branco se não deseja alterar.
               </CardDescription>
             </CardHeader>
 
@@ -734,17 +778,25 @@ export default function ConfiguracoesBasicasPage() {
                     id="currentPassword"
                     type={showCurrentPassword ? "text" : "password"}
                     value={formData.currentPassword || ""}
-                    onChange={(e) => handleInputChange("currentPassword", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("currentPassword", e.target.value)
+                    }
                     placeholder="Digite sua senha atual"
                     className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                      errors.currentPassword ? "border-red-300 bg-red-50" : "border-gray-300"
+                      errors.currentPassword
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label={showCurrentPassword ? "Ocultar senha atual" : "Mostrar senha atual"}
+                    aria-label={
+                      showCurrentPassword
+                        ? "Ocultar senha atual"
+                        : "Mostrar senha atual"
+                    }
                   >
                     {showCurrentPassword ? (
                       <EyeSlash className="h-4 w-4" />
@@ -768,17 +820,25 @@ export default function ConfiguracoesBasicasPage() {
                       id="newPassword"
                       type={showPassword ? "text" : "password"}
                       value={formData.password || ""}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
                       placeholder="Digite a nova senha"
                       className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                        errors.password ? "border-red-300 bg-red-50" : "border-gray-300"
+                        errors.password
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label={showPassword ? "Ocultar nova senha" : "Mostrar nova senha"}
+                      aria-label={
+                        showPassword
+                          ? "Ocultar nova senha"
+                          : "Mostrar nova senha"
+                      }
                     >
                       {showPassword ? (
                         <EyeSlash className="h-4 w-4" />
@@ -801,17 +861,25 @@ export default function ConfiguracoesBasicasPage() {
                       id="confirmPassword"
                       type={showPassword ? "text" : "password"}
                       value={formData.confirmPassword || ""}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("confirmPassword", e.target.value)
+                      }
                       placeholder="Confirme a nova senha"
                       className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
-                        errors.confirmPassword ? "border-red-300 bg-red-50" : "border-gray-300"
+                        errors.confirmPassword
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label={showPassword ? "Ocultar confirmação" : "Mostrar confirmação"}
+                      aria-label={
+                        showPassword
+                          ? "Ocultar confirmação"
+                          : "Mostrar confirmação"
+                      }
                     >
                       {showPassword ? (
                         <EyeSlash className="h-4 w-4" />
@@ -826,14 +894,18 @@ export default function ConfiguracoesBasicasPage() {
               {/* Indicador de Força da Senha */}
               {formData.password && (
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-gray-700">Força da senha:</div>
+                  <div className="text-sm font-medium text-gray-700">
+                    Força da senha:
+                  </div>
                   <PasswordStrengthIndicator password={formData.password} />
                 </div>
               )}
 
               {/* Dicas de Segurança */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Dicas para uma senha segura:</h4>
+                <h4 className="text-sm font-semibold text-blue-900 mb-2">
+                  💡 Dicas para uma senha segura:
+                </h4>
                 <ul className="text-xs text-blue-800 space-y-1">
                   <li>• Use pelo menos 8 caracteres</li>
                   <li>• Inclua letras maiúsculas e minúsculas</li>
@@ -1025,12 +1097,23 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
   };
 
   const { score, checks } = getStrength(password);
-  
+
   const getStrengthInfo = (score: number) => {
-    if (score <= 2) return { label: "Fraca", color: "bg-red-500", textColor: "text-red-700" };
-    if (score <= 3) return { label: "Média", color: "bg-yellow-500", textColor: "text-yellow-700" };
-    if (score <= 4) return { label: "Boa", color: "bg-blue-500", textColor: "text-blue-700" };
-    return { label: "Forte", color: "bg-green-500", textColor: "text-green-700" };
+    if (score <= 2)
+      return { label: "Fraca", color: "bg-red-500", textColor: "text-red-700" };
+    if (score <= 3)
+      return {
+        label: "Média",
+        color: "bg-yellow-500",
+        textColor: "text-yellow-700",
+      };
+    if (score <= 4)
+      return { label: "Boa", color: "bg-blue-500", textColor: "text-blue-700" };
+    return {
+      label: "Forte",
+      color: "bg-green-500",
+      textColor: "text-green-700",
+    };
   };
 
   const strength = getStrengthInfo(score);
@@ -1052,20 +1135,40 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
 
       {/* Checklist de requisitos */}
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className={`flex items-center gap-1 ${checks.length ? 'text-green-600' : 'text-gray-400'}`}>
-          {checks.length ? '✓' : '○'} 8+ caracteres
+        <div
+          className={`flex items-center gap-1 ${
+            checks.length ? "text-green-600" : "text-gray-400"
+          }`}
+        >
+          {checks.length ? "✓" : "○"} 8+ caracteres
         </div>
-        <div className={`flex items-center gap-1 ${checks.lowercase ? 'text-green-600' : 'text-gray-400'}`}>
-          {checks.lowercase ? '✓' : '○'} Minúsculas
+        <div
+          className={`flex items-center gap-1 ${
+            checks.lowercase ? "text-green-600" : "text-gray-400"
+          }`}
+        >
+          {checks.lowercase ? "✓" : "○"} Minúsculas
         </div>
-        <div className={`flex items-center gap-1 ${checks.uppercase ? 'text-green-600' : 'text-gray-400'}`}>
-          {checks.uppercase ? '✓' : '○'} Maiúsculas
+        <div
+          className={`flex items-center gap-1 ${
+            checks.uppercase ? "text-green-600" : "text-gray-400"
+          }`}
+        >
+          {checks.uppercase ? "✓" : "○"} Maiúsculas
         </div>
-        <div className={`flex items-center gap-1 ${checks.numbers ? 'text-green-600' : 'text-gray-400'}`}>
-          {checks.numbers ? '✓' : '○'} Números
+        <div
+          className={`flex items-center gap-1 ${
+            checks.numbers ? "text-green-600" : "text-gray-400"
+          }`}
+        >
+          {checks.numbers ? "✓" : "○"} Números
         </div>
-        <div className={`flex items-center gap-1 col-span-2 ${checks.special ? 'text-green-600' : 'text-gray-400'}`}>
-          {checks.special ? '✓' : '○'} Caracteres especiais (!@#$%^&*)
+        <div
+          className={`flex items-center gap-1 col-span-2 ${
+            checks.special ? "text-green-600" : "text-gray-400"
+          }`}
+        >
+          {checks.special ? "✓" : "○"} Caracteres especiais (!@#$%^&*)
         </div>
       </div>
     </div>
