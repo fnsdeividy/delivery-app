@@ -12,7 +12,6 @@ import { EyeSlash, Pencil, Plus, Trash } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import {
   startTransition,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -67,12 +66,7 @@ export default function ProdutosPage() {
 
   /** guards */
   const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+  const loadingRef = useRef(false);
 
   /** ui states */
   const [isLoading, setIsLoading] = useState(true);
@@ -111,162 +105,59 @@ export default function ProdutosPage() {
   /** query params memo (evita reconstrução de strings em cada render) */
   // Removido baseQuery - agora construímos os parâmetros diretamente nas funções
 
-  /** Busca de categorias */
+  /** Carregamento inicial de categorias */
   useEffect(() => {
     if (!isAuthenticated()) return;
-    let abort = false;
-
-    (async () => {
+    
+    const loadCategories = async () => {
       try {
-        const data = await apiClient.get<CategoryDTO>(
+        const categoriesData = await apiClient.get<CategoryDTO>(
           `/stores/${slug}/categories`
         );
-        if (abort || !mountedRef.current) return;
-        if (data) setCategories(data);
-      } catch (err) {
-        console.error("Erro ao carregar categorias:", err);
-        // Mantém silencioso; filtro continua funcionando mesmo sem categorias
+        if (categoriesData) setCategories(categoriesData);
+      } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
       }
-    })();
-
-    return () => {
-      abort = true;
     };
+    
+    loadCategories();
   }, [slug, isAuthenticated]);
 
-  /** Função interna para aplicar dados recebidos no estado */
-  const applyProductResponse = useCallback(
-    (resp: PaginatedResponse<Product>) => {
-      setProducts(resp.data ?? []);
-      setPagination((prev) => ({
-        ...prev,
-        total: resp.pagination?.total ?? 0,
-        totalPages: resp.pagination?.totalPages ?? 0,
-      }));
-    },
-    []
-  );
-
-  /** Função base para carregar produtos */
-  const fetchProducts = useCallback(
-    async (signal?: AbortSignal, isSearch = false, query = "") => {
-      if (isSearch) {
-        setIsSearching(true);
-      } else {
-        setIsLoading(true);
-      }
-
+  /** Carregamento inicial de produtos */
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    
+    const loadProducts = async () => {
+      setIsLoading(true);
       try {
         const p = new URLSearchParams();
-        p.set("page", String(pagination.page));
-        p.set("limit", String(pagination.limit));
-        p.set("active", String(!showInactive));
-        if (selectedCategory) p.set("categoryId", selectedCategory);
-        if (isSearch && query.trim()) {
-          p.set("q", query.trim());
+        p.set("page", "1");
+        p.set("limit", "10");
+        p.set("active", "true");
+        
+        const productsData = await apiClient.get<PaginatedResponse<Product>>(
+          `/stores/${slug}/products?${p.toString()}`
+        );
+        
+        if (productsData?.data) {
+          setProducts(productsData.data ?? []);
+          setPagination({
+            page: 1,
+            limit: 10,
+            total: productsData.pagination?.total ?? 0,
+            totalPages: productsData.pagination?.totalPages ?? 0,
+          });
         }
-
-        const endpoint = isSearch
-          ? `/stores/${slug}/products/search?${p.toString()}`
-          : `/stores/${slug}/products?${p.toString()}`;
-
-        const data = await apiClient.get<PaginatedResponse<Product>>(endpoint, {
-          signal,
-        } as any);
-
-        if (!mountedRef.current || signal?.aborted) return;
-        if (data?.data) applyProductResponse(data);
       } catch (error: any) {
-        // Ignorar erros de cancelamento e AbortError
-        if (
-          error?.name === "AbortError" ||
-          error?.code === "ERR_CANCELED" ||
-          error?.message === "Requisição cancelada"
-        ) {
-          return;
-        }
-        console.error(
-          `Erro ao ${isSearch ? "buscar" : "carregar"} produtos:`,
-          error
-        );
-        handleErrorWithRedirect(
-          error,
-          `Erro ao ${isSearch ? "buscar" : "carregar"} produtos`
-        );
+        console.error("Erro ao carregar produtos:", error);
+        handleErrorWithRedirect(error, "Erro ao carregar produtos");
       } finally {
-        if (mountedRef.current) {
-          if (isSearch) {
-            setIsSearching(false);
-          } else {
-            setIsLoading(false);
-          }
-        }
+        setIsLoading(false);
       }
-    },
-    [
-      slug,
-      pagination.page,
-      pagination.limit,
-      selectedCategory,
-      showInactive,
-      applyProductResponse,
-      handleErrorWithRedirect,
-    ]
-  );
-
-  /** Carregar produtos (lista padrão) */
-  const loadProducts = useCallback(
-    async (signal?: AbortSignal) => {
-      return fetchProducts(signal, false);
-    },
-    [fetchProducts]
-  );
-
-  /** Buscar produtos (search) */
-  const searchProducts = useCallback(
-    async (signal?: AbortSignal) => {
-      if (!searchQuery.trim()) {
-        return fetchProducts(signal, false);
-      }
-      return fetchProducts(signal, true, searchQuery);
-    },
-    [fetchProducts, searchQuery]
-  );
-
-  /** Carregamento inicial e recarregamento por filtros */
-  useEffect(() => {
-    if (!isAuthenticated()) return;
-
-    const controller = new AbortController();
-
-    // Determinar se deve fazer busca ou carregamento normal
-    if (searchQuery.trim()) {
-      fetchProducts(controller.signal, true, searchQuery);
-    } else {
-      fetchProducts(controller.signal, false);
-    }
-
-    return () => controller.abort();
-  }, [
-    isAuthenticated,
-    slug,
-    selectedCategory,
-    showInactive,
-    pagination.page,
-    pagination.limit,
-    searchQuery,
-    fetchProducts,
-  ]);
-
-  /** Debounce para searchQuery + reset da página para 1 ao digitar */
-  useEffect(() => {
-    if (!isAuthenticated()) return;
-
-    // ao mudar o texto de busca, volta para a página 1
-    setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
-
-    // Não executar imediatamente, apenas resetar página
-  }, [searchQuery, isAuthenticated]);
+    };
+    
+    loadProducts();
+  }, [slug, isAuthenticated]);
 
   /** Alternar status do produto */
   const toggleProductStatus = async (
@@ -310,8 +201,8 @@ export default function ProdutosPage() {
         if (removedLastOfPage) {
           setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
         } else {
-          // revalida a listagem da página atual
-          loadProducts();
+          // recarregar a página para atualizar a lista
+          window.location.reload();
         }
       });
 
@@ -392,7 +283,7 @@ export default function ProdutosPage() {
                 placeholder="Buscar produtos por nome ou descrição..."
                 value={searchQuery}
                 onChange={setSearchQuery}
-                onSearch={() => searchProducts()}
+                onSearch={() => {}}
                 isLoading={isSearching}
                 className="w-full"
               />
