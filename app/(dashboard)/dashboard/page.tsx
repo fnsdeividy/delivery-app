@@ -7,8 +7,8 @@ export default function DashboardAdmin() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirecionamento automático para o dashboard admin
-    router.push("/dashboard/admin");
+    // Redirecionamento será tratado pelo middleware ou componente pai
+    // Removido redirecionamento automático para dashboard admin (não existe mais)
   }, [router]);
 
   return (

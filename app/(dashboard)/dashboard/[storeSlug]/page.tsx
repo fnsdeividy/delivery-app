@@ -158,11 +158,11 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 md:py-6 gap-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 sm:py-3 md:py-4 lg:py-6 gap-1.5 sm:gap-2 md:gap-4">
             <div className="flex items-center">
               {storeConfig?.branding?.logo ? (
-                <div className="w-8 md:w-10 h-8 md:h-10 rounded-lg overflow-hidden mr-3 flex-shrink-0">
+                <div className="w-7 sm:w-8 md:w-10 h-7 sm:h-8 md:h-10 rounded-lg overflow-hidden mr-2 sm:mr-3 flex-shrink-0">
                   <img
                     src={storeConfig.branding.logo}
                     alt={storeConfig.name}
@@ -170,12 +170,12 @@ export default function DashboardPage() {
                   />
                 </div>
               ) : (
-                <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                  <Storefront className="w-4 md:w-5 h-4 md:h-5 text-white" />
+                <div className="w-7 sm:w-8 md:w-10 h-7 sm:h-8 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
+                  <Storefront className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-white" />
                 </div>
               )}
               <div>
-                <h1 className="text-lg md:text-2xl font-bold text-gray-900">
+                <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
                   Dashboard Geral da Loja
                 </h1>
                 <p className="text-xs md:text-sm text-gray-600">
@@ -183,13 +183,13 @@ export default function DashboardPage() {
                 </p>
                 {/* Indicador de dados mock */}
                 <div className="mt-1">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-yellow-100 text-yellow-800">
                     📊 Dados de Demonstração
                   </span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-xs md:text-sm text-gray-500">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 md:space-x-4 text-[10px] sm:text-xs md:text-sm text-gray-500">
               <span>
                 Logado como: <span className="font-medium">{userRole}</span>
               </span>
@@ -204,22 +204,22 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-10">
         {/* Breadcrumb */}
-        <nav className="flex mb-6 md:mb-8" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+        <nav className="flex mb-3 sm:mb-4 md:mb-6" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-0.5 sm:space-x-1 md:space-x-2">
             <li className="inline-flex items-center">
               <Link
                 href="/dashboard/gerenciar-lojas"
-                className="inline-flex items-center text-xs md:text-sm font-medium text-gray-700 hover:text-blue-600"
+                className="inline-flex items-center text-xs sm:text-xs md:text-sm font-medium text-gray-700 hover:text-blue-600"
               >
                 Dashboard
               </Link>
             </li>
             <li aria-current="page">
               <div className="flex items-center">
-                <span className="mx-2 text-gray-400">/</span>
-                <span className="text-xs md:text-sm font-medium text-gray-500">
+                <span className="mx-1 sm:mx-1.5 md:mx-2 text-gray-400">/</span>
+                <span className="text-xs sm:text-xs md:text-sm font-medium text-gray-500">
                   {slug}
                 </span>
               </div>
@@ -236,15 +236,15 @@ export default function DashboardPage() {
         {/* Alertas de Estoque */}
         {metrics &&
           (metrics.lowStockProducts > 0 || metrics.outOfStockProducts > 0) && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
               <h2 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4 flex items-center">
-                <Warning className="w-4 md:w-5 h-4 md:h-5 text-yellow-600 mr-2" />
+                <Warning className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-yellow-600 mr-1.5 sm:mr-2" />
                 Alertas de Estoque
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                 {metrics.lowStockProducts > 0 && (
-                  <div className="flex items-center p-3 md:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <Warning className="w-5 md:w-6 h-5 md:h-6 text-yellow-600 mr-2 md:mr-3 flex-shrink-0" />
+                  <div className="flex items-center p-2 sm:p-3 md:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <Warning className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-yellow-600 mr-1.5 sm:mr-2 md:mr-3 flex-shrink-0" />
                     <div>
                       <p className="text-xs md:text-sm font-medium text-yellow-800">
                         {metrics.lowStockProducts} produto(s) com estoque baixo
@@ -256,8 +256,8 @@ export default function DashboardPage() {
                   </div>
                 )}
                 {metrics.outOfStockProducts > 0 && (
-                  <div className="flex items-center p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
-                    <Warning className="w-5 md:w-6 h-5 md:h-6 text-red-600 mr-2 md:mr-3 flex-shrink-0" />
+                  <div className="flex items-center p-2 sm:p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
+                    <Warning className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-red-600 mr-1.5 sm:mr-2 md:mr-3 flex-shrink-0" />
                     <div>
                       <p className="text-xs md:text-sm font-medium text-red-800">
                         {metrics.outOfStockProducts} produto(s) sem estoque
@@ -272,9 +272,9 @@ export default function DashboardPage() {
               <div className="mt-3 md:mt-4">
                 <Link
                   href={`/dashboard/${slug}/estoque`}
-                  className="inline-flex items-center px-3 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm md:text-base"
+                  className="inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs sm:text-sm md:text-base"
                 >
-                  <Package className="w-4 h-4 mr-2" />
+                  <Package className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2" />
                   Gerenciar Estoque
                 </Link>
               </div>
@@ -282,29 +282,29 @@ export default function DashboardPage() {
           )}
 
         {/* Configuração da Loja */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
           <h2 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4 flex items-center">
-            <Gear className="w-4 md:w-5 h-4 md:h-5 text-gray-600 mr-2" />
+            <Gear className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-gray-600 mr-1.5 sm:mr-2" />
             Configuração da Loja
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
             <Link
               href={`/dashboard/${slug}/configuracoes`}
-              className="flex items-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
-              <PencilSimple className="w-4 md:w-5 h-4 md:h-5 text-blue-600 mr-2 md:mr-3 flex-shrink-0" />
+              <PencilSimple className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-blue-600 mr-1 sm:mr-1.5 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs md:text-sm font-medium text-gray-900">
-                  Editar Informações
+                <p className="text-xs font-medium text-gray-900">
+                  Editar Info
                 </p>
-                <p className="text-xs text-gray-600">Nome, descrição, slug</p>
+                <p className="text-[10px] sm:text-xs text-gray-600">Nome, descrição</p>
               </div>
             </Link>
             <Link
               href={`/dashboard/${slug}/configuracoes/visual`}
-              className="flex items-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
-              <Palette className="w-4 md:w-5 h-4 md:h-5 text-purple-600 mr-2 md:mr-3 flex-shrink-0" />
+              <Palette className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-gray-900">
                   Personalização Visual
@@ -314,9 +314,9 @@ export default function DashboardPage() {
             </Link>
             <Link
               href={`/dashboard/${slug}/configuracoes/horarios`}
-              className="flex items-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
-              <Calendar className="w-4 md:w-5 h-4 md:h-5 text-green-600 mr-2 md:mr-3 flex-shrink-0" />
+              <Calendar className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-gray-900">
                   Horários de Funcionamento
@@ -326,9 +326,9 @@ export default function DashboardPage() {
             </Link>
             <Link
               href={`/dashboard/${slug}/configuracoes/pagamento`}
-              className="flex items-center p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
-              <CreditCard className="w-4 md:w-5 h-4 md:h-5 text-orange-600 mr-2 md:mr-3 flex-shrink-0" />
+              <CreditCard className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-orange-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-gray-900">
                   Métodos de Pagamento
@@ -340,17 +340,17 @@ export default function DashboardPage() {
         </div>
 
         {/* Gestão de Pedidos */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
           <h2 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4 flex items-center">
-            <ShoppingBag className="w-4 md:w-5 h-4 md:h-5 text-green-600 mr-2" />
+            <ShoppingBag className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-green-600 mr-1.5 sm:mr-2" />
             Gestão de Pedidos
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
             <Link
               href={`/dashboard/${slug}/pedidos?status=novo`}
-              className="flex items-center p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
             >
-              <Clock className="w-4 md:w-5 h-4 md:h-5 text-blue-600 mr-2 md:mr-3 flex-shrink-0" />
+              <Clock className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-blue-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-blue-900">
                   Novos Pedidos
@@ -360,9 +360,9 @@ export default function DashboardPage() {
             </Link>
             <Link
               href={`/dashboard/${slug}/pedidos?status=em_andamento`}
-              className="flex items-center p-3 md:p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors"
             >
-              <TrendUp className="w-4 md:w-5 h-4 md:h-5 text-yellow-600 mr-2 md:mr-3 flex-shrink-0" />
+              <TrendUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-yellow-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-yellow-900">
                   Em Andamento
@@ -372,9 +372,9 @@ export default function DashboardPage() {
             </Link>
             <Link
               href={`/dashboard/${slug}/pedidos?status=finalizado`}
-              className="flex items-center p-3 md:p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors"
             >
-              <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-600 mr-2 md:mr-3 flex-shrink-0" />
+              <CheckCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-green-900">
                   Finalizados
@@ -384,9 +384,9 @@ export default function DashboardPage() {
             </Link>
             <Link
               href={`/dashboard/${slug}/pedidos?status=cancelado`}
-              className="flex items-center p-3 md:p-4 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors"
+              className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors"
             >
-              <X className="w-4 md:w-5 h-4 md:h-5 text-red-600 mr-2 md:mr-3 flex-shrink-0" />
+              <X className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-red-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm font-medium text-red-900">
                   Cancelados
@@ -398,22 +398,22 @@ export default function DashboardPage() {
           <div className="mt-3 md:mt-4">
             <Link
               href={`/dashboard/${slug}/pedidos`}
-              className="inline-flex items-center px-3 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm md:text-base"
+              className="inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs sm:text-sm md:text-base"
             >
-              <Eye className="w-4 h-4 mr-2" />
+              <Eye className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2" />
               Ver Todos os Pedidos
             </Link>
           </div>
         </div>
 
         {/* Usuários e Colaboradores */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
           <h2 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4 flex items-center">
-            <Users className="w-4 md:w-5 h-4 md:h-5 text-blue-600 mr-2" />
+            <Users className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-blue-600 mr-1.5 sm:mr-2" />
             Usuários e Colaboradores
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+            <div className="p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs md:text-sm font-medium text-gray-900">
@@ -428,11 +428,11 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
-            <div className="p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs md:text-sm font-medium text-gray-900">
-                    Convites Pendentes
+                    Clientes Cadastrados
                   </p>
                   <p className="text-xs text-gray-600">Aguardando aceitação</p>
                 </div>
@@ -442,25 +442,25 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="mt-3 md:mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-            <button className="inline-flex items-center justify-center px-3 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm md:text-base">
-              <Plus className="w-4 h-4 mr-2" />
+          <div className="mt-1.5 sm:mt-2 md:mt-3 lg:mt-4 flex flex-col sm:flex-row space-y-1.5 sm:space-y-0 sm:space-x-2 md:space-x-3">
+            <button className="inline-flex items-center justify-center px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-[10px] sm:text-xs md:text-sm">
+              <Plus className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2" />
               Convidar Colaborador
             </button>
-            <button className="inline-flex items-center justify-center px-3 md:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm md:text-base">
-              <Users className="w-4 h-4 mr-2" />
+            <button className="inline-flex items-center justify-center px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-[10px] sm:text-xs md:text-sm">
+              <Users className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2" />
               Gerenciar Usuários
             </button>
           </div>
         </div>
 
         {/* Informações Adicionais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-2.5 md:p-3 lg:p-4">
             <div className="flex items-center">
-              <Clock className="w-6 md:w-8 h-6 md:h-8 text-yellow-600 flex-shrink-0" />
-              <div className="ml-3 md:ml-4 min-w-0">
-                <h3 className="text-base md:text-lg font-medium text-gray-900">
+              <Clock className="w-3.5 sm:w-4 md:w-5 lg:w-6 h-3.5 sm:h-4 md:h-5 lg:h-6 text-yellow-600 flex-shrink-0" />
+              <div className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 min-w-0">
+                <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900">
                   Horário de Funcionamento
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600">
@@ -470,11 +470,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-2.5 md:p-3 lg:p-4">
             <div className="flex items-center">
-              <CreditCard className="w-6 md:w-8 h-6 md:h-8 text-green-600 flex-shrink-0" />
-              <div className="ml-3 md:ml-4 min-w-0">
-                <h3 className="text-base md:text-lg font-medium text-gray-900">
+              <CreditCard className="w-3.5 sm:w-4 md:w-5 lg:w-6 h-3.5 sm:h-4 md:h-5 lg:h-6 text-green-600 flex-shrink-0" />
+              <div className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 min-w-0">
+                <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900">
                   Formas de Pagamento
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600">
@@ -484,11 +484,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-2.5 md:p-3 lg:p-4">
             <div className="flex items-center">
-              <Truck className="w-6 md:w-8 h-6 md:h-8 text-blue-600 flex-shrink-0" />
-              <div className="ml-3 md:ml-4 min-w-0">
-                <h3 className="text-base md:text-lg font-medium text-gray-900">
+              <Truck className="w-3.5 sm:w-4 md:w-5 lg:w-6 h-3.5 sm:h-4 md:h-5 lg:h-6 text-blue-600 flex-shrink-0" />
+              <div className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 min-w-0">
+                <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900">
                   Delivery
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600">

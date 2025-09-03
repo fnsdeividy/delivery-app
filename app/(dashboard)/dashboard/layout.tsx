@@ -18,7 +18,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
-import { UserStoreStatus } from "../../../components/UserStoreStatus";
 import WelcomeNotification from "../../../components/WelcomeNotification";
 import { useAuthContext } from "../../../contexts/AuthContext";
 import { useStores } from "../../../hooks";
@@ -53,14 +52,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   if (
     pathname.startsWith("/dashboard/editar-loja/") ||
     pathname.startsWith("/dashboard/meus-painel") ||
-    pathname.startsWith("/dashboard/admin") ||
     pathname.startsWith("/dashboard/superadmin") ||
     pathname === "/dashboard"
   ) {
     isSpecialRoute = true;
-    if (pathname.startsWith("/dashboard/admin")) {
-      isAdminRoute = true;
-    }
   } else if (pathParts.length > 2) {
     // Filtrar partes vazias e encontrar o primeiro slug válido
     const validParts = pathParts.filter((part) => part && part.trim() !== "");
@@ -411,8 +406,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </a>
               )}
 
-              {/* Status do usuário e loja atual */}
-              <UserStoreStatus />
             </div>
           </div>
         </div>

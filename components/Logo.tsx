@@ -6,9 +6,9 @@ interface LogoProps {
 
 export function Logo({ className = '', showBadge = true, size = 'md' }: LogoProps) {
   const sizeClasses = {
-    sm: 'text-xl',
-    md: 'text-3xl',
-    lg: 'text-4xl'
+    sm: 'text-lg sm:text-xl',
+    md: 'text-2xl sm:text-3xl',
+    lg: 'text-3xl sm:text-4xl'
   }
 
   return (
