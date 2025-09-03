@@ -10,12 +10,53 @@ import { apiClient } from "@/lib/api-client";
 import { CreateProductDto } from "@/types/cardapio-api";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Category {
   id: string;
   name: string;
 }
+
+// ======== Helpers de sanitização/validação ========
+
+// Letras (inclui acentos) e espaços
+const sanitizeLetters = (value: string) =>
+  value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+
+// Apenas inteiros (positivo)
+const sanitizeInteger = (value: string) => value.replace(/[^\d]/g, "");
+
+// Decimais (permite dígitos, ponto e vírgula; normaliza para ponto e 1 separador)
+const sanitizeDecimalToString = (value: string) => {
+  // remove tudo que não for dígito ponto ou vírgula
+  let v = value.replace(/[^0-9.,]/g, "");
+  // troca vírgula por ponto
+  v = v.replace(/,/g, ".");
+  // mantém só o primeiro ponto
+  const parts = v.split(".");
+  if (parts.length > 2) {
+    v = parts[0] + "." + parts.slice(1).join("");
+  }
+  return v;
+};
+
+// Converte string decimal (com . ou ,) para número
+const parseDecimal = (value: string): number => {
+  const normalized = sanitizeDecimalToString(value);
+  const n = Number(normalized);
+  return isNaN(n) ? 0 : n;
+};
+
+// Validação simples de URL (deixa vazio como válido)
+const isValidUrlOrEmpty = (value?: string) => {
+  if (!value) return true;
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export default function NovoProdutoPage() {
   const params = useParams();
@@ -26,16 +67,40 @@ export default function NovoProdutoPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+
+  // Guardamos strings para inputs com máscara, e números no submit
   const [formData, setFormData] = useState({
     storeSlug: slug,
     name: "",
     categoryId: "",
-    price: 0,
+    priceStr: "", // string para digitação (aceita vírgula/ponto)
+    originalPriceStr: "", // string para digitação (aceita vírgula/ponto)
     description: "",
     image: undefined as string | undefined,
-    originalPrice: 0,
     active: true,
+    initialStockStr: "0", // inteiro como string
+    minStockStr: "5", // inteiro como string
   });
+
+  const price = useMemo(
+    () => parseDecimal(formData.priceStr),
+    [formData.priceStr]
+  );
+  const originalPrice = useMemo(
+    () =>
+      formData.originalPriceStr.trim()
+        ? parseDecimal(formData.originalPriceStr)
+        : undefined,
+    [formData.originalPriceStr]
+  );
+  const initialStock = useMemo(
+    () => Number(sanitizeInteger(formData.initialStockStr) || "0"),
+    [formData.initialStockStr]
+  );
+  const minStock = useMemo(
+    () => Number(sanitizeInteger(formData.minStockStr) || "0"),
+    [formData.minStockStr]
+  );
 
   // Carregar categorias
   useEffect(() => {
@@ -54,75 +119,118 @@ export default function NovoProdutoPage() {
     }
   }, [isAuthenticated, slug, showToast]);
 
-  // Função para lidar com mudanças no formulário
-  const handleInputChange = (field: string, value: any) => {
+  // Handlers de mudança por campo (mais explícitos e seguros)
+  const handleNameChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, name: sanitizeLetters(value) }));
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, categoryId: value }));
+  };
+
+  const handlePriceChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      priceStr: sanitizeDecimalToString(value),
     }));
   };
 
-  // Função para limpar o formulário
+  const handleOriginalPriceChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      originalPriceStr: sanitizeDecimalToString(value),
+    }));
+  };
+
+  const handleInitialStockChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      initialStockStr: sanitizeInteger(value),
+    }));
+  };
+
+  const handleMinStockChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, minStockStr: sanitizeInteger(value) }));
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    // descrição pode ter qualquer caractere legível; se quiser limitar, aplique regex
+    setFormData((prev) => ({ ...prev, description: value }));
+  };
+
+  const handleImageChange = (value: string) => {
+    const v = value.trim();
+    setFormData((prev) => ({ ...prev, image: v || undefined }));
+  };
+
+  const handleActiveChange = (checked: boolean) => {
+    setFormData((prev) => ({ ...prev, active: checked }));
+  };
+
+  // Limpar formulário
   const clearForm = () => {
     setFormData({
       storeSlug: slug,
       name: "",
       categoryId: "",
-      price: 0,
+      priceStr: "",
+      originalPriceStr: "",
       description: "",
-      image: undefined as string | undefined,
-      originalPrice: 0,
+      image: undefined,
       active: true,
+      initialStockStr: "0",
+      minStockStr: "5",
     });
   };
 
-  // Função para submeter o formulário
+  // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Evitar múltiplos envios
-    if (isLoading) {
+    if (isLoading) return;
+
+    if (!formData.name.trim() || !formData.categoryId) {
+      showToast("Nome e categoria são obrigatórios", "error");
       return;
     }
 
-    if (!formData.name || !formData.categoryId) {
-      showToast("Nome e categoria são obrigatórios", "error");
+    if (!isValidUrlOrEmpty(formData.image)) {
+      showToast("URL da imagem inválida", "error");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Preparar dados para envio
       const productData: CreateProductDto = {
         storeSlug: slug,
-        name: formData.name,
+        name: formData.name.trim(),
         categoryId: formData.categoryId,
-        price: Number(formData.price) || 0,
+        price: price || 0,
         description: formData.description || "",
         image: formData.image || undefined,
-        originalPrice: Number(formData.originalPrice) || undefined,
+        originalPrice: originalPrice,
         active: formData.active,
         ingredients: [],
         addons: [],
         tags: [],
+        initialStock: initialStock >= 0 ? initialStock : 0,
+        minStock: minStock >= 0 ? minStock : 0,
       };
 
       await apiClient.createProduct(productData);
       showToast("Produto criado com sucesso!", "success");
-      
-      // Limpar formulário após sucesso
+
       clearForm();
-      
-      // Aguardar um pouco antes de redirecionar para mostrar o toast
+
       setTimeout(() => {
         router.push(`/dashboard/${slug}/produtos`);
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
       console.error("Erro ao criar produto:", error);
       const errorMessage =
-        error.response?.data?.message ||
-        (Array.isArray(error.response?.data?.message)
+        error?.response?.data?.message ||
+        (Array.isArray(error?.response?.data?.message)
           ? error.response.data.message.join(", ")
           : "Erro ao criar produto");
       showToast(errorMessage, "error");
@@ -155,20 +263,33 @@ export default function NovoProdutoPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* ProductBasicInfo já renderiza name, category, price, originalPrice, description.
+                  Abaixo passamos valores já sanitizados e controlados. */}
               <ProductBasicInfo
                 formData={{
                   name: formData.name,
                   categoryId: formData.categoryId,
-                  price: formData.price,
-                  originalPrice: formData.originalPrice,
+                  price: price, // número já parseado
+                  originalPrice: originalPrice ?? 0, // mantém compatibilidade se o componente espera number
                   description: formData.description,
                 }}
                 categories={categories}
                 onFormDataChange={(updates) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    ...updates,
-                  }));
+                  // Fazemos roteamento por campo para sanitizar corretamente
+                  if (typeof updates.name === "string")
+                    handleNameChange(updates.name);
+                  if (typeof updates.categoryId === "string")
+                    handleCategoryChange(updates.categoryId);
+                  if (typeof updates.price !== "undefined") {
+                    handlePriceChange(String(updates.price ?? ""));
+                  }
+                  if (typeof updates.originalPrice !== "undefined") {
+                    handleOriginalPriceChange(
+                      String(updates.originalPrice ?? "")
+                    );
+                  }
+                  if (typeof updates.description === "string")
+                    handleDescriptionChange(updates.description);
                 }}
               />
 
@@ -179,14 +300,78 @@ export default function NovoProdutoPage() {
                 </label>
                 <input
                   id="image"
-                  type="url"
-                  value={formData.image || ""}
-                  onChange={(e) =>
-                    handleInputChange("image", e.target.value || undefined)
-                  }
+                  // type="url" às vezes é chato em navegadores com validação agressiva; usamos text com pattern e inputMode
+                  type="text"
+                  inputMode="url"
+                  pattern="https?://.*"
+                  value={formData.image ?? ""}
+                  onChange={(e) => handleImageChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
+                <p className="text-xs text-gray-500">
+                  Aceita apenas URLs iniciando com http:// ou https://
+                </p>
+              </div>
+
+              {/* Controle de Estoque */}
+              <div className="space-y-4 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Controle de Estoque
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="initialStock"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Estoque Inicial
+                    </label>
+                    <input
+                      id="initialStock"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      value={formData.initialStockStr}
+                      onChange={(e) => handleInitialStockChange(e.target.value)}
+                      onBeforeInput={(e: any) => {
+                        // bloqueia entrada não numérica em browsers que suportam
+                        if (!/^\d*$/.test(e.data ?? "")) e.preventDefault();
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Somente números inteiros (0, 1, 2...)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="minStock"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Estoque Mínimo
+                    </label>
+                    <input
+                      id="minStock"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      value={formData.minStockStr}
+                      onChange={(e) => handleMinStockChange(e.target.value)}
+                      onBeforeInput={(e: any) => {
+                        if (!/^\d*$/.test(e.data ?? "")) e.preventDefault();
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="5"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Alerta quando estoque atingir este valor (inteiro)
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Status Ativo */}
@@ -195,9 +380,7 @@ export default function NovoProdutoPage() {
                   id="active"
                   type="checkbox"
                   checked={formData.active}
-                  onChange={(e) =>
-                    handleInputChange("active", e.target.checked)
-                  }
+                  onChange={(e) => handleActiveChange(e.target.checked)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="active" className="text-sm font-medium">
@@ -216,28 +399,28 @@ export default function NovoProdutoPage() {
                 >
                   Limpar Formulário
                 </Button>
-                
+
                 <div className="flex gap-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => router.push(`/dashboard/${slug}/produtos`)}
                     disabled={isLoading}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  {isLoading ? "Salvando..." : "Salvar Produto"}
-                </Button>
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {isLoading ? "Salvando..." : "Salvar Produto"}
+                  </Button>
                 </div>
               </div>
             </form>

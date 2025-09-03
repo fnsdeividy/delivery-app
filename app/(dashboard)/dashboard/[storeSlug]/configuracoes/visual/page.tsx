@@ -31,7 +31,6 @@ interface ColorScheme {
 
 interface BrandingConfig {
   logo?: string;
-  favicon?: string;
   banner?: string;
   primaryColor: string;
   secondaryColor: string;
@@ -42,7 +41,6 @@ interface BrandingConfig {
 
 interface FileUploadState {
   logo: { uploading: boolean };
-  favicon: { uploading: boolean };
   banner: { uploading: boolean };
 }
 
@@ -69,7 +67,6 @@ export default function VisualConfigPage() {
 
   const [branding, setBranding] = useState<BrandingConfig>({
     logo: "",
-    favicon: "",
     banner: "",
     primaryColor: "#d97706",
     secondaryColor: "#92400e",
@@ -80,7 +77,6 @@ export default function VisualConfigPage() {
 
   const [fileUploads, setFileUploads] = useState<FileUploadState>({
     logo: { uploading: false },
-    favicon: { uploading: false },
     banner: { uploading: false },
   });
 
@@ -135,11 +131,11 @@ export default function VisualConfigPage() {
       if (logoResponse.success && logoResponse.logo) {
         setBranding((prev) => ({
           ...prev,
-          logo: logoResponse.logo,
+          logo: logoResponse.logo || undefined,
         }));
       }
     } catch (error) {
-      console.error("Erro ao carregar logo atual:", error);
+      // Silently handle logo loading error
     }
   };
 
@@ -148,7 +144,6 @@ export default function VisualConfigPage() {
     if (config?.branding) {
       setBranding({
         logo: config.branding.logo || "",
-        favicon: config.branding.favicon || "",
         banner: config.branding.banner || "",
         primaryColor: config.branding.primaryColor || "#d97706",
         secondaryColor: config.branding.secondaryColor || "#92400e",
@@ -162,10 +157,6 @@ export default function VisualConfigPage() {
     loadCurrentLogo();
   }, [config, storeSlug]);
 
-  // Debug: Monitorar mudanças no estado branding
-  useEffect(() => {
-    console.log("🔍 Estado branding atualizado:", branding);
-  }, [branding]);
 
   // Aplicar esquema de cores
   const applyColorScheme = (scheme: ColorScheme) => {
@@ -233,7 +224,6 @@ export default function VisualConfigPage() {
       const configData = {
         config: {
           logo: branding.logo,
-          favicon: branding.favicon,
           banner: branding.banner,
           primaryColor: branding.primaryColor,
           secondaryColor: branding.secondaryColor,
@@ -257,7 +247,7 @@ export default function VisualConfigPage() {
       // Limpar mensagem após 3 segundos
       setTimeout(() => setMessage(null), 3000);
     } catch (error: any) {
-      console.error("Erro ao salvar configuração:", error);
+      // Handle save configuration error
 
       let errorMessage = "Erro ao salvar configuração";
 
@@ -288,7 +278,7 @@ export default function VisualConfigPage() {
   // Upload de arquivo
   const handleFileUpload = async (
     file: File,
-    type: "logo" | "favicon" | "banner"
+    type: "logo" | "banner"
   ) => {
     try {
       setFileUploads((prev) => ({
@@ -315,20 +305,20 @@ export default function VisualConfigPage() {
       const newUrl = responseData.url || responseData.path || "";
       setBranding((prev) => ({
         ...prev,
-        [type === "logo" ? "logo" : type === "favicon" ? "favicon" : "banner"]:
+        [type === "logo" ? "logo" : "banner"]:
           newUrl,
       }));
 
       setMessage({
         type: "success",
         text: `${
-          type === "logo" ? "Logo" : type === "favicon" ? "Favicon" : "Banner"
+          type === "logo" ? "Logo" : "Banner"
         } enviado com sucesso!`,
       });
 
       setTimeout(() => setMessage(null), 3000);
     } catch (error: any) {
-      console.error(`Erro ao enviar ${type}:`, error);
+      // Handle file upload error
 
       let errorMessage = `Erro ao enviar ${type}`;
 
@@ -360,7 +350,7 @@ export default function VisualConfigPage() {
   };
 
   // Remover arquivo
-  const handleRemoveFile = async (type: "logo" | "favicon" | "banner") => {
+  const handleRemoveFile = async (type: "logo" | "banner") => {
     try {
       setMessage(null);
 
@@ -374,20 +364,20 @@ export default function VisualConfigPage() {
 
       setBranding((prev) => ({
         ...prev,
-        [type === "logo" ? "logo" : type === "favicon" ? "favicon" : "banner"]:
+        [type === "logo" ? "logo" : "banner"]:
           "",
       }));
 
       setMessage({
         type: "success",
         text: `${
-          type === "logo" ? "Logo" : type === "favicon" ? "Favicon" : "Banner"
+          type === "logo" ? "Logo" : "Banner"
         } removido com sucesso!`,
       });
 
       setTimeout(() => setMessage(null), 3000);
     } catch (error: any) {
-      console.error(`Erro ao remover ${type}:`, error);
+      // Handle file removal error
 
       let errorMessage = `Erro ao remover ${type}`;
 
@@ -395,7 +385,7 @@ export default function VisualConfigPage() {
         errorMessage = "Acesso negado. Você não tem permissão para remover.";
       } else if (error?.status === 404) {
         errorMessage = `${
-          type === "logo" ? "Logo" : type === "favicon" ? "Favicon" : "Banner"
+          type === "logo" ? "Logo" : "Banner"
         } não encontrado.`;
       } else if (error?.status === 500) {
         errorMessage = "Erro interno do servidor. Tente novamente mais tarde.";
@@ -553,17 +543,6 @@ export default function VisualConfigPage() {
             recommendedSize="PNG/SVG recomendado"
           />
 
-          {/* Favicon */}
-          <FileUpload
-            type="favicon"
-            currentValue={branding.favicon}
-            onFileSelect={(file) => handleFileUpload(file, "favicon")}
-            onRemove={() => handleRemoveFile("favicon")}
-            uploading={fileUploads.favicon.uploading}
-            accept="image/png, image/x-icon"
-            maxSize="500KB"
-            recommendedSize="32×32px PNG/ICO"
-          />
 
           {/* Banner */}
           <FileUpload

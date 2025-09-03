@@ -3,6 +3,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { CreateStoreDto, Store } from "@/types/cardapio-api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useStoreRedirect } from "./useStoreRedirect";
 import { useStores } from "./useStores";
 
@@ -20,6 +21,7 @@ interface CreateStoreHookReturn {
 
 export function useCreateStore(): CreateStoreHookReturn {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { redirectAfterStoreCreation } = useStoreRedirect();
   const { isAuthenticated } = useAuthContext();
   const { addToast } = useToast();
@@ -47,38 +49,21 @@ export function useCreateStore(): CreateStoreHookReturn {
       }
     },
     onSuccess: async (data) => {
-      try {
-        // Mostrar toast de sucesso e redirecionamento
-        addToast(
-          "success",
-          "Loja Criada com Sucesso! 🎉",
-          "Aguarde alguns segundos, você está sendo redirecionado para o dashboard da sua loja. Seja bem-vindo!"
-        );
+      // Mostrar toast de sucesso
+      addToast(
+        "success",
+        "Loja Criada com Sucesso! 🎉",
+        "Redirecionando para o dashboard da sua loja..."
+      );
 
-        // Invalidar queries relacionadas a lojas
-        queryClient.invalidateQueries({ queryKey: ["stores"] });
-        queryClient.invalidateQueries({ queryKey: ["store", data.slug] });
-        queryClient.invalidateQueries({ queryKey: ["user"] });
-        queryClient.invalidateQueries({ queryKey: ["user-context"] });
-        queryClient.invalidateQueries({ queryKey: ["user-stores"] });
+      // Invalidar queries relacionadas a lojas
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      queryClient.invalidateQueries({ queryKey: ["store", data.slug] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["user-context"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stores"] });
 
-        // Aguardar um momento para o usuário ver o toast
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Verificar se o usuário está autenticado antes de redirecionar
-        if (isAuthenticated) {
-          // Redirecionar para o dashboard da nova loja
-          await redirectAfterStoreCreation(data);
-        } else {
-          try {
-            await redirectAfterStoreCreation(data);
-          } catch (redirectError) {
-            window.location.href = `/dashboard/${data.slug}`;
-          }
-        }
-      } catch (error) {
-        window.location.href = `/dashboard/${data.slug}`;
-      }
+      // Não fazer redirecionamento aqui - deixar para a página de registro
     },
     onError: (error: any) => {
       throw new Error(error.message || "Erro ao criar loja");

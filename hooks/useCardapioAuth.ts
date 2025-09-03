@@ -160,6 +160,7 @@ export function useCardapioAuth() {
 
       // Não fazer login automático pois o registro já retorna o token
       // O token já foi armazenado pelo apiClient.register()
+      // Importante: não redirecionar aqui para não interferir no fluxo de criação de loja
     },
     onError: (err: any) => {
       setError(err.message);

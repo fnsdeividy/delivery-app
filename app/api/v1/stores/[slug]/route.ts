@@ -8,7 +8,7 @@ export async function GET(
     const { slug } = params;
 
     // Simular delay de API
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Dados mock para desenvolvimento
     const storeInfo = {

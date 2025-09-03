@@ -1,3 +1,6 @@
+import Image from 'next/image'
+import Link from 'next/link'
+
 interface LogoProps {
   className?: string
   showBadge?: boolean
@@ -6,16 +9,21 @@ interface LogoProps {
 
 export function Logo({ className = '', showBadge = true, size = 'md' }: LogoProps) {
   const sizeClasses = {
-    sm: 'text-xl',
-    md: 'text-3xl',
-    lg: 'text-4xl'
+    sm: 'h-12 w-auto',
+    md: 'h-16 w-auto',
+    lg: 'h-20 w-auto'
   }
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <h1 className={`font-bold text-gray-900 ${sizeClasses[size]}`}>
-        Cardap.IO
-      </h1>
-    </div>
+    <Link href="/" className={`flex items-center ${className}`}>
+      <Image
+        src="/newlogo.png"
+        alt="CARDAP.IO"
+        width={200}
+        height={64}
+        className={`${sizeClasses[size]} object-contain`}
+        priority
+      />
+    </Link>
   )
 } 
