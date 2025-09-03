@@ -362,25 +362,9 @@ export default function AnalyticsPage() {
       <AnalyticsHeader
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
-        onAddProduct={handleAddProduct}
-        onViewProducts={handleViewProducts}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Status da Integração */}
-        <StatusIndicator
-          isAuthenticated={isAuthenticated}
-          hasErrors={!!hasErrors}
-          hasData={hasData}
-          isLoading={isLoading}
-          errors={{
-            analyticsError: analyticsError || undefined,
-            orderStatsError: orderStatsError || undefined,
-            topProductsError: topProductsError || undefined,
-            customerMetricsError: customerMetricsError || undefined,
-            peakHoursError: peakHoursError || undefined,
-          }}
-        />
 
         {/* Métricas Principais */}
         <MetricsCards
@@ -401,13 +385,11 @@ export default function AnalyticsPage() {
         {/* Gráfico de Produtos Mais Vendidos */}
         <TopProductsChart
           topProducts={metrics.topProducts}
-          onAddProduct={handleAddProduct}
         />
 
         {/* Tabela Detalhada de Produtos */}
         <ProductsTable
           topProducts={metrics.topProducts}
-          onViewProducts={handleViewProducts}
           formatCurrency={formatCurrency}
         />
       </div>

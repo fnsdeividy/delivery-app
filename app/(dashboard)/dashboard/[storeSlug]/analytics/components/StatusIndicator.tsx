@@ -130,14 +130,6 @@ export default function StatusIndicator({
                 />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
-                Dados da API
-              </h3>
-              <p className="mt-1 text-sm text-green-700">
-                A página está exibindo dados reais da API da sua loja.
-              </p>
-            </div>
           </div>
         </div>
       </div>

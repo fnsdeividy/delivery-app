@@ -8,13 +8,11 @@ interface ProductsTableProps {
     quantity: number;
     revenue: number;
   }>;
-  onViewProducts: () => void;
   formatCurrency: (value: number) => string;
 }
 
 export default function ProductsTable({
   topProducts,
-  onViewProducts,
   formatCurrency,
 }: ProductsTableProps) {
   return (
@@ -23,13 +21,6 @@ export default function ProductsTable({
         <h3 className="text-lg font-semibold text-gray-900">
           Detalhes dos Produtos Mais Vendidos
         </h3>
-        <button
-          onClick={onViewProducts}
-          className="inline-flex items-center px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors duration-200"
-        >
-          <Package className="h-4 w-4 mr-2" />
-          Ver Todos os Produtos
-        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">
