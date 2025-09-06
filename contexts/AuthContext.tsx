@@ -24,6 +24,10 @@ interface AuthContextType {
     password: string,
     storeSlug?: string
   ) => Promise<AuthResponse>;
+  loginByPhone: (
+    phone: string,
+    name?: string
+  ) => Promise<AuthResponse>;
   register: (userData: any) => Promise<AuthResponse>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -214,6 +218,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const loginByPhone = async (
+    phone: string,
+    name?: string
+  ): Promise<AuthResponse> => {
+    try {
+      const response = await apiClient.authenticateByPhone(phone, name);
+
+      const userData = {
+        ...response.user,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as User;
+      setUser(userData);
+      setUserStores(userData.stores || []);
+
+      // Definir loja atual se disponível
+      if (userData.currentStoreSlug) {
+        const store = userData.stores?.find(
+          (s) => s.storeSlug === userData.currentStoreSlug
+        );
+        setCurrentStoreState(store || null);
+      }
+
+      // Persistir dados do usuário no localStorage
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const register = async (userData: any): Promise<AuthResponse> => {
     try {
       const response = await apiClient.register(userData);
@@ -279,6 +315,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     currentStore,
     userStores,
     login,
+    loginByPhone,
     register,
     logout,
     updateUser,
