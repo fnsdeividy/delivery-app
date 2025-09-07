@@ -447,6 +447,7 @@ export default function StorePage({ params }: PageProps) {
                 </button>
 
                 <button
+                  data-testid="cart-button"
                   onClick={() => setIsCartModalOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 relative"
                   style={{ color: primary }}
@@ -456,6 +457,7 @@ export default function StorePage({ params }: PageProps) {
                   <span>Carrinho</span>
                   {cart.itemCount > 0 && (
                     <span
+                      data-testid="cart-count"
                       className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                       style={{ backgroundColor: primary }}
                     >
@@ -600,12 +602,16 @@ export default function StorePage({ params }: PageProps) {
                 return (
                   <article
                     key={product.id}
+                    data-testid="product-card"
                     className="w-full bg-white rounded-xl border border-gray-200 overflow-hidden"
                   >
                     <div className="flex items-stretch gap-4 p-4 sm:p-5">
                       {/* Texto à esquerda */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                        <h3
+                          data-testid="product-name"
+                          className="text-base sm:text-lg font-semibold text-gray-900"
+                        >
                           {product.name}
                         </h3>
 
@@ -634,6 +640,7 @@ export default function StorePage({ params }: PageProps) {
 
                         <div className="mt-3">
                           <button
+                            data-testid="add-to-cart"
                             onClick={() => handleAddToCart(product)}
                             disabled={!isOpen || isSoldOut}
                             className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
@@ -713,6 +720,7 @@ export default function StorePage({ params }: PageProps) {
           </Link>
 
           <button
+            data-testid="cart-button"
             onClick={() => setIsCartModalOpen(true)}
             className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
           >
@@ -720,6 +728,7 @@ export default function StorePage({ params }: PageProps) {
             <span className="text-xs font-medium text-gray-500">Carrinho</span>
             {cart.itemCount > 0 && (
               <span
+                data-testid="cart-count"
                 className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                 style={{ backgroundColor: primary }}
               >

@@ -49,9 +49,8 @@ export default function CartModal({
     type: "success" | "error" = "success"
   ) => {
     const toast = document.createElement("div");
-    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    }`;
+    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${type === "success" ? "bg-green-500" : "bg-red-500"
+      }`;
     toast.textContent = message;
 
     document.body.appendChild(toast);
@@ -193,6 +192,7 @@ export default function CartModal({
                 )}
 
                 <button
+                  data-testid="checkout-button"
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
                   className="w-full py-3 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"

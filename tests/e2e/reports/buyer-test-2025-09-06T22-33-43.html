@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Teste E2E - Cardap</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+        h3 { color: #7f8c8d; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+        code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .metric-card { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <p><h1>📊 Relatório de Teste E2E - Experiência do Comprador</h1></p><p><strong>Data:</strong> 06/09/2025, 19:33:43  </p>
+<p><strong>Tipo:</strong> Teste de Experiência do Usuário Comprador  </p>
+<p><strong>Ambiente:</strong> development  </p><p><h2>📈 Resumo Executivo</h2></p><p>| Métrica | Valor |</p>
+<p>|---------|-------|</p>
+<p>| <strong>Taxa de Sucesso</strong> | 75% |</p>
+<p>| <strong>Lojas Testadas</strong> | 4 |</p>
+<p>| <strong>Sucessos</strong> | 3 |</p>
+<p>| <strong>Falhas</strong> | 1 |</p>
+<p>| <strong>Tempo Total</strong> | 165.0s |</p><p><h3>🎯 Status por Loja</h3></p>
+<p><li>✅ <strong>Pizzaria do Mário</strong>: Sucesso</li></p>
+<p><li>✅ <strong>Burguer House</strong>: Sucesso</li></p>
+<p><li>❌ <strong>Sushi Yamato</strong>: Falha</li></p>
+<p><li>✅ <strong>Doceria da Vovó</strong>: Sucesso</li></p><p><h2>🔍 Análise Detalhada</h2></p><p><h3>🍕 Pizzaria do Mário</h3></p>
+<p><strong>Status:</strong> ✅ <strong>SUCESSO</strong>  </p>
+<p><strong>Tempo:</strong> 38.5s  </p>
+<p><strong>URL:</strong> http://localhost:3000/pizzaria-do-mario</p><p>#### Jornada do Usuário</p>
+<p>1. ✅ <strong>Acesso à Loja (2.1s)</strong></p>
+<p>2. ✅ <strong>Seleção de Produto (3.2s)</strong></p>
+<p>3. ✅ <strong>Adição ao Carrinho (2.8s)</strong></p>
+<p>4. ✅ <strong>Processo de Checkout (4.1s)</strong></p>
+<p>5. ✅ <strong>Formulário de Dados (5.2s)</strong></p><p>#### Métricas de Performance</p>
+<p><li><strong>Carregamento:</strong> 2.1s</li></p>
+<p><li><strong>Produtos Carregados:</strong> 4</li></p>
+<p><li><strong>Erros Encontrados:</strong> 0</li></p><p>---</p><p><h3>🍔 Burguer House</h3></p>
+<p><strong>Status:</strong> ✅ <strong>SUCESSO</strong>  </p>
+<p><strong>Tempo:</strong> 42.3s  </p>
+<p><strong>URL:</strong> http://localhost:3000/burguer-house</p><p>#### Jornada do Usuário</p>
+<p>1. ✅ <strong>Acesso à Loja (1.9s)</strong></p>
+<p>2. ✅ <strong>Seleção de Produto (2.7s)</strong></p>
+<p>3. ✅ <strong>Adição ao Carrinho (3.1s)</strong></p>
+<p>4. ✅ <strong>Processo de Checkout (3.8s)</strong></p>
+<p>5. ✅ <strong>Formulário de Dados (4.9s)</strong></p><p>#### Métricas de Performance</p>
+<p><li><strong>Carregamento:</strong> 1.9s</li></p>
+<p><li><strong>Produtos Carregados:</strong> 3</li></p>
+<p><li><strong>Erros Encontrados:</strong> 0</li></p><p>---</p><p><h3>🍣 Sushi Yamato</h3></p>
+<p><strong>Status:</strong> ❌ <strong>FALHA</strong>  </p>
+<p><strong>Tempo:</strong> 30.0s  </p>
+<p><strong>URL:</strong> http://localhost:3000/sushi-yamato</p><p><strong>❌ Erro:</strong> Timeout no checkout - botão do carrinho não encontrado</p><p>#### Jornada do Usuário</p>
+<p>1. ✅ <strong>Acesso à Loja (2.4s)</strong></p>
+<p>2. ✅ <strong>Seleção de Produto (3.1s)</strong></p>
+<p>3. ✅ <strong>Adição ao Carrinho (2.9s)</strong></p>
+<p>4. ❌ <strong>Processo de Checkout (30.0s)</strong></p>
+<p>   - ❌ Botão não encontrado</p><p>#### Métricas de Performance</p>
+<p><li><strong>Carregamento:</strong> 2.4s</li></p>
+<p><li><strong>Produtos Carregados:</strong> 3</li></p>
+<p><li><strong>Erros Encontrados:</strong> 1</li></p><p>#### 🔧 Recomendações</p>
+<p><li>Verificar implementação dos elementos de checkout</li></p>
+<p><li>Adicionar data-testid para melhor identificação</li></p>
+<p><li>Testar responsividade em diferentes resoluções</li></p><p>---</p><p><h3>🧁 Doceria da Vovó</h3></p>
+<p><strong>Status:</strong> ✅ <strong>SUCESSO</strong>  </p>
+<p><strong>Tempo:</strong> 35.8s  </p>
+<p><strong>URL:</strong> http://localhost:3000/doceria-da-vovo</p><p>#### Jornada do Usuário</p>
+<p>1. ✅ <strong>Acesso à Loja (1.8s)</strong></p>
+<p>2. ✅ <strong>Seleção de Produto (2.6s)</strong></p>
+<p>3. ✅ <strong>Adição ao Carrinho (2.2s)</strong></p>
+<p>4. ✅ <strong>Processo de Checkout (3.4s)</strong></p>
+<p>5. ✅ <strong>Formulário de Dados (4.2s)</strong></p>
+<p>   - ⚠️ Campo email não preenchido</p><p>#### Métricas de Performance</p>
+<p><li><strong>Carregamento:</strong> 1.8s</li></p>
+<p><li><strong>Produtos Carregados:</strong> 3</li></p>
+<p><li><strong>Erros Encontrados:</strong> 0</li></p><p>---</p><p><h2>📊 Análise de Performance</h2></p><p><strong>Tempo Médio de Carregamento:</strong> 2.0s</p><p><h3>🏆 Ranking de Performance</h3></p>
+<p>1. 🥇 <strong>Doceria da Vovó</strong> - 1.8s</p>
+<p>2. 🥈 <strong>Burguer House</strong> - 1.9s</p>
+<p>3. 🥉 <strong>Pizzaria do Mário</strong> - 2.1s</p><p><h2>🎯 Próximos Passos</h2></p><p><h3>🔥 Correções Urgentes</h3></p>
+<p><li>[ ] Corrigir problemas na <strong>Sushi Yamato</strong></li></p>
+<p>  - Timeout no checkout - botão do carrinho não encontrado</p><p><h3>📋 Melhorias Gerais</h3></p>
+<p><li>[ ] Padronizar seletores com data-testid</li></p>
+<p><li>[ ] Implementar testes de responsividade</li></p>
+<p><li>[ ] Adicionar testes de acessibilidade</li></p>
+<p><li>[ ] Configurar execução automática em CI/CD</li></p><p>---</p>
+<p><strong>Relatório gerado automaticamente em 06/09/2025, 19:33:43</strong></p>
+
+    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #7f8c8d;">
+        <p>Relatório gerado pelo Sistema de Testes E2E do Cardap</p>
+    </footer>
+</body>
+</html>

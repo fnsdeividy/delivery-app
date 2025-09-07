@@ -76,7 +76,7 @@ const formatPhone = (value: string): string => {
 // Função para formatar CEP
 const formatPostalCode = (value: string): string => {
   const numbers = value.replace(/\D/g, "");
-  
+
   if (numbers.length <= 8) {
     if (numbers.length <= 5) {
       return numbers;
@@ -84,7 +84,7 @@ const formatPostalCode = (value: string): string => {
       return `${numbers.slice(0, 5)}-${numbers.slice(5)}`;
     }
   }
-  
+
   return numbers.slice(0, 8);
 };
 
@@ -115,7 +115,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     orderType: OrderType.DELIVERY as OrderType,
     observations: "",
   });
-  
+
   // Estado para controlar o carregamento da busca de CEP
   const [isLoadingCep, setIsLoadingCep] = useState(false);
 
@@ -123,17 +123,17 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const fetchAddressByCep = async (cep: string) => {
     // Remove caracteres não numéricos
     const cleanCep = cep.replace(/\D/g, '');
-    
+
     if (cleanCep.length !== 8) {
       return;
     }
-    
+
     setIsLoadingCep(true);
-    
+
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
       const data = await response.json();
-      
+
       if (!data.erro) {
         setFormData(prev => ({
           ...prev,
@@ -141,26 +141,26 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           deliveryNeighborhood: data.bairro || prev.deliveryNeighborhood,
           deliveryCity: data.localidade || prev.deliveryCity
         }));
-        
+
         // Limpa o erro de CEP se existir
         if (formErrors.postalCode) {
           setFormErrors(prev => ({ ...prev, postalCode: undefined }));
         }
-        
+
         showToast('Endereço encontrado!', 'success');
       } else {
-        setFormErrors(prev => ({ 
-          ...prev, 
-          postalCode: 'CEP não encontrado' 
+        setFormErrors(prev => ({
+          ...prev,
+          postalCode: 'CEP não encontrado'
         }));
         showToast('CEP não encontrado', 'error');
       }
     } catch (error) {
       console.error('Erro ao buscar CEP:', error);
       showToast('Erro ao buscar o CEP', 'error');
-      setFormErrors(prev => ({ 
-        ...prev, 
-        postalCode: 'Erro ao buscar o CEP' 
+      setFormErrors(prev => ({
+        ...prev,
+        postalCode: 'Erro ao buscar o CEP'
       }));
     } finally {
       setIsLoadingCep(false);
@@ -226,7 +226,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
       if (!formData.deliveryNeighborhood.trim()) {
         errors.deliveryNeighborhood = "Bairro é obrigatório";
       }
-      
+
       if (!formData.deliveryCity.trim()) {
         errors.deliveryCity = "Cidade é obrigatória";
       }
@@ -249,9 +249,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     });
 
     const toast = document.createElement("div");
-    toast.className = `custom-toast fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    }`;
+    toast.className = `custom-toast fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${type === "success" ? "bg-green-500" : "bg-red-500"
+      }`;
     toast.textContent = message;
 
     document.body.appendChild(toast);
@@ -323,21 +322,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         subtotal: cart.total,
         total: cart.total + deliveryFee,
         paymentMethod: formData.paymentMethod,
-        notes: `Nome: ${formData.customerName}\nTelefone: ${
-          formData.customerPhone
-        }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
-          formData.orderType === OrderType.DELIVERY
-            ? `\nCEP: ${formData.postalCode}\nEndereço: ${formData.deliveryAddress}, ${formData.deliveryNumber}, ${
-                formData.deliveryNeighborhood
-              }, ${formData.deliveryCity}${
-                formData.deliveryReference
-                  ? `\nReferência: ${formData.deliveryReference}`
-                  : ""
-              }`
+        notes: `Nome: ${formData.customerName}\nTelefone: ${formData.customerPhone
+          }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${formData.orderType === OrderType.DELIVERY
+            ? `\nCEP: ${formData.postalCode}\nEndereço: ${formData.deliveryAddress}, ${formData.deliveryNumber}, ${formData.deliveryNeighborhood
+            }, ${formData.deliveryCity}${formData.deliveryReference
+              ? `\nReferência: ${formData.deliveryReference}`
+              : ""
+            }`
             : ""
-        }${
-          formData.observations ? `\nObservações: ${formData.observations}` : ""
-        }`,
+          }${formData.observations ? `\nObservações: ${formData.observations}` : ""
+          }`,
         items: cart.items.map(
           (item): OrderItemDto => ({
             productId: item.product.id,
@@ -533,11 +527,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   className="sr-only"
                 />
                 <div
-                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
-                    formData.orderType === OrderType.DELIVERY
+                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${formData.orderType === OrderType.DELIVERY
                       ? "shadow-lg transform scale-105"
                       : "border-gray-200 hover:border-gray-300 hover:shadow-md"
-                  }`}
+                    }`}
                   style={{
                     borderColor:
                       formData.orderType === OrderType.DELIVERY
@@ -582,11 +575,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   className="sr-only"
                 />
                 <div
-                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
-                    formData.orderType === OrderType.PICKUP
+                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${formData.orderType === OrderType.PICKUP
                       ? "shadow-lg transform scale-105"
                       : "border-gray-200 hover:border-gray-300 hover:shadow-md"
-                  }`}
+                    }`}
                   style={{
                     borderColor:
                       formData.orderType === OrderType.PICKUP
@@ -633,6 +625,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   Nome completo *
                 </label>
                 <input
+                  data-testid="customer-name"
                   type="text"
                   required
                   value={formData.customerName}
@@ -643,11 +636,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     }))
                   }
                   onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                    formErrors.customerName
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.customerName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                  }`}
+                    }`}
                   style={
                     {
                       "--tw-ring-color": brandingColors.primary + "80",
@@ -668,6 +660,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   WhatsApp *
                 </label>
                 <input
+                  data-testid="customer-phone"
                   type="tel"
                   required
                   value={formData.customerPhone}
@@ -679,11 +672,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     }));
                   }}
                   onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                    formErrors.customerPhone
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.customerPhone
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                  }`}
+                    }`}
                   style={
                     {
                       "--tw-ring-color": brandingColors.primary + "80",
@@ -705,6 +697,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   Email
                 </label>
                 <input
+                  data-testid="customer-email"
                   type="email"
                   value={formData.customerEmail}
                   onChange={(e) =>
@@ -712,19 +705,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       ...prev,
                       customerEmail: e.target.value,
                     }))
-                  }
-                  onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                    formErrors.customerEmail
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 hover:border-gray-400 focus:bg-white"
+                  )
+                onBlur={() => validateForm()}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.customerEmail
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 hover:border-gray-400 focus:bg-white"
                   }`}
-                  style={
-                    {
-                      "--tw-ring-color": brandingColors.primary + "80",
-                    } as React.CSSProperties
-                  }
-                  placeholder="seu@email.com"
+                style={
+                  {
+                    "--tw-ring-color": brandingColors.primary + "80",
+                  } as React.CSSProperties
+                }
+                placeholder="seu@email.com"
                 />
                 {formErrors.customerEmail && (
                   <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
@@ -771,11 +763,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                             fetchAddressByCep(e.target.value);
                           }
                         }}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                          formErrors.postalCode
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.postalCode
                             ? "border-red-500 bg-red-50"
                             : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                        }`}
+                          }`}
                         style={{
                           "--tw-ring-color": brandingColors.primary + "80",
                         } as React.CSSProperties}
@@ -810,6 +801,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     Endereço (Logradouro) *
                   </label>
                   <input
+                    data-testid="customer-address"
                     type="text"
                     required
                     value={formData.deliveryAddress}
@@ -818,19 +810,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         ...prev,
                         deliveryAddress: e.target.value,
                       }))
-                    }
-                    onBlur={() => validateForm()}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                      formErrors.deliveryAddress
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300 hover:border-gray-400 focus:bg-white"
+                    )
+                  onBlur={() => validateForm()}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.deliveryAddress
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400 focus:bg-white"
                     }`}
-                    style={
-                      {
-                        "--tw-ring-color": brandingColors.primary + "80",
-                      } as React.CSSProperties
-                    }
-                    placeholder="Rua, Avenida..."
+                  style={
+                    {
+                      "--tw-ring-color": brandingColors.primary + "80",
+                    } as React.CSSProperties
+                  }
+                  placeholder="Rua, Avenida..."
                   />
                   {formErrors.deliveryAddress && (
                     <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
@@ -856,11 +847,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                        formErrors.deliveryNumber
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.deliveryNumber
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                      }`}
+                        }`}
                       style={
                         {
                           "--tw-ring-color": brandingColors.primary + "80",
@@ -890,11 +880,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                        formErrors.deliveryNeighborhood
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.deliveryNeighborhood
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                      }`}
+                        }`}
                       style={
                         {
                           "--tw-ring-color": brandingColors.primary + "80",
@@ -909,7 +898,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       </p>
                     )}
                   </div>
-                  
+
                   <div id="deliveryCity">
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Cidade *
@@ -925,11 +914,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
-                        formErrors.deliveryCity
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.deliveryCity
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
-                      }`}
+                        }`}
                       style={
                         {
                           "--tw-ring-color": brandingColors.primary + "80",
@@ -998,11 +986,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     className="sr-only"
                   />
                   <div
-                    className={`p-4 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
-                      formData.paymentMethod === method
+                    className={`p-4 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${formData.paymentMethod === method
                         ? "shadow-lg transform scale-105"
                         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
-                    }`}
+                      }`}
                     style={{
                       borderColor:
                         formData.paymentMethod === method
@@ -1018,8 +1005,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       {method === "PIX"
                         ? "PIX"
                         : method === "DINHEIRO"
-                        ? "Dinheiro"
-                        : "Cartão"}
+                          ? "Dinheiro"
+                          : "Cartão"}
                     </span>
                   </div>
                 </label>
