@@ -5,7 +5,10 @@ import { useParams } from 'next/navigation';
 import { useIfoodConfig } from '@/hooks/useIfoodConfig';
 import {
   IfoodConfig,
+  IfoodConfigFormData,
   IfoodIntegrationType,
+  IfoodMenuConfig,
+  IfoodOrderConfig,
   IFOOD_INTEGRATION_TYPE_LABELS,
   IFOOD_INTEGRATION_TYPE_DESCRIPTIONS,
   DEFAULT_IFOOD_CONFIG,
@@ -108,7 +111,7 @@ export default function IfoodConfigPage() {
     }));
   };
 
-  const handleMenuConfigChange = (field: keyof typeof formData.menu, value: any) => {
+  const handleMenuConfigChange = (field: keyof IfoodMenuConfig, value: any) => {
     setFormData(prev => ({
       ...prev,
       menu: {
@@ -118,7 +121,7 @@ export default function IfoodConfigPage() {
     }));
   };
 
-  const handleOrderConfigChange = (field: keyof typeof formData.orders, value: any) => {
+  const handleOrderConfigChange = (field: keyof IfoodOrderConfig, value: any) => {
     setFormData(prev => ({
       ...prev,
       orders: {
@@ -131,7 +134,34 @@ export default function IfoodConfigPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const success = await updateConfig(storeSlug, formData);
+    // Validar se integrationType está definido
+    if (!formData.integrationType) {
+      console.error('Tipo de integração é obrigatório');
+      return;
+    }
+
+    // Converter IfoodConfig para IfoodConfigFormData
+    const configFormData = {
+      integrationType: formData.integrationType,
+      clientId: formData.clientId || '',
+      clientSecret: formData.clientSecret || '',
+      merchantId: formData.merchantId || '',
+      storeId: formData.storeId || '',
+      webhookUrl: formData.webhookUrl || '',
+      webhookSecret: formData.webhookSecret || '',
+      sandboxMode: formData.sandboxMode || false,
+      businessName: formData.businessName || '',
+      businessAddress: formData.businessAddress || '',
+      businessPhone: formData.businessPhone || '',
+      businessEmail: formData.businessEmail || '',
+      cnpj: formData.cnpj || '',
+      operatingHours: formData.operatingHours || '',
+      active: formData.active || false,
+      menu: formData.menu || DEFAULT_IFOOD_CONFIG.menu!,
+      orders: formData.orders || DEFAULT_IFOOD_CONFIG.orders!,
+    };
+
+    const success = await updateConfig(storeSlug, configFormData);
     if (success) {
       await refreshConfig(storeSlug);
       await loadSyncStatus();

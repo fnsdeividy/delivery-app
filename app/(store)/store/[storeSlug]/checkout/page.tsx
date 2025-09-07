@@ -705,8 +705,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       ...prev,
                       customerEmail: e.target.value,
                     }))
-                  )
-                onBlur={() => validateForm()}
+                  }
+                  onBlur={() => validateForm()}
                 className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.customerEmail
                     ? "border-red-500 bg-red-50"
                     : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -810,8 +810,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         ...prev,
                         deliveryAddress: e.target.value,
                       }))
-                    )
-                  onBlur={() => validateForm()}
+                    }
+                    onBlur={() => validateForm()}
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${formErrors.deliveryAddress
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"

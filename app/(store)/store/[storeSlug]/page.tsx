@@ -166,8 +166,29 @@ export default function StorePage({ params }: PageProps) {
               secondaryColor: "#ea580c",
               backgroundColor: "#ffffff",
               textColor: "#000000",
-              accentColor: "#f59e0b"
-            }
+              accentColor: "#f59e0b",
+              logo: "",
+              favicon: "",
+              banner: ""
+            },
+            preparationTime: 30,
+            orderNotifications: true,
+            deliveryFee: 5.0,
+            minimumOrder: 20.0,
+            estimatedDeliveryTime: 45,
+            deliveryEnabled: true,
+            pixEnabled: true,
+            cardEnabled: true,
+            cashEnabled: true,
+            paymentMethods: ["PIX", "DINHEIRO", "CARTÃO"],
+            coupons: [],
+            logo: "",
+            favicon: "",
+            banner: "",
+            businessHours: {},
+            phone: "",
+            email: "",
+            address: ""
           },
           products: [{
             id: "1",
