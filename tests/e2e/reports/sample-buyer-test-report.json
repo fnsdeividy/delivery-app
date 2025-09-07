@@ -1,0 +1,285 @@
+{
+  "timestamp": "2024-01-06T15:30:00.000Z",
+  "testDuration": "2m 45s",
+  "environment": {
+    "baseUrl": "http://localhost:3000",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "headless": false,
+    "slowMo": 100
+  },
+  "config": {
+    "stores": [
+      "pizzaria-do-mario",
+      "burguer-house",
+      "sushi-yamato",
+      "doceria-da-vovo"
+    ],
+    "timeout": 30000
+  },
+  "results": {
+    "summary": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "successRate": "75.0%",
+      "totalTime": "165000ms",
+      "errors": [
+        "Timeout na loja sushi-yamato - elemento carrinho não encontrado"
+      ]
+    },
+    "stores": {
+      "pizzaria-do-mario": {
+        "success": true,
+        "duration": "38500ms",
+        "url": "http://localhost:3000/pizzaria-do-mario",
+        "steps": {
+          "storeAccess": {
+            "success": true,
+            "duration": "2100ms",
+            "title": "Pizzaria do Mário - Delivery",
+            "elements": {
+              "Nome da loja": true,
+              "Descrição da loja": true,
+              "Categorias": true,
+              "Produtos": true
+            },
+            "screenshot": "screenshot-store-pizzaria-do-mario-loaded-2024-01-06T15-30-15.png"
+          },
+          "productSelection": {
+            "success": true,
+            "duration": "3200ms",
+            "productName": "Pizza Margherita",
+            "productsCount": 4,
+            "modalOpened": true,
+            "detailsPage": false,
+            "screenshot": "screenshot-product-pizzaria-do-mario-selected-2024-01-06T15-30-18.png"
+          },
+          "addToCart": {
+            "success": true,
+            "duration": "2800ms",
+            "cartUpdated": true,
+            "buttonFound": "button[type=\"submit\"]",
+            "screenshot": "screenshot-cart-pizzaria-do-mario-added-2024-01-06T15-30-21.png"
+          },
+          "cartAndCheckout": {
+            "success": true,
+            "duration": "4100ms",
+            "cartOpened": true,
+            "checkoutStarted": true,
+            "screenshot": "screenshot-checkout-pizzaria-do-mario-started-2024-01-06T15-30-25.png"
+          },
+          "customerForm": {
+            "success": true,
+            "duration": "5200ms",
+            "filledFields": {
+              "name": true,
+              "phone": true,
+              "email": true,
+              "address": true
+            },
+            "screenshot": "screenshot-form-pizzaria-do-mario-filled-2024-01-06T15-30-30.png"
+          }
+        },
+        "metrics": {
+          "pageLoadTime": "2100ms",
+          "timeToInteractive": "2800ms",
+          "productsLoaded": 4,
+          "categoriesLoaded": 4,
+          "errorsFound": 0
+        }
+      },
+      "burguer-house": {
+        "success": true,
+        "duration": "42300ms",
+        "url": "http://localhost:3000/burguer-house",
+        "steps": {
+          "storeAccess": {
+            "success": true,
+            "duration": "1900ms",
+            "title": "Burguer House - Delivery",
+            "elements": {
+              "Nome da loja": true,
+              "Descrição da loja": true,
+              "Categorias": true,
+              "Produtos": true
+            },
+            "screenshot": "screenshot-store-burguer-house-loaded-2024-01-06T15-31-05.png"
+          },
+          "productSelection": {
+            "success": true,
+            "duration": "2700ms",
+            "productName": "Classic Burger",
+            "productsCount": 3,
+            "modalOpened": true,
+            "detailsPage": false,
+            "screenshot": "screenshot-product-burguer-house-selected-2024-01-06T15-31-08.png"
+          },
+          "addToCart": {
+            "success": true,
+            "duration": "3100ms",
+            "cartUpdated": true,
+            "buttonFound": "[data-testid=\"add-to-cart\"]",
+            "screenshot": "screenshot-cart-burguer-house-added-2024-01-06T15-31-11.png"
+          },
+          "cartAndCheckout": {
+            "success": true,
+            "duration": "3800ms",
+            "cartOpened": true,
+            "checkoutStarted": true,
+            "screenshot": "screenshot-checkout-burguer-house-started-2024-01-06T15-31-15.png"
+          },
+          "customerForm": {
+            "success": true,
+            "duration": "4900ms",
+            "filledFields": {
+              "name": true,
+              "phone": true,
+              "email": true,
+              "address": true
+            },
+            "screenshot": "screenshot-form-burguer-house-filled-2024-01-06T15-31-20.png"
+          }
+        },
+        "metrics": {
+          "pageLoadTime": "1900ms",
+          "timeToInteractive": "2600ms",
+          "productsLoaded": 3,
+          "categoriesLoaded": 4,
+          "errorsFound": 0
+        }
+      },
+      "sushi-yamato": {
+        "success": false,
+        "duration": "30000ms",
+        "url": "http://localhost:3000/sushi-yamato",
+        "errors": [
+          "Timeout na etapa cartAndCheckout - botão do carrinho não encontrado após 30s"
+        ],
+        "steps": {
+          "storeAccess": {
+            "success": true,
+            "duration": "2400ms",
+            "title": "Sushi Yamato - Delivery",
+            "elements": {
+              "Nome da loja": true,
+              "Descrição da loja": true,
+              "Categorias": true,
+              "Produtos": true
+            },
+            "screenshot": "screenshot-store-sushi-yamato-loaded-2024-01-06T15-31-45.png"
+          },
+          "productSelection": {
+            "success": true,
+            "duration": "3100ms",
+            "productName": "Combo Salmão - 20 peças",
+            "productsCount": 3,
+            "modalOpened": false,
+            "detailsPage": true,
+            "screenshot": "screenshot-product-sushi-yamato-selected-2024-01-06T15-31-48.png"
+          },
+          "addToCart": {
+            "success": true,
+            "duration": "2900ms",
+            "cartUpdated": false,
+            "buttonFound": "button:contains(\"Adicionar\")",
+            "screenshot": "screenshot-cart-sushi-yamato-added-2024-01-06T15-31-51.png"
+          },
+          "cartAndCheckout": {
+            "success": false,
+            "duration": "30000ms",
+            "cartOpened": false,
+            "checkoutStarted": false,
+            "error": "Botão do carrinho não encontrado - timeout de 30s excedido",
+            "screenshot": "screenshot-checkout-sushi-yamato-error-2024-01-06T15-32-21.png"
+          }
+        },
+        "metrics": {
+          "pageLoadTime": "2400ms",
+          "timeToInteractive": "3200ms",
+          "productsLoaded": 3,
+          "categoriesLoaded": 4,
+          "errorsFound": 1
+        }
+      },
+      "doceria-da-vovo": {
+        "success": true,
+        "duration": "35800ms",
+        "url": "http://localhost:3000/doceria-da-vovo",
+        "steps": {
+          "storeAccess": {
+            "success": true,
+            "duration": "1800ms",
+            "title": "Doceria da Vovó - Delivery",
+            "elements": {
+              "Nome da loja": true,
+              "Descrição da loja": true,
+              "Categorias": true,
+              "Produtos": true
+            },
+            "screenshot": "screenshot-store-doceria-da-vovo-loaded-2024-01-06T15-32-45.png"
+          },
+          "productSelection": {
+            "success": true,
+            "duration": "2600ms",
+            "productName": "Bolo de Chocolate",
+            "productsCount": 3,
+            "modalOpened": true,
+            "detailsPage": false,
+            "screenshot": "screenshot-product-doceria-da-vovo-selected-2024-01-06T15-32-48.png"
+          },
+          "addToCart": {
+            "success": true,
+            "duration": "2200ms",
+            "cartUpdated": true,
+            "buttonFound": ".add-to-cart",
+            "screenshot": "screenshot-cart-doceria-da-vovo-added-2024-01-06T15-32-50.png"
+          },
+          "cartAndCheckout": {
+            "success": true,
+            "duration": "3400ms",
+            "cartOpened": true,
+            "checkoutStarted": true,
+            "screenshot": "screenshot-checkout-doceria-da-vovo-started-2024-01-06T15-32-54.png"
+          },
+          "customerForm": {
+            "success": true,
+            "duration": "4200ms",
+            "filledFields": {
+              "name": true,
+              "phone": true,
+              "email": false,
+              "address": true
+            },
+            "screenshot": "screenshot-form-doceria-da-vovo-filled-2024-01-06T15-32-58.png"
+          }
+        },
+        "metrics": {
+          "pageLoadTime": "1800ms",
+          "timeToInteractive": "2400ms",
+          "productsLoaded": 3,
+          "categoriesLoaded": 4,
+          "errorsFound": 0
+        }
+      }
+    },
+    "performanceMetrics": {
+      "averagePageLoadTime": "2050ms",
+      "averageTimeToInteractive": "2750ms",
+      "totalProductsTested": 13,
+      "totalCategoriesTested": 16,
+      "screenshotsTaken": 17,
+      "jsErrorsCaptured": 1
+    },
+    "userJourneyAnalysis": {
+      "storeAccessSuccess": "100%",
+      "productSelectionSuccess": "100%",
+      "addToCartSuccess": "100%",
+      "checkoutSuccess": "75%",
+      "formFillingSuccess": "75%",
+      "criticalPath": "Checkout é o ponto de maior falha"
+    }
+  }
+}

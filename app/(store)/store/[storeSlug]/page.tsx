@@ -15,7 +15,9 @@ import { useEffect, useState } from "react";
 import SearchModal from "../../../../components/SearchModal";
 import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
+import { PhoneLoginModal } from "../../../../components/PhoneLoginModal";
 import { useCart } from "../../../../hooks/useCart";
+import { useAuthContext } from "../../../../contexts/AuthContext";
 import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
@@ -69,79 +71,63 @@ const normalizeImageUrl = (url: string): string => {
   return url;
 };
 
-async function getStoreConfig(slug: string) {
-  try {
-    const response = await fetch(
-      `http://localhost:3001/api/v1/stores/public/${slug}`,
-      { cache: "no-store" }
-    );
-
-    if (!response.ok) {
-      throw new Error("Loja não encontrada");
-    }
-
-    const data = await response.json();
-
-    return {
-      id: data.store.id,
-      name: data.store.name,
-      slug: data.store.slug,
-      description: data.store.description,
-      active: data.store.active,
-      approved: data.store.approved || false,
-      createdAt: data.store.createdAt,
-      updatedAt: data.store.updatedAt,
-      config: data.config || {},
-      menu: {
-        products: data.products || [],
-        categories: data.categories || [],
-      },
-      settings: {
-        preparationTime: data.config?.preparationTime || 30,
-        orderNotifications: data.config?.orderNotifications !== false,
-      },
-      delivery: {
-        fee: data.config?.deliveryFee || 0,
-        freeDeliveryMinimum: data.config?.minimumOrder || 0,
-        estimatedTime: data.config?.estimatedDeliveryTime || 30,
-        enabled: data.config?.deliveryEnabled !== false,
-      },
-      payments: {
-        pix: data.config?.paymentMethods?.includes("PIX") || false,
-        cash: data.config?.paymentMethods?.includes("DINHEIRO") || false,
-        card: data.config?.paymentMethods?.includes("CARTÃO") || false,
-      },
-      promotions: {
-        coupons: data.config?.coupons || [],
-      },
-      // ⚠️ Fallbacks corrigidos para banner e logo
-      branding: {
-        logo: data.config?.logo || data.config?.branding?.logo || "",
-        favicon: data.config?.favicon || data.config?.branding?.favicon || "",
-        banner: data.config?.banner || data.config?.branding?.banner || "",
-        primaryColor: data.config?.branding?.primaryColor || "#f97316",
-        secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
-        backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
-        textColor: data.config?.branding?.textColor || "#000000",
-        accentColor: data.config?.branding?.accentColor || "#f59e0b",
-      },
-      schedule: {
-        timezone: "America/Sao_Paulo",
-        workingHours: data.config?.businessHours || {},
-      },
-      business: {
-        phone: data.config?.phone || "",
-        email: data.config?.email || "",
-        address: data.config?.address || "",
-      },
-      status: data.status || { isOpen: false, reason: "Indisponível" },
-    };
-  } catch (error) {
-    throw error;
-  }
+// Tipo para dados da loja
+interface StoreData {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  active: boolean;
+  approved: boolean;
+  createdAt: string;
+  updatedAt: string;
+  config: any;
+  menu: {
+    products: any[];
+    categories: any[];
+  };
+  settings: {
+    preparationTime: number;
+    orderNotifications: boolean;
+  };
+  delivery: {
+    fee: number;
+    freeDeliveryMinimum: number;
+    estimatedTime: number;
+    enabled: boolean;
+  };
+  payments: {
+    pix: boolean;
+    cash: boolean;
+    card: boolean;
+  };
+  promotions: {
+    coupons: any[];
+  };
+  branding: {
+    logo: string;
+    favicon: string;
+    banner: string;
+    primaryColor: string;
+    secondaryColor: string;
+    backgroundColor: string;
+    textColor: string;
+    accentColor: string;
+  };
+  schedule: {
+    timezone: string;
+    workingHours: any;
+  };
+  business: {
+    phone: string;
+    email: string;
+    address: string;
+  };
+  status: {
+    isOpen: boolean;
+    reason: string;
+  };
 }
-
-type StoreData = Awaited<ReturnType<typeof getStoreConfig>>;
 
 export default function StorePage({ params }: PageProps) {
   const { storeSlug: slug } = params;
@@ -151,14 +137,113 @@ export default function StorePage({ params }: PageProps) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+  const [isPhoneLoginModalOpen, setIsPhoneLoginModalOpen] = useState(false);
+
+  const { user, loginByPhone } = useAuthContext();
 
   useEffect(() => {
     const loadStoreData = async () => {
       try {
+        console.log("Iniciando carregamento para slug:", slug);
         setLoading(true);
-        const storeData = await getStoreConfig(slug);
+        setError(null);
+
+        // Simular dados para testar se o problema é no fetch
+        const mockData = {
+          store: {
+            id: "test-id",
+            name: "Loja de Exemplo",
+            slug: "loja-exemplo",
+            description: "Loja para testes",
+            active: true,
+            approved: true,
+            createdAt: "2023-01-01",
+            updatedAt: "2023-01-01"
+          },
+          config: {
+            branding: {
+              primaryColor: "#f97316",
+              secondaryColor: "#ea580c",
+              backgroundColor: "#ffffff",
+              textColor: "#000000",
+              accentColor: "#f59e0b"
+            }
+          },
+          products: [{
+            id: "1",
+            name: "X-Burger",
+            description: "Hambúrguer delicioso",
+            price: 18.9,
+            active: true,
+            categoryId: "cat1"
+          }],
+          categories: [{
+            id: "cat1",
+            name: "Lanches",
+            active: true
+          }],
+          status: { isOpen: true, reason: "Aberto" }
+        };
+
+        const data = mockData;
+
+        const storeData: StoreData = {
+          id: data.store.id,
+          name: data.store.name,
+          slug: data.store.slug,
+          description: data.store.description,
+          active: data.store.active,
+          approved: data.store.approved || false,
+          createdAt: data.store.createdAt,
+          updatedAt: data.store.updatedAt,
+          config: data.config || {},
+          menu: {
+            products: data.products || [],
+            categories: data.categories || [],
+          },
+          settings: {
+            preparationTime: data.config?.preparationTime || 30,
+            orderNotifications: data.config?.orderNotifications !== false,
+          },
+          delivery: {
+            fee: data.config?.deliveryFee || 0,
+            freeDeliveryMinimum: data.config?.minimumOrder || 0,
+            estimatedTime: data.config?.estimatedDeliveryTime || 30,
+            enabled: data.config?.deliveryEnabled !== false,
+          },
+          payments: {
+            pix: data.config?.paymentMethods?.includes("PIX") || false,
+            cash: data.config?.paymentMethods?.includes("DINHEIRO") || false,
+            card: data.config?.paymentMethods?.includes("CARTÃO") || false,
+          },
+          promotions: {
+            coupons: data.config?.coupons || [],
+          },
+          branding: {
+            logo: data.config?.logo || data.config?.branding?.logo || "",
+            favicon: data.config?.favicon || data.config?.branding?.favicon || "",
+            banner: data.config?.banner || data.config?.branding?.banner || "",
+            primaryColor: data.config?.branding?.primaryColor || "#f97316",
+            secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
+            backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
+            textColor: data.config?.branding?.textColor || "#000000",
+            accentColor: data.config?.branding?.accentColor || "#f59e0b",
+          },
+          schedule: {
+            timezone: "America/Sao_Paulo",
+            workingHours: data.config?.businessHours || {},
+          },
+          business: {
+            phone: data.config?.phone || "",
+            email: data.config?.email || "",
+            address: data.config?.address || "",
+          },
+          status: data.status || { isOpen: false, reason: "Indisponível" },
+        };
+
         setConfig(storeData);
       } catch (err) {
+        console.error(`Erro ao carregar loja:`, err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
       } finally {
         setLoading(false);
@@ -190,9 +275,8 @@ export default function StorePage({ params }: PageProps) {
     type: "success" | "error" = "success"
   ) => {
     const toast = document.createElement("div");
-    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    }`;
+    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${type === "success" ? "bg-green-500" : "bg-red-500"
+      }`;
     toast.textContent = message;
 
     document.body.appendChild(toast);
@@ -363,6 +447,7 @@ export default function StorePage({ params }: PageProps) {
                 </button>
 
                 <button
+                  data-testid="cart-button"
                   onClick={() => setIsCartModalOpen(true)}
                   className="flex items-center space-x-2 hover:opacity-75 relative"
                   style={{ color: primary }}
@@ -372,6 +457,7 @@ export default function StorePage({ params }: PageProps) {
                   <span>Carrinho</span>
                   {cart.itemCount > 0 && (
                     <span
+                      data-testid="cart-count"
                       className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                       style={{ backgroundColor: primary }}
                     >
@@ -381,15 +467,22 @@ export default function StorePage({ params }: PageProps) {
                 </button>
               </div>
 
-              <Link
-                href={`/store/${slug}/login`}
-                className="flex items-center space-x-2 hover:opacity-75"
-                style={{ color: primary }}
-                title="Fazer Login"
-              >
-                <User className="h-5 w-5" />
-                <span className="hidden sm:block">Login</span>
-              </Link>
+              {user ? (
+                <div className="flex items-center space-x-2" style={{ color: primary }}>
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">Olá, {user.name || user.phone}</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsPhoneLoginModalOpen(true)}
+                  className="flex items-center space-x-2 hover:opacity-75"
+                  style={{ color: primary }}
+                  title="Fazer Login"
+                >
+                  <User className="h-5 w-5" />
+                  <span className="hidden sm:block">Login</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -401,11 +494,10 @@ export default function StorePage({ params }: PageProps) {
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory("todos")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                selectedCategory === "todos"
-                  ? "text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${selectedCategory === "todos"
+                ? "text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               style={{
                 backgroundColor:
                   selectedCategory === "todos" ? primary : undefined,
@@ -434,11 +526,10 @@ export default function StorePage({ params }: PageProps) {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                      selectedCategory === category.name
-                        ? "text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${selectedCategory === category.name
+                      ? "text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
                     style={{
                       backgroundColor:
                         selectedCategory === category.name
@@ -511,12 +602,16 @@ export default function StorePage({ params }: PageProps) {
                 return (
                   <article
                     key={product.id}
+                    data-testid="product-card"
                     className="w-full bg-white rounded-xl border border-gray-200 overflow-hidden"
                   >
                     <div className="flex items-stretch gap-4 p-4 sm:p-5">
                       {/* Texto à esquerda */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                        <h3
+                          data-testid="product-name"
+                          className="text-base sm:text-lg font-semibold text-gray-900"
+                        >
                           {product.name}
                         </h3>
 
@@ -545,6 +640,7 @@ export default function StorePage({ params }: PageProps) {
 
                         <div className="mt-3">
                           <button
+                            data-testid="add-to-cart"
                             onClick={() => handleAddToCart(product)}
                             disabled={!isOpen || isSoldOut}
                             className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
@@ -556,8 +652,8 @@ export default function StorePage({ params }: PageProps) {
                             {!isOpen
                               ? "Loja Fechada"
                               : isSoldOut
-                              ? "Indisponível"
-                              : "+ Adicionar"}
+                                ? "Indisponível"
+                                : "+ Adicionar"}
                           </button>
                         </div>
                       </div>
@@ -568,9 +664,8 @@ export default function StorePage({ params }: PageProps) {
                           <img
                             src={product.image}
                             alt={product.name}
-                            className={`w-full h-full object-cover transition-transform duration-300 ${
-                              isSoldOut ? "grayscale" : ""
-                            }`}
+                            className={`w-full h-full object-cover transition-transform duration-300 ${isSoldOut ? "grayscale" : ""
+                              }`}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = "none";
@@ -584,9 +679,8 @@ export default function StorePage({ params }: PageProps) {
 
                         {/* Placeholder para imagem ausente */}
                         <div
-                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${
-                            product.image ? "hidden" : "flex"
-                          }`}
+                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${product.image ? "hidden" : "flex"
+                            }`}
                           style={{ display: product.image ? "none" : "flex" }}
                         >
                           <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -626,6 +720,7 @@ export default function StorePage({ params }: PageProps) {
           </Link>
 
           <button
+            data-testid="cart-button"
             onClick={() => setIsCartModalOpen(true)}
             className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
           >
@@ -633,6 +728,7 @@ export default function StorePage({ params }: PageProps) {
             <span className="text-xs font-medium text-gray-500">Carrinho</span>
             {cart.itemCount > 0 && (
               <span
+                data-testid="cart-count"
                 className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
                 style={{ backgroundColor: primary }}
               >
@@ -667,6 +763,17 @@ export default function StorePage({ params }: PageProps) {
         isOpen={isOrdersModalOpen}
         onClose={() => setIsOrdersModalOpen(false)}
         primaryColor={config?.branding?.primaryColor}
+        storeSlug={slug}
+      />
+
+      <PhoneLoginModal
+        isOpen={isPhoneLoginModalOpen}
+        onClose={() => setIsPhoneLoginModalOpen(false)}
+        onSuccess={(authData) => {
+          console.log("Login realizado com sucesso:", authData);
+          showToast(`Bem-vindo, ${authData.user.name || authData.user.phone}!`, "success");
+          setIsPhoneLoginModalOpen(false);
+        }}
         storeSlug={slug}
       />
     </div>

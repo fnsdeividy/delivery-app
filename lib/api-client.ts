@@ -482,6 +482,98 @@ class ApiClient {
     }
   }
 
+  /**
+   * Autentica um usuário com telefone (sem senha)
+   */
+  async authenticateByPhone(
+    phone: string,
+    name?: string
+  ): Promise<AuthResponse> {
+    try {
+      const response = await this.post<AuthResponse>("/auth/phone-login", {
+        phone,
+        name,
+      });
+
+      // Armazenar token automaticamente
+      if (response.access_token) {
+        this.storeAuthToken(response.access_token);
+      }
+
+      return response;
+    } catch (error) {
+      throw this.createApiError(error);
+    }
+  }
+
+  /**
+   * Solicita recuperação de senha
+   */
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    try {
+      const response = await this.post<{ message: string }>("/auth/request-password-reset", {
+        email,
+      });
+
+      if (apiConfig.api.debug) {
+        this.log("✅ Solicitação de recuperação de senha enviada", { email });
+      }
+
+      return response;
+    } catch (error) {
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao solicitar recuperação de senha", { email, error });
+      }
+      throw this.createApiError(error);
+    }
+  }
+
+  /**
+   * Redefine a senha usando token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const response = await this.post<{ message: string }>("/auth/reset-password", {
+        token,
+        newPassword,
+      });
+
+      if (apiConfig.api.debug) {
+        this.log("✅ Senha redefinida com sucesso");
+      }
+
+      return response;
+    } catch (error) {
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao redefinir senha", { error });
+      }
+      throw this.createApiError(error);
+    }
+  }
+
+  /**
+   * Altera a senha do usuário logado
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const response = await this.post<{ message: string }>("/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
+
+      if (apiConfig.api.debug) {
+        this.log("✅ Senha alterada com sucesso");
+      }
+
+      return response;
+    } catch (error) {
+      if (apiConfig.api.debug) {
+        this.log("❌ Erro ao alterar senha", { error });
+      }
+      throw this.createApiError(error);
+    }
+  }
+
   // TODO: Endpoint /users/me/context não está disponível no backend ainda
   // Comentado temporariamente até a implementação
   async getCurrentUserContext(): Promise<AuthContext> {
@@ -797,11 +889,11 @@ class ApiClient {
         scope: "STORE" as any,
         stores: storeSlug
           ? {
-              [storeSlug]: {
-                role: "OWNER" as any,
-                permissions: ["read", "write", "delete"],
-              },
-            }
+            [storeSlug]: {
+              role: "OWNER" as any,
+              permissions: ["read", "write", "delete"],
+            },
+          }
           : {},
         globalPermissions: [],
       } as UserPermissions;
@@ -863,7 +955,7 @@ class ApiClient {
   // ===== CATEGORIAS =====
 
   async getCategories(storeSlug: string): Promise<Category[]> {
-    const response = await this.get<{data: Category[], pagination: any}>(`/stores/${storeSlug}/categories`);
+    const response = await this.get<{ data: Category[], pagination: any }>(`/stores/${storeSlug}/categories`);
     return response.data;
   }
 
@@ -952,7 +1044,7 @@ class ApiClient {
     if (!storeSlug) {
       throw new Error('storeSlug é obrigatório para upload de imagem do produto');
     }
-    
+
     console.log('📤 Upload de imagem para produto iniciado', { storeSlug });
     return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
@@ -1170,8 +1262,7 @@ class ApiClient {
         default:
           apiError.message =
             (data as ApiErrorResponse)?.message ||
-            `Erro ${status}: ${
-              (data as ApiErrorResponse)?.error || "Erro desconhecido"
+            `Erro ${status}: ${(data as ApiErrorResponse)?.error || "Erro desconhecido"
             }`;
       }
     } else if (error.code === "ECONNABORTED") {
