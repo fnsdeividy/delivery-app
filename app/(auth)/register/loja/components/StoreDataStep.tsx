@@ -1,4 +1,6 @@
 import { RegisterLojaFormData } from "@/lib/validation/schemas";
+import { useFormValidation } from "@/hooks";
+import { storeSchema } from "@/lib/validation/schemas";
 import AddressForm from "./AddressForm";
 
 interface StoreDataStepProps {
@@ -8,6 +10,7 @@ interface StoreDataStepProps {
   isLoadingCep: boolean;
   cepError: string | null;
   onFetchAddress: (cep: string) => Promise<void>;
+  isSubmitted?: boolean;
 }
 
 export default function StoreDataStep({ 
@@ -16,14 +19,26 @@ export default function StoreDataStep({
   categories,
   isLoadingCep,
   cepError,
-  onFetchAddress
+  onFetchAddress,
+  isSubmitted = false
 }: StoreDataStepProps) {
+  const storeValidation = useFormValidation(storeSchema, {
+    storeName: formData.storeName,
+    storeSlug: formData.storeSlug,
+    description: formData.description,
+    category: formData.category,
+    address: formData.address,
+    city: formData.city,
+    state: formData.state,
+    zipCode: formData.zipCode,
+  });
   return (
     <form className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-800">
           Nome da loja *
         </label>
+        <p className="text-xs text-gray-500 mt-1">Usaremos este nome para gerar a URL da loja.</p>
         <input
           type="text"
           name="storeName"
@@ -62,7 +77,7 @@ export default function StoreDataStep({
           />
         </div>
         <p className="mt-1 text-xs text-gray-500">
-          Será gerado automaticamente baseado no nome da loja
+          Gerada automaticamente a partir do nome. Você poderá ajustar o slug.
         </p>
       </div>
 
@@ -79,7 +94,19 @@ export default function StoreDataStep({
               : ""
           }
           onChange={onInputChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
+          onBlur={() =>
+            storeValidation.handleFieldBlur(
+              "category",
+              formData.category
+            )
+          }
+          className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
+            (storeValidation.shouldShowError("category") || (isSubmitted && !formData.category))
+              ? "border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50"
+              : "border-gray-300"
+          }`}
+          aria-invalid={(storeValidation.shouldShowError("category") || (isSubmitted && !formData.category))}
+          aria-describedby={(storeValidation.shouldShowError("category") || (isSubmitted && !formData.category)) ? "category-error" : undefined}
         >
           <option value="">Selecione uma categoria</option>
           {categories.map((cat) => (
@@ -88,9 +115,9 @@ export default function StoreDataStep({
             </option>
           ))}
         </select>
-        {!formData.category && (
-          <p className="mt-1 text-xs text-red-500">
-            Categoria é obrigatória
+        {(storeValidation.shouldShowError("category") || (isSubmitted && !formData.category)) && (
+          <p id="category-error" className="mt-1 text-xs text-red-500">
+            Categoria é obrigatória.
           </p>
         )}
       </div>
@@ -109,7 +136,7 @@ export default function StoreDataStep({
           }
           onChange={onInputChange}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
-          placeholder="Descreva sua loja..."
+          placeholder="Descreva sua loja…"
         />
       </div>
 
@@ -119,6 +146,7 @@ export default function StoreDataStep({
         isLoadingCep={isLoadingCep}
         cepError={cepError}
         onFetchAddress={onFetchAddress}
+        isSubmitted={isSubmitted}
       />
     </form>
   );
