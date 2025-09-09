@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Phone, User } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { useStoreTheme } from "@/hooks/useStoreTheme";
+import { useInlineStyles } from "@/hooks/useInlineStyles";
 
 interface PhoneLoginModalProps {
   isOpen: boolean;
@@ -20,6 +22,10 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // Aplicar tema da loja
+  const { theme, isLoading: themeLoading } = useStoreTheme(storeSlug);
+  const inlineStyles = useInlineStyles(theme);
 
   const formatPhone = (value: string) => {
     // Remove todos os caracteres não numéricos
@@ -85,10 +91,10 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`sm:max-w-md store-themed-modal ${theme ? 'theme-applied' : ''}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Phone className="h-5 w-5" />
+            <Phone className="h-5 w-5 icon" />
             Login com Telefone
           </DialogTitle>
           <DialogDescription>
@@ -98,14 +104,14 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+            <div className="p-3 text-sm error-message rounded-md">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
+              <Phone className="h-4 w-4 icon" />
               Telefone
             </Label>
             <Input
@@ -119,14 +125,14 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
               required
               className="text-lg"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs helper-text">
               Digite seu telefone com DDD
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="name" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
+              <User className="h-4 w-4 icon" />
               Nome (opcional)
             </Label>
             <Input
@@ -138,7 +144,7 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
               disabled={isLoading}
               className="text-lg"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs helper-text">
               Ajuda a personalizar seu atendimento
             </p>
           </div>
@@ -149,14 +155,16 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 button-outline"
+              style={theme ? inlineStyles.border : {}}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isLoading || phone.replace(/\D/g, "").length < 10}
-              className="flex-1"
+              className="flex-1 button-primary"
+              style={theme ? inlineStyles.primary : {}}
             >
               {isLoading ? (
                 <>
@@ -170,13 +178,13 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
           </div>
         </form>
 
-        <div className="text-center text-xs text-gray-500 pt-4 border-t">
+        <div className="text-center text-xs consent-text pt-4 border-t">
           Ao continuar, você concorda com nossos{" "}
-          <a href="/termos" className="text-blue-600 hover:underline">
+          <a href="/termos" className="consent-link">
             Termos de Uso
           </a>{" "}
           e{" "}
-          <a href="/privacidade" className="text-blue-600 hover:underline">
+          <a href="/privacidade" className="consent-link">
             Política de Privacidade
           </a>
         </div>

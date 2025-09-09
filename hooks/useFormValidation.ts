@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ValidationError } from 'yup';
 
 interface ValidationState {
@@ -12,6 +12,7 @@ export function useFormValidation<T extends Record<string, any>>(
 ) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Validar campo específico
   const validateField = useCallback(
@@ -65,19 +66,67 @@ export function useFormValidation<T extends Record<string, any>>(
   const handleFieldBlur = useCallback(
     async (fieldName: string, value: any) => {
       setFieldTouched(fieldName);
+      
+      // Para confirmPassword, validar apenas se já foi tocado e tem conteúdo
+      if (fieldName === 'confirmPassword') {
+        const password = (initialData as any).password;
+        if (value && value !== password) {
+          setErrors((prev) => ({
+            ...prev,
+            [fieldName]: 'A confirmação deve ser igual à senha.',
+          }));
+        } else if (value === password) {
+          setErrors((prev) => ({
+            ...prev,
+            [fieldName]: '',
+          }));
+        }
+        return;
+      }
+      
       const error = await validateField(fieldName, value);
       setErrors((prev) => ({
         ...prev,
         [fieldName]: error || '',
       }));
     },
-    [validateField, setFieldTouched]
+    [validateField, setFieldTouched, initialData]
+  );
+
+  // Validação em tempo real para confirmPassword quando password muda
+  const validateFieldRealTime = useCallback(
+    async (fieldName: string, value: any, relatedField?: string, relatedValue?: any) => {
+      if (fieldName === 'password' && relatedField === 'confirmPassword' && touched.confirmPassword) {
+        // Revalidar confirmPassword quando password muda
+        if (relatedValue && relatedValue !== value) {
+          setErrors((prev) => ({
+            ...prev,
+            confirmPassword: 'A confirmação deve ser igual à senha.',
+          }));
+        } else if (relatedValue === value) {
+          setErrors((prev) => ({
+            ...prev,
+            confirmPassword: '',
+          }));
+        }
+      }
+    },
+    [touched]
   );
 
   // Limpar erros
   const clearErrors = useCallback(() => {
     setErrors({});
     setTouched({});
+    setIsSubmitted(false);
+  }, []);
+
+  // Limpar erro específico
+  const clearFieldError = useCallback((fieldName: string) => {
+    setErrors((prev) => ({
+      ...prev,
+      [fieldName]: '',
+    }));
   }, []);
 
   // Verificar se campo tem erro
@@ -104,18 +153,19 @@ export function useFormValidation<T extends Record<string, any>>(
     [touched]
   );
 
-  // Verificar se deve mostrar erro (campo tocado e com erro)
+  // Verificar se deve mostrar erro (campo tocado e com erro OU submetido)
   const shouldShowError = useCallback(
     (fieldName: string): boolean => {
-      return isFieldTouched(fieldName) && hasError(fieldName);
+      return (isFieldTouched(fieldName) || isSubmitted) && hasError(fieldName);
     },
-    [isFieldTouched, hasError]
+    [isFieldTouched, hasError, isSubmitted]
   );
 
-  return {
+  return useMemo(() => ({
     // Estados
     errors,
     touched,
+    isSubmitted,
     isValid: Object.keys(errors).length === 0,
 
     // Ações
@@ -124,11 +174,29 @@ export function useFormValidation<T extends Record<string, any>>(
     setFieldTouched,
     handleFieldBlur,
     clearErrors,
+    clearFieldError,
+    validateFieldRealTime,
+    setIsSubmitted,
 
     // Utilitários
     hasError,
     getFieldError,
     isFieldTouched,
     shouldShowError,
-  };
+  }), [
+    errors,
+    touched,
+    isSubmitted,
+    validateField,
+    validateForm,
+    setFieldTouched,
+    handleFieldBlur,
+    clearErrors,
+    clearFieldError,
+    validateFieldRealTime,
+    hasError,
+    getFieldError,
+    isFieldTouched,
+    shouldShowError,
+  ]);
 }

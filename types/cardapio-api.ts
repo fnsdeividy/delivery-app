@@ -53,6 +53,13 @@ export interface StoreConfig {
   deliveryFee: number;
   minimumOrder: number;
   estimatedDeliveryTime: number;
+  freeDeliveryThreshold?: number;
+  deliveryZones?: Array<{
+    name: string;
+    fee: number;
+    minOrder: number;
+    estimatedTime: number;
+  }>;
   businessHours: BusinessHours;
   paymentMethods: string[];
   primaryColor?: string;

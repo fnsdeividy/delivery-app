@@ -48,9 +48,7 @@ export default function MetricsCards({
               )}
               <span
                 className={`text-sm font-medium ${
-                  metrics.ordersGrowth > 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                  metrics.ordersGrowth > 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {Math.abs(metrics.ordersGrowth)}%
@@ -60,8 +58,8 @@ export default function MetricsCards({
               </span>
             </div>
           </div>
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <ShoppingCart className="h-6 w-6 text-blue-600" />
+          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <ShoppingCart className="h-6 w-6 text-purple-600" />
           </div>
         </div>
       </div>
@@ -70,9 +68,7 @@ export default function MetricsCards({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">
-              Receita Total
-            </p>
+            <p className="text-sm font-medium text-gray-600">Receita Total</p>
             <p className="text-2xl font-bold text-gray-900">
               {formatCurrency(metrics.totalRevenue)}
             </p>
@@ -84,9 +80,7 @@ export default function MetricsCards({
               )}
               <span
                 className={`text-sm font-medium ${
-                  metrics.revenueGrowth > 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                  metrics.revenueGrowth > 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {Math.abs(metrics.revenueGrowth)}%
@@ -140,16 +134,14 @@ export default function MetricsCards({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">
-              Ticket Médio
-            </p>
+            <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
             <p className="text-2xl font-bold text-gray-900">
               {formatCurrency(metrics.averageOrderValue)}
             </p>
             <p className="text-sm text-gray-500 mt-2">Por pedido</p>
           </div>
-          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-            <TrendUp className="h-6 w-6 text-orange-600" />
+          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <TrendUp className="h-6 w-6 text-purple-600" />
           </div>
         </div>
       </div>

@@ -153,8 +153,27 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
 
     const fetchConfig = async (slug: string): Promise<StoreConfig> => {
       try {
+        console.log("🔍 Buscando dados da loja para slug:", slug);
+        console.log("🌐 URL base da API:", apiClient.baseURL);
+        console.log(
+          "🔗 URL completa:",
+          `${apiClient.baseURL}/stores/public/${slug}`
+        );
+
+        // Teste direto com fetch para comparar
+        try {
+          const directResponse = await fetch(
+            `${apiClient.baseURL}/stores/public/${slug}`
+          );
+          const directData = await directResponse.json();
+          console.log("🔍 Teste direto com fetch:", directData);
+        } catch (directError) {
+          console.error("❌ Erro no teste direto:", directError);
+        }
+
         // Buscar dados da loja via endpoint público
         const data = await apiClient.get(`/stores/public/${slug}`);
+        console.log("📦 Dados recebidos da API:", data);
 
         // Mapear resposta da API para StoreConfig
         const mappedConfig = {
@@ -197,20 +216,40 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
             coupons: (data as any).config?.coupons || [],
           },
           branding: {
-            logo: (data as any).config?.logo || "",
-            favicon: (data as any).config?.favicon || "",
-            banner: (data as any).config?.banner || "",
+            logo:
+              (data as any).config?.branding?.logo ||
+              (data as any).config?.logo ||
+              "",
+            favicon:
+              (data as any).config?.branding?.favicon ||
+              (data as any).config?.favicon ||
+              "",
+            banner:
+              (data as any).config?.branding?.banner ||
+              (data as any).config?.banner ||
+              "",
             primaryColor:
+              (data as any).config?.branding?.primaryColor ||
               (data as any).config?.theme?.primaryColor ||
               (data as any).config?.primaryColor ||
               "#f97316",
             secondaryColor:
+              (data as any).config?.branding?.secondaryColor ||
               (data as any).config?.theme?.secondaryColor ||
               (data as any).config?.secondaryColor ||
               "#ea580c",
-            backgroundColor: (data as any).config?.backgroundColor || "#ffffff",
-            textColor: (data as any).config?.textColor || "#000000",
-            accentColor: (data as any).config?.accentColor || "#f59e0b",
+            backgroundColor:
+              (data as any).config?.branding?.backgroundColor ||
+              (data as any).config?.backgroundColor ||
+              "#ffffff",
+            textColor:
+              (data as any).config?.branding?.textColor ||
+              (data as any).config?.textColor ||
+              "#000000",
+            accentColor:
+              (data as any).config?.branding?.accentColor ||
+              (data as any).config?.accentColor ||
+              "#f59e0b",
           },
           schedule: {
             timezone: "America/Sao_Paulo",
@@ -230,20 +269,29 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           },
         };
 
+        console.log("✅ Configuração mapeada:", mappedConfig);
         return mappedConfig;
       } catch (error: any) {
-        console.error("Erro ao buscar dados da loja:", error);
+        console.error("❌ Erro ao buscar dados da loja:", error);
+        console.error("❌ Detalhes do erro:", {
+          message: error.message,
+          status: error.status,
+          response: error.response?.data,
+          config: error.config,
+        });
         throw new Error("Erro ao buscar dados da loja");
       }
     };
 
     const loadConfig = async () => {
       try {
+        console.log("🚀 Iniciando loadConfig para slug:", slug);
         setLoading(true);
         setError(null);
         setConfig(null); // Limpar config anterior
 
         const storeConfig = await fetchConfig(slug);
+        console.log("📋 StoreConfig recebido:", storeConfig);
 
         // Transformar dados da API para o formato esperado
         const transformedConfig: StoreConfig = {
@@ -309,9 +357,11 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
           phone: storeConfig.business?.phone || storeConfig.config?.phone || "",
         };
 
+        console.log("✅ Configuração transformada:", transformedConfig);
         setConfig(transformedConfig);
       } catch (err: any) {
-        console.error("Erro detalhado ao carregar loja:", err);
+        console.error("❌ Erro detalhado ao carregar loja:", err);
+        console.error("❌ Stack trace:", err.stack);
 
         // Mapear mensagens de erro para mensagens mais amigáveis
         let userMessage = "Erro ao carregar dados da loja";

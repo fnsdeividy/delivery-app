@@ -13,13 +13,13 @@ export function DashboardQuickActions({
       href: `/dashboard/${storeSlug}/produtos/novo`,
       icon: Plus,
       label: "Adicionar Produto",
-      color: "bg-blue-600 hover:bg-blue-700",
+      color: "bg-purple-600 hover:bg-purple-700",
     },
     {
       href: `/dashboard/${storeSlug}/estoque`,
       icon: Package,
       label: "Gerenciar Estoque",
-      color: "bg-green-600 hover:bg-green-700",
+      color: "bg-purple-600 hover:bg-purple-700",
     },
     {
       href: `/dashboard/${storeSlug}/configuracoes`,
@@ -31,13 +31,15 @@ export function DashboardQuickActions({
       href: `/dashboard/${storeSlug}/pedidos`,
       icon: Eye,
       label: "Ver Pedidos",
-      color: "bg-orange-600 hover:bg-orange-700",
+      color: "bg-purple-600 hover:bg-purple-700",
     },
   ];
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
-      <h2 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 mb-2 sm:mb-3 md:mb-4">Ações Rápidas</h2>
+      <h2 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 mb-2 sm:mb-3 md:mb-4">
+        Ações Rápidas
+      </h2>
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         {actions.map((action) => {
           const Icon = action.icon;

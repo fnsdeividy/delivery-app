@@ -1,5 +1,9 @@
-import { ArrowLeft, House, MagnifyingGlass } from '@phosphor-icons/react/dist/ssr'
-import Link from 'next/link'
+import {
+  ArrowLeft,
+  House,
+  MagnifyingGlass,
+} from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -7,8 +11,8 @@ export default function NotFound() {
       <div className="max-w-md w-full text-center">
         {/* 404 Icon */}
         <div className="mb-8">
-          <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MagnifyingGlass className="w-12 h-12 text-orange-500" />
+          <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MagnifyingGlass className="w-12 h-12 text-purple-500" />
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-2">404</h1>
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
@@ -23,12 +27,12 @@ export default function NotFound() {
         <div className="space-y-4">
           <Link
             href="/"
-            className="inline-flex items-center justify-center w-full px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+            className="inline-flex items-center justify-center w-full px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
           >
             <House className="w-5 h-5 mr-2" />
             Voltar ao início
           </Link>
-          
+
           <Link
             href="/dashboard/gerenciar-lojas"
             className="inline-flex items-center justify-center w-full px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
@@ -44,15 +48,21 @@ export default function NotFound() {
             Precisa de ajuda? Entre em contato:
           </p>
           <div className="flex justify-center space-x-6 text-sm">
-            <a href="mailto:suporte@cardap.io" className="text-orange-600 hover:text-orange-500">
+            <a
+              href="mailto:suporte@cardap.io"
+              className="text-purple-600 hover:text-purple-500"
+            >
               suporte@cardap.io
             </a>
-            <a href="tel:+5511999999999" className="text-orange-600 hover:text-orange-500">
+            <a
+              href="tel:+5511999999999"
+              className="text-purple-600 hover:text-purple-500"
+            >
               (11) 99999-9999
             </a>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

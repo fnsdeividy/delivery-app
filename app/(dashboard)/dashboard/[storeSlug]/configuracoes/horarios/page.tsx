@@ -94,14 +94,15 @@ export default function HorariosConfigPage() {
       setSettings((prev) => ({
         ...prev,
         preparationTime: config.settings.preparationTime || 25,
-            workingHours: config.schedule?.workingHours
+        workingHours: config.schedule?.workingHours
           ? {
               monday: {
                 open:
                   config.schedule.workingHours.monday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.monday?.hours?.[0]?.end || "18:00",
+                  config.schedule.workingHours.monday?.hours?.[0]?.end ||
+                  "18:00",
                 closed: !config.schedule.workingHours.monday?.open,
               },
               tuesday: {
@@ -109,7 +110,8 @@ export default function HorariosConfigPage() {
                   config.schedule.workingHours.tuesday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.tuesday?.hours?.[0]?.end || "18:00",
+                  config.schedule.workingHours.tuesday?.hours?.[0]?.end ||
+                  "18:00",
                 closed: !config.schedule.workingHours.tuesday?.open,
               },
               wednesday: {
@@ -135,7 +137,8 @@ export default function HorariosConfigPage() {
                   config.schedule.workingHours.friday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.friday?.hours?.[0]?.end || "18:00",
+                  config.schedule.workingHours.friday?.hours?.[0]?.end ||
+                  "18:00",
                 closed: !config.schedule.workingHours.friday?.open,
               },
               saturday: {
@@ -152,7 +155,8 @@ export default function HorariosConfigPage() {
                   config.schedule.workingHours.sunday?.hours?.[0]?.start ||
                   "08:00",
                 close:
-                  config.schedule.workingHours.sunday?.hours?.[0]?.end || "18:00",
+                  config.schedule.workingHours.sunday?.hours?.[0]?.end ||
+                  "18:00",
                 closed: !config.schedule.workingHours.sunday?.open,
               },
             }
@@ -513,7 +517,7 @@ export default function HorariosConfigPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Clock className="h-6 w-6 text-orange-500" />
+              <Clock className="h-6 w-6 text-purple-500" />
               <h1 className="text-xl font-semibold text-gray-900">
                 Horários de Funcionamento
               </h1>
@@ -538,7 +542,7 @@ export default function HorariosConfigPage() {
               <button
                 onClick={saveSettings}
                 disabled={saving}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 transition-colors"
               >
                 <FloppyDisk className="h-4 w-4" />
                 <span>{saving ? "Salvando..." : "Salvar"}</span>
@@ -657,7 +661,7 @@ export default function HorariosConfigPage() {
                                 e.target.value
                               )
                             }
-                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             {timeSlots.map((time) => (
                               <option key={time} value={time}>
@@ -675,7 +679,7 @@ export default function HorariosConfigPage() {
                                 e.target.value
                               )
                             }
-                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           >
                             {timeSlots.map((time) => (
                               <option key={time} value={time}>
@@ -748,18 +752,18 @@ export default function HorariosConfigPage() {
                         preparationTime: parseInt(e.target.value),
                       }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Informações */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-medium text-purple-900 mb-2">
                 💡 Dicas de Horários
               </h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+              <ul className="text-sm text-purple-800 space-y-1">
                 <li>• Configure horários realistas</li>
                 <li>• Considere horários de pico</li>
                 <li>• Mantenha consistência</li>

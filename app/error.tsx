@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { ArrowsClockwise, Warning } from '@phosphor-icons/react/dist/ssr'
-import { useEffect } from 'react'
+import { ArrowsClockwise, Warning } from "@phosphor-icons/react/dist/ssr";
+import { useEffect } from "react";
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log error to monitoring service
-    console.error('Global error:', error)
-  }, [error])
+    console.error("Global error:", error);
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
@@ -26,25 +26,24 @@ export default function Error({
             Ops! Algo deu errado
           </h1>
           <p className="text-gray-600 mb-8">
-            Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.
+            Ocorreu um erro inesperado. Tente novamente ou entre em contato com
+            o suporte.
           </p>
         </div>
 
         <button
           onClick={reset}
-          className="inline-flex items-center justify-center w-full px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors mb-4"
+          className="inline-flex items-center justify-center w-full px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors mb-4"
         >
-                          <ArrowsClockwise className="w-5 h-5 mr-2" />
+          <ArrowsClockwise className="w-5 h-5 mr-2" />
           Tentar novamente
         </button>
 
         <div className="text-sm text-gray-500">
           <p>Erro técnico: {error.message}</p>
-          {error.digest && (
-            <p className="mt-1">ID: {error.digest}</p>
-          )}
+          {error.digest && <p className="mt-1">ID: {error.digest}</p>}
         </div>
       </div>
     </div>
-  )
+  );
 }

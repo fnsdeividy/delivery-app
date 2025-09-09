@@ -51,8 +51,8 @@ export default function ProductsTable({
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
                   <td className="py-3 px-4">
-                    <div className="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-full">
-                      <span className="text-sm font-bold text-orange-600">
+                    <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full">
+                      <span className="text-sm font-bold text-purple-600">
                         {index + 1}
                       </span>
                     </div>

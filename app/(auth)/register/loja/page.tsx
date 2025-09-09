@@ -8,10 +8,7 @@ import {
   useToast,
 } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
-import {
-  ownerSchema,
-  storeSchema,
-} from "@/lib/validation/schemas";
+import { ownerSchema, storeSchema } from "@/lib/validation/schemas";
 import { CreateStoreDto, CreateUserDto, UserRole } from "@/types";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,11 +18,11 @@ import { useState } from "react";
 
 // Componentes
 import {
-  RegistrationHeader,
-  OwnerDataStep,
-  StoreDataStep,
-  ConfirmationStep,
   ActionButtons,
+  ConfirmationStep,
+  OwnerDataStep,
+  RegistrationHeader,
+  StoreDataStep,
 } from "./components";
 import { useRegistrationForm } from "./hooks/useRegistrationForm";
 
@@ -36,6 +33,8 @@ export default function RegisterLojaPage() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [creationStep, setCreationStep] = useState<
     "idle" | "creating-user" | "creating-store" | "redirecting"
   >("idle");
@@ -78,6 +77,7 @@ export default function RegisterLojaPage() {
     city: formData.city,
     state: formData.state,
     zipCode: formData.zipCode,
+    number: formData.number,
   });
 
   const handleNextStep = async () => {
@@ -92,12 +92,13 @@ export default function RegisterLojaPage() {
       };
 
       const validation = await ownerValidation.validateForm(ownerData);
+      ownerValidation.setIsSubmitted(true);
 
       if (!validation.isValid) {
         // Mostrar primeiro erro encontrado
         const firstError = Object.values(validation.errors)[0];
         if (firstError) {
-          showToast(firstError, "error");
+          showToast("Revise os campos destacados.", "error");
         }
         return;
       }
@@ -113,26 +114,36 @@ export default function RegisterLojaPage() {
         city: formData.city,
         state: formData.state,
         zipCode: formData.zipCode,
+        number: formData.number,
       };
 
       const validation = await storeValidation.validateForm(storeData);
+      storeValidation.setIsSubmitted(true);
+      setIsSubmitted(true);
 
       if (!validation.isValid) {
         // Mostrar primeiro erro encontrado
         const firstError = Object.values(validation.errors)[0];
         if (firstError) {
-          showToast(firstError, "error");
+          showToast("Revise os campos destacados.", "error");
         }
         return;
       }
     }
-    
-    // Feedback visual de progresso
-    showToast(`Etapa ${step} concluída!`, "success");
+
+    // Limpar erros e feedback visual de progresso
+    ownerValidation.clearErrors();
+    storeValidation.clearErrors();
+    setIsSubmitted(false);
+    showToast("Informações salvas. Continue para o próximo passo.", "success");
     setStep(step + 1);
   };
 
   const handlePrevious = () => {
+    // Limpar erros ao voltar
+    ownerValidation.clearErrors();
+    storeValidation.clearErrors();
+    setIsSubmitted(false);
     setStep(step - 1);
   };
 
@@ -170,6 +181,7 @@ export default function RegisterLojaPage() {
         city: formData.city,
         state: formData.state,
         zipCode: formData.zipCode,
+        number: formData.number,
       };
 
       const storeValidationResult = await storeValidation.validateForm(
@@ -313,7 +325,7 @@ export default function RegisterLojaPage() {
         "Loja criada com sucesso! Você já pode acessar sua conta.",
         "success"
       );
-      
+
       // Aguardar um pouco para o toast aparecer e redirecionar
       setTimeout(() => {
         router.push("/");
@@ -323,7 +335,7 @@ export default function RegisterLojaPage() {
       setCreationStep("idle");
 
       // Tratamento específico para conflitos de email/usuário
-      if (err.message?.includes("User with this email already exists")) {
+      if (err.message?.includes("Usuário já existe")) {
         showToast(
           "Este email já está cadastrado. Tente fazer login ou use outro email.",
           "error"
@@ -351,15 +363,18 @@ export default function RegisterLojaPage() {
 
       // Erros de validação do backend
       if (err.response?.data?.message) {
-        const backendMessage = Array.isArray(err.response.data.message) 
-          ? err.response.data.message[0] 
+        const backendMessage = Array.isArray(err.response.data.message)
+          ? err.response.data.message[0]
           : err.response.data.message;
         showToast(backendMessage, "error");
         return;
       }
 
       // Erro genérico
-      showToast("Erro ao criar loja. Verifique os dados e tente novamente.", "error");
+      showToast(
+        "Erro ao criar loja. Verifique os dados e tente novamente.",
+        "error"
+      );
       console.error("Erro não tratado:", err);
     }
   };
@@ -393,6 +408,10 @@ export default function RegisterLojaPage() {
               onInputChange={handleInputChange}
               showPassword={showPassword}
               onTogglePassword={() => setShowPassword(!showPassword)}
+              showConfirmPassword={showConfirmPassword}
+              onToggleConfirmPassword={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
             />
           )}
 
@@ -405,13 +424,12 @@ export default function RegisterLojaPage() {
               isLoadingCep={isLoadingCep}
               cepError={cepError}
               onFetchAddress={fetchAddressByCep}
+              isSubmitted={isSubmitted}
             />
           )}
 
           {/* Step 3: Confirmação */}
-          {step === 3 && (
-            <ConfirmationStep formData={formData} />
-          )}
+          {step === 3 && <ConfirmationStep formData={formData} />}
 
           {/* Error */}
           {error && (

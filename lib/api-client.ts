@@ -511,9 +511,12 @@ class ApiClient {
    */
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>("/auth/request-password-reset", {
-        email,
-      });
+      const response = await this.post<{ message: string }>(
+        "/auth/request-password-reset",
+        {
+          email,
+        }
+      );
 
       if (apiConfig.api.debug) {
         this.log("✅ Solicitação de recuperação de senha enviada", { email });
@@ -531,12 +534,18 @@ class ApiClient {
   /**
    * Redefine a senha usando token
    */
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>("/auth/reset-password", {
-        token,
-        newPassword,
-      });
+      const response = await this.post<{ message: string }>(
+        "/auth/reset-password",
+        {
+          token,
+          newPassword,
+        }
+      );
 
       if (apiConfig.api.debug) {
         this.log("✅ Senha redefinida com sucesso");
@@ -554,12 +563,18 @@ class ApiClient {
   /**
    * Altera a senha do usuário logado
    */
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>("/auth/change-password", {
-        currentPassword,
-        newPassword,
-      });
+      const response = await this.post<{ message: string }>(
+        "/auth/change-password",
+        {
+          currentPassword,
+          newPassword,
+        }
+      );
 
       if (apiConfig.api.debug) {
         this.log("✅ Senha alterada com sucesso");
@@ -889,11 +904,11 @@ class ApiClient {
         scope: "STORE" as any,
         stores: storeSlug
           ? {
-            [storeSlug]: {
-              role: "OWNER" as any,
-              permissions: ["read", "write", "delete"],
-            },
-          }
+              [storeSlug]: {
+                role: "OWNER" as any,
+                permissions: ["read", "write", "delete"],
+              },
+            }
           : {},
         globalPermissions: [],
       } as UserPermissions;
@@ -933,6 +948,10 @@ class ApiClient {
     return this.patch<Store>(`/stores/${slug}`, storeData);
   }
 
+  async updateStoreConfig(slug: string, configData: any): Promise<Store> {
+    return this.patch<Store>(`/stores/${slug}/config`, configData);
+  }
+
   async deleteStore(slug: string): Promise<void> {
     return this.delete<void>(`/stores/${slug}`);
   }
@@ -955,7 +974,9 @@ class ApiClient {
   // ===== CATEGORIAS =====
 
   async getCategories(storeSlug: string): Promise<Category[]> {
-    const response = await this.get<{ data: Category[], pagination: any }>(`/stores/${storeSlug}/categories`);
+    const response = await this.get<{ data: Category[]; pagination: any }>(
+      `/stores/${storeSlug}/categories`
+    );
     return response.data;
   }
 
@@ -1042,10 +1063,12 @@ class ApiClient {
   }> {
     const { storeSlug } = product;
     if (!storeSlug) {
-      throw new Error('storeSlug é obrigatório para upload de imagem do produto');
+      throw new Error(
+        "storeSlug é obrigatório para upload de imagem do produto"
+      );
     }
 
-    console.log('📤 Upload de imagem para produto iniciado', { storeSlug });
+    console.log("📤 Upload de imagem para produto iniciado", { storeSlug });
     return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
 
@@ -1064,7 +1087,7 @@ class ApiClient {
     path: string;
     message: string;
   }> {
-    console.log('📤 Upload de imagem para produto iniciado', { storeSlug });
+    console.log("📤 Upload de imagem para produto iniciado", { storeSlug });
     return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
 
@@ -1262,7 +1285,8 @@ class ApiClient {
         default:
           apiError.message =
             (data as ApiErrorResponse)?.message ||
-            `Erro ${status}: ${(data as ApiErrorResponse)?.error || "Erro desconhecido"
+            `Erro ${status}: ${
+              (data as ApiErrorResponse)?.error || "Erro desconhecido"
             }`;
       }
     } else if (error.code === "ECONNABORTED") {

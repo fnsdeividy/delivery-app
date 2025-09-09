@@ -89,7 +89,7 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
   if (isLoadingProducts || isLoadingCategories) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
         <span className="ml-2 text-gray-600">Carregando dashboard...</span>
       </div>
     );
@@ -100,7 +100,7 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
       title: "Total de Produtos",
       value: stats.totalProducts,
       icon: Package,
-      color: "bg-blue-500",
+      color: "bg-purple-500",
       description: `${stats.activeProducts} ativos`,
     },
 
@@ -108,7 +108,7 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
       title: "Receita Estimada",
       value: `R$ ${formatPrice(stats.estimatedRevenue)}`,
       icon: ArrowUp,
-      color: "bg-orange-500",
+      color: "bg-purple-500",
       description: "Baseado em preços dos produtos",
     },
     {
@@ -286,17 +286,17 @@ export function StoreDashboard({ storeSlug }: StoreDashboardProps) {
           Ações Rápidas
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+          <button className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Package className="w-5 h-5 mr-2" />
             Adicionar Produto
           </button>
 
-          <button className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Package className="w-5 h-5 mr-2" />
             Nova Categoria
           </button>
 
-          <button className="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <button className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Gear className="w-5 h-5 mr-2" />
             Configurações
           </button>

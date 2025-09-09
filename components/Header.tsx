@@ -100,20 +100,6 @@ export function Header() {
                             Dashboard
                           </Link>
                         )}
-
-                        <Link
-                          href={
-                            user.storeSlug
-                              ? `/dashboard/${user.storeSlug}`
-                              : "/dashboard"
-                          }
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <User className="w-4 h-4 mr-3 text-gray-400" />
-                          Perfil
-                        </Link>
-
                         <div className="border-t border-gray-100 mt-2 pt-2">
                           <button
                             onClick={handleLogout}

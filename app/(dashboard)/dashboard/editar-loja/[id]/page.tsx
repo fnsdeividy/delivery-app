@@ -96,7 +96,7 @@ export default function EditarLojaPage() {
           </p>
           <Link
             href="/dashboard/gerenciar-lojas"
-            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para Gerenciar Lojas
@@ -110,8 +110,8 @@ export default function EditarLojaPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Carregando...
@@ -139,7 +139,7 @@ export default function EditarLojaPage() {
           </p>
           <Link
             href="/dashboard/gerenciar-lojas"
-            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para Gerenciar Lojas
@@ -199,8 +199,8 @@ export default function EditarLojaPage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
-                    <Storefront className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                    <Storefront className="w-5 h-5 text-purple-600" />
                   </div>
                 )}
                 <div>
@@ -222,14 +222,12 @@ export default function EditarLojaPage() {
         {/* Breadcrumb */}
         <nav className="flex mb-8" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            <li className="inline-flex items-center">
-              <Link
-                href="/dashboard/gerenciar-lojas"
-                className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-orange-600"
-              >
-                Dashboard
-              </Link>
-            </li>
+            <Link
+              href="/dashboard/gerenciar-lojas"
+              className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-purple-600"
+            >
+              Dashboard
+            </Link>
             <li>
               <div className="flex items-center">
                 <span className="mx-2 text-gray-400">/</span>
@@ -263,7 +261,7 @@ export default function EditarLojaPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
                     activeTab === tab.id
-                      ? "border-orange-500 text-orange-600"
+                      ? "border-purple-500 text-purple-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -321,7 +319,7 @@ export default function EditarLojaPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               href={`/dashboard/${storeData?.slug || ""}`}
-              className="flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               <Storefront className="w-4 h-4 mr-2" />
               Ir para Dashboard da Loja

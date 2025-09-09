@@ -246,7 +246,7 @@ export default function GerenciarLojas() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center p-8">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-600 border-t-transparent mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
           <p className="text-lg text-gray-600 font-medium">
             Carregando lojas...
           </p>
@@ -289,7 +289,7 @@ export default function GerenciarLojas() {
           <div className="space-y-3">
             <button
               onClick={() => refetch()}
-              className="w-full px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors duration-200"
+              className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors duration-200"
             >
               Tentar Novamente
             </button>
@@ -337,8 +337,8 @@ export default function GerenciarLojas() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <div className="p-3 bg-orange-100 rounded-xl">
-                <Storefront className="w-8 h-8 text-orange-600" />
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Storefront className="w-8 h-8 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
@@ -353,8 +353,8 @@ export default function GerenciarLojas() {
 
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <Check className="w-8 h-8 text-green-600" />
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Check className="w-8 h-8 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
@@ -369,8 +369,8 @@ export default function GerenciarLojas() {
 
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-xl">
-                <Clock className="w-8 h-8 text-yellow-600" />
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Clock className="w-8 h-8 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pendentes</p>
@@ -383,8 +383,8 @@ export default function GerenciarLojas() {
 
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Users className="w-8 h-8 text-blue-600" />
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Users className="w-8 h-8 text-purple-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
@@ -584,7 +584,7 @@ export default function GerenciarLojas() {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 transition-all duration-200"
                     placeholder="Ex: Pizzaria do João"
                   />
                 </div>
@@ -598,7 +598,7 @@ export default function GerenciarLojas() {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 transition-all duration-200 resize-none"
                     placeholder="Descrição da loja..."
                   />
                 </div>
@@ -635,7 +635,7 @@ export default function GerenciarLojas() {
                   </button>
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl hover:from-orange-700 hover:to-orange-800 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                    className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl hover:from-purple-700 hover:to-purple-800 transform hover:scale-105 transition-all duration-200 shadow-lg"
                   >
                     Criar Loja
                   </button>

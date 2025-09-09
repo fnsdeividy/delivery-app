@@ -1,11 +1,11 @@
 "use client";
 
 import { useStore, useUpdateStore } from "@/hooks";
-import { UpdateStoreDto } from "@/types/cardapio-api";
 import { apiClient } from "@/lib/api-client";
+import { UpdateStoreDto } from "@/types/cardapio-api";
 import { Eye, EyeSlash, Upload } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 interface StoreVisualConfigProps {
   storeSlug: string;
@@ -106,7 +106,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
         path: string;
         message: string;
       }>(`/stores/${storeSlug}/upload`, file);
-      
+
       // Atualizar o estado com a URL retornada pelo backend
       setFormData((prev) => ({
         ...prev,
@@ -119,7 +119,8 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
       console.log(`Upload de ${type} realizado com sucesso:`, uploadResult);
     } catch (error: unknown) {
       console.error(`Erro ao fazer upload de ${type}:`, error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido";
       alert(`Erro ao fazer upload da imagem: ${errorMessage}`);
     } finally {
       if (type === "logo") {
@@ -183,7 +184,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
   if (isLoadingStore) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
         <span className="ml-2 text-gray-600">
           Carregando configurações visuais...
         </span>
@@ -243,8 +244,12 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   fill
                   className="object-cover"
                   unoptimized
-                  onError={() => setImageErrors(prev => ({ ...prev, banner: true }))}
-                  onLoad={() => setImageErrors(prev => ({ ...prev, banner: false }))}
+                  onError={() =>
+                    setImageErrors((prev) => ({ ...prev, banner: true }))
+                  }
+                  onLoad={() =>
+                    setImageErrors((prev) => ({ ...prev, banner: false }))
+                  }
                 />
               </div>
             )}
@@ -259,8 +264,12 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                     fill
                     className="rounded-lg object-cover"
                     unoptimized
-                    onError={() => setImageErrors(prev => ({ ...prev, logo: true }))}
-                    onLoad={() => setImageErrors(prev => ({ ...prev, logo: false }))}
+                    onError={() =>
+                      setImageErrors((prev) => ({ ...prev, logo: true }))
+                    }
+                    onLoad={() =>
+                      setImageErrors((prev) => ({ ...prev, logo: false }))
+                    }
                   />
                 </div>
               </div>
@@ -316,7 +325,9 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   <div className="relative w-24 h-24">
                     {imageErrors.logoPreview ? (
                       <div className="w-24 h-24 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-xs text-gray-500">Erro ao carregar</span>
+                        <span className="text-xs text-gray-500">
+                          Erro ao carregar
+                        </span>
                       </div>
                     ) : (
                       <Image
@@ -325,8 +336,18 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                         fill
                         className="rounded-lg object-cover border border-gray-200"
                         unoptimized
-                        onError={() => setImageErrors(prev => ({ ...prev, logoPreview: true }))}
-                        onLoad={() => setImageErrors(prev => ({ ...prev, logoPreview: false }))}
+                        onError={() =>
+                          setImageErrors((prev) => ({
+                            ...prev,
+                            logoPreview: true,
+                          }))
+                        }
+                        onLoad={() =>
+                          setImageErrors((prev) => ({
+                            ...prev,
+                            logoPreview: false,
+                          }))
+                        }
                       />
                     )}
                   </div>
@@ -347,7 +368,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                     }}
                     className="hidden"
                   />
-                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 transition-colors">
+                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-600">
                       {uploadingLogo
@@ -376,7 +397,9 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   <div className="relative w-full h-24">
                     {imageErrors.bannerPreview ? (
                       <div className="w-full h-24 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-xs text-gray-500">Erro ao carregar banner</span>
+                        <span className="text-xs text-gray-500">
+                          Erro ao carregar banner
+                        </span>
                       </div>
                     ) : (
                       <Image
@@ -385,8 +408,18 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                         fill
                         className="rounded-lg object-cover border border-gray-200"
                         unoptimized
-                        onError={() => setImageErrors(prev => ({ ...prev, bannerPreview: true }))}
-                        onLoad={() => setImageErrors(prev => ({ ...prev, bannerPreview: false }))}
+                        onError={() =>
+                          setImageErrors((prev) => ({
+                            ...prev,
+                            bannerPreview: true,
+                          }))
+                        }
+                        onLoad={() =>
+                          setImageErrors((prev) => ({
+                            ...prev,
+                            bannerPreview: false,
+                          }))
+                        }
                       />
                     )}
                   </div>
@@ -407,7 +440,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                     }}
                     className="hidden"
                   />
-                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 transition-colors">
+                  <div className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-600">
                       {uploadingBanner
@@ -451,7 +484,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   name="config.primaryColor"
                   value={formData.config?.primaryColor || "#FF6B35"}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="#FF6B35"
                 />
               </div>
@@ -479,7 +512,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   name="config.secondaryColor"
                   value={formData.config?.secondaryColor || "#2C3E50"}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="#2C3E50"
                 />
               </div>
@@ -507,7 +540,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   name="config.accentColor"
                   value={formData.config?.accentColor || "#E74C3C"}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="#E74C3C"
                 />
               </div>
@@ -535,7 +568,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   name="config.backgroundColor"
                   value={formData.config?.backgroundColor || "#FFFFFF"}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="#FFFFFF"
                 />
               </div>
@@ -563,7 +596,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   name="config.textColor"
                   value={formData.config?.textColor || "#2C3E50"}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="#2C3E50"
                 />
               </div>
@@ -579,7 +612,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
           <button
             type="button"
             onClick={resetToDefaults}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             Restaurar Padrões
           </button>
@@ -588,7 +621,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
             <button
               type="button"
               onClick={() => setIsPreviewMode(!isPreviewMode)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
               {isPreviewMode ? "Ocultar Preview" : "Ver Preview"}
             </button>
@@ -596,7 +629,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
             <button
               type="submit"
               disabled={updateStoreMutation.isPending}
-              className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateStoreMutation.isPending
                 ? "Salvando..."
@@ -616,8 +649,8 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
         )}
 
         {updateStoreMutation.isSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <p className="text-green-700 text-sm">
+          <div className="bg-purple-50 border border-purple-200 rounded-md p-4">
+            <p className="text-purple-700 text-sm">
               ✅ Configurações visuais atualizadas com sucesso!
             </p>
           </div>

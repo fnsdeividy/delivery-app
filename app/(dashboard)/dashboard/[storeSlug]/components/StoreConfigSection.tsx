@@ -1,6 +1,12 @@
 "use client";
 
-import { Gear, PencilSimple, Palette, Calendar, CreditCard } from "@phosphor-icons/react";
+import {
+  Calendar,
+  CreditCard,
+  Gear,
+  Palette,
+  PencilSimple,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 
 interface StoreConfigSectionProps {
@@ -19,12 +25,12 @@ export function StoreConfigSection({ storeSlug }: StoreConfigSectionProps) {
           href={`/dashboard/${storeSlug}/configuracoes`}
           className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
         >
-          <PencilSimple className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-blue-600 mr-1 sm:mr-1.5 md:mr-3 flex-shrink-0" />
+          <PencilSimple className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-600 mr-1 sm:mr-1.5 md:mr-3 flex-shrink-0" />
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-900">
-              Editar Info
+            <p className="text-xs font-medium text-gray-900">Editar Info</p>
+            <p className="text-[10px] sm:text-xs text-gray-600">
+              Nome, descrição
             </p>
-            <p className="text-[10px] sm:text-xs text-gray-600">Nome, descrição</p>
           </div>
         </Link>
         <Link
@@ -43,7 +49,7 @@ export function StoreConfigSection({ storeSlug }: StoreConfigSectionProps) {
           href={`/dashboard/${storeSlug}/configuracoes/horarios`}
           className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
         >
-          <Calendar className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
+          <Calendar className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-xs md:text-sm font-medium text-gray-900">
               Horários de Funcionamento
@@ -55,7 +61,7 @@ export function StoreConfigSection({ storeSlug }: StoreConfigSectionProps) {
           href={`/dashboard/${storeSlug}/configuracoes/pagamento`}
           className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
         >
-          <CreditCard className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-orange-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
+          <CreditCard className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-xs md:text-sm font-medium text-gray-900">
               Métodos de Pagamento

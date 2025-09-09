@@ -10,14 +10,16 @@ import {
   Storefront,
   User,
 } from "@phosphor-icons/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import SearchModal from "../../../../components/SearchModal";
 import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
 import { PhoneLoginModal } from "../../../../components/PhoneLoginModal";
+import SearchModal from "../../../../components/SearchModal";
+import { useCustomerContext } from "../../../../contexts/CustomerContext";
 import { useCart } from "../../../../hooks/useCart";
-import { useAuthContext } from "../../../../contexts/AuthContext";
+import { useStoreConfig } from "../../../../lib/store/useStoreConfig";
 import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
@@ -129,129 +131,22 @@ interface StoreData {
   };
 }
 
-export default function StorePage({ params }: PageProps) {
+function StorePageContent({ params }: PageProps) {
   const { storeSlug: slug } = params;
-  const [config, setConfig] = useState<StoreData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
   const [isPhoneLoginModalOpen, setIsPhoneLoginModalOpen] = useState(false);
 
-  const { user, loginByPhone } = useAuthContext();
+  const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
+  const { config, loading, error } = useStoreConfig(slug);
 
+  // Debug logs
   useEffect(() => {
-    const loadStoreData = async () => {
-      try {
-        console.log("Iniciando carregamento para slug:", slug);
-        setLoading(true);
-        setError(null);
-
-        // Simular dados para testar se o problema é no fetch
-        const mockData = {
-          store: {
-            id: "test-id",
-            name: "Loja de Exemplo",
-            slug: "loja-exemplo",
-            description: "Loja para testes",
-            active: true,
-            approved: true,
-            createdAt: "2023-01-01",
-            updatedAt: "2023-01-01"
-          },
-          config: {
-            branding: {
-              primaryColor: "#f97316",
-              secondaryColor: "#ea580c",
-              backgroundColor: "#ffffff",
-              textColor: "#000000",
-              accentColor: "#f59e0b"
-            }
-          },
-          products: [{
-            id: "1",
-            name: "X-Burger",
-            description: "Hambúrguer delicioso",
-            price: 18.9,
-            active: true,
-            categoryId: "cat1"
-          }],
-          categories: [{
-            id: "cat1",
-            name: "Lanches",
-            active: true
-          }],
-          status: { isOpen: true, reason: "Aberto" }
-        };
-
-        const data = mockData;
-
-        const storeData: StoreData = {
-          id: data.store.id,
-          name: data.store.name,
-          slug: data.store.slug,
-          description: data.store.description,
-          active: data.store.active,
-          approved: data.store.approved || false,
-          createdAt: data.store.createdAt,
-          updatedAt: data.store.updatedAt,
-          config: data.config || {},
-          menu: {
-            products: data.products || [],
-            categories: data.categories || [],
-          },
-          settings: {
-            preparationTime: data.config?.preparationTime || 30,
-            orderNotifications: data.config?.orderNotifications !== false,
-          },
-          delivery: {
-            fee: data.config?.deliveryFee || 0,
-            freeDeliveryMinimum: data.config?.minimumOrder || 0,
-            estimatedTime: data.config?.estimatedDeliveryTime || 30,
-            enabled: data.config?.deliveryEnabled !== false,
-          },
-          payments: {
-            pix: data.config?.paymentMethods?.includes("PIX") || false,
-            cash: data.config?.paymentMethods?.includes("DINHEIRO") || false,
-            card: data.config?.paymentMethods?.includes("CARTÃO") || false,
-          },
-          promotions: {
-            coupons: data.config?.coupons || [],
-          },
-          branding: {
-            logo: data.config?.logo || data.config?.branding?.logo || "",
-            favicon: data.config?.favicon || data.config?.branding?.favicon || "",
-            banner: data.config?.banner || data.config?.branding?.banner || "",
-            primaryColor: data.config?.branding?.primaryColor || "#f97316",
-            secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
-            backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
-            textColor: data.config?.branding?.textColor || "#000000",
-            accentColor: data.config?.branding?.accentColor || "#f59e0b",
-          },
-          schedule: {
-            timezone: "America/Sao_Paulo",
-            workingHours: data.config?.businessHours || {},
-          },
-          business: {
-            phone: data.config?.phone || "",
-            email: data.config?.email || "",
-            address: data.config?.address || "",
-          },
-          status: data.status || { isOpen: false, reason: "Indisponível" },
-        };
-
-        setConfig(storeData);
-      } catch (err) {
-        console.error(`Erro ao carregar loja:`, err);
-        setError(err instanceof Error ? err.message : "Erro desconhecido");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStoreData();
-  }, [slug]);
+    console.log("StorePage - config:", config);
+    console.log("StorePage - loading:", loading);
+    console.log("StorePage - error:", error);
+  }, [config, loading, error]);
 
   const isOpen = config?.status?.isOpen || false;
 
@@ -275,8 +170,9 @@ export default function StorePage({ params }: PageProps) {
     type: "success" | "error" = "success"
   ) => {
     const toast = document.createElement("div");
-    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${type === "success" ? "bg-green-500" : "bg-red-500"
-      }`;
+    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
+      type === "success" ? "bg-green-500" : "bg-red-500"
+    }`;
     toast.textContent = message;
 
     document.body.appendChild(toast);
@@ -324,7 +220,7 @@ export default function StorePage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando loja...</p>
         </div>
       </div>
@@ -347,7 +243,7 @@ export default function StorePage({ params }: PageProps) {
           <div className="space-y-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              className="inline-flex items-center justify-center w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Voltar ao início
             </Link>
@@ -375,7 +271,7 @@ export default function StorePage({ params }: PageProps) {
           </p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Voltar ao início
           </button>
@@ -385,6 +281,9 @@ export default function StorePage({ params }: PageProps) {
   }
 
   const primary = config?.branding?.primaryColor || "#f97316";
+
+  // Debug branding
+  console.log("Branding data:", config?.branding);
 
   return (
     <div
@@ -467,10 +366,15 @@ export default function StorePage({ params }: PageProps) {
                 </button>
               </div>
 
-              {user ? (
-                <div className="flex items-center space-x-2" style={{ color: primary }}>
+              {isLoggedIn && customer ? (
+                <div
+                  className="flex items-center space-x-2"
+                  style={{ color: primary }}
+                >
                   <User className="h-5 w-5" />
-                  <span className="hidden sm:block">Olá, {user.name || user.phone}</span>
+                  <span className="hidden sm:block">
+                    Olá, {customer.name || customer.phone}
+                  </span>
                 </div>
               ) : (
                 <button
@@ -494,10 +398,11 @@ export default function StorePage({ params }: PageProps) {
           <div className="flex items-center space-x-4 py-4 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory("todos")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${selectedCategory === "todos"
-                ? "text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                selectedCategory === "todos"
+                  ? "text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
               style={{
                 backgroundColor:
                   selectedCategory === "todos" ? primary : undefined,
@@ -526,10 +431,11 @@ export default function StorePage({ params }: PageProps) {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${selectedCategory === category.name
-                      ? "text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                      selectedCategory === category.name
+                        ? "text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                     style={{
                       backgroundColor:
                         selectedCategory === category.name
@@ -652,8 +558,8 @@ export default function StorePage({ params }: PageProps) {
                             {!isOpen
                               ? "Loja Fechada"
                               : isSoldOut
-                                ? "Indisponível"
-                                : "+ Adicionar"}
+                              ? "Indisponível"
+                              : "+ Adicionar"}
                           </button>
                         </div>
                       </div>
@@ -664,8 +570,9 @@ export default function StorePage({ params }: PageProps) {
                           <img
                             src={product.image}
                             alt={product.name}
-                            className={`w-full h-full object-cover transition-transform duration-300 ${isSoldOut ? "grayscale" : ""
-                              }`}
+                            className={`w-full h-full object-cover transition-transform duration-300 ${
+                              isSoldOut ? "grayscale" : ""
+                            }`}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = "none";
@@ -679,8 +586,9 @@ export default function StorePage({ params }: PageProps) {
 
                         {/* Placeholder para imagem ausente */}
                         <div
-                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${product.image ? "hidden" : "flex"
-                            }`}
+                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${
+                            product.image ? "hidden" : "flex"
+                          }`}
                           style={{ display: product.image ? "none" : "flex" }}
                         >
                           <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -771,7 +679,14 @@ export default function StorePage({ params }: PageProps) {
         onClose={() => setIsPhoneLoginModalOpen(false)}
         onSuccess={(authData) => {
           console.log("Login realizado com sucesso:", authData);
-          showToast(`Bem-vindo, ${authData.user.name || authData.user.phone}!`, "success");
+          // Usar o contexto de cliente para fazer login
+          if (authData.user) {
+            loginCustomer(authData.user.phone, authData.user.name);
+            showToast(
+              `Bem-vindo, ${authData.user.name || authData.user.phone}!`,
+              "success"
+            );
+          }
           setIsPhoneLoginModalOpen(false);
         }}
         storeSlug={slug}
@@ -779,3 +694,18 @@ export default function StorePage({ params }: PageProps) {
     </div>
   );
 }
+
+// Export usando dynamic para evitar problemas de hidratação
+const StorePage = dynamic(() => Promise.resolve(StorePageContent), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Carregando loja...</p>
+      </div>
+    </div>
+  ),
+});
+
+export default StorePage;
