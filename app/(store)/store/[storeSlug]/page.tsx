@@ -17,7 +17,7 @@ import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
 import { PhoneLoginModal } from "../../../../components/PhoneLoginModal";
 import SearchModal from "../../../../components/SearchModal";
-import { useAuthContext } from "../../../../contexts/AuthContext";
+import { useCustomerContext } from "../../../../contexts/CustomerContext";
 import { useCart } from "../../../../hooks/useCart";
 import { useStoreConfig } from "../../../../lib/store/useStoreConfig";
 import { Product } from "../../../../types/cardapio-api";
@@ -138,7 +138,7 @@ function StorePageContent({ params }: PageProps) {
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
   const [isPhoneLoginModalOpen, setIsPhoneLoginModalOpen] = useState(false);
 
-  const { user, loginByPhone } = useAuthContext();
+  const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const { config, loading, error } = useStoreConfig(slug);
 
   // Debug logs
@@ -220,7 +220,7 @@ function StorePageContent({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando loja...</p>
         </div>
       </div>
@@ -243,7 +243,7 @@ function StorePageContent({ params }: PageProps) {
           <div className="space-y-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              className="inline-flex items-center justify-center w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Voltar ao início
             </Link>
@@ -271,7 +271,7 @@ function StorePageContent({ params }: PageProps) {
           </p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Voltar ao início
           </button>
@@ -366,14 +366,14 @@ function StorePageContent({ params }: PageProps) {
                 </button>
               </div>
 
-              {user ? (
+              {isLoggedIn && customer ? (
                 <div
                   className="flex items-center space-x-2"
                   style={{ color: primary }}
                 >
                   <User className="h-5 w-5" />
                   <span className="hidden sm:block">
-                    Olá, {user.name || user.phone}
+                    Olá, {customer.name || customer.phone}
                   </span>
                 </div>
               ) : (
@@ -679,10 +679,14 @@ function StorePageContent({ params }: PageProps) {
         onClose={() => setIsPhoneLoginModalOpen(false)}
         onSuccess={(authData) => {
           console.log("Login realizado com sucesso:", authData);
-          showToast(
-            `Bem-vindo, ${authData.user.name || authData.user.phone}!`,
-            "success"
-          );
+          // Usar o contexto de cliente para fazer login
+          if (authData.user) {
+            loginCustomer(authData.user.phone, authData.user.name);
+            showToast(
+              `Bem-vindo, ${authData.user.name || authData.user.phone}!`,
+              "success"
+            );
+          }
           setIsPhoneLoginModalOpen(false);
         }}
         storeSlug={slug}
@@ -697,7 +701,7 @@ const StorePage = dynamic(() => Promise.resolve(StorePageContent), {
   loading: () => (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="text-center">
-        <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gray-600">Carregando loja...</p>
       </div>
     </div>

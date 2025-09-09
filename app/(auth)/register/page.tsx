@@ -17,7 +17,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
             <Storefront className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -33,8 +33,8 @@ export default function RegisterPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Storefront className="w-8 h-8 text-orange-600" />
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Storefront className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Aguarde um momento

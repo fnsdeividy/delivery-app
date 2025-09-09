@@ -1,6 +1,7 @@
 "use client";
 
 import { CartProvider } from "../../contexts/CartContext";
+import { CustomerProvider } from "../../contexts/CustomerContext";
 import { usePathname } from 'next/navigation';
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
@@ -16,8 +17,10 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   }
   
   return (
-    <CartProvider storeSlugParam={storeSlug}>
-      {children}
-    </CartProvider>
+    <CustomerProvider>
+      <CartProvider storeSlugParam={storeSlug}>
+        {children}
+      </CartProvider>
+    </CustomerProvider>
   );
 }

@@ -173,7 +173,7 @@ export default function PedidosPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando pedidos...</p>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function PedidosPage() {
         </div>
         <button
           onClick={() => refetchOrders()}
-          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center space-x-2"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center space-x-2"
         >
           <ArrowsClockwise className="h-4 w-4" />
           <span>Atualizar</span>
@@ -201,7 +201,7 @@ export default function PedidosPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <Package className="h-8 w-8 text-blue-500" />
+            <Package className="h-8 w-8 text-purple-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Total</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -235,7 +235,7 @@ export default function PedidosPage() {
 
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <CurrencyDollar className="h-8 w-8 text-green-500" />
+            <CurrencyDollar className="h-8 w-8 text-purple-500" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Receita</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -261,7 +261,7 @@ export default function PedidosPage() {
                 placeholder="Buscar por cliente, telefone ou ID do pedido..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function PedidosPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">Todos os status</option>
               <option value="pending">Pendente</option>
@@ -285,7 +285,7 @@ export default function PedidosPage() {
             <select
               value={selectedPaymentStatus}
               onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">Todos os pagamentos</option>
               <option value="pending">Pendente</option>
@@ -334,7 +334,7 @@ export default function PedidosPage() {
                       setSelectedOrder(order);
                       setShowOrderDetails(true);
                     }}
-                    className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                    className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                   >
                     Ver Detalhes
                   </button>
@@ -417,7 +417,7 @@ export default function PedidosPage() {
                         onClick={() =>
                           handleStatusUpdate(order.id, OrderStatus.PREPARING)
                         }
-                        className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700"
+                        className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
                       >
                         Preparar
                       </button>

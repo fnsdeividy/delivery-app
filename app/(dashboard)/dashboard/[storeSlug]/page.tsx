@@ -109,7 +109,7 @@ export default function DashboardPage() {
           </p>
           <Link
             href="/dashboard/gerenciar-lojas"
-            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm md:text-base"
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm md:text-base"
           >
             Voltar para Gerenciar Lojas
           </Link>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
             <li className="inline-flex items-center">
               <Link
                 href="/dashboard/gerenciar-lojas"
-                className="inline-flex items-center text-xs sm:text-xs md:text-sm font-medium text-gray-700 hover:text-blue-600"
+                className="inline-flex items-center text-xs sm:text-xs md:text-sm font-medium text-gray-700 hover:text-purple-600"
               >
                 Dashboard
               </Link>

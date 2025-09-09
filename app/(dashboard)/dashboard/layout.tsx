@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </p>
           <button
             onClick={() => router.push("/dashboard/gerenciar-lojas")}
-            className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Voltar para Gerenciar Lojas
           </button>
@@ -312,7 +312,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <item.icon
                       className={`mr-3 h-5 w-5 ${
                         item.current
-                          ? "text-blue-500"
+                          ? "text-purple-500"
                           : "text-gray-400 group-hover:text-gray-500"
                       }`}
                     />
@@ -328,13 +328,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           href={child.href}
                           className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                             child.current
-                              ? "bg-blue-50 text-blue-700"
+                              ? "bg-purple-50 text-purple-700"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                           }`}
                         >
                           <child.icon
                             className={`mr-3 h-4 w-4 ${
-                              child.current ? "text-blue-500" : "text-gray-400"
+                              child.current
+                                ? "text-purple-500"
+                                : "text-gray-400"
                             }`}
                           />
                           {child.name}
@@ -438,7 +440,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   href={`/loja/${slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   <Truck className="h-4 w-4 mr-2" />
                   Ver Loja
