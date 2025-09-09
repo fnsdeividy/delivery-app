@@ -1,59 +1,51 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useIfoodConfig } from '@/hooks/useIfoodConfig';
+import { useIfoodConfig } from "@/hooks/useIfoodConfig";
 import {
-  IfoodConfig,
-  IfoodIntegrationType,
-  IFOOD_INTEGRATION_TYPE_LABELS,
   IFOOD_INTEGRATION_TYPE_DESCRIPTIONS,
-  DEFAULT_IFOOD_CONFIG,
-} from '@/types/ifood';
+  IFOOD_INTEGRATION_TYPE_LABELS,
+  IfoodConfigFormData,
+  IfoodIntegrationType,
+} from "@/types/ifood";
 import {
-  ForkKnife,
-  Gear,
-  FloppyDisk,
   ArrowClockwise,
   CheckCircle,
-  XCircle,
-  Warning,
+  FloppyDisk,
+  ForkKnife,
+  Gear,
   Info,
   Package,
   ShoppingCart,
-  Clock,
-  CurrencyDollar,
-  MapPin,
-  Phone,
-  Envelope,
-  IdentificationCard,
-  Globe
-} from '@phosphor-icons/react';
+  Warning,
+  XCircle,
+} from "@phosphor-icons/react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const tabs = [
   {
-    id: 'config',
-    label: 'Configurações',
+    id: "config",
+    label: "Configurações",
     icon: Gear,
   },
   {
-    id: 'menu',
-    label: 'Configurações de Menu',
+    id: "menu",
+    label: "Configurações de Menu",
     icon: ForkKnife,
   },
   {
-    id: 'orders',
-    label: 'Configurações de Pedidos',
+    id: "orders",
+    label: "Configurações de Pedidos",
     icon: ShoppingCart,
   },
   {
-    id: 'sync',
-    label: 'Sincronização',
+    id: "sync",
+    label: "Sincronização",
     icon: ArrowClockwise,
   },
   {
-    id: 'test',
-    label: 'Teste de Conexão',
+    id: "test",
+    label: "Teste de Conexão",
     icon: CheckCircle,
   },
 ];
@@ -77,10 +69,49 @@ export default function IfoodConfigPage() {
     clearError,
   } = useIfoodConfig();
 
-  const [activeTab, setActiveTab] = useState('config');
-  const [formData, setFormData] = useState<IfoodConfig>(DEFAULT_IFOOD_CONFIG);
+  const [activeTab, setActiveTab] = useState("config");
+  const [formData, setFormData] = useState<IfoodConfigFormData>({
+    integrationType: IfoodIntegrationType.DISABLED,
+    clientId: "",
+    clientSecret: "",
+    merchantId: "",
+    storeId: "",
+    webhookUrl: "",
+    webhookSecret: "",
+    sandboxMode: true,
+    businessName: "",
+    businessAddress: "",
+    businessPhone: "",
+    businessEmail: "",
+    cnpj: "",
+    operatingHours: "",
+    active: false,
+    menu: {
+      autoSync: true,
+      syncInterval: 30,
+      syncPrices: true,
+      syncAvailability: true,
+      syncCategories: true,
+      excludedCategories: [],
+      excludedProducts: [],
+    },
+    orders: {
+      autoAccept: false,
+      autoConfirm: false,
+      maxPreparationTime: 45,
+      maxDeliveryTime: 60,
+      syncOrderStatus: true,
+      sendNotifications: true,
+      acceptedPaymentMethods: ["CREDIT_CARD", "DEBIT_CARD", "PIX", "CASH"],
+      minimumOrderValue: 0,
+      deliveryFee: 0,
+    },
+  });
   const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [syncStatus, setSyncStatus] = useState<any>(null);
 
   useEffect(() => {
@@ -92,7 +123,44 @@ export default function IfoodConfigPage() {
 
   useEffect(() => {
     if (config) {
-      setFormData(config);
+      setFormData({
+        integrationType:
+          config.integrationType || IfoodIntegrationType.DISABLED,
+        clientId: config.clientId || "",
+        clientSecret: config.clientSecret || "",
+        merchantId: config.merchantId || "",
+        storeId: config.storeId || "",
+        webhookUrl: config.webhookUrl || "",
+        webhookSecret: config.webhookSecret || "",
+        sandboxMode: config.sandboxMode ?? true,
+        businessName: config.businessName || "",
+        businessAddress: config.businessAddress || "",
+        businessPhone: config.businessPhone || "",
+        businessEmail: config.businessEmail || "",
+        cnpj: config.cnpj || "",
+        operatingHours: config.operatingHours || "",
+        active: config.active ?? false,
+        menu: config.menu || {
+          autoSync: true,
+          syncInterval: 30,
+          syncPrices: true,
+          syncAvailability: true,
+          syncCategories: true,
+          excludedCategories: [],
+          excludedProducts: [],
+        },
+        orders: config.orders || {
+          autoAccept: false,
+          autoConfirm: false,
+          maxPreparationTime: 45,
+          maxDeliveryTime: 60,
+          syncOrderStatus: true,
+          sendNotifications: true,
+          acceptedPaymentMethods: ["CREDIT_CARD", "DEBIT_CARD", "PIX", "CASH"],
+          minimumOrderValue: 0,
+          deliveryFee: 0,
+        },
+      });
     }
   }, [config]);
 
@@ -101,28 +169,34 @@ export default function IfoodConfigPage() {
     setSyncStatus(status?.data);
   };
 
-  const handleInputChange = (field: keyof IfoodConfig, value: any) => {
-    setFormData(prev => ({
+  const handleInputChange = (field: keyof IfoodConfigFormData, value: any) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleMenuConfigChange = (field: keyof typeof formData.menu, value: any) => {
-    setFormData(prev => ({
+  const handleMenuConfigChange = (
+    field: keyof IfoodConfigFormData["menu"],
+    value: any
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       menu: {
-        ...prev.menu!,
+        ...prev.menu,
         [field]: value,
       },
     }));
   };
 
-  const handleOrderConfigChange = (field: keyof typeof formData.orders, value: any) => {
-    setFormData(prev => ({
+  const handleOrderConfigChange = (
+    field: keyof IfoodConfigFormData["orders"],
+    value: any
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       orders: {
-        ...prev.orders!,
+        ...prev.orders,
         [field]: value,
       },
     }));
@@ -169,18 +243,38 @@ export default function IfoodConfigPage() {
 
   const getStatusBadge = () => {
     if (!syncStatus?.active) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Desabilitado</span>;
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Desabilitado
+        </span>
+      );
     }
 
     switch (syncStatus.syncStatus) {
-      case 'success':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Ativo</span>;
-      case 'error':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Erro</span>;
-      case 'syncing':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Sincronizando</span>;
+      case "success":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            Ativo
+          </span>
+        );
+      case "error":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Erro
+          </span>
+        );
+      case "syncing":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            Sincronizando
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Desconhecido</span>;
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            Desconhecido
+          </span>
+        );
     }
   };
 
@@ -207,7 +301,8 @@ export default function IfoodConfigPage() {
                 Integração iFood
               </h1>
               <p className="mt-2 text-gray-600">
-                Configure a integração com o iFood para sincronizar seu menu e receber pedidos automaticamente.
+                Configure a integração com o iFood para sincronizar seu menu e
+                receber pedidos automaticamente.
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -217,7 +312,9 @@ export default function IfoodConfigPage() {
                 disabled={isLoading}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                <ArrowClockwise className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <ArrowClockwise
+                  className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                />
                 Atualizar
               </button>
             </div>
@@ -226,12 +323,15 @@ export default function IfoodConfigPage() {
 
         {/* Mensagens */}
         {message && (
-          <div className={`mb-6 p-4 rounded-md ${message.type === 'success'
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-red-50 border border-red-200 text-red-800'
-            }`}>
+          <div
+            className={`mb-6 p-4 rounded-md ${
+              message.type === "success"
+                ? "bg-green-50 border border-green-200 text-green-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            }`}
+          >
             <div className="flex">
-              {message.type === 'success' ? (
+              {message.type === "success" ? (
                 <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
               ) : (
                 <XCircle className="h-5 w-5 text-red-400 mr-2" />
@@ -251,10 +351,11 @@ export default function IfoodConfigPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
+                    className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                   >
                     <Icon className="h-4 w-4" />
                     {tab.label}
@@ -268,9 +369,11 @@ export default function IfoodConfigPage() {
         {/* Tab Content */}
         <div className="bg-white shadow rounded-lg">
           {/* Configurações Gerais */}
-          {activeTab === 'config' && (
+          {activeTab === "config" && (
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Configurações Gerais</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">
+                Configurações Gerais
+              </h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Tipo de Integração */}
@@ -280,7 +383,9 @@ export default function IfoodConfigPage() {
                     </label>
                     <select
                       value={formData.integrationType}
-                      onChange={(e) => handleInputChange('integrationType', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("integrationType", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
                       {Object.values(IfoodIntegrationType).map((type) => (
@@ -290,7 +395,10 @@ export default function IfoodConfigPage() {
                       ))}
                     </select>
                     <p className="mt-1 text-sm text-gray-500">
-                      {formData.integrationType && IFOOD_INTEGRATION_TYPE_DESCRIPTIONS[formData.integrationType]}
+                      {formData.integrationType &&
+                        IFOOD_INTEGRATION_TYPE_DESCRIPTIONS[
+                          formData.integrationType
+                        ]}
                     </p>
                   </div>
 
@@ -300,10 +408,15 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="sandboxMode"
                       checked={formData.sandboxMode}
-                      onChange={(e) => handleInputChange('sandboxMode', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange("sandboxMode", e.target.checked)
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="sandboxMode" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="sandboxMode"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Modo Sandbox (Teste)
                     </label>
                   </div>
@@ -317,8 +430,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.clientId || ''}
-                      onChange={(e) => handleInputChange('clientId', e.target.value)}
+                      value={formData.clientId || ""}
+                      onChange={(e) =>
+                        handleInputChange("clientId", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seu Client ID do iFood"
                       required
@@ -332,8 +447,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="password"
-                      value={formData.clientSecret || ''}
-                      onChange={(e) => handleInputChange('clientSecret', e.target.value)}
+                      value={formData.clientSecret || ""}
+                      onChange={(e) =>
+                        handleInputChange("clientSecret", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seu Client Secret do iFood"
                       required
@@ -349,8 +466,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.merchantId || ''}
-                      onChange={(e) => handleInputChange('merchantId', e.target.value)}
+                      value={formData.merchantId || ""}
+                      onChange={(e) =>
+                        handleInputChange("merchantId", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seu Merchant ID do iFood"
                       required
@@ -364,8 +483,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.storeId || ''}
-                      onChange={(e) => handleInputChange('storeId', e.target.value)}
+                      value={formData.storeId || ""}
+                      onChange={(e) =>
+                        handleInputChange("storeId", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="ID da sua loja no iFood"
                       required
@@ -381,8 +502,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="url"
-                      value={formData.webhookUrl || ''}
-                      onChange={(e) => handleInputChange('webhookUrl', e.target.value)}
+                      value={formData.webhookUrl || ""}
+                      onChange={(e) =>
+                        handleInputChange("webhookUrl", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="https://seudominio.com/api/webhook/ifood"
                     />
@@ -395,8 +518,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="password"
-                      value={formData.webhookSecret || ''}
-                      onChange={(e) => handleInputChange('webhookSecret', e.target.value)}
+                      value={formData.webhookSecret || ""}
+                      onChange={(e) =>
+                        handleInputChange("webhookSecret", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Secret para validar webhooks"
                     />
@@ -411,8 +536,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.businessName || ''}
-                      onChange={(e) => handleInputChange('businessName', e.target.value)}
+                      value={formData.businessName || ""}
+                      onChange={(e) =>
+                        handleInputChange("businessName", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Nome da sua empresa"
                     />
@@ -425,8 +552,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.cnpj || ''}
-                      onChange={(e) => handleInputChange('cnpj', e.target.value)}
+                      value={formData.cnpj || ""}
+                      onChange={(e) =>
+                        handleInputChange("cnpj", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="00.000.000/0000-00"
                     />
@@ -441,8 +570,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.businessAddress || ''}
-                      onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                      value={formData.businessAddress || ""}
+                      onChange={(e) =>
+                        handleInputChange("businessAddress", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Endereço completo"
                     />
@@ -455,8 +586,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="tel"
-                      value={formData.businessPhone || ''}
-                      onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+                      value={formData.businessPhone || ""}
+                      onChange={(e) =>
+                        handleInputChange("businessPhone", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="(11) 99999-9999"
                     />
@@ -471,8 +604,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="email"
-                      value={formData.businessEmail || ''}
-                      onChange={(e) => handleInputChange('businessEmail', e.target.value)}
+                      value={formData.businessEmail || ""}
+                      onChange={(e) =>
+                        handleInputChange("businessEmail", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="seu@email.com"
                     />
@@ -485,8 +620,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.operatingHours || ''}
-                      onChange={(e) => handleInputChange('operatingHours', e.target.value)}
+                      value={formData.operatingHours || ""}
+                      onChange={(e) =>
+                        handleInputChange("operatingHours", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seg-Sex: 10h-22h, Sáb-Dom: 11h-23h"
                     />
@@ -499,10 +636,15 @@ export default function IfoodConfigPage() {
                     type="checkbox"
                     id="active"
                     checked={formData.active}
-                    onChange={(e) => handleInputChange('active', e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange("active", e.target.checked)
+                    }
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                  <label
+                    htmlFor="active"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
                     Ativar integração
                   </label>
                 </div>
@@ -514,7 +656,7 @@ export default function IfoodConfigPage() {
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
                     <FloppyDisk className="h-4 w-4 mr-2" />
-                    {isLoading ? 'Salvando...' : 'Salvar Configurações'}
+                    {isLoading ? "Salvando..." : "Salvar Configurações"}
                   </button>
                 </div>
               </form>
@@ -522,9 +664,11 @@ export default function IfoodConfigPage() {
           )}
 
           {/* Configurações de Menu */}
-          {activeTab === 'menu' && (
+          {activeTab === "menu" && (
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Configurações de Menu</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">
+                Configurações de Menu
+              </h3>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Sincronização Automática */}
@@ -533,10 +677,15 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="menuAutoSync"
                       checked={formData.menu?.autoSync}
-                      onChange={(e) => handleMenuConfigChange('autoSync', e.target.checked)}
+                      onChange={(e) =>
+                        handleMenuConfigChange("autoSync", e.target.checked)
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="menuAutoSync" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="menuAutoSync"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Sincronização automática
                     </label>
                   </div>
@@ -551,7 +700,12 @@ export default function IfoodConfigPage() {
                       min="5"
                       max="1440"
                       value={formData.menu?.syncInterval || 30}
-                      onChange={(e) => handleMenuConfigChange('syncInterval', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleMenuConfigChange(
+                          "syncInterval",
+                          parseInt(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -564,10 +718,15 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="syncPrices"
                       checked={formData.menu?.syncPrices}
-                      onChange={(e) => handleMenuConfigChange('syncPrices', e.target.checked)}
+                      onChange={(e) =>
+                        handleMenuConfigChange("syncPrices", e.target.checked)
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="syncPrices" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="syncPrices"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Sincronizar preços
                     </label>
                   </div>
@@ -578,10 +737,18 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="syncAvailability"
                       checked={formData.menu?.syncAvailability}
-                      onChange={(e) => handleMenuConfigChange('syncAvailability', e.target.checked)}
+                      onChange={(e) =>
+                        handleMenuConfigChange(
+                          "syncAvailability",
+                          e.target.checked
+                        )
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="syncAvailability" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="syncAvailability"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Sincronizar disponibilidade
                     </label>
                   </div>
@@ -594,10 +761,18 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="syncCategories"
                       checked={formData.menu?.syncCategories}
-                      onChange={(e) => handleMenuConfigChange('syncCategories', e.target.checked)}
+                      onChange={(e) =>
+                        handleMenuConfigChange(
+                          "syncCategories",
+                          e.target.checked
+                        )
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="syncCategories" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="syncCategories"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Sincronizar categorias
                     </label>
                   </div>
@@ -618,9 +793,11 @@ export default function IfoodConfigPage() {
           )}
 
           {/* Configurações de Pedidos */}
-          {activeTab === 'orders' && (
+          {activeTab === "orders" && (
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Configurações de Pedidos</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">
+                Configurações de Pedidos
+              </h3>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Aceitar Automaticamente */}
@@ -629,10 +806,15 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="autoAccept"
                       checked={formData.orders?.autoAccept}
-                      onChange={(e) => handleOrderConfigChange('autoAccept', e.target.checked)}
+                      onChange={(e) =>
+                        handleOrderConfigChange("autoAccept", e.target.checked)
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="autoAccept" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="autoAccept"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Aceitar pedidos automaticamente
                     </label>
                   </div>
@@ -643,10 +825,15 @@ export default function IfoodConfigPage() {
                       type="checkbox"
                       id="autoConfirm"
                       checked={formData.orders?.autoConfirm}
-                      onChange={(e) => handleOrderConfigChange('autoConfirm', e.target.checked)}
+                      onChange={(e) =>
+                        handleOrderConfigChange("autoConfirm", e.target.checked)
+                      }
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="autoConfirm" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="autoConfirm"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       Confirmar pedidos automaticamente
                     </label>
                   </div>
@@ -662,7 +849,12 @@ export default function IfoodConfigPage() {
                       type="number"
                       min="5"
                       value={formData.orders?.maxPreparationTime || 45}
-                      onChange={(e) => handleOrderConfigChange('maxPreparationTime', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleOrderConfigChange(
+                          "maxPreparationTime",
+                          parseInt(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -676,7 +868,12 @@ export default function IfoodConfigPage() {
                       type="number"
                       min="10"
                       value={formData.orders?.maxDeliveryTime || 60}
-                      onChange={(e) => handleOrderConfigChange('maxDeliveryTime', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleOrderConfigChange(
+                          "maxDeliveryTime",
+                          parseInt(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -693,7 +890,12 @@ export default function IfoodConfigPage() {
                       min="0"
                       step="0.01"
                       value={formData.orders?.minimumOrderValue || 0}
-                      onChange={(e) => handleOrderConfigChange('minimumOrderValue', parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        handleOrderConfigChange(
+                          "minimumOrderValue",
+                          parseFloat(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -708,7 +910,12 @@ export default function IfoodConfigPage() {
                       min="0"
                       step="0.01"
                       value={formData.orders?.deliveryFee || 0}
-                      onChange={(e) => handleOrderConfigChange('deliveryFee', parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        handleOrderConfigChange(
+                          "deliveryFee",
+                          parseFloat(e.target.value)
+                        )
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -729,26 +936,34 @@ export default function IfoodConfigPage() {
           )}
 
           {/* Sincronização */}
-          {activeTab === 'sync' && (
+          {activeTab === "sync" && (
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Sincronização</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">
+                Sincronização
+              </h3>
 
               {/* Status da Sincronização */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Status da Sincronização</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                  Status da Sincronização
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center">
                     <Package className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Última sincronização:</span>
+                    <span className="text-sm text-gray-600">
+                      Última sincronização:
+                    </span>
                     <span className="ml-2 text-sm font-medium text-gray-900">
-                      {syncStatus?.lastSync ? new Date(syncStatus.lastSync).toLocaleString('pt-BR') : 'Nunca'}
+                      {syncStatus?.lastSync
+                        ? new Date(syncStatus.lastSync).toLocaleString("pt-BR")
+                        : "Nunca"}
                     </span>
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-gray-400 mr-2" />
                     <span className="text-sm text-gray-600">Status:</span>
                     <span className="ml-2 text-sm font-medium text-gray-900">
-                      {syncStatus?.syncStatus || 'Desconhecido'}
+                      {syncStatus?.syncStatus || "Desconhecido"}
                     </span>
                   </div>
                 </div>
@@ -760,8 +975,12 @@ export default function IfoodConfigPage() {
                   <div className="flex items-center">
                     <ForkKnife className="h-6 w-6 text-blue-500 mr-3" />
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Sincronizar Menu</h4>
-                      <p className="text-sm text-gray-500">Envia produtos e categorias para o iFood</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Sincronizar Menu
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Envia produtos e categorias para o iFood
+                      </p>
                     </div>
                   </div>
                   <button
@@ -769,7 +988,11 @@ export default function IfoodConfigPage() {
                     disabled={isLoading}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <ArrowClockwise className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    <ArrowClockwise
+                      className={`h-4 w-4 mr-2 ${
+                        isLoading ? "animate-spin" : ""
+                      }`}
+                    />
                     Sincronizar
                   </button>
                 </div>
@@ -778,8 +1001,12 @@ export default function IfoodConfigPage() {
                   <div className="flex items-center">
                     <ShoppingCart className="h-6 w-6 text-green-500 mr-3" />
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Sincronizar Pedidos</h4>
-                      <p className="text-sm text-gray-500">Busca novos pedidos do iFood</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Sincronizar Pedidos
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Busca novos pedidos do iFood
+                      </p>
                     </div>
                   </div>
                   <button
@@ -787,7 +1014,11 @@ export default function IfoodConfigPage() {
                     disabled={isLoading}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                   >
-                    <ArrowClockwise className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    <ArrowClockwise
+                      className={`h-4 w-4 mr-2 ${
+                        isLoading ? "animate-spin" : ""
+                      }`}
+                    />
                     Sincronizar
                   </button>
                 </div>
@@ -799,7 +1030,11 @@ export default function IfoodConfigPage() {
                   <Info className="h-5 w-5 text-blue-400 mr-2" />
                   <div className="text-sm text-blue-700">
                     <p className="font-medium">Dica:</p>
-                    <p>A sincronização automática acontece a cada {formData.menu?.syncInterval || 30} minutos quando ativada.</p>
+                    <p>
+                      A sincronização automática acontece a cada{" "}
+                      {formData.menu?.syncInterval || 30} minutos quando
+                      ativada.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -807,14 +1042,19 @@ export default function IfoodConfigPage() {
           )}
 
           {/* Teste de Conexão */}
-          {activeTab === 'test' && (
+          {activeTab === "test" && (
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Teste de Conexão</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">
+                Teste de Conexão
+              </h3>
 
               <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Configurações para Teste</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                  Configurações para Teste
+                </h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Use as configurações salvas ou preencha campos específicos para testar a conexão com o iFood.
+                  Use as configurações salvas ou preencha campos específicos
+                  para testar a conexão com o iFood.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -824,8 +1064,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={formData.clientId || ''}
-                      onChange={(e) => handleInputChange('clientId', e.target.value)}
+                      value={formData.clientId || ""}
+                      onChange={(e) =>
+                        handleInputChange("clientId", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Client ID para teste"
                     />
@@ -836,8 +1078,10 @@ export default function IfoodConfigPage() {
                     </label>
                     <input
                       type="password"
-                      value={formData.clientSecret || ''}
-                      onChange={(e) => handleInputChange('clientSecret', e.target.value)}
+                      value={formData.clientSecret || ""}
+                      onChange={(e) =>
+                        handleInputChange("clientSecret", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Client Secret para teste"
                     />
@@ -846,20 +1090,25 @@ export default function IfoodConfigPage() {
 
                 <button
                   onClick={handleTestConnection}
-                  disabled={isTesting || !formData.clientId || !formData.clientSecret}
+                  disabled={
+                    isTesting || !formData.clientId || !formData.clientSecret
+                  }
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  {isTesting ? 'Testando...' : 'Testar Conexão'}
+                  {isTesting ? "Testando..." : "Testar Conexão"}
                 </button>
               </div>
 
               {/* Resultado do Teste */}
               {testResult && (
-                <div className={`p-4 rounded-md ${testResult.success
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
-                  }`}>
+                <div
+                  className={`p-4 rounded-md ${
+                    testResult.success
+                      ? "bg-green-50 border border-green-200 text-green-800"
+                      : "bg-red-50 border border-red-200 text-red-800"
+                  }`}
+                >
                   <div className="flex">
                     {testResult.success ? (
                       <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
@@ -868,7 +1117,9 @@ export default function IfoodConfigPage() {
                     )}
                     <div>
                       <p className="font-medium">
-                        {testResult.success ? 'Conexão bem-sucedida!' : 'Falha na conexão'}
+                        {testResult.success
+                          ? "Conexão bem-sucedida!"
+                          : "Falha na conexão"}
                       </p>
                       <p className="text-sm mt-1">{testResult.message}</p>
                     </div>
@@ -882,7 +1133,10 @@ export default function IfoodConfigPage() {
                   <Warning className="h-5 w-5 text-yellow-400 mr-2" />
                   <div className="text-sm text-yellow-700">
                     <p className="font-medium">Importante:</p>
-                    <p>O teste verifica se as credenciais estão corretas e se é possível conectar com a API do iFood.</p>
+                    <p>
+                      O teste verifica se as credenciais estão corretas e se é
+                      possível conectar com a API do iFood.
+                    </p>
                   </div>
                 </div>
               </div>
