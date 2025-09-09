@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { RegisterLojaFormData } from "@/lib/validation/schemas";
+import { useState } from "react";
 
 // Interface para resposta da API ViaCEP
 interface ViaCepResponse {
@@ -39,8 +39,8 @@ export function useRegistrationForm() {
 
     // Configurações iniciais
     deliveryEnabled: true,
-    deliveryFee: "5.00",
-    minimumOrder: "20.00",
+    deliveryFee: 5.0,
+    minimumOrder: 20.0,
   });
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
