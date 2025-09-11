@@ -24,17 +24,25 @@ import { useState } from "react";
 export default function HomePage() {
   const [isAnnual, setIsAnnual] = useState(false);
 
-  // Preços dos planos
+  // Preços e links dos planos
   const pricing = {
     basic: {
       monthly: 49.90,
       annual: 39.90,
       annualTotal: 478.80,
+      links: {
+        monthly: "https://www.asaas.com/c/xi1hxswf6w4byiyb",
+        annual: "https://www.asaas.com/c/puok12mozv54zzpj"
+      }
     },
     pro: {
       monthly: 69.90,
       annual: 55.90,
       annualTotal: 670.80,
+      links: {
+        monthly: "https://www.asaas.com/c/yzh10w61k2ykli4b",
+        annual: "https://www.asaas.com/c/hx2w5fkrupvwsouj"
+      }
     }
   };
 
@@ -109,7 +117,9 @@ export default function HomePage() {
                 className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4"
               >
                 <Link
-                  href="/register/loja"
+                  href={pricing.basic.links.monthly}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   ➕ Criar Minha Loja
@@ -370,8 +380,8 @@ export default function HomePage() {
                   <button
                     onClick={() => setIsAnnual(false)}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${!isAnnual
-                        ? 'text-blue-600 bg-blue-50 shadow-sm'
-                        : 'text-gray-700 bg-white hover:bg-gray-50'
+                      ? 'text-blue-600 bg-blue-50 shadow-sm'
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
                       }`}
                   >
                     Mensal
@@ -379,8 +389,8 @@ export default function HomePage() {
                   <button
                     onClick={() => setIsAnnual(true)}
                     className={`px-4 py-2 text-sm font-medium rounded-md relative transition-all duration-200 ${isAnnual
-                        ? 'text-blue-600 bg-blue-50 shadow-sm'
-                        : 'text-gray-700 bg-white hover:bg-gray-50'
+                      ? 'text-blue-600 bg-blue-50 shadow-sm'
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
                       }`}
                   >
                     Anual
@@ -475,7 +485,9 @@ export default function HomePage() {
                   </div>
 
                   <Link
-                    href="/register/loja"
+                    href={isAnnual ? pricing.basic.links.annual : pricing.basic.links.monthly}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="block w-full bg-gray-900 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     Comece agora
@@ -583,7 +595,9 @@ export default function HomePage() {
                   </div>
 
                   <Link
-                    href="/register/loja"
+                    href={isAnnual ? pricing.pro.links.annual : pricing.pro.links.monthly}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="block w-full bg-white text-blue-600 text-center py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     Assine hoje mesmo
@@ -673,7 +687,9 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4"
           >
             <Link
-              href="/register/loja"
+              href={pricing.pro.links.monthly}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               Criar Minha Loja
