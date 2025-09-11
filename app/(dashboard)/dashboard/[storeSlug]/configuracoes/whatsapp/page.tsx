@@ -2,25 +2,21 @@
 
 import { useWhatsAppConfig } from "@/hooks";
 import {
+  DEFAULT_WHATSAPP_TEMPLATES,
+  WHATSAPP_MESSAGE_TYPE_DESCRIPTIONS,
+  WHATSAPP_MESSAGE_TYPE_LABELS,
   WhatsAppConfig,
   WhatsAppMessageType,
-  WHATSAPP_MESSAGE_TYPE_LABELS,
-  WHATSAPP_MESSAGE_TYPE_DESCRIPTIONS,
-  DEFAULT_WHATSAPP_TEMPLATES,
 } from "@/types/whatsapp";
 import {
+  ChatCircle,
   CheckCircle,
-  DeviceMobile,
   Eye,
   EyeSlash,
-  Info,
-  ChatCircle,
-  Phone,
-  Plus,
   FloppyDisk,
   Gear,
+  Phone,
   TestTube,
-  Trash,
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
@@ -32,31 +28,37 @@ export default function WhatsAppConfigPage() {
   const router = useRouter();
   const storeSlug = params?.storeSlug as string;
 
-  const { config, loading, error, updateConfig, testConnection, getTemplates } = useWhatsAppConfig(storeSlug);
+  const { config, loading, error, updateConfig, testConnection, getTemplates } =
+    useWhatsAppConfig(storeSlug);
 
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [showSecrets, setShowSecrets] = useState(false);
-  const [activeTab, setActiveTab] = useState<'config' | 'templates' | 'test'>('config');
+  const [activeTab, setActiveTab] = useState<"config" | "templates" | "test">(
+    "config"
+  );
 
   const [formData, setFormData] = useState<WhatsAppConfig>({
     enabled: false,
-    phoneNumber: '',
-    businessAccountId: '',
-    accessToken: '',
-    webhookUrl: '',
-    webhookSecret: '',
+    phoneNumber: "",
+    businessAccountId: "",
+    accessToken: "",
+    webhookUrl: "",
+    webhookSecret: "",
     autoSendMessages: true,
     sendOrderNotifications: true,
     sendCustomerMessages: true,
     messageDelay: 0,
-    businessName: '',
-    businessDescription: '',
-    businessAddress: '',
-    businessHours: '',
+    businessName: "",
+    businessDescription: "",
+    businessAddress: "",
+    businessHours: "",
     requireCustomerConsent: true,
-    consentMessage: 'Você autoriza o recebimento de mensagens via WhatsApp?',
+    consentMessage: "Você autoriza o recebimento de mensagens via WhatsApp?",
     allowedMessageTypes: [
       WhatsAppMessageType.WELCOME,
       WhatsAppMessageType.ORDER_CONFIRMATION,
@@ -67,8 +69,8 @@ export default function WhatsAppConfigPage() {
   });
 
   const [testData, setTestData] = useState({
-    phoneNumber: '',
-    message: '',
+    phoneNumber: "",
+    message: "",
     type: WhatsAppMessageType.WELCOME,
   });
 
@@ -77,21 +79,23 @@ export default function WhatsAppConfigPage() {
     if (config) {
       setFormData({
         enabled: config.enabled || false,
-        phoneNumber: config.phoneNumber || '',
-        businessAccountId: config.businessAccountId || '',
-        accessToken: config.accessToken || '',
-        webhookUrl: config.webhookUrl || '',
-        webhookSecret: config.webhookSecret || '',
+        phoneNumber: config.phoneNumber || "",
+        businessAccountId: config.businessAccountId || "",
+        accessToken: config.accessToken || "",
+        webhookUrl: config.webhookUrl || "",
+        webhookSecret: config.webhookSecret || "",
         autoSendMessages: config.autoSendMessages ?? true,
         sendOrderNotifications: config.sendOrderNotifications ?? true,
         sendCustomerMessages: config.sendCustomerMessages ?? true,
         messageDelay: config.messageDelay || 0,
-        businessName: config.businessName || '',
-        businessDescription: config.businessDescription || '',
-        businessAddress: config.businessAddress || '',
-        businessHours: config.businessHours || '',
+        businessName: config.businessName || "",
+        businessDescription: config.businessDescription || "",
+        businessAddress: config.businessAddress || "",
+        businessHours: config.businessHours || "",
         requireCustomerConsent: config.requireCustomerConsent ?? true,
-        consentMessage: config.consentMessage || 'Você autoriza o recebimento de mensagens via WhatsApp?',
+        consentMessage:
+          config.consentMessage ||
+          "Você autoriza o recebimento de mensagens via WhatsApp?",
         allowedMessageTypes: config.allowedMessageTypes || [
           WhatsAppMessageType.WELCOME,
           WhatsAppMessageType.ORDER_CONFIRMATION,
@@ -104,18 +108,23 @@ export default function WhatsAppConfigPage() {
   }, [config]);
 
   const handleInputChange = (field: keyof WhatsAppConfig, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleTemplateChange = (index: number, field: keyof typeof DEFAULT_WHATSAPP_TEMPLATES[0], value: any) => {
-    setFormData(prev => ({
+  const handleTemplateChange = (
+    index: number,
+    field: keyof (typeof DEFAULT_WHATSAPP_TEMPLATES)[0],
+    value: any
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      messageTemplates: prev.messageTemplates?.map((template, i) =>
-        i === index ? { ...template, [field]: value } : template
-      ) || [],
+      messageTemplates:
+        prev.messageTemplates?.map((template, i) =>
+          i === index ? { ...template, [field]: value } : template
+        ) || [],
     }));
   };
 
@@ -125,9 +134,15 @@ export default function WhatsAppConfigPage() {
       setMessage(null);
 
       await updateConfig(formData);
-      setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' });
+      setMessage({
+        type: "success",
+        text: "Configurações salvas com sucesso!",
+      });
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Erro ao salvar configurações' });
+      setMessage({
+        type: "error",
+        text: error.message || "Erro ao salvar configurações",
+      });
     } finally {
       setSaving(false);
     }
@@ -141,12 +156,18 @@ export default function WhatsAppConfigPage() {
       const result = await testConnection(formData);
 
       if (result.success) {
-        setMessage({ type: 'success', text: 'Conexão testada com sucesso!' });
+        setMessage({ type: "success", text: "Conexão testada com sucesso!" });
       } else {
-        setMessage({ type: 'error', text: result.error || 'Erro ao testar conexão' });
+        setMessage({
+          type: "error",
+          text: result.error || "Erro ao testar conexão",
+        });
       }
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Erro ao testar conexão' });
+      setMessage({
+        type: "error",
+        text: error.message || "Erro ao testar conexão",
+      });
     } finally {
       setTesting(false);
     }
@@ -158,9 +179,12 @@ export default function WhatsAppConfigPage() {
       setMessage(null);
 
       // Implementar envio de mensagem de teste
-      setMessage({ type: 'success', text: 'Mensagem de teste enviada!' });
+      setMessage({ type: "success", text: "Mensagem de teste enviada!" });
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Erro ao enviar mensagem de teste' });
+      setMessage({
+        type: "error",
+        text: error.message || "Erro ao enviar mensagem de teste",
+      });
     } finally {
       setTesting(false);
     }
@@ -186,7 +210,8 @@ export default function WhatsAppConfigPage() {
                 Integração WhatsApp
               </h1>
               <p className="mt-2 text-gray-600">
-                Configure a integração com WhatsApp Business para enviar mensagens automáticas aos seus clientes.
+                Configure a integração com WhatsApp Business para enviar
+                mensagens automáticas aos seus clientes.
               </p>
             </div>
             <button
@@ -201,13 +226,16 @@ export default function WhatsAppConfigPage() {
 
         {/* Message */}
         {message && (
-          <div className={`mb-6 p-4 rounded-md ${message.type === 'success'
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-red-50 border border-red-200 text-red-800'
-            }`}>
+          <div
+            className={`mb-6 p-4 rounded-md ${
+              message.type === "success"
+                ? "bg-green-50 border border-green-200 text-green-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            }`}
+          >
             <div className="flex">
               <div className="flex-shrink-0">
-                {message.type === 'success' ? (
+                {message.type === "success" ? (
                   <CheckCircle className="h-5 w-5 text-green-400" />
                 ) : (
                   <WarningCircle className="h-5 w-5 text-red-400" />
@@ -225,17 +253,18 @@ export default function WhatsAppConfigPage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {[
-                { id: 'config', label: 'Configurações', icon: Gear },
-                { id: 'templates', label: 'Templates', icon: ChatCircle },
-                { id: 'test', label: 'Teste', icon: TestTube },
+                { id: "config", label: "Configurações", icon: Gear },
+                { id: "templates", label: "Templates", icon: ChatCircle },
+                { id: "test", label: "Teste", icon: TestTube },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                                      className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
+                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                 >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
@@ -246,20 +275,26 @@ export default function WhatsAppConfigPage() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'config' && (
+        {activeTab === "config" && (
           <div className="space-y-8">
             {/* Status */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Status da Integração</h3>
-                  <p className="text-sm text-gray-600">Ative ou desative a integração com WhatsApp</p>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Status da Integração
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Ative ou desative a integração com WhatsApp
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.enabled}
-                    onChange={(e) => handleInputChange('enabled', e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange("enabled", e.target.checked)
+                    }
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -269,7 +304,9 @@ export default function WhatsAppConfigPage() {
 
             {/* Configurações Básicas */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Configurações Básicas</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Configurações Básicas
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -280,8 +317,10 @@ export default function WhatsAppConfigPage() {
                     <input
                       type="tel"
                       value={formData.phoneNumber}
-                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                      placeholder="+5511999999999"
+                      onChange={(e) =>
+                        handleInputChange("phoneNumber", e.target.value)
+                      }
+                      placeholder="+5522999293439"
                       className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -294,7 +333,9 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="text"
                     value={formData.businessAccountId}
-                    onChange={(e) => handleInputChange('businessAccountId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessAccountId", e.target.value)
+                    }
                     placeholder="123456789012345"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -308,7 +349,9 @@ export default function WhatsAppConfigPage() {
                     <input
                       type={showSecrets ? "text" : "password"}
                       value={formData.accessToken}
-                      onChange={(e) => handleInputChange('accessToken', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("accessToken", e.target.value)
+                      }
                       placeholder="EAAxxxxxxxxxxxxxxxxxxxxx"
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -330,7 +373,9 @@ export default function WhatsAppConfigPage() {
 
             {/* Configurações de Webhook */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Configurações de Webhook</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Configurações de Webhook
+              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -339,7 +384,9 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="url"
                     value={formData.webhookUrl}
-                    onChange={(e) => handleInputChange('webhookUrl', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("webhookUrl", e.target.value)
+                    }
                     placeholder="https://seu-dominio.com/webhook/whatsapp"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -353,7 +400,9 @@ export default function WhatsAppConfigPage() {
                     <input
                       type={showSecrets ? "text" : "password"}
                       value={formData.webhookSecret}
-                      onChange={(e) => handleInputChange('webhookSecret', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("webhookSecret", e.target.value)
+                      }
                       placeholder="seu-segredo-webhook"
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -375,18 +424,26 @@ export default function WhatsAppConfigPage() {
 
             {/* Configurações de Mensagens */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Configurações de Mensagens</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Configurações de Mensagens
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Envio Automático de Mensagens</label>
-                    <p className="text-sm text-gray-500">Enviar mensagens automaticamente baseadas em eventos</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      Envio Automático de Mensagens
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Enviar mensagens automaticamente baseadas em eventos
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.autoSendMessages}
-                      onChange={(e) => handleInputChange('autoSendMessages', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange("autoSendMessages", e.target.checked)
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -395,14 +452,23 @@ export default function WhatsAppConfigPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Notificações de Pedidos</label>
-                    <p className="text-sm text-gray-500">Enviar notificações sobre status dos pedidos</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      Notificações de Pedidos
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Enviar notificações sobre status dos pedidos
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.sendOrderNotifications}
-                      onChange={(e) => handleInputChange('sendOrderNotifications', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "sendOrderNotifications",
+                          e.target.checked
+                        )
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -411,14 +477,23 @@ export default function WhatsAppConfigPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Mensagens para Clientes</label>
-                    <p className="text-sm text-gray-500">Permitir envio de mensagens diretas para clientes</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      Mensagens para Clientes
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Permitir envio de mensagens diretas para clientes
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.sendCustomerMessages}
-                      onChange={(e) => handleInputChange('sendCustomerMessages', e.target.checked)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "sendCustomerMessages",
+                          e.target.checked
+                        )
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -434,7 +509,12 @@ export default function WhatsAppConfigPage() {
                     min="0"
                     max="300"
                     value={formData.messageDelay}
-                    onChange={(e) => handleInputChange('messageDelay', parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "messageDelay",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -443,7 +523,9 @@ export default function WhatsAppConfigPage() {
 
             {/* Informações da Empresa */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Informações da Empresa</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Informações da Empresa
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -452,7 +534,9 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="text"
                     value={formData.businessName}
-                    onChange={(e) => handleInputChange('businessName', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessName", e.target.value)
+                    }
                     placeholder="Nome da sua empresa"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -465,7 +549,9 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="text"
                     value={formData.businessHours}
-                    onChange={(e) => handleInputChange('businessHours', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessHours", e.target.value)
+                    }
                     placeholder="Seg-Sex: 8h-18h, Sáb: 8h-12h"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -478,7 +564,9 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="text"
                     value={formData.businessAddress}
-                    onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessAddress", e.target.value)
+                    }
                     placeholder="Endereço completo da empresa"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -490,7 +578,9 @@ export default function WhatsAppConfigPage() {
                   </label>
                   <textarea
                     value={formData.businessDescription}
-                    onChange={(e) => handleInputChange('businessDescription', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessDescription", e.target.value)
+                    }
                     placeholder="Breve descrição da sua empresa"
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -507,32 +597,41 @@ export default function WhatsAppConfigPage() {
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <TestTube className="h-4 w-4" />
-                {testing ? 'Testando...' : 'Testar Conexão'}
+                {testing ? "Testando..." : "Testar Conexão"}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || testing}
-                                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FloppyDisk className="h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar Configurações'}
+                {saving ? "Salvando..." : "Salvar Configurações"}
               </button>
             </div>
           </div>
         )}
 
-        {activeTab === 'templates' && (
+        {activeTab === "templates" && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Templates de Mensagem</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Templates de Mensagem
+              </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Configure as mensagens que serão enviadas automaticamente para seus clientes.
-                Use variáveis como <code className="bg-gray-100 px-1 rounded">{'{businessName}'}</code> para personalizar as mensagens.
+                Configure as mensagens que serão enviadas automaticamente para
+                seus clientes. Use variáveis como{" "}
+                <code className="bg-gray-100 px-1 rounded">
+                  {"{businessName}"}
+                </code>{" "}
+                para personalizar as mensagens.
               </p>
 
               <div className="space-y-6">
                 {formData.messageTemplates?.map((template, index) => (
-                  <div key={template.type} className="border border-gray-200 rounded-lg p-4">
+                  <div
+                    key={template.type}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="font-medium text-gray-900">
@@ -546,7 +645,13 @@ export default function WhatsAppConfigPage() {
                         <input
                           type="checkbox"
                           checked={template.enabled}
-                          onChange={(e) => handleTemplateChange(index, 'enabled', e.target.checked)}
+                          onChange={(e) =>
+                            handleTemplateChange(
+                              index,
+                              "enabled",
+                              e.target.checked
+                            )
+                          }
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -559,7 +664,9 @@ export default function WhatsAppConfigPage() {
                       </label>
                       <textarea
                         value={template.message}
-                        onChange={(e) => handleTemplateChange(index, 'message', e.target.value)}
+                        onChange={(e) =>
+                          handleTemplateChange(index, "message", e.target.value)
+                        }
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Digite sua mensagem aqui..."
@@ -590,12 +697,15 @@ export default function WhatsAppConfigPage() {
           </div>
         )}
 
-        {activeTab === 'test' && (
+        {activeTab === "test" && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Teste de Mensagem</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Teste de Mensagem
+              </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Envie uma mensagem de teste para verificar se a integração está funcionando corretamente.
+                Envie uma mensagem de teste para verificar se a integração está
+                funcionando corretamente.
               </p>
 
               <div className="space-y-4">
@@ -606,8 +716,13 @@ export default function WhatsAppConfigPage() {
                   <input
                     type="tel"
                     value={testData.phoneNumber}
-                    onChange={(e) => setTestData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                    placeholder="+5511999999999"
+                    onChange={(e) =>
+                      setTestData((prev) => ({
+                        ...prev,
+                        phoneNumber: e.target.value,
+                      }))
+                    }
+                    placeholder="+5522999293439"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -618,7 +733,12 @@ export default function WhatsAppConfigPage() {
                   </label>
                   <select
                     value={testData.type}
-                    onChange={(e) => setTestData(prev => ({ ...prev, type: e.target.value as WhatsAppMessageType }))}
+                    onChange={(e) =>
+                      setTestData((prev) => ({
+                        ...prev,
+                        type: e.target.value as WhatsAppMessageType,
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {Object.values(WhatsAppMessageType).map((type) => (
@@ -635,7 +755,12 @@ export default function WhatsAppConfigPage() {
                   </label>
                   <textarea
                     value={testData.message}
-                    onChange={(e) => setTestData(prev => ({ ...prev, message: e.target.value }))}
+                    onChange={(e) =>
+                      setTestData((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
+                    }
                     rows={4}
                     placeholder="Digite sua mensagem de teste aqui..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -644,11 +769,13 @@ export default function WhatsAppConfigPage() {
 
                 <button
                   onClick={handleSendTestMessage}
-                  disabled={testing || !testData.phoneNumber || !testData.message}
+                  disabled={
+                    testing || !testData.phoneNumber || !testData.message
+                  }
                   className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChatCircle className="h-4 w-4" />
-                  {testing ? 'Enviando...' : 'Enviar Mensagem de Teste'}
+                  {testing ? "Enviando..." : "Enviar Mensagem de Teste"}
                 </button>
               </div>
             </div>

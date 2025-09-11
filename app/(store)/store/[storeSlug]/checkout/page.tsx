@@ -698,7 +698,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       "--tw-ring-color": brandingColors.primary + "80",
                     } as React.CSSProperties
                   }
-                  placeholder="(11) 99999-9999"
+                  placeholder="(22) 99929-3439"
                   maxLength={15}
                 />
                 {formErrors.customerPhone && (

@@ -55,10 +55,10 @@ export default function NotFound() {
               suporte@cardap.io
             </a>
             <a
-              href="tel:+5511999999999"
+              href="tel:+5522999293439"
               className="text-purple-600 hover:text-purple-500"
             >
-              (11) 99999-9999
+              (22) 99929-3439
             </a>
           </div>
         </div>

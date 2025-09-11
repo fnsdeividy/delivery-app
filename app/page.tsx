@@ -513,40 +513,6 @@ export default function HomePage() {
               <StaggerItem animation="fadeIn">
                 <div>
                   <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">
-                    Para Clientes
-                  </h4>
-                  <ul className="space-y-2 text-gray-400 text-sm md:text-base">
-                    <li>
-                      <Link
-                        href="/lojas"
-                        className="hover:text-white transition-colors"
-                      >
-                        Encontrar Lojas
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/categorias"
-                        className="hover:text-white transition-colors"
-                      >
-                        Categorias
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/ofertas"
-                        className="hover:text-white transition-colors"
-                      >
-                        Ofertas
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </StaggerItem>
-
-              <StaggerItem animation="fadeIn">
-                <div>
-                  <h4 className="text-sm md:text-md font-semibold mb-3 md:mb-4">
                     Para Lojistas
                   </h4>
                   <ul className="space-y-2 text-gray-400 text-sm md:text-base">
@@ -556,22 +522,6 @@ export default function HomePage() {
                         className="hover:text-white transition-colors"
                       >
                         Cadastrar Loja
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/vender"
-                        className="hover:text-white transition-colors"
-                      >
-                        Como Vender
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/suporte"
-                        className="hover:text-white transition-colors"
-                      >
-                        Suporte
                       </Link>
                     </li>
                   </ul>
@@ -586,7 +536,15 @@ export default function HomePage() {
                   <ul className="space-y-2 text-gray-400 text-sm md:text-base">
                     <li>
                       <Link
-                        href="/ajuda"
+                        href="/suporte"
+                        className="hover:text-white transition-colors"
+                      >
+                        Suporte
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/suporte/central-ajuda"
                         className="hover:text-white transition-colors"
                       >
                         Central de Ajuda
@@ -594,7 +552,7 @@ export default function HomePage() {
                     </li>
                     <li>
                       <Link
-                        href="/contato"
+                        href="/suporte/contato"
                         className="hover:text-white transition-colors"
                       >
                         Contato
@@ -602,7 +560,7 @@ export default function HomePage() {
                     </li>
                     <li>
                       <Link
-                        href="/termos"
+                        href="/suporte/termos-uso"
                         className="hover:text-white transition-colors"
                       >
                         Termos de Uso

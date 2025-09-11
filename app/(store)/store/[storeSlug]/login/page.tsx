@@ -8,9 +8,8 @@ import {
   WhatsappLogo,
 } from "@phosphor-icons/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthContext } from "../../../../../contexts/AuthContext";
-import { useStoreConfig } from "../../../../../lib/store/useStoreConfig";
 
 declare module "react" {
   interface CSSProperties {
@@ -106,7 +105,8 @@ export default function CustomerLoginPage() {
             banner: data.config?.banner || "",
             primaryColor: data.config?.branding?.primaryColor || "#f97316",
             secondaryColor: data.config?.branding?.secondaryColor || "#ea580c",
-            backgroundColor: data.config?.branding?.backgroundColor || "#ffffff",
+            backgroundColor:
+              data.config?.branding?.backgroundColor || "#ffffff",
             textColor: data.config?.branding?.textColor || "#000000",
             accentColor: data.config?.branding?.accentColor || "#f59e0b",
           },
@@ -128,7 +128,7 @@ export default function CustomerLoginPage() {
     // Remove tudo que não é número
     const numbers = value.replace(/\D/g, "");
 
-    // Aplica máscara (11) 99999-9999
+    // Aplica máscara (22) 99929-3439
     if (numbers.length >= 11) {
       return numbers
         .slice(0, 11)
@@ -279,8 +279,10 @@ export default function CustomerLoginPage() {
   };
 
   // Usar as cores da loja ou o tema rocha como fallback
-  const primaryColor = storeConfig?.branding?.primaryColor || rockColors.primary;
-  const secondaryColor = storeConfig?.branding?.secondaryColor || rockColors.secondary;
+  const primaryColor =
+    storeConfig?.branding?.primaryColor || rockColors.primary;
+  const secondaryColor =
+    storeConfig?.branding?.secondaryColor || rockColors.secondary;
   const accentColor = storeConfig?.branding?.accentColor || rockColors.accent;
   const backgroundColor = storeConfig?.branding?.backgroundColor || "#ffffff";
   const textColor = storeConfig?.branding?.textColor || "#000000";
@@ -303,7 +305,9 @@ export default function CustomerLoginPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loja não encontrada</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Loja não encontrada
+          </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => router.push("/")}
@@ -317,13 +321,13 @@ export default function CustomerLoginPage() {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8"
-      style={{ 
+      style={{
         backgroundColor: backgroundColor,
-        color: textColor
-      }}>
-
+        color: textColor,
+      }}
+    >
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo da Loja */}
         <div className="flex justify-center mb-6">
@@ -426,7 +430,7 @@ export default function CustomerLoginPage() {
                       "--focus-ring-color": primaryColor,
                       ...inputStyles,
                     }}
-                    placeholder="(11) 99999-9999"
+                    placeholder="(22) 99929-3439"
                   />
                 </div>
                 {errors.phone && (
@@ -577,7 +581,7 @@ export default function CustomerLoginPage() {
                       "--focus-ring-color": primaryColor,
                       ...inputStyles,
                     }}
-                    placeholder="(11) 99999-9999"
+                    placeholder="(22) 99929-3439"
                   />
                 </div>
                 {errors.phone && (
