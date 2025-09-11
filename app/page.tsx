@@ -19,8 +19,33 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function HomePage() {
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  // Preços e links dos planos
+  const pricing = {
+    basic: {
+      monthly: 49.90,
+      annual: 39.90,
+      annualTotal: 478.80,
+      links: {
+        monthly: "https://www.asaas.com/c/xi1hxswf6w4byiyb",
+        annual: "https://www.asaas.com/c/puok12mozv54zzpj"
+      }
+    },
+    pro: {
+      monthly: 69.90,
+      annual: 55.90,
+      annualTotal: 670.80,
+      links: {
+        monthly: "https://www.asaas.com/c/yzh10w61k2ykli4b",
+        annual: "https://www.asaas.com/c/hx2w5fkrupvwsouj"
+      }
+    }
+  };
+
   const features = [
     {
       icon: <Zap className="w-8 h-8 text-yellow-500" />,
@@ -92,7 +117,9 @@ export default function HomePage() {
                 className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4"
               >
                 <Link
-                  href="/register/loja"
+                  href={pricing.basic.links.monthly}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   ➕ Criar Minha Loja
@@ -323,127 +350,320 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-12 md:py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-12">
             <Animated animation="fadeIn">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                Planos Acessíveis
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
+                Escolha o Plano Perfeito
               </h2>
             </Animated>
             <Animated animation="fadeIn" config={{ delay: 0.2 }}>
-              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-                Escolha o plano ideal para o seu negócio
+              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+                Transforme seu negócio com as ferramentas certas.
+                <span className="text-blue-600 font-semibold"> Apenas R$ 20 de diferença</span> para recursos profissionais completos.
               </p>
+            </Animated>
+            <Animated animation="fadeIn" config={{ delay: 0.3 }}>
+              <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mt-4">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                <span>✨ 7 dias grátis em qualquer plano • Cancele quando quiser</span>
+              </div>
             </Animated>
           </div>
 
+          {/* Pricing Toggle */}
+          <Animated animation="fadeIn" config={{ delay: 0.4 }}>
+            <div className="flex justify-center mb-8">
+              <div className="bg-white p-1 rounded-lg shadow-sm border">
+                <div className="flex">
+                  <button
+                    onClick={() => setIsAnnual(false)}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${!isAnnual
+                      ? 'text-blue-600 bg-blue-50 shadow-sm'
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                      }`}
+                  >
+                    Mensal
+                  </button>
+                  <button
+                    onClick={() => setIsAnnual(true)}
+                    className={`px-4 py-2 text-sm font-medium rounded-md relative transition-all duration-200 ${isAnnual
+                      ? 'text-blue-600 bg-blue-50 shadow-sm'
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                      }`}
+                  >
+                    Anual
+                    <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                      -20%
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Animated>
+
           <StaggerList staggerDelay={0.1}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+
+              {/* Basic Plan */}
               <StaggerItem animation="scaleIn">
-                <AnimatedCard className="bg-gray-50 p-4 md:p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300">
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                    Plano Básico
-                  </h3>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                    Grátis
+                <AnimatedCard className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-all duration-300 relative">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      Basic
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-4">
+                      Para começar com o essencial
+                    </p>
+                    <div className="mb-4">
+                      <div className="text-4xl font-bold text-gray-900">
+                        R$ {isAnnual ? pricing.basic.annual.toFixed(2).replace('.', ',') : pricing.basic.monthly.toFixed(2).replace('.', ',')}
+                        <span className="text-lg font-normal text-gray-500">
+                          {isAnnual ? '/mês' : '/mês'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {isAnnual ? (
+                          <>
+                            cobrado anualmente R$ {pricing.basic.annualTotal.toFixed(2).replace('.', ',')}
+                            <span className="text-green-600 font-medium ml-1">(economize R$ 120,00)</span>
+                          </>
+                        ) : (
+                          'ou R$ 478,80/ano (2 meses grátis)'
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full inline-block">
+                      💡 Ideal para negócios iniciantes
+                    </p>
                   </div>
-                  <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Até 20 produtos</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Pedidos por WhatsApp</span>
-                    </li>
-                  </ul>
+
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Integração com iFood</span>
+                        <p className="text-sm text-gray-500">Sincronize automaticamente seus produtos</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Integração WhatsApp</span>
+                        <p className="text-sm text-gray-500">Receba pedidos sem taxas extras</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Dashboards básicos</span>
+                        <p className="text-sm text-gray-500">Métricas essenciais do seu negócio</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Módulo de Caixa</span>
+                        <p className="text-sm text-gray-500">Controle básico de vendas</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Módulo Financeiro</span>
+                        <p className="text-sm text-gray-500">Gestão simples de finanças</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Suporte Online</span>
+                        <p className="text-sm text-gray-500">Atendimento por chat e email</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Link
-                    href="/register/loja"
-                    className="mt-4 md:mt-6 block w-full bg-gray-200 text-gray-800 text-center py-2 md:py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300 text-sm md:text-base"
+                    href={isAnnual ? pricing.basic.links.annual : pricing.basic.links.monthly}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-gray-900 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
-                    Começar Grátis
+                    Comece agora
                   </Link>
+
+                  <p className="text-center text-xs text-gray-500 mt-3">
+                    ✅ Sem compromisso • Cancele quando quiser
+                  </p>
                 </AnimatedCard>
               </StaggerItem>
 
+              {/* Pro Plan - Most Popular */}
               <StaggerItem animation="scaleIn">
-                <AnimatedCard className="bg-blue-50 p-4 md:p-6 rounded-lg border border-blue-200 relative hover:shadow-lg transition-shadow duration-300">
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-semibold px-2 md:px-3 py-1 rounded-bl-lg">
-                    Popular
+                <AnimatedCard className="bg-gradient-to-br from-blue-600 to-purple-600 text-white p-6 md:p-8 rounded-2xl relative hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                      🔥 MAIS ESCOLHIDO
+                    </div>
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                    Plano Premium
-                  </h3>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                    R$ 79
-                    <span className="text-base md:text-lg font-normal">
-                      /mês
-                    </span>
-                  </div>
-                  <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
-                    <li className="flex items-center"></li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Produtos ilimitados</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Pedidos por WhatsApp</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Integração com iFood</span>
-                    </li>
-                  </ul>
-                  <Link
-                    href="/register/loja"
-                    className="mt-4 md:mt-6 block w-full bg-blue-600 text-white text-center py-2 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 text-sm md:text-base"
-                  >
-                    Assinar Agora
-                  </Link>
-                </AnimatedCard>
-              </StaggerItem>
 
-              <StaggerItem animation="scaleIn">
-                <AnimatedCard className="bg-gray-50 p-4 md:p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300">
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                    Plano Empresarial
-                  </h3>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                    R$ 149
-                    <span className="text-base md:text-lg font-normal">
-                      /mês
-                    </span>
+                  <div className="text-center mb-6 mt-4">
+                    <h3 className="text-2xl font-bold mb-2">
+                      Pro
+                    </h3>
+                    <p className="text-blue-100 text-lg mb-4">
+                      Para negócios que querem escalar
+                    </p>
+                    <div className="mb-4">
+                      <div className="text-4xl font-bold">
+                        R$ {isAnnual ? pricing.pro.annual.toFixed(2).replace('.', ',') : pricing.pro.monthly.toFixed(2).replace('.', ',')}
+                        <span className="text-lg font-normal text-blue-100">/mês</span>
+                      </div>
+                      <div className="text-sm text-blue-100 mt-1">
+                        {isAnnual ? (
+                          <>
+                            cobrado anualmente R$ {pricing.pro.annualTotal.toFixed(2).replace('.', ',')}
+                            <span className="text-yellow-300 font-medium ml-1">(economize R$ 168,00)</span>
+                          </>
+                        ) : (
+                          'ou R$ 670,80/ano (2 meses grátis)'
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full inline-block">
+                      <p className="text-sm font-medium">
+                        🚀 Apenas <span className="font-bold text-yellow-300">
+                          R$ {isAnnual
+                            ? (pricing.pro.annual - pricing.basic.annual).toFixed(2).replace('.', ',')
+                            : (pricing.pro.monthly - pricing.basic.monthly).toFixed(2).replace('.', ',')
+                          }
+                        </span> a mais por recursos profissionais
+                      </p>
+                    </div>
                   </div>
-                  <ul className="space-y-2 md:space-y-3 text-gray-600 text-sm md:text-base">
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Lojas ilimitadas</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Produtos ilimitados</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Pedidos multi-canais</span>
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="w-4 md:w-5 h-4 md:h-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>Suporte prioritário</span>
-                    </li>
-                  </ul>
+
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Integração com iFood</span>
+                        <p className="text-sm text-blue-100">Sincronização automática avançada</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Integração WhatsApp Premium</span>
+                        <p className="text-sm text-blue-100">Automação e templates personalizados</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-xs font-bold mr-3 mt-0.5">
+                        PRO
+                      </div>
+                      <div>
+                        <span className="font-medium">Dashboards completos</span>
+                        <p className="text-sm text-blue-100">Analytics avançados + relatórios personalizados</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-xs font-bold mr-3 mt-0.5">
+                        PRO
+                      </div>
+                      <div>
+                        <span className="font-medium">Módulo de Caixa Avançado</span>
+                        <p className="text-sm text-blue-100">Controle total + múltiplos operadores</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-xs font-bold mr-3 mt-0.5">
+                        PRO
+                      </div>
+                      <div>
+                        <span className="font-medium">Módulo Financeiro Completo</span>
+                        <p className="text-sm text-blue-100">Fluxo de caixa + projeções + impostos</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium">Suporte Prioritário</span>
+                        <p className="text-sm text-blue-100">Atendimento VIP + consultoria gratuita</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Link
-                    href="/register/loja"
-                    className="mt-4 md:mt-6 block w-full bg-gray-200 text-gray-800 text-center py-2 md:py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300 text-sm md:text-base"
+                    href={isAnnual ? pricing.pro.links.annual : pricing.pro.links.monthly}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-white text-blue-600 text-center py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
-                    Assinar Agora
+                    Assine hoje mesmo
                   </Link>
+
+                  <p className="text-center text-xs text-blue-100 mt-3">
+                    ⚡ Setup gratuito • Migração sem custo • Suporte dedicado
+                  </p>
                 </AnimatedCard>
               </StaggerItem>
             </div>
           </StaggerList>
+
+          {/* Value Proposition */}
+          <Animated animation="fadeIn" config={{ delay: 0.6 }}>
+            <div className="mt-12 text-center">
+              <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg max-w-4xl mx-auto border">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Por que 89% dos nossos clientes escolhem o Pro?
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">📊</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Insights Poderosos</h4>
+                    <p className="text-sm text-gray-600">Dashboards completos que mostram exatamente onde melhorar suas vendas</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">💰</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">ROI Garantido</h4>
+                    <p className="text-sm text-gray-600">Clientes Pro aumentam vendas em média 67% nos primeiros 3 meses</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Crescimento Acelerado</h4>
+                    <p className="text-sm text-gray-600">Ferramentas profissionais por apenas R$ 20 a mais que o Basic</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Animated>
+
+          {/* Trust Signals */}
+          <Animated animation="fadeIn" config={{ delay: 0.7 }}>
+            <div className="mt-8 text-center">
+              <div className="flex flex-wrap justify-center items-center gap-6 text-gray-600">
+                <div className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-green-500" />
+                  <span className="text-sm">Pagamento 100% seguro</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-blue-500" />
+                  <span className="text-sm">Migração gratuita</span>
+                </div>
+                <div className="flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-purple-500" />
+                  <span className="text-sm">Suporte 24/7</span>
+                </div>
+              </div>
+            </div>
+          </Animated>
         </div>
       </section>
 
@@ -467,7 +687,9 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4"
           >
             <Link
-              href="/register/loja"
+              href={pricing.pro.links.monthly}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               Criar Minha Loja
