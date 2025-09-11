@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
   ArrowLeft,
   Building,
@@ -418,7 +418,8 @@ export default function ConfiguracoesBasicasPage() {
     const originalSlug = storeSlug;
     const newSlug = formData.slug.trim();
     const slugChanged = originalSlug !== newSlug;
-    const passwordChanged = formData.password && formData.password.trim() !== "";
+    const passwordChanged =
+      formData.password && formData.password.trim() !== "";
 
     try {
       const updateData: Record<string, string> = {
@@ -451,8 +452,11 @@ export default function ConfiguracoesBasicasPage() {
 
       // Se a senha foi alterada, fazer logout obrigatório por segurança
       if (passwordChanged) {
-        showToast("Senha alterada com sucesso! Você será deslogado por segurança.", "success");
-        
+        showToast(
+          "Senha alterada com sucesso! Você será deslogado por segurança.",
+          "success"
+        );
+
         setTimeout(() => {
           logout();
           router.push("/login");
@@ -729,7 +733,7 @@ export default function ConfiguracoesBasicasPage() {
                     ).getData("text");
                     handlePhoneChange(text);
                   }}
-                  placeholder="(11) 99999-9999"
+                  placeholder="(22) 99929-3439"
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                     errors.phone ? "border-red-300" : "border-gray-300"
                   }`}

@@ -591,7 +591,7 @@ export default function IfoodConfigPage() {
                         handleInputChange("businessPhone", e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="(11) 99999-9999"
+                      placeholder="(22) 99929-3439"
                     />
                   </div>
                 </div>

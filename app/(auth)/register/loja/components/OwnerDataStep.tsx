@@ -1,25 +1,28 @@
-import { Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
-import { RegisterLojaFormData } from "@/lib/validation/schemas";
 import { useFormValidation } from "@/hooks";
-import { ownerSchema } from "@/lib/validation/schemas";
+import { ownerSchema, RegisterLojaFormData } from "@/lib/validation/schemas";
+import { Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
 import { useEffect } from "react";
 
 interface OwnerDataStepProps {
   formData: RegisterLojaFormData;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onInputChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => void;
   showPassword: boolean;
   onTogglePassword: () => void;
   showConfirmPassword: boolean;
   onToggleConfirmPassword: () => void;
 }
 
-export default function OwnerDataStep({ 
-  formData, 
-  onInputChange, 
-  showPassword, 
+export default function OwnerDataStep({
+  formData,
+  onInputChange,
+  showPassword,
   onTogglePassword,
   showConfirmPassword,
-  onToggleConfirmPassword
+  onToggleConfirmPassword,
 }: OwnerDataStepProps) {
   const ownerValidation = useFormValidation(ownerSchema, {
     ownerName: formData.ownerName,
@@ -31,15 +34,20 @@ export default function OwnerDataStep({
 
   // Validação em tempo real quando password muda
   useEffect(() => {
-    if (ownerValidation.isFieldTouched('confirmPassword')) {
+    if (ownerValidation.isFieldTouched("confirmPassword")) {
       ownerValidation.validateFieldRealTime(
-        'password',
+        "password",
         formData.password,
-        'confirmPassword',
+        "confirmPassword",
         formData.confirmPassword
       );
     }
-  }, [formData.password, formData.confirmPassword, ownerValidation.isFieldTouched, ownerValidation.validateFieldRealTime]);
+  }, [
+    formData.password,
+    formData.confirmPassword,
+    ownerValidation.isFieldTouched,
+    ownerValidation.validateFieldRealTime,
+  ]);
 
   return (
     <form className="space-y-6">
@@ -52,16 +60,11 @@ export default function OwnerDataStep({
           name="ownerName"
           required
           value={
-            typeof formData.ownerName === "string"
-              ? formData.ownerName
-              : ""
+            typeof formData.ownerName === "string" ? formData.ownerName : ""
           }
           onChange={onInputChange}
           onBlur={() =>
-            ownerValidation.handleFieldBlur(
-              "ownerName",
-              formData.ownerName
-            )
+            ownerValidation.handleFieldBlur("ownerName", formData.ownerName)
           }
           className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
             ownerValidation.shouldShowError("ownerName")
@@ -86,16 +89,11 @@ export default function OwnerDataStep({
           name="ownerEmail"
           required
           value={
-            typeof formData.ownerEmail === "string"
-              ? formData.ownerEmail
-              : ""
+            typeof formData.ownerEmail === "string" ? formData.ownerEmail : ""
           }
           onChange={onInputChange}
           onBlur={() =>
-            ownerValidation.handleFieldBlur(
-              "ownerEmail",
-              formData.ownerEmail
-            )
+            ownerValidation.handleFieldBlur("ownerEmail", formData.ownerEmail)
           }
           className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
             ownerValidation.shouldShowError("ownerEmail")
@@ -119,23 +117,18 @@ export default function OwnerDataStep({
           type="tel"
           name="ownerPhone"
           value={
-            typeof formData.ownerPhone === "string"
-              ? formData.ownerPhone
-              : ""
+            typeof formData.ownerPhone === "string" ? formData.ownerPhone : ""
           }
           onChange={onInputChange}
           onBlur={() =>
-            ownerValidation.handleFieldBlur(
-              "ownerPhone",
-              formData.ownerPhone
-            )
+            ownerValidation.handleFieldBlur("ownerPhone", formData.ownerPhone)
           }
           className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
             ownerValidation.shouldShowError("ownerPhone")
               ? "border-red-300 focus:ring-red-500 focus:border-red-500"
               : "border-gray-300"
           }`}
-          placeholder="(11) 99999-9999"
+          placeholder="(22) 99929-3439"
         />
         {ownerValidation.shouldShowError("ownerPhone") && (
           <p className="text-red-500 text-xs mt-1">
@@ -155,27 +148,22 @@ export default function OwnerDataStep({
             name="password"
             required
             value={
-              typeof formData.password === "string"
-                ? formData.password
-                : ""
+              typeof formData.password === "string" ? formData.password : ""
             }
             onChange={(e) => {
               onInputChange(e);
               // Revalidar confirmPassword se já foi tocado
-              if (ownerValidation.isFieldTouched('confirmPassword')) {
+              if (ownerValidation.isFieldTouched("confirmPassword")) {
                 ownerValidation.validateFieldRealTime(
-                  'password',
+                  "password",
                   e.target.value,
-                  'confirmPassword',
+                  "confirmPassword",
                   formData.confirmPassword
                 );
               }
             }}
             onBlur={() =>
-              ownerValidation.handleFieldBlur(
-                "password",
-                formData.password
-              )
+              ownerValidation.handleFieldBlur("password", formData.password)
             }
             className={`block w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
               ownerValidation.shouldShowError("password")
@@ -184,7 +172,11 @@ export default function OwnerDataStep({
             }`}
             placeholder="Digite sua senha"
             aria-invalid={ownerValidation.shouldShowError("password")}
-            aria-describedby={ownerValidation.shouldShowError("password") ? "password-error" : undefined}
+            aria-describedby={
+              ownerValidation.shouldShowError("password")
+                ? "password-error"
+                : undefined
+            }
           />
           <button
             type="button"
@@ -232,7 +224,7 @@ export default function OwnerDataStep({
                 );
               } else {
                 // Apenas marcar como tocado sem validar
-                ownerValidation.setFieldTouched('confirmPassword');
+                ownerValidation.setFieldTouched("confirmPassword");
               }
             }}
             className={`block w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 ${
@@ -242,14 +234,22 @@ export default function OwnerDataStep({
             }`}
             placeholder="Confirme sua senha"
             aria-invalid={ownerValidation.shouldShowError("confirmPassword")}
-            aria-describedby={ownerValidation.shouldShowError("confirmPassword") ? "confirm-password-error" : undefined}
+            aria-describedby={
+              ownerValidation.shouldShowError("confirmPassword")
+                ? "confirm-password-error"
+                : undefined
+            }
           />
           <button
             type="button"
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
             onClick={onToggleConfirmPassword}
             aria-pressed={showConfirmPassword}
-            aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+            aria-label={
+              showConfirmPassword
+                ? "Ocultar confirmação de senha"
+                : "Mostrar confirmação de senha"
+            }
           >
             {showConfirmPassword ? (
               <EyeSlash className="h-4 w-4 text-gray-400" />

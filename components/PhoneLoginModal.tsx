@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Phone, User } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
-import { useStoreTheme } from "@/hooks/useStoreTheme";
 import { useInlineStyles } from "@/hooks/useInlineStyles";
+import { useStoreTheme } from "@/hooks/useStoreTheme";
+import { apiClient } from "@/lib/api-client";
+import { Loader2, Phone, User } from "lucide-react";
+import { useState } from "react";
 
 interface PhoneLoginModalProps {
   isOpen: boolean;
@@ -17,12 +23,17 @@ interface PhoneLoginModalProps {
   storeSlug?: string;
 }
 
-export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: PhoneLoginModalProps) {
+export function PhoneLoginModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  storeSlug,
+}: PhoneLoginModalProps) {
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Aplicar tema da loja
   const { theme, isLoading: themeLoading } = useStoreTheme(storeSlug);
   const inlineStyles = useInlineStyles(theme);
@@ -37,9 +48,14 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
     } else if (numbers.length <= 7) {
       return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
     } else if (numbers.length <= 10) {
-      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(
+        6
+      )}`;
     } else {
-      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(
+        7,
+        11
+      )}`;
     }
   };
 
@@ -61,7 +77,10 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
         throw new Error("Telefone deve ter pelo menos 10 dígitos");
       }
 
-      const authData = await apiClient.authenticateByPhone(cleanPhone, name || undefined);
+      const authData = await apiClient.authenticateByPhone(
+        cleanPhone,
+        name || undefined
+      );
 
       onSuccess(authData);
       onClose();
@@ -73,7 +92,7 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
       console.error("Erro no login por telefone:", err);
       setError(
         err.message ||
-        "Erro ao fazer login. Verifique seu telefone e tente novamente."
+          "Erro ao fazer login. Verifique seu telefone e tente novamente."
       );
     } finally {
       setIsLoading(false);
@@ -91,22 +110,25 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={`sm:max-w-md store-themed-modal ${theme ? 'theme-applied' : ''}`}>
+      <DialogContent
+        className={`sm:max-w-md store-themed-modal ${
+          theme ? "theme-applied" : ""
+        }`}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Phone className="h-5 w-5 icon" />
             Login com Telefone
           </DialogTitle>
           <DialogDescription>
-            Digite seu telefone para entrar. Se for sua primeira vez, criaremos sua conta automaticamente.
+            Digite seu telefone para entrar. Se for sua primeira vez, criaremos
+            sua conta automaticamente.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 text-sm error-message rounded-md">
-              {error}
-            </div>
+            <div className="p-3 text-sm error-message rounded-md">{error}</div>
           )}
 
           <div className="space-y-2">
@@ -117,7 +139,7 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
             <Input
               id="phone"
               type="tel"
-              placeholder="(11) 99999-9999"
+              placeholder="(22) 99929-3439"
               value={phone}
               onChange={handlePhoneChange}
               disabled={isLoading}
@@ -125,9 +147,7 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
               required
               className="text-lg"
             />
-            <p className="text-xs helper-text">
-              Digite seu telefone com DDD
-            </p>
+            <p className="text-xs helper-text">Digite seu telefone com DDD</p>
           </div>
 
           <div className="space-y-2">
@@ -192,4 +212,3 @@ export function PhoneLoginModal({ isOpen, onClose, onSuccess, storeSlug }: Phone
     </Dialog>
   );
 }
-
