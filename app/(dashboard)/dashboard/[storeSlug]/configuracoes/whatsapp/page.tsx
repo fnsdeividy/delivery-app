@@ -320,7 +320,7 @@ export default function WhatsAppConfigPage() {
                       onChange={(e) =>
                         handleInputChange("phoneNumber", e.target.value)
                       }
-                      placeholder="+5522999293439"
+                      placeholder="+55 (00) 00000-0000"
                       className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

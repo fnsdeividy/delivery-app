@@ -1,6 +1,6 @@
 "use client";
 
-import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { ListBullets, TextB, TextItalic } from "@phosphor-icons/react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -16,8 +16,8 @@ interface ProductBasicInfoProps {
   formData: {
     name: string;
     categoryId: string;
-    price: number;
-    originalPrice?: number;
+    price: number; // Valor em centavos
+    originalPrice?: number; // Valor em centavos
     description: string;
     image?: string;
   };
@@ -34,13 +34,6 @@ export function ProductBasicInfo({
   storeSlug,
   onFormDataChange,
 }: ProductBasicInfoProps) {
-  const { parseAndFormatBRL, formatBRL } = useCurrencyFormatter();
-  const [priceText, setPriceText] = useState<string>(
-    formData.price ? formatBRL(formData.price) : ""
-  );
-  const [originalPriceText, setOriginalPriceText] = useState<string>(
-    formData.originalPrice ? formatBRL(formData.originalPrice) : ""
-  );
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false);
 
   const getPlaceholderByCategory = (categoryId: string) => {
@@ -145,53 +138,42 @@ export function ProductBasicInfo({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Preço *
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={priceText}
-            onChange={(e) => {
-              const { text, value } = parseAndFormatBRL(e.target.value);
-              setPriceText(text);
-              onFormDataChange({ price: value });
-            }}
-            onBlur={() => {
-              setPriceText(formData.price ? formatBRL(formData.price) : "");
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="R$ 0,00"
-            aria-label="Preço em reais"
+          <CurrencyInput
+            label="Preço *"
+            value={formData.price}
+            onChange={(cents) => onFormDataChange({ price: cents })}
+            onBlur={(cents) => onFormDataChange({ price: cents })}
+            placeholder="0,00"
             required
+            min={0}
+            max={9999999}
+            allowEmpty={false}
+            id="product-price"
+            name="price"
+            aria-describedby="price-help"
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Digite apenas números (ex.: 1234 vira R$ 12,34)
+          <p id="price-help" className="mt-1 text-xs text-gray-500">
+            Digite o valor em reais (ex.: 2,50 ou 250)
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Preço Original
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={originalPriceText}
-            onChange={(e) => {
-              const { text, value } = parseAndFormatBRL(e.target.value);
-              setOriginalPriceText(text);
-              onFormDataChange({ originalPrice: value });
-            }}
-            onBlur={() => {
-              setOriginalPriceText(
-                formData.originalPrice ? formatBRL(formData.originalPrice) : ""
-              );
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="R$ 0,00"
-            aria-label="Preço original em reais"
+          <CurrencyInput
+            label="Preço Original"
+            value={formData.originalPrice || 0}
+            onChange={(cents) => onFormDataChange({ originalPrice: cents })}
+            onBlur={(cents) => onFormDataChange({ originalPrice: cents })}
+            placeholder="0,00"
+            min={0}
+            max={9999999}
+            allowEmpty={true}
+            id="product-original-price"
+            name="originalPrice"
+            aria-describedby="original-price-help"
           />
+          <p id="original-price-help" className="mt-1 text-xs text-gray-500">
+            Deixe vazio se não houver preço original
+          </p>
         </div>
       </div>
 

@@ -733,7 +733,7 @@ export default function ConfiguracoesBasicasPage() {
                     ).getData("text");
                     handlePhoneChange(text);
                   }}
-                  placeholder="(22) 99929-3439"
+                  placeholder="(00) 00000-0000"
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                     errors.phone ? "border-red-300" : "border-gray-300"
                   }`}

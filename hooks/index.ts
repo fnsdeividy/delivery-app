@@ -12,6 +12,7 @@ export { useAuth } from "./useAuth";
 export { useAuthContext } from "./useAuthContext";
 export { useCardapioAuth } from "./useCardapioAuth";
 export { useCreateStore } from "./useCreateStore";
+export { useCurrency, useMultipleCurrency } from "./useCurrency";
 export { useDashboardMetrics } from "./useDashboardMetrics";
 export { useDashboardStats } from "./useDashboardStats";
 export { useDebounce, useDebouncedCallback } from "./useDebounce";
@@ -21,8 +22,8 @@ export { useLoadingState, useMultipleLoadingStates } from "./useLoadingState";
 export {
   useCancelOrder,
   useCreateOrder,
-  useOrderStats,
   useOrders,
+  useOrderStats,
   useUpdateOrder,
 } from "./useOrders";
 export { useOrdersByStore, useUpdateOrderStatus } from "./useOrderStatus";
@@ -43,8 +44,8 @@ export {
   useApproveStore,
   useDeleteStore,
   useRejectStore,
-  useStoreStats,
   useStores,
+  useStoreStats,
   useUpdateStore,
 } from "./useStores";
 export {
