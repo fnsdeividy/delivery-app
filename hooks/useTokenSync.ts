@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Hook para sincronizar token entre localStorage e cookies
@@ -8,52 +8,60 @@ export function useTokenSync() {
   const syncAttempts = useRef(0);
   const maxSyncAttempts = 3;
   const [isSynced, setIsSynced] = useState(false);
+  const lastTokenRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const syncToken = () => {
-      try {
-        const token = localStorage.getItem("cardapio_token");
+  const syncToken = useCallback(() => {
+    try {
+      const token = localStorage.getItem("cardapio_token");
 
-        if (token && token.trim() && typeof window !== "undefined") {
-          // Verificar se o cookie já existe e é o mesmo
-          const existingCookie = document.cookie
-            .split(";")
-            .find((cookie) => cookie.trim().startsWith("cardapio_token="));
+      // Evitar sincronização desnecessária se o token não mudou
+      if (lastTokenRef.current === token) {
+        return;
+      }
 
-          const existingToken = existingCookie
-            ? existingCookie.split("=")[1]
-            : null;
+      lastTokenRef.current = token;
 
-          if (existingToken !== token) {
-            // Sincronizar com cookie para o middleware acessar
-            // Cookie com expiração de 2 horas (7200 segundos)
-            const cookieValue = `cardapio_token=${token}; path=/; max-age=7200; SameSite=Lax; secure=${
-              window.location.protocol === "https:"
-            }`;
-            document.cookie = cookieValue;
+      if (token && token.trim() && typeof window !== "undefined") {
+        // Verificar se o cookie já existe e é o mesmo
+        const existingCookie = document.cookie
+          .split(";")
+          .find((cookie) => cookie.trim().startsWith("cardapio_token="));
 
-            // Verificar se foi definido
-            const cookieSet = document.cookie.includes("cardapio_token=");
+        const existingToken = existingCookie
+          ? existingCookie.split("=")[1]
+          : null;
 
-            if (!cookieSet && syncAttempts.current < maxSyncAttempts) {
-              syncAttempts.current++;
-              // Tentar novamente após um delay
-              setTimeout(syncToken, 100);
-            } else if (cookieSet) {
-              setIsSynced(true);
-            }
-          } else {
+        if (existingToken !== token) {
+          // Sincronizar com cookie para o middleware acessar
+          // Cookie com expiração de 2 horas (7200 segundos)
+          const cookieValue = `cardapio_token=${token}; path=/; max-age=7200; SameSite=Lax; secure=${
+            window.location.protocol === "https:"
+          }`;
+          document.cookie = cookieValue;
+
+          // Verificar se foi definido
+          const cookieSet = document.cookie.includes("cardapio_token=");
+
+          if (!cookieSet && syncAttempts.current < maxSyncAttempts) {
+            syncAttempts.current++;
+            // Tentar novamente após um delay
+            setTimeout(syncToken, 100);
+          } else if (cookieSet) {
             setIsSynced(true);
           }
         } else {
-          setIsSynced(true); // Considerar sincronizado mesmo sem token
+          setIsSynced(true);
         }
-      } catch (error) {
-        console.error("❌ useTokenSync: Erro ao sincronizar token", error);
-        setIsSynced(true); // Considerar sincronizado mesmo com erro
+      } else {
+        setIsSynced(true); // Considerar sincronizado mesmo sem token
       }
-    };
+    } catch (error) {
+      console.error("❌ useTokenSync: Erro ao sincronizar token", error);
+      setIsSynced(true); // Considerar sincronizado mesmo com erro
+    }
+  }, []);
 
+  useEffect(() => {
     // Sincronizar imediatamente
     syncToken();
 
@@ -66,26 +74,38 @@ export function useTokenSync() {
       }
     };
 
-    // Sincronizar quando a página ganhar foco (refresh)
+    // Sincronizar quando a página ganhar foco (refresh) - com debounce
+    let focusTimeout: NodeJS.Timeout;
     const handleFocus = () => {
-      syncAttempts.current = 0;
-      setIsSynced(false);
-      syncToken();
-    };
-
-    // Sincronizar quando a página carregar completamente
-    const handleLoad = () => {
-      syncAttempts.current = 0;
-      setIsSynced(false);
-      syncToken();
-    };
-
-    // Sincronizar quando a visibilidade da página mudar
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      clearTimeout(focusTimeout);
+      focusTimeout = setTimeout(() => {
         syncAttempts.current = 0;
         setIsSynced(false);
         syncToken();
+      }, 100);
+    };
+
+    // Sincronizar quando a página carregar completamente - com debounce
+    let loadTimeout: NodeJS.Timeout;
+    const handleLoad = () => {
+      clearTimeout(loadTimeout);
+      loadTimeout = setTimeout(() => {
+        syncAttempts.current = 0;
+        setIsSynced(false);
+        syncToken();
+      }, 100);
+    };
+
+    // Sincronizar quando a visibilidade da página mudar - com debounce
+    let visibilityTimeout: NodeJS.Timeout;
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        clearTimeout(visibilityTimeout);
+        visibilityTimeout = setTimeout(() => {
+          syncAttempts.current = 0;
+          setIsSynced(false);
+          syncToken();
+        }, 100);
       }
     };
 
@@ -95,12 +115,15 @@ export function useTokenSync() {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      clearTimeout(focusTimeout);
+      clearTimeout(loadTimeout);
+      clearTimeout(visibilityTimeout);
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("load", handleLoad);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [syncToken]);
 
   return { isSynced };
 }

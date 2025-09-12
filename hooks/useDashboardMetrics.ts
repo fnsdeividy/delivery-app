@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import { useEffect, useState } from "react";
+import { useApiCache } from "./useApiCache";
 
 export interface DashboardMetrics {
   totalProducts: number;
@@ -23,71 +23,22 @@ export interface StoreInfo {
 }
 
 export function useDashboardMetrics(storeSlug: string) {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!storeSlug) return;
-
-    const loadDashboardData = async () => {
+  // Usar hook personalizado de cache para evitar chamadas duplicadas
+  const {
+    data: metricsData,
+    isLoading: metricsLoading,
+    error: metricsError,
+    refetch: refetchMetrics,
+  } = useApiCache(
+    ["dashboard-metrics", storeSlug],
+    async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        // Tentar carregar métricas do dashboard usando o cliente API
-        let metricsData: DashboardMetrics | null = null;
-        try {
-          metricsData = await apiClient.get<DashboardMetrics>(
-            `/stores/dashboard-metrics/${storeSlug}`
-          );
-        } catch (metricsError) {
-          console.warn("API de métricas não disponível, usando dados mock");
-        }
-
-        // Tentar carregar informações da loja usando o cliente API
-        let storeData: StoreInfo | null = null;
-        try {
-          storeData = await apiClient.get<StoreInfo>(
-            `/stores/slug/${storeSlug}`
-          );
-        } catch (storeError) {
-          console.warn("API de loja não disponível, usando dados mock");
-        }
-
-        // Se não conseguiu carregar dados da API, usar dados mock
-        if (!metricsData) {
-          metricsData = {
-            totalProducts: 24,
-            totalOrders: 156,
-            pendingOrders: 8,
-            todaySales: 1250.5,
-            weekSales: 8750.0,
-            lowStockProducts: 3,
-            outOfStockProducts: 1,
-          };
-        }
-
-        if (!storeData) {
-          storeData = {
-            id: "1",
-            name: "Minha Loja",
-            description: "Descrição da loja",
-            slug: storeSlug,
-            primaryColor: "#3B82F6",
-            secondaryColor: "#10B981",
-          };
-        }
-
-        setMetrics(metricsData);
-        setStoreInfo(storeData);
-        setError(null);
-      } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err);
-
-        // Em caso de erro, usar dados mock para não quebrar a interface
-        setMetrics({
+        return await apiClient.get<DashboardMetrics>(
+          `/stores/dashboard-metrics/${storeSlug}`
+        );
+      } catch (error) {
+        console.warn("API de métricas não disponível, usando dados mock");
+        return {
           totalProducts: 24,
           totalOrders: 156,
           pendingOrders: 8,
@@ -95,47 +46,56 @@ export function useDashboardMetrics(storeSlug: string) {
           weekSales: 8750.0,
           lowStockProducts: 3,
           outOfStockProducts: 1,
-        });
-        setStoreInfo({
+        };
+      }
+    },
+    {
+      enabled: !!storeSlug,
+      staleTime: 2 * 60 * 1000, // 2 minutos
+      gcTime: 5 * 60 * 1000, // 5 minutos
+    }
+  );
+
+  const {
+    data: storeData,
+    isLoading: storeLoading,
+    error: storeError,
+  } = useApiCache(
+    ["store-info", storeSlug],
+    async () => {
+      try {
+        return await apiClient.get<StoreInfo>(`/stores/slug/${storeSlug}`);
+      } catch (error) {
+        console.warn("API de loja não disponível, usando dados mock");
+        return {
           id: "1",
           name: "Minha Loja",
           description: "Descrição da loja",
           slug: storeSlug,
           primaryColor: "#3B82F6",
           secondaryColor: "#10B981",
-        });
-        setError(null);
-      } finally {
-        setLoading(false);
+        };
       }
-    };
+    },
+    {
+      enabled: !!storeSlug,
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      gcTime: 15 * 60 * 1000, // 15 minutos
+    }
+  );
 
-    loadDashboardData();
-  }, [storeSlug]);
+  const loading = metricsLoading || storeLoading;
+  const error = metricsError || storeError;
 
   const refreshMetrics = async () => {
-    if (!storeSlug) return;
-
-    try {
-      setLoading(true);
-      const data = await apiClient.get<DashboardMetrics>(
-        `/stores/${storeSlug}/dashboard-metrics`
-      );
-      setMetrics(data);
-      setError(null);
-    } catch (err) {
-      console.error("Erro ao atualizar métricas:", err);
-      // Não definir erro aqui para não quebrar a interface
-    } finally {
-      setLoading(false);
-    }
+    await refetchMetrics();
   };
 
   return {
-    metrics,
-    storeInfo,
+    metrics: metricsData,
+    storeInfo: storeData,
     loading,
-    error,
+    error: error?.message || null,
     refreshMetrics,
   };
 }

@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { Product } from "@/types/cardapio-api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface StoreConfig {
@@ -189,43 +190,75 @@ function mapPublicToStoreConfig(data: PublicStoreApiResponse): StoreConfig {
 }
 
 export function useStoreConfig(slug: string): UseStoreConfigReturn {
+  const queryClient = useQueryClient();
   const isClient = typeof window !== "undefined";
-  const [config, setConfig] = useState<StoreConfig | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!slug && isClient);
-  const [error, setError] = useState<string | null>(null);
 
-  // Guardar ref de "montado" para evitar setState após unmount
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+  // Usar React Query para cache e evitar chamadas duplicadas
+  const {
+    data: config,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["store-config", slug],
+    queryFn: async () => {
+      const data = await apiClient.get<PublicStoreApiResponse>(
+        `/stores/public/${slug}`
+      );
+      return mapPublicToStoreConfig(data);
+    },
+    enabled: !!slug && isClient,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 15 * 60 * 1000, // 15 minutos
+    retry: (failureCount, error: any) => {
+      // Não tentar novamente para erros 4xx
+      if (error?.response?.status >= 400 && error?.response?.status < 500) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  // Mutation para atualizar configuração
+  const updateMutation = useMutation({
+    mutationFn: async (data: Partial<StoreConfig> | Record<string, any>) => {
+      await apiClient.patch(`/stores/${slug}/config`, data);
+    },
+    onSuccess: () => {
+      // Invalidar cache para forçar re-fetch
+      queryClient.invalidateQueries({ queryKey: ["store-config", slug] });
+    },
+  });
 
   const updateConfig = useCallback(
     async (data: Partial<StoreConfig> | Record<string, any>) => {
-      // Atualiza via endpoint de config e faz merge parcial no estado local
-      await apiClient.patch(`/stores/${slug}/config`, data);
-      setConfig((prev) => {
-        if (!prev) return prev;
-        const next: StoreConfig = { ...prev };
-
-        // merge superficial no nível raiz
-        Object.assign(next, data);
-
-        // se vier um bloco "config", mescla com o atual
-        if (data && typeof data === "object" && "config" in data) {
-          next.config = {
-            ...prev.config,
-            ...(data as any).config,
-          };
-        }
-        return next;
-      });
+      await updateMutation.mutateAsync(data);
     },
-    [slug]
+    [updateMutation, slug]
   );
+
+  // Mapear erro para mensagem amigável
+  const error = useMemo(() => {
+    if (!queryError) return null;
+    
+    const rawMsg = extractErrorMessage(
+      queryError,
+      "Erro ao carregar dados da loja"
+    );
+    
+    if (/404|não encontrada|nao encontrada|loja não encontrada/i.test(rawMsg)) {
+      return "Loja não encontrada";
+    } else if (/inativa|desativada/i.test(rawMsg)) {
+      return "Loja temporariamente indisponível";
+    } else if (/timeout|excedido|ECONNABORTED/i.test(rawMsg)) {
+      return "Conexão lenta, tente novamente";
+    } else if (/Network Error|ERR_NETWORK|fetch/i.test(rawMsg)) {
+      return "Erro de conexão. Verifique sua internet.";
+    } else if (/indispon[ií]vel|503|Service Unavailable/i.test(rawMsg)) {
+      return "Serviço temporariamente indisponível";
+    }
+    
+    return "Erro ao carregar dados da loja";
+  }, [queryError]);
 
   // SSR: retornar estado neutro
   if (!isClient) {
@@ -237,85 +270,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
     };
   }
 
-  useEffect(() => {
-    if (!slug) {
-      setLoading(false);
-      setError(null);
-      setConfig(null);
-      return;
-    }
-
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let cancelled = false;
-
-    const loadConfig = async () => {
-      setLoading(true);
-      setError(null);
-      setConfig(null);
-
-      // Timeout de segurança (15s)
-      timeoutId = setTimeout(() => {
-        if (!cancelled && mountedRef.current) {
-          setLoading(false);
-          setError("Tempo limite excedido. Tente recarregar a página.");
-        }
-      }, 15000);
-
-      try {
-        // Busca dados públicos da loja
-        const data = await apiClient.get<PublicStoreApiResponse>(
-          `/stores/public/${slug}`
-        );
-
-        if (cancelled || !mountedRef.current) return;
-
-        const mapped = mapPublicToStoreConfig(data);
-        setConfig(mapped);
-      } catch (err) {
-        if (cancelled || !mountedRef.current) return;
-
-        // Mapeia para mensagem amigável
-        const rawMsg = extractErrorMessage(
-          err,
-          "Erro ao carregar dados da loja"
-        );
-        let userMessage = "Erro ao carregar dados da loja";
-
-        if (
-          /404|não encontrada|nao encontrada|loja não encontrada/i.test(rawMsg)
-        ) {
-          userMessage = "Loja não encontrada";
-        } else if (/inativa|desativada/i.test(rawMsg)) {
-          userMessage = "Loja temporariamente indisponível";
-        } else if (/timeout|excedido|ECONNABORTED/i.test(rawMsg)) {
-          userMessage = "Conexão lenta, tente novamente";
-        } else if (/Network Error|ERR_NETWORK|fetch/i.test(rawMsg)) {
-          userMessage = "Erro de conexão. Verifique sua internet.";
-        } else if (/indispon[ií]vel|503|Service Unavailable/i.test(rawMsg)) {
-          userMessage = "Serviço temporariamente indisponível";
-        }
-
-        // Pequeno delay para evitar flash de erro
-        setTimeout(() => {
-          if (!cancelled && mountedRef.current) {
-            setError(userMessage);
-          }
-        }, 200);
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-        if (!cancelled && mountedRef.current) setLoading(false);
-      }
-    };
-
-    loadConfig();
-
-    return () => {
-      cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [slug]);
-
-  return { config, loading, error, updateConfig };
+  return { config: config || null, loading, error, updateConfig };
 }
 
 export function useStoreStatus(config: StoreConfig | null) {
