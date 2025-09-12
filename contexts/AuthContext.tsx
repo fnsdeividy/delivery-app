@@ -2,7 +2,6 @@
 
 import { useTokenSync } from "@/hooks/useTokenSync";
 import { apiClient } from "@/lib/api-client";
-import { apiConfig } from "@/lib/config";
 import { AuthResponse, User, UserStoreAssociation } from "@/types/cardapio-api";
 import { useRouter } from "next/navigation";
 import {
@@ -24,10 +23,7 @@ interface AuthContextType {
     password: string,
     storeSlug?: string
   ) => Promise<AuthResponse>;
-  loginByPhone: (
-    phone: string,
-    name?: string
-  ) => Promise<AuthResponse>;
+  loginByPhone: (phone: string, name?: string) => Promise<AuthResponse>;
   register: (userData: any) => Promise<AuthResponse>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -49,14 +45,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useState<UserStoreAssociation | null>(null);
   const router = useRouter();
 
-  // Sincronizar token entre localStorage e cookies
   const { isSynced } = useTokenSync();
 
-  // Função para carregar dados completos do usuário
   const refreshUserData = async () => {
     try {
       if (apiClient.isAuthenticated()) {
-        // Obter dados do token JWT em vez de chamar o endpoint não implementado
         const token = apiClient.getCurrentToken();
         if (token) {
           try {
@@ -64,7 +57,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (tokenParts.length === 3) {
               const payload = JSON.parse(atob(tokenParts[1]));
 
-              // Criar objeto de usuário a partir do token JWT
               const currentUser: User = {
                 id: payload.sub || payload.id || "unknown",
                 email: payload.email || "",
@@ -89,7 +81,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
               setUser(currentUser);
               setUserStores(currentUser.stores || []);
 
-              // Definir loja atual baseada nos dados do usuário
               const currentStoreSlug =
                 currentUser.currentStoreSlug || apiClient.getCurrentStoreSlug();
               if (currentStoreSlug) {
@@ -99,28 +90,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 setCurrentStoreState(store || null);
               }
 
-              // Persistir dados do usuário no localStorage
               localStorage.setItem("user", JSON.stringify(currentUser));
             }
-          } catch (decodeError) {
-            console.error("❌ Erro ao decodificar token JWT:", decodeError);
-            // Fallback para dados do localStorage
+          } catch {
             const savedUser = localStorage.getItem("user");
             if (savedUser) {
               try {
                 const userData = JSON.parse(savedUser);
                 setUser(userData);
                 setUserStores(userData.stores || []);
-              } catch (e) {
-                console.error("❌ Erro ao parsear dados do localStorage:", e);
+              } catch {
+                localStorage.removeItem("user");
               }
             }
           }
         }
       }
-    } catch (error) {
-      console.error("❌ Erro ao carregar dados do usuário:", error);
-      // Não fazer logout automático, apenas limpar dados
+    } catch {
       localStorage.removeItem("user");
       setUser(null);
       setUserStores([]);
@@ -128,11 +114,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Verificar autenticação ao inicializar
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Aguardar até que o token esteja sincronizado
         if (!isSynced) {
           return;
         }
@@ -140,7 +124,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (apiClient.isAuthenticated()) {
           await refreshUserData();
         } else {
-          // Tentar recuperar dados do usuário do localStorage
           const savedUser = localStorage.getItem("user");
           if (savedUser) {
             try {
@@ -156,22 +139,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 );
                 setCurrentStoreState(store || null);
               }
-            } catch (e) {
-              if (apiConfig.api.debug) {
-                console.error("❌ Erro ao parsear dados do localStorage:", e);
-              }
+            } catch {
               localStorage.removeItem("user");
-            }
-          } else {
-            if (apiConfig.api.debug) {
-              console.log("ℹ️ Nenhum usuário salvo encontrado");
             }
           }
         }
-      } catch (error) {
-        if (apiConfig.api.debug) {
-          console.error("❌ Erro na verificação de autenticação:", error);
-        }
+      } catch {
         apiClient.logout();
         localStorage.removeItem("user");
         setUser(null);
@@ -201,7 +174,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(userData);
       setUserStores(userData.stores || []);
 
-      // Definir loja atual se disponível
       if (userData.currentStoreSlug) {
         const store = userData.stores?.find(
           (s) => s.storeSlug === userData.currentStoreSlug
@@ -209,7 +181,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setCurrentStoreState(store || null);
       }
 
-      // Persistir dados do usuário no localStorage
       localStorage.setItem("user", JSON.stringify(userData));
 
       return response;
@@ -233,7 +204,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(userData);
       setUserStores(userData.stores || []);
 
-      // Definir loja atual se disponível
       if (userData.currentStoreSlug) {
         const store = userData.stores?.find(
           (s) => s.storeSlug === userData.currentStoreSlug
@@ -241,7 +211,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setCurrentStoreState(store || null);
       }
 
-      // Persistir dados do usuário no localStorage
       localStorage.setItem("user", JSON.stringify(userData));
 
       return response;
@@ -260,14 +229,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
       setUser(userDataWithDates);
 
-      // Persistir dados do usuário no localStorage
       localStorage.setItem("user", JSON.stringify(userDataWithDates));
 
-      // Forçar atualização do contexto para garantir que o usuário seja marcado como autenticado
-      // Isso é importante para o redirecionamento funcionar corretamente
       await refreshUserData();
-
-      // Não redirecionar aqui para evitar interferir em fluxos (ex.: criação de loja)
 
       return response;
     } catch (error) {
@@ -303,7 +267,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {
-      console.error("❌ Erro ao definir loja atual:", error);
       throw error;
     }
   };
@@ -334,7 +297,6 @@ export function useAuthContext() {
   return context;
 }
 
-// Função utilitária para decodificar JWT (apenas para desenvolvimento)
 function parseJwt(token: string) {
   try {
     const base64Url = token.split(".")[1];
@@ -346,7 +308,7 @@ function parseJwt(token: string) {
         .join("")
     );
     return JSON.parse(jsonPayload);
-  } catch (error) {
+  } catch {
     return null;
   }
 }

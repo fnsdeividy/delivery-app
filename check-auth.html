@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verificar Autenticação</title>
+</head>
+<body>
+    <h1>Verificar Estado da Autenticação</h1>
+    <button onclick="checkAuth()">Verificar Auth</button>
+    <button onclick="login()">Fazer Login</button>
+    <button onclick="testInventory()">Testar Inventário</button>
+    <div id="output"></div>
+    
+    <script>
+        function checkAuth() {
+            const output = document.getElementById('output');
+            
+            // Verificar localStorage
+            const token = localStorage.getItem('cardapio_token');
+            const user = localStorage.getItem('user');
+            
+            output.innerHTML = '<h2>Estado da Autenticação:</h2>';
+            output.innerHTML += `<p>Token: ${token ? '✅ Encontrado' : '❌ Não encontrado'}</p>`;
+            output.innerHTML += `<p>Usuário: ${user ? '✅ Encontrado' : '❌ Não encontrado'}</p>`;
+            
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    output.innerHTML += '<h3>Payload do Token:</h3>';
+                    output.innerHTML += `<pre>${JSON.stringify(payload, null, 2)}</pre>`;
+                    
+                    // Verificar se está expirado
+                    const now = Date.now() / 1000;
+                    const isExpired = payload.exp < now;
+                    output.innerHTML += `<p>Token expirado: ${isExpired ? '❌ Sim' : '✅ Não'}</p>`;
+                } catch (e) {
+                    output.innerHTML += '<p>❌ Erro ao decodificar token</p>';
+                }
+            }
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    output.innerHTML += '<h3>Dados do Usuário:</h3>';
+                    output.innerHTML += `<pre>${JSON.stringify(userData, null, 2)}</pre>`;
+                } catch (e) {
+                    output.innerHTML += '<p>❌ Erro ao decodificar usuário</p>';
+                }
+            }
+        }
+        
+        async function login() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>🔍 Fazendo login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@cardap.io',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Resposta do login:', data);
+                
+                if (data.access_token) {
+                    localStorage.setItem('cardapio_token', data.access_token);
+                    output.innerHTML += '<p>✅ Login realizado com sucesso!</p>';
+                    checkAuth();
+                } else {
+                    output.innerHTML += '<p>❌ Token não encontrado na resposta</p>';
+                    output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<p>❌ Erro no login: ${error.message}</p>`;
+            }
+        }
+        
+        async function testInventory() {
+            const output = document.getElementById('output');
+            const token = localStorage.getItem('cardapio_token');
+            
+            if (!token) {
+                output.innerHTML += '<p>❌ Token não encontrado. Faça login primeiro.</p>';
+                return;
+            }
+            
+            output.innerHTML += '<p>🔍 Testando inventário...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/v1/inventory/store/uziel/summary', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    output.innerHTML += '<p>✅ Inventário carregado com sucesso!</p>';
+                    output.innerHTML += `<p>Total de produtos: ${data.totalProducts}</p>`;
+                    output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    output.innerHTML += `<p>❌ Erro na API: ${response.status}</p>`;
+                    output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<p>❌ Erro na requisição: ${error.message}</p>`;
+            }
+        }
+        
+        // Verificar automaticamente ao carregar
+        window.onload = checkAuth;
+    </script>
+</body>
+</html>

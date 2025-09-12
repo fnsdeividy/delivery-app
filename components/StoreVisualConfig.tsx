@@ -115,10 +115,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
           [type]: uploadResult.url,
         },
       }));
-
-      console.log(`Upload de ${type} realizado com sucesso:`, uploadResult);
     } catch (error: unknown) {
-      console.error(`Erro ao fazer upload de ${type}:`, error);
       const errorMessage =
         error instanceof Error ? error.message : "Erro desconhecido";
       alert(`Erro ao fazer upload da imagem: ${errorMessage}`);
@@ -162,7 +159,6 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
       // Sucesso
       alert("Configurações visuais atualizadas com sucesso!");
     } catch (error) {
-      console.error("Erro ao atualizar configurações visuais:", error);
       alert("Erro ao atualizar configurações visuais");
     }
   };

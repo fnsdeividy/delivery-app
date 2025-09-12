@@ -87,14 +87,7 @@ export function useRegistrationForm() {
         city: data.localidade || prev.city,
         state: data.uf || prev.state,
       }));
-
-      console.log("✅ Endereço preenchido automaticamente:", {
-        address: data.logradouro ? `${data.logradouro}, ${data.bairro}` : "",
-        city: data.localidade,
-        state: data.uf,
-      });
     } catch (error) {
-      console.error("❌ Erro ao consultar CEP:", error);
       setCepError("Erro ao consultar CEP. Tente novamente.");
     } finally {
       setIsLoadingCep(false);

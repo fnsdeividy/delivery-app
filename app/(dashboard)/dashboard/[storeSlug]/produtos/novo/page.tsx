@@ -551,8 +551,10 @@ export default function NovoProdutoPage() {
                   price: price,
                   originalPrice: originalPrice ?? 0,
                   description: formData.description,
+                  image: formData.image,
                 }}
                 categories={categories}
+                storeSlug={slug}
                 onFormDataChange={(updates) => {
                   if (typeof updates.name === "string")
                     handleNameChange(updates.name);
@@ -566,6 +568,8 @@ export default function NovoProdutoPage() {
                     );
                   if (typeof updates.description === "string")
                     handleDescriptionChange(updates.description);
+                  if (typeof updates.image === "string")
+                    handleImageChange(updates.image);
                 }}
               />
 

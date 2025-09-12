@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from 'react';
-import { TextB, TextItalic, ListBullets } from "@phosphor-icons/react";
-import ReactMarkdown from 'react-markdown';
-import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { ListBullets, TextB, TextItalic } from "@phosphor-icons/react";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { ProductImageUpload } from "./ProductImageUpload";
 
 interface Category {
   id: string;
@@ -18,26 +19,43 @@ interface ProductBasicInfoProps {
     price: number;
     originalPrice?: number;
     description: string;
+    image?: string;
   };
   categories: Category[];
-  onFormDataChange: (updates: Partial<ProductBasicInfoProps['formData']>) => void;
+  storeSlug: string;
+  onFormDataChange: (
+    updates: Partial<ProductBasicInfoProps["formData"]>
+  ) => void;
 }
 
-export function ProductBasicInfo({ formData, categories, onFormDataChange }: ProductBasicInfoProps) {
+export function ProductBasicInfo({
+  formData,
+  categories,
+  storeSlug,
+  onFormDataChange,
+}: ProductBasicInfoProps) {
   const { parseAndFormatBRL, formatBRL } = useCurrencyFormatter();
-  const [priceText, setPriceText] = useState<string>(formData.price ? formatBRL(formData.price) : "");
+  const [priceText, setPriceText] = useState<string>(
+    formData.price ? formatBRL(formData.price) : ""
+  );
   const [originalPriceText, setOriginalPriceText] = useState<string>(
     formData.originalPrice ? formatBRL(formData.originalPrice) : ""
   );
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false);
 
   const getPlaceholderByCategory = (categoryId: string) => {
-    const category = Array.isArray(categories) ? categories.find(c => c.id === categoryId)?.name.toLowerCase() || "" : "";
+    const category = Array.isArray(categories)
+      ? categories.find((c) => c.id === categoryId)?.name.toLowerCase() || ""
+      : "";
 
     if (category.includes("bebida") || category.includes("drink")) {
       return "Ex: Coca-Cola 2L";
     }
-    if (category.includes("comida") || category.includes("lanche") || category.includes("burger")) {
+    if (
+      category.includes("comida") ||
+      category.includes("lanche") ||
+      category.includes("burger")
+    ) {
       return "Ex: X-Burger Clássico";
     }
     if (category.includes("sobremesa") || category.includes("doce")) {
@@ -49,8 +67,10 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
     return "Ex: Nome do produto";
   };
 
-  const handleTextFormatting = (format: 'bold' | 'italic' | 'list') => {
-    const textarea = document.getElementById('description-textarea') as HTMLTextAreaElement;
+  const handleTextFormatting = (format: "bold" | "italic" | "list") => {
+    const textarea = document.getElementById(
+      "description-textarea"
+    ) as HTMLTextAreaElement;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -60,18 +80,23 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
     let newText = text;
 
     switch (format) {
-      case 'bold':
-        newText = text.substring(0, start) + `**${selectedText}**` + text.substring(end);
+      case "bold":
+        newText =
+          text.substring(0, start) +
+          `**${selectedText}**` +
+          text.substring(end);
         break;
-      case 'italic':
-        newText = text.substring(0, start) + `*${selectedText}*` + text.substring(end);
+      case "italic":
+        newText =
+          text.substring(0, start) + `*${selectedText}*` + text.substring(end);
         break;
-      case 'list':
+      case "list":
         let lineStart = start;
-        while (lineStart > 0 && text.charAt(lineStart - 1) !== '\n') {
+        while (lineStart > 0 && text.charAt(lineStart - 1) !== "\n") {
           lineStart--;
         }
-        newText = text.substring(0, lineStart) + "- " + text.substring(lineStart);
+        newText =
+          text.substring(0, lineStart) + "- " + text.substring(lineStart);
         break;
     }
 
@@ -110,11 +135,12 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
             required
           >
             <option value="">Selecione uma categoria</option>
-            {Array.isArray(categories) && categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+            {Array.isArray(categories) &&
+              categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -173,49 +199,49 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Descrição
         </label>
-        
+
         <div className="flex flex-wrap gap-2 mb-2">
-          <button 
+          <button
             type="button"
-            onClick={() => handleTextFormatting('bold')}
+            onClick={() => handleTextFormatting("bold")}
             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-50"
             title="Negrito"
           >
             <TextB size={16} weight="bold" />
           </button>
-          
-          <button 
+
+          <button
             type="button"
-            onClick={() => handleTextFormatting('italic')}
+            onClick={() => handleTextFormatting("italic")}
             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-50"
             title="Itálico"
           >
             <TextItalic size={16} />
           </button>
-          
-          <button 
+
+          <button
             type="button"
-            onClick={() => handleTextFormatting('list')}
+            onClick={() => handleTextFormatting("list")}
             className="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-50"
             title="Lista com marcadores"
           >
             <ListBullets size={16} />
           </button>
-          
+
           <button
             type="button"
             className={`ml-auto inline-flex items-center px-3 py-1 rounded text-sm ${
-              showDescriptionPreview 
-                ? 'bg-purple-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              showDescriptionPreview
+                ? "bg-purple-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
             onClick={() => setShowDescriptionPreview(!showDescriptionPreview)}
           >
-            {showDescriptionPreview ? 'Editar' : 'Visualizar'}
+            {showDescriptionPreview ? "Editar" : "Visualizar"}
           </button>
         </div>
-        
-        <div className={`${showDescriptionPreview ? 'hidden' : 'block'}`}>
+
+        <div className={`${showDescriptionPreview ? "hidden" : "block"}`}>
           <textarea
             id="description-textarea"
             value={formData.description}
@@ -225,7 +251,7 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
             placeholder="Descreva o produto... Use **negrito** para texto em negrito, *itálico* para itálico e - para listas."
           />
         </div>
-        
+
         {showDescriptionPreview && (
           <div className="border border-gray-300 rounded-md p-4 bg-gray-50 min-h-[120px]">
             {formData.description ? (
@@ -233,14 +259,26 @@ export function ProductBasicInfo({ formData, categories, onFormDataChange }: Pro
                 <ReactMarkdown>{formData.description}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-gray-400 italic">Sem descrição para visualizar.</p>
+              <p className="text-gray-400 italic">
+                Sem descrição para visualizar.
+              </p>
             )}
           </div>
         )}
-        
+
         <p className="mt-1 text-xs text-gray-500">
-          Use **texto** para negrito, *texto* para itálico e - para lista com marcadores.
+          Use **texto** para negrito, *texto* para itálico e - para lista com
+          marcadores.
         </p>
+      </div>
+
+      {/* Upload de Imagem */}
+      <div className="mt-6">
+        <ProductImageUpload
+          imageUrl={formData.image}
+          storeSlug={storeSlug}
+          onImageChange={(url) => onFormDataChange({ image: url })}
+        />
       </div>
     </div>
   );

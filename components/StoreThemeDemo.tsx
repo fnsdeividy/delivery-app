@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { PhoneLoginModal } from "@/components/PhoneLoginModal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useState } from "react";
 
 // Dados de exemplo de lojas com diferentes temas
 const storeThemes = [
@@ -67,11 +73,6 @@ export function StoreThemeDemo() {
     setSelectedStore(undefined);
   };
 
-  const handleLoginSuccess = (authData: any) => {
-    console.log("Login realizado com sucesso:", authData);
-    // Aqui você pode implementar a lógica de redirecionamento ou outras ações
-  };
-
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8" data-testid="theme-demo">
@@ -79,7 +80,8 @@ export function StoreThemeDemo() {
           Demonstração de Temas de Loja
         </h1>
         <p className="text-center text-gray-600">
-          Clique nos botões abaixo para ver como o modal de login se adapta ao tema de cada loja
+          Clique nos botões abaixo para ver como o modal de login se adapta ao
+          tema de cada loja
         </p>
       </div>
 
@@ -150,7 +152,7 @@ export function StoreThemeDemo() {
       <PhoneLoginModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSuccess={handleLoginSuccess}
+        onSuccess={() => {}}
         storeSlug={selectedStore}
       />
     </div>

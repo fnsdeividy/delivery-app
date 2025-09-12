@@ -99,29 +99,46 @@ export default function EstoquePage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("🔍 Verificando autenticação...");
+        console.log("🔍 isAuthenticated():", isAuthenticated());
+
         if (!isAuthenticated()) {
+          console.log("❌ Usuário não autenticado, redirecionando para login");
           router.push("/login");
           return;
         }
 
         const token = getCurrentToken();
+        console.log("🔍 Token obtido:", token ? "Sim" : "Não");
+
         if (!token) {
+          console.log("❌ Token não encontrado, redirecionando para login");
           router.push("/login");
           return;
         }
 
         // Decodificar token JWT
         const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("🔍 Payload do token:", payload);
+        console.log("🔍 Role:", payload.role);
+        console.log("🔍 StoreSlug no token:", payload.storeSlug);
+        console.log("🔍 Slug da loja atual:", slug);
 
-        if (
+        const hasAccess =
           payload.role === "SUPER_ADMIN" ||
-          (payload.role === "ADMIN" && payload.storeSlug === slug)
-        ) {
+          (payload.role === "ADMIN" && payload.storeSlug === slug);
+
+        console.log("🔍 Tem acesso?", hasAccess);
+
+        if (hasAccess) {
+          console.log("✅ Acesso autorizado, carregando dados...");
           await loadInitialData();
         } else {
+          console.log("❌ Acesso negado, redirecionando para unauthorized");
           router.push("/unauthorized");
         }
       } catch (error) {
+        console.error("❌ Erro na verificação de autenticação:", error);
         router.push("/login");
       } finally {
         setIsLoading(false);
@@ -141,12 +158,14 @@ export default function EstoquePage() {
 
   const loadInventorySummary = async () => {
     try {
+      console.log("🔍 Carregando resumo do inventário para loja:", slug);
       const data = await apiClient.get<InventorySummary>(
         `/inventory/store/${slug}/summary`
       );
+      console.log("✅ Resumo do inventário carregado:", data);
       setSummary(data);
     } catch (error) {
-      console.error("Erro ao carregar resumo do estoque:", error);
+      console.error("❌ Erro ao carregar resumo do estoque:", error);
       showToast("Erro ao carregar resumo do estoque", "error");
     }
   };
@@ -154,6 +173,7 @@ export default function EstoquePage() {
   const loadInventory = async () => {
     setDataLoading(true);
     try {
+      console.log("🔍 Carregando inventário para loja:", slug);
       const queryParams = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
@@ -164,13 +184,18 @@ export default function EstoquePage() {
         queryParams.append("search", searchQuery.trim());
       }
 
-      const data = await apiClient.get<PaginatedResponse<InventoryItem>>(
-        `/inventory/store/${slug}?${queryParams.toString()}`
-      );
+      const url = `/inventory/store/${slug}?${queryParams.toString()}`;
+      console.log("🔍 URL da requisição:", url);
+
+      const data = await apiClient.get<PaginatedResponse<InventoryItem>>(url);
+      console.log("✅ Inventário carregado:", data);
+      console.log("📊 Total de produtos:", data.pagination.total);
+      console.log("📦 Produtos retornados:", data.data.length);
+
       setInventory(data.data);
       setPagination(data.pagination);
     } catch (error) {
-      console.error("Erro ao carregar inventário:", error);
+      console.error("❌ Erro ao carregar inventário:", error);
       showToast("Erro ao carregar inventário", "error");
     } finally {
       setDataLoading(false);

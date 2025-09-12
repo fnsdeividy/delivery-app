@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
 import { PhoneLoginModal } from "../../../../components/PhoneLoginModal";
@@ -140,13 +140,6 @@ function StorePageContent({ params }: PageProps) {
 
   const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const { config, loading, error } = useStoreConfig(slug);
-
-  // Debug logs
-  useEffect(() => {
-    console.log("StorePage - config:", config);
-    console.log("StorePage - loading:", loading);
-    console.log("StorePage - error:", error);
-  }, [config, loading, error]);
 
   const isOpen = config?.status?.isOpen || false;
 
@@ -281,9 +274,6 @@ function StorePageContent({ params }: PageProps) {
   }
 
   const primary = config?.branding?.primaryColor || "#f97316";
-
-  // Debug branding
-  console.log("Branding data:", config?.branding);
 
   return (
     <div
@@ -678,8 +668,6 @@ function StorePageContent({ params }: PageProps) {
         isOpen={isPhoneLoginModalOpen}
         onClose={() => setIsPhoneLoginModalOpen(false)}
         onSuccess={(authData) => {
-          console.log("Login realizado com sucesso:", authData);
-          // Usar o contexto de cliente para fazer login
           if (authData.user) {
             loginCustomer(authData.user.phone, authData.user.name);
             showToast(

@@ -55,7 +55,6 @@ class ApiClient {
   private client: AxiosInstance;
   private _baseURL: string;
   private _isDev: boolean;
-  private lastLoggedToken: string | null = null;
 
   constructor() {
     this._baseURL = apiConfig.api.baseURL;
@@ -83,27 +82,9 @@ class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         const token = this.getAuthToken();
-
-        // Log apenas quando necessário (primeira vez ou mudanças)
-        if (apiConfig.api.debug && !this.lastLoggedToken) {
-          this.lastLoggedToken = token;
-        }
-
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          // Log apenas quando o token muda
-          if (apiConfig.api.debug && this.lastLoggedToken !== token) {
-            this.log("🔑 Token atualizado nos headers", {
-              tokenLength: token.length,
-            });
-            this.lastLoggedToken = token;
-          }
-        } else if (apiConfig.api.debug && this.lastLoggedToken !== null) {
-          // Log apenas quando o token é removido
-          this.log("⚠️ Token removido dos headers");
-          this.lastLoggedToken = null;
         }
-
         return config;
       },
       (error) => Promise.reject(error)
@@ -112,37 +93,18 @@ class ApiClient {
 
   private setupResponseInterceptor(): void {
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => {
-        if (apiConfig.api.logResponses) {
-          this.log("✅ Response Interceptor", {
-            status: response.status,
-            url: response.config.url,
-            dataType: typeof response.data,
-          });
-        }
-        return response;
-      },
+      (response: AxiosResponse) => response,
       async (error: AxiosError) => {
-        // Tentar refresh token apenas uma vez em caso de 401
+        // Tentar refresh token apenas uma vez em caso de 401 (a lógica de refresh não está implementada)
         if (
           error.response?.status === 401 &&
           error.config &&
           !(error.config as any)._retry
         ) {
           (error.config as any)._retry = true;
-
-          try {
-            this.log("🔄 Tentando refresh token...");
-            // Por enquanto, não implementamos refresh token, mas não limpamos o token automaticamente
-            // O componente React deve tratar o erro 401 adequadamente
-            this.log("⚠️ Refresh token não implementado, mantendo token atual");
-          } catch (refreshError) {
-            this.log("❌ Falha no refresh token, limpando token");
-            this.logout();
-          }
+          // Sem logs e sem limpar token automaticamente; o componente deve tratar
         }
 
-        // Não processar outros erros automaticamente - deixar o componente React decidir
         this.handleResponseError(error);
         return Promise.reject(error);
       }
@@ -150,135 +112,91 @@ class ApiClient {
   }
 
   private handleResponseError(error: AxiosError): void {
-    // Não logar erros de cancelamento
-    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
-      return;
-    }
+    // Ignorar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") return;
 
-    this.log("❌ Response Error", {
-      status: error.response?.status,
-      url: error.config?.url,
-      message: error.message,
-    });
-
-    // Não limpar token automaticamente em nenhum erro - deixar o componente React decidir
-    if (error.response?.status === 401) {
-      this.log("🔒 Token expirado ou inválido - componente React deve tratar");
-      // Não chamar clearAuthToken() aqui
-    } else if (error.response?.status === 403) {
-      this.log("🚫 Acesso negado - componente React deve tratar");
-      // Não chamar clearAuthToken() aqui
-    } else if (error.response?.status === 500) {
-      this.log("💥 Erro interno do servidor - componente React deve tratar");
-      // Não chamar clearAuthToken() aqui
-    }
-
+    // Não limpar token automaticamente; deixar o componente decidir
     // Processar erro com ErrorHandler se disponível
     this.processErrorWithHandler(error);
   }
 
   private processErrorWithHandler(error: AxiosError): void {
-    // Não processar erros de cancelamento
-    if (error.code === "ERR_CANCELED" || error.message === "canceled") {
-      return;
-    }
+    // Ignorar erros de cancelamento
+    if (error.code === "ERR_CANCELED" || error.message === "canceled") return;
 
     if (typeof window !== "undefined") {
       import("./error-handler")
         .then(({ ErrorHandler }) => {
-          const apiError = ErrorHandler.handleApiError(error);
+          ErrorHandler.handleApiError(error);
           ErrorHandler.logError(error, "API Client");
         })
         .catch(() => {
-          if (apiConfig.api.debug) {
-            this.log("Error handler não disponível");
-          }
+          // silencioso
         });
     }
   }
 
   // ===== GERENCIAMENTO DE TOKENS =====
 
-  /**
-   * Armazena o token de autenticação
-   */
+  /** Armazena o token de autenticação */
   private storeAuthToken(token: string): void {
     try {
-      // Armazenar no localStorage
       if (typeof window !== "undefined") {
         localStorage.setItem("cardapio_token", token);
-        // Cookie com expiração de 2 horas (7200 segundos)
         document.cookie = `cardapio_token=${token}; path=/; max-age=7200; SameSite=Strict`;
       }
-    } catch (error) {
-      console.error("❌ Erro ao armazenar token:", error);
+    } catch {
+      // silencioso
     }
   }
 
-  /**
-   * Obtém o token de autenticação
-   */
+  /** Obtém o token de autenticação */
   private getAuthToken(): string | null {
     try {
-      // Tentar obter do localStorage primeiro
-      if (typeof window !== "undefined") {
-        const localToken = localStorage.getItem("cardapio_token");
-        if (localToken) return localToken;
-      }
+      if (typeof window === "undefined") return null;
 
-      // Fallback para cookie
+      const localToken = localStorage.getItem("cardapio_token");
+      if (localToken) return localToken;
+
       const cookies = document.cookie.split(";");
       for (const cookie of cookies) {
         const [name, value] = cookie.trim().split("=");
-        if (name === "cardapio_token" && value) {
-          return value;
-        }
+        if (name === "cardapio_token" && value) return value;
       }
-
       return null;
-    } catch (error) {
-      console.error("❌ Erro ao obter token:", error);
+    } catch {
       return null;
     }
   }
 
-  /**
-   * Verifica se o usuário está autenticado
-   */
+  /** Verifica se o usuário está autenticado */
   isAuthenticated(): boolean {
     const token = this.getAuthToken();
     if (!token) return false;
 
     try {
-      // Verificar se o token não expirou
       const payload = JSON.parse(atob(token.split(".")[1]));
       return payload.exp && payload.exp > Date.now() / 1000;
-    } catch (error) {
-      console.error("❌ Erro ao verificar token:", error);
+    } catch {
       return false;
     }
   }
 
-  /**
-   * Obtém o token atual
-   */
+  /** Obtém o token atual */
   getCurrentToken(): string | null {
     return this.getAuthToken();
   }
 
-  /**
-   * Faz logout do usuário
-   */
+  /** Faz logout do usuário */
   logout(): void {
     try {
       if (typeof window !== "undefined") {
         localStorage.removeItem("cardapio_token");
-        // Remover cookie
         document.cookie =
           "cardapio_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       }
-    } catch (error) {
-      console.error("❌ Erro ao fazer logout:", error);
+    } catch {
+      // silencioso
     }
   }
 
@@ -299,37 +217,12 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      console.log("🌐 POST Request iniciado:", {
-        url: this._baseURL + url,
-        hasData: !!data,
-        dataKeys: data ? Object.keys(data) : [],
-        hasToken: !!this.getAuthToken(),
-      });
-
       const response = await this.client.post<T>(url, data, config);
-
-      console.log("✅ POST Response recebido:", {
-        status: response.status,
-        statusText: response.statusText,
-        hasData: !!response.data,
-      });
-
       if (response.status === 200 || response.status === 201) {
         return response.data;
       }
-
       throw new Error(`Status inesperado: ${response.status}`);
     } catch (error) {
-      console.error("❌ POST Request falhou:", {
-        url: this._baseURL + url,
-        error: error,
-        status: (error as any)?.response?.status,
-        message: (error as any)?.message,
-      });
-
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro na requisição POST", { error });
-      }
       throw this.createApiError(error);
     }
   }
@@ -394,9 +287,7 @@ class ApiClient {
 
   // ===== GESTÃO DE LOGO =====
 
-  /**
-   * Faz upload de uma logo para uma loja
-   */
+  /** Faz upload de uma logo para uma loja */
   async uploadLogo(
     storeSlug: string,
     file: File
@@ -412,9 +303,7 @@ class ApiClient {
     return this.upload(`/stores/${storeSlug}/upload?type=logo`, file);
   }
 
-  /**
-   * Obtém a logo atual de uma loja
-   */
+  /** Obtém a logo atual de uma loja */
   async getStoreLogo(storeSlug: string): Promise<{
     success: boolean;
     logo: string | null;
@@ -423,9 +312,7 @@ class ApiClient {
     return this.get(`/stores/${storeSlug}/logo`);
   }
 
-  /**
-   * Remove a logo de uma loja
-   */
+  /** Remove a logo de uma loja */
   async removeStoreLogo(storeSlug: string): Promise<{
     success: boolean;
     message: string;
@@ -435,9 +322,7 @@ class ApiClient {
 
   // ===== AUTENTICAÇÃO =====
 
-  /**
-   * Autentica um usuário com email e senha
-   */
+  /** Autentica um usuário com email e senha */
   async authenticate(
     email: string,
     password: string,
@@ -450,41 +335,32 @@ class ApiClient {
         storeSlug,
       });
 
-      // Armazenar token automaticamente
       if (response.access_token) {
         this.storeAuthToken(response.access_token);
       }
-
       return response;
     } catch (error) {
       throw this.createApiError(error);
     }
   }
 
-  /**
-   * Registra um novo usuário
-   */
+  /** Registra um novo usuário */
   async register(userData: CreateUserDto): Promise<AuthResponse> {
     try {
       const response = await this.post<AuthResponse>(
         "/auth/register",
         userData
       );
-
-      // Armazenar token automaticamente
       if (response.access_token) {
         this.storeAuthToken(response.access_token);
       }
-
       return response;
     } catch (error) {
       throw this.createApiError(error);
     }
   }
 
-  /**
-   * Autentica um usuário com telefone (sem senha)
-   */
+  /** Autentica um usuário com telefone (sem senha) */
   async authenticateByPhone(
     phone: string,
     name?: string
@@ -494,116 +370,69 @@ class ApiClient {
         phone,
         name,
       });
-
-      // Armazenar token automaticamente
       if (response.access_token) {
         this.storeAuthToken(response.access_token);
       }
-
       return response;
     } catch (error) {
       throw this.createApiError(error);
     }
   }
 
-  /**
-   * Solicita recuperação de senha
-   */
+  /** Solicita recuperação de senha */
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>(
+      return await this.post<{ message: string }>(
         "/auth/request-password-reset",
-        {
-          email,
-        }
+        { email }
       );
-
-      if (apiConfig.api.debug) {
-        this.log("✅ Solicitação de recuperação de senha enviada", { email });
-      }
-
-      return response;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao solicitar recuperação de senha", { email, error });
-      }
       throw this.createApiError(error);
     }
   }
 
-  /**
-   * Redefine a senha usando token
-   */
+  /** Redefine a senha usando token */
   async resetPassword(
     token: string,
     newPassword: string
   ): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>(
-        "/auth/reset-password",
-        {
-          token,
-          newPassword,
-        }
-      );
-
-      if (apiConfig.api.debug) {
-        this.log("✅ Senha redefinida com sucesso");
-      }
-
-      return response;
+      return await this.post<{ message: string }>("/auth/reset-password", {
+        token,
+        newPassword,
+      });
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao redefinir senha", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
-  /**
-   * Altera a senha do usuário logado
-   */
+  /** Altera a senha do usuário logado */
   async changePassword(
     currentPassword: string,
     newPassword: string
   ): Promise<{ message: string }> {
     try {
-      const response = await this.post<{ message: string }>(
-        "/auth/change-password",
-        {
-          currentPassword,
-          newPassword,
-        }
-      );
-
-      if (apiConfig.api.debug) {
-        this.log("✅ Senha alterada com sucesso");
-      }
-
-      return response;
+      return await this.post<{ message: string }>("/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao alterar senha", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /users/me/context não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async getCurrentUserContext(): Promise<AuthContext> {
     try {
       // const response = await this.get<AuthContext>('/users/me/context')
       // return response
 
       // Fallback temporário: retornar dados do localStorage
-      // TODO: Implementar quando o endpoint estiver disponível
       if (typeof window !== "undefined") {
         const savedUser = localStorage.getItem("user");
         if (savedUser) {
           try {
             const userData = JSON.parse(savedUser);
-            // Usando dados do localStorage como fallback
             return {
               user: userData,
               stores: userData.stores || [],
@@ -614,13 +443,12 @@ class ApiClient {
                 globalPermissions: [],
               },
             };
-          } catch (e) {
-            // Erro ao parsear dados do localStorage
+          } catch {
+            // silencioso
           }
         }
       }
 
-      // Se não conseguir obter dados do localStorage, retornar objeto vazio em vez de lançar erro
       return {
         user: {
           id: "unknown",
@@ -641,9 +469,6 @@ class ApiClient {
         },
       };
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao obter contexto do usuário", { error });
-      }
       throw this.createApiError(error);
     }
   }
@@ -651,34 +476,18 @@ class ApiClient {
   async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
     try {
       const response = await this.patch<User>("/users/me/current-store", data);
-
-      // Atualizar localStorage com a nova loja atual (SSR-safe)
       safeLocalStorage.setItem("currentStoreSlug", data.storeSlug);
-
-      if (apiConfig.api.debug) {
-        this.log("✅ Loja atual definida com sucesso", {
-          storeSlug: data.storeSlug,
-        });
-      }
-
       return response;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao definir loja atual", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   getCurrentStoreSlug(): string | null {
     try {
-      // 1. Tentar obter do localStorage primeiro (SSR-safe)
       const storedStoreSlug = safeLocalStorage.getItem("currentStoreSlug");
-      if (storedStoreSlug) {
-        return storedStoreSlug;
-      }
+      if (storedStoreSlug) return storedStoreSlug;
 
-      // 2. Tentar obter do token JWT
       const currentToken = this.getAuthToken();
       if (currentToken) {
         const tokenParts = currentToken.split(".");
@@ -686,73 +495,36 @@ class ApiClient {
           try {
             const payload = JSON.parse(atob(tokenParts[1]));
             return payload.storeSlug || null;
-          } catch (decodeError) {
-            if (apiConfig.api.debug) {
-              this.log("⚠️ Erro ao decodificar token", { decodeError });
-            }
+          } catch {
+            // silencioso
           }
         }
       }
-
       return null;
-    } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao obter storeSlug atual", { error });
-      }
+    } catch {
       return null;
     }
   }
 
   async updateStoreContext(storeSlug: string): Promise<void> {
     try {
-      if (apiConfig.api.logRequests) {
-        this.log("🔄 Atualizando contexto da loja", { storeSlug });
-      }
-
       const currentToken = this.getAuthToken();
-      if (!currentToken) {
-        return;
-      }
+      if (!currentToken) return;
 
       const tokenParts = currentToken.split(".");
       if (tokenParts.length !== 3) {
-        if (apiConfig.api.debug) {
-          this.log("⚠️ Token JWT inválido");
-        }
         return;
       }
 
       try {
         const payload = JSON.parse(atob(tokenParts[1]));
-
-        if (payload.storeSlug === storeSlug) {
-          if (apiConfig.api.debug) {
-            this.log("✅ StoreSlug já está correto no token");
-          }
-          return;
-        }
+        if (payload.storeSlug === storeSlug) return;
 
         safeLocalStorage.setItem("currentStoreSlug", storeSlug);
-        if (apiConfig.api.debug) {
-          this.log("💾 StoreSlug atualizado no localStorage", { storeSlug });
-        }
-      } catch (decodeError) {
-        if (apiConfig.api.debug) {
-          this.log("⚠️ Erro ao decodificar token, continuando...", {
-            decodeError,
-          });
-        }
+      } catch {
         safeLocalStorage.setItem("currentStoreSlug", storeSlug);
-        if (apiConfig.api.debug) {
-          this.log("💾 StoreSlug armazenado no localStorage (fallback)", {
-            storeSlug,
-          });
-        }
       }
-    } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao atualizar contexto da loja", { error });
-      }
+    } catch {
       throw new Error("Falha ao atualizar contexto da loja");
     }
   }
@@ -784,36 +556,25 @@ class ApiClient {
   // ===== USER-STORE ASSOCIATIONS (RBAC) =====
 
   // TODO: Endpoint /users/{userId}/stores não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async getUserStoreAssociations(
     userId: string
   ): Promise<UserStoreAssociation[]> {
     try {
       // const response = await this.get<UserStoreAssociation[]>(`/users/${userId}/stores`)
       // return response
-
-      // Fallback temporário: retornar array vazio
-      // TODO: Implementar quando o endpoint estiver disponível
       return [];
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao obter associações usuário-loja", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /user-stores não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async createUserStoreAssociation(
     data: CreateUserStoreDto
   ): Promise<UserStoreAssociation> {
     try {
       // const response = await this.post<UserStoreAssociation>('/user-stores', data)
       // return response
-
-      // Fallback temporário: retornar dados mockados
-      // TODO: Implementar quando o endpoint estiver disponível
       return {
         id: "temp-" + Date.now(),
         userId: data.userId,
@@ -826,29 +587,19 @@ class ApiClient {
         updatedAt: new Date().toISOString(),
       } as UserStoreAssociation;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao criar associação usuário-loja", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /users/{userId}/stores/{storeId} não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async updateUserStoreAssociation(
     userId: string,
     storeId: string,
     data: UpdateUserStoreDto
   ): Promise<UserStoreAssociation> {
     try {
-      // const response = await this.patch<UserStoreAssociation>(
-      //   `/users/${userId}/stores/${storeId}`,
-      //   data
-      // )
+      // const response = await this.patch<UserStoreAssociation>(`/users/${userId}/stores/${storeId}`, data)
       // return response
-
-      // Fallback temporário: retornar dados mockados
-      // TODO: Implementar quando o endpoint estiver disponível
       return {
         id: "temp-" + Date.now(),
         userId,
@@ -861,45 +612,30 @@ class ApiClient {
         updatedAt: new Date().toISOString(),
       } as UserStoreAssociation;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao atualizar associação usuário-loja", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /users/{userId}/stores/{storeId} não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async deleteUserStoreAssociation(
     userId: string,
     storeId: string
   ): Promise<void> {
     try {
       // await this.delete<void>(`/users/${userId}/stores/${storeId}`)
-
-      // Fallback temporário: não fazer nada
-      // TODO: Implementar quando o endpoint estiver disponível
-      console.warn(
-        "Endpoint /users/{userId}/stores/{storeId} não implementado no backend ainda"
-      );
+      // Fallback temporário: no-op
+      return;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao remover associação usuário-loja", { error });
-      }
       throw this.createApiError(error);
     }
   }
 
   // TODO: Endpoint /users/me/permissions não está disponível no backend ainda
-  // Comentado temporariamente até a implementação
   async getUserPermissions(storeSlug?: string): Promise<UserPermissions> {
     try {
       // const url = storeSlug ? `/users/me/permissions?store=${storeSlug}` : '/users/me/permissions'
       // const response = await this.get<UserPermissions>(url)
       // return response
-
-      // Fallback temporário: retornar permissões básicas
-      // TODO: Implementar quando o endpoint estiver disponível
       return {
         scope: "STORE" as any,
         stores: storeSlug
@@ -913,9 +649,6 @@ class ApiClient {
         globalPermissions: [],
       } as UserPermissions;
     } catch (error) {
-      if (apiConfig.api.debug) {
-        this.log("❌ Erro ao obter permissões do usuário", { error });
-      }
       throw this.createApiError(error);
     }
   }
@@ -923,13 +656,9 @@ class ApiClient {
   // ===== LOJAS =====
 
   async getStores(page = 1, limit = 10): Promise<PaginatedResponse<Store>> {
-    try {
-      return await this.get<PaginatedResponse<Store>>(
-        `/stores?page=${page}&limit=${limit}`
-      );
-    } catch (error) {
-      throw error;
-    }
+    return this.get<PaginatedResponse<Store>>(
+      `/stores?page=${page}&limit=${limit}`
+    );
   }
 
   async getStoreBySlug(slug: string): Promise<Store> {
@@ -998,31 +727,10 @@ class ApiClient {
 
   async createProduct(productData: CreateProductDto): Promise<Product> {
     const { storeSlug, ...productDataWithoutStoreSlug } = productData;
-
-    console.log("🔧 ApiClient.createProduct chamado");
-    console.log("📋 Dados recebidos:", productData);
-    console.log("🏪 StoreSlug extraído:", storeSlug);
-    console.log("📤 Dados sem storeSlug:", productDataWithoutStoreSlug);
-    console.log("🌐 URL completa:", `/products?storeSlug=${storeSlug}`);
-
-    const token = this.getAuthToken();
-    console.log("🔐 Token disponível:", !!token);
-    console.log(
-      "🔑 Token preview:",
-      token ? token.substring(0, 20) + "..." : "NENHUM"
+    return this.post<Product>(
+      `/products?storeSlug=${storeSlug}`,
+      productDataWithoutStoreSlug
     );
-
-    try {
-      const result = await this.post<Product>(
-        `/products?storeSlug=${storeSlug}`,
-        productDataWithoutStoreSlug
-      );
-      console.log("✅ ApiClient.createProduct - Sucesso:", result);
-      return result;
-    } catch (error) {
-      console.error("❌ ApiClient.createProduct - Erro:", error);
-      throw error;
-    }
   }
 
   async updateProduct(
@@ -1046,9 +754,7 @@ class ApiClient {
     );
   }
 
-  /**
-   * Faz upload de uma imagem para um produto
-   */
+  /** Faz upload de uma imagem para um produto */
   async uploadProductImage(
     product: CreateProductDto | Product,
     file: File
@@ -1067,14 +773,10 @@ class ApiClient {
         "storeSlug é obrigatório para upload de imagem do produto"
       );
     }
-
-    console.log("📤 Upload de imagem para produto iniciado", { storeSlug });
     return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
 
-  /**
-   * Faz upload de uma imagem para produto usando apenas storeSlug
-   */
+  /** Faz upload de uma imagem para produto usando apenas storeSlug */
   async uploadProductImageByStore(
     storeSlug: string,
     file: File
@@ -1087,7 +789,6 @@ class ApiClient {
     path: string;
     message: string;
   }> {
-    console.log("📤 Upload de imagem para produto iniciado", { storeSlug });
     return this.upload(`/products/upload?storeSlug=${storeSlug}`, file);
   }
 
@@ -1212,23 +913,15 @@ class ApiClient {
     return this._isDev;
   }
 
-  // ===== UTILITÁRIOS =====
-
-  private log(message: string, data?: any): void {
-    if (apiConfig.api.debug) {
-      console.log(message, data);
-    }
-  }
+  // ===== ERROS =====
 
   private createApiError(error: unknown): ApiError {
     if (this.isAxiosError(error)) {
       return this.createAxiosError(error);
     }
-
     if (error instanceof Error) {
       return error as ApiError;
     }
-
     return new Error("Erro desconhecido ocorreu.") as ApiError;
   }
 
@@ -1240,10 +933,10 @@ class ApiClient {
     const apiError = new Error() as ApiError;
     apiError.isAxiosError = true;
 
-    // Tratar erros de cancelamento especificamente
+    // Cancelamento
     if (error.code === "ERR_CANCELED" || error.message === "canceled") {
       apiError.message = "Requisição cancelada";
-      apiError.status = 0; // Status especial para requisições canceladas
+      apiError.status = 0;
       return apiError;
     }
 

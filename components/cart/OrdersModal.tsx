@@ -180,13 +180,7 @@ export default function OrdersModal({
           {/* Footer */}
           {orders.length > 0 && (
             <div className="border-t p-4">
-              <button
-                onClick={() => {
-                  // TODO: Navegar para histórico completo
-                  console.log("Ver histórico completo");
-                }}
-                className="w-full py-2 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+              <button className="w-full py-2 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Ver Histórico Completo
               </button>
             </div>
