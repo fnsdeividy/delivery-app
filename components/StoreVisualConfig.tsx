@@ -238,6 +238,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                   src={formData.config.banner}
                   alt="Banner da loja"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
                   className="object-cover"
                   unoptimized
                   onError={() =>
@@ -258,6 +259,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                     src={formData.config.logo}
                     alt="Logo da loja"
                     fill
+                    sizes="64px"
                     className="rounded-lg object-cover"
                     unoptimized
                     onError={() =>
@@ -330,6 +332,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                         src={formData.config.logo}
                         alt="Logo atual"
                         fill
+                        sizes="128px"
                         className="rounded-lg object-cover border border-gray-200"
                         unoptimized
                         onError={() =>
@@ -402,6 +405,7 @@ export function StoreVisualConfig({ storeSlug }: StoreVisualConfigProps) {
                         src={formData.config.banner}
                         alt="Banner atual"
                         fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
                         className="rounded-lg object-cover border border-gray-200"
                         unoptimized
                         onError={() =>

@@ -60,12 +60,18 @@ type BaseOptions = {
 };
 
 // Funções auxiliares
-const sanitizeLetters = (value: string) =>
-  value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+const sanitizeLetters = (value: string | undefined | null) => {
+  if (!value || typeof value !== "string") return "";
+  return value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+};
 
-const sanitizeInteger = (value: string) => value.replace(/[^\d]/g, "");
+const sanitizeInteger = (value: string | undefined | null) => {
+  if (!value || typeof value !== "string") return "";
+  return value.replace(/[^\d]/g, "");
+};
 
-const sanitizeDecimalToString = (value: string) => {
+const sanitizeDecimalToString = (value: string | undefined | null) => {
+  if (!value || typeof value !== "string") return "";
   let v = value.replace(/[^0-9.,-]/g, "");
   if (v.includes("-")) {
     const neg = v.startsWith("-") ? "-" : "";
@@ -196,6 +202,35 @@ export default function EditarProdutoPage() {
     () => Number(sanitizeInteger(formData.minStockStr) || "0"),
     [formData.minStockStr]
   );
+
+  /** =========================
+   * Validação do formulário
+   * ========================= */
+
+  // Função para verificar se uma URL é válida ou vazia
+  const isValidUrlOrEmpty = (url: string | undefined): boolean => {
+    if (!url || !url.trim()) return true; // URL vazia é válida
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Validação dinâmica para habilitar/desabilitar botão de salvar
+  const isFormValid = useMemo(() => {
+    // Campos obrigatórios básicos
+    if (!formData.name.trim() || !formData.categoryId) return false;
+
+    // Preço válido
+    if (price <= 0 || price > 999999.99) return false;
+
+    // URL da imagem válida
+    if (!isValidUrlOrEmpty(formData.image)) return false;
+
+    return true;
+  }, [formData.name, formData.categoryId, formData.image, price]);
 
   useEffect(() => {
     loadCategories();
@@ -461,12 +496,8 @@ export default function EditarProdutoPage() {
       return;
     }
 
-    // Validação de ingredientes selecionados
+    // Validação de ingredientes selecionados (opcional)
     const selectedIngredients = ingredients.filter((i) => i.selected);
-    if (selectedIngredients.length === 0) {
-      showToast("Selecione pelo menos um ingrediente", "error");
-      return;
-    }
 
     // Validação de adicionais com preços inválidos
     const invalidAddons = addons.filter((addon) => {
@@ -523,8 +554,8 @@ export default function EditarProdutoPage() {
         image: formData.image || undefined,
         originalPrice: originalPrice,
         active: formData.active,
-        ingredients: finalIngredients,
-        addons: normalizedAddons,
+        ingredients: finalIngredients.length > 0 ? finalIngredients : undefined,
+        addons: normalizedAddons.length > 0 ? normalizedAddons : undefined,
         tags: allTags,
         initialStock: initialStock >= 0 ? initialStock : 0,
         minStock: minStock >= 0 ? minStock : 0,
@@ -1133,8 +1164,17 @@ export default function EditarProdutoPage() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isLoading || !isFormValid}
+                  className={`flex items-center gap-2 transition-colors ${
+                    isFormValid && !isLoading
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-400 cursor-not-allowed text-gray-200"
+                  }`}
+                  title={
+                    !isFormValid
+                      ? "Preencha todos os campos obrigatórios"
+                      : "Salvar alterações"
+                  }
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

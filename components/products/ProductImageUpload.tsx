@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from 'react';
-import { UploadSimple, X, Image as ImageIcon } from "@phosphor-icons/react";
+import { useToast } from "@/hooks/useToast";
+import { apiClient } from "@/lib/api-client";
+import { normalizeImageUrl } from "@/lib/utils";
+import { Image as ImageIcon, UploadSimple, X } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { normalizeImageUrl } from "@/lib/utils";
-import { apiClient } from "@/lib/api-client";
-import { useToast } from "@/hooks/useToast";
+import { useRef, useState } from "react";
 
 interface ProductImageUploadProps {
   imageUrl?: string;
@@ -14,7 +14,11 @@ interface ProductImageUploadProps {
   onImageChange: (url: string) => void;
 }
 
-export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: ProductImageUploadProps) {
+export function ProductImageUpload({
+  imageUrl,
+  storeSlug,
+  onImageChange,
+}: ProductImageUploadProps) {
   const { showToast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(
     imageUrl ? normalizeImageUrl(imageUrl) : null
@@ -42,7 +46,7 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
     if (!file) return;
 
     // Validar tipo de arquivo
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) {
       showToast("Formato inválido. Use JPEG, PNG, GIF ou WEBP.", "error");
       return;
@@ -59,10 +63,13 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
 
     try {
       const uploadTimer = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 300);
 
-      const response = await apiClient.uploadProductImageByStore(storeSlug, file);
+      const response = await apiClient.uploadProductImageByStore(
+        storeSlug,
+        file
+      );
       clearInterval(uploadTimer);
       setUploadProgress(100);
 
@@ -74,18 +81,21 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
       }
     } catch (error: any) {
       console.error("Erro ao fazer upload:", error);
-      showToast(`Erro ao carregar imagem: ${error.message || 'Erro desconhecido'}`, "error");
+      showToast(
+        `Erro ao carregar imagem: ${error.message || "Erro desconhecido"}`,
+        "error"
+      );
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const removeImage = () => {
     setImagePreview(null);
-    onImageChange('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    onImageChange("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -93,17 +103,19 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
       <label className="block text-sm font-medium text-gray-700">
         Imagem do Produto
       </label>
-      
+
       {/* Preview da imagem */}
-      <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+      <div
+        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
         onClick={() => !isUploading && fileInputRef.current?.click()}
       >
         {imagePreview ? (
           <div className="relative w-full h-48 mb-4">
-            <Image 
+            <Image
               src={imagePreview}
               alt="Preview do produto"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-contain rounded-lg"
               onError={() => {
                 setImagePreview(null);
@@ -127,9 +139,11 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
             {isUploading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="h-12 w-12 text-purple-600 animate-spin mb-2" />
-                <p className="text-sm text-gray-600 mb-2">Carregando imagem...</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Carregando imagem...
+                </p>
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                  <div 
+                  <div
                     className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
@@ -171,7 +185,7 @@ export function ProductImageUpload({ imageUrl, storeSlug, onImageChange }: Produ
         </label>
         <input
           type="url"
-          value={imageUrl || ''}
+          value={imageUrl || ""}
           onChange={(e) => handleImageChange(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           placeholder="https://exemplo.com/imagem.jpg"

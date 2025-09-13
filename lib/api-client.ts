@@ -754,6 +754,32 @@ class ApiClient {
     );
   }
 
+  // ===== SUGESTÕES FISCAIS =====
+  async getNcmCestSuggestions(params: {
+    categoryName?: string;
+    productType?: "FOOD" | "BEVERAGE";
+  }): Promise<{ suggestions: Array<{ ncm: string; cest: string }> }> {
+    const q = new URLSearchParams();
+    if (params.categoryName) q.set("categoryName", params.categoryName);
+    if (params.productType) q.set("productType", params.productType);
+    return this.get<{ suggestions: Array<{ ncm: string; cest: string }> }>(
+      `/products/ncm-cest/suggestions?${q.toString()}`
+    );
+  }
+
+  // ===== MÉTRICAS =====
+  async logProductFormMetric(payload: {
+    storeSlug: string;
+    userEmail?: string;
+    durationMs: number;
+    completed: boolean;
+  }): Promise<{ success: boolean; id?: string }> {
+    return this.post<{ success: boolean; id?: string }>(
+      `/analytics/product-form`,
+      payload
+    );
+  }
+
   /** Faz upload de uma imagem para um produto */
   async uploadProductImage(
     product: CreateProductDto | Product,
