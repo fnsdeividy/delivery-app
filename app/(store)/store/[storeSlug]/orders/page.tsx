@@ -1,38 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  FunnelSimple,
+  House,
+  MagnifyingGlass,
+  Receipt,
+  ShoppingCart,
+} from "@phosphor-icons/react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FunnelSimple, MagnifyingGlass } from "@phosphor-icons/react";
-import { usePublicOrders } from "../../../../../hooks/usePublicOrders";
-import { useCart } from "../../../../../hooks/useCart";
-import { useAuthContext } from "../../../../../contexts/AuthContext";
-import { useStoreConfig } from "../../../../../lib/store/useStoreConfig";
+import { useEffect, useState } from "react";
+import CartModal from "../../../../../components/cart/CartModal";
 import OrderCard from "../../../../../components/cart/OrderCard";
+import { useAuthContext } from "../../../../../contexts/AuthContext";
+import { useCart } from "../../../../../hooks/useCart";
+import { usePublicOrders } from "../../../../../hooks/usePublicOrders";
+import { useStoreConfig } from "../../../../../lib/store/useStoreConfig";
 import { Order, OrderStatus } from "../../../../../types/cardapio-api";
 
 type StatusFilter = "all" | "in_progress" | "finished" | "cancelled";
 
 const statusFilterMap: Record<StatusFilter, string> = {
   all: "Todos",
-  in_progress: "Em andamento", 
+  in_progress: "Em andamento",
   finished: "Finalizados",
-  cancelled: "Cancelados"
+  cancelled: "Cancelados",
 };
 
 const getOrdersByStatus = (orders: Order[], filter: StatusFilter): Order[] => {
   switch (filter) {
     case "in_progress":
-      return orders.filter(order => [
-        OrderStatus.RECEIVED,
-        OrderStatus.CONFIRMED,
-        OrderStatus.PREPARING,
-        OrderStatus.READY,
-        OrderStatus.DELIVERING
-      ].includes(order.status));
+      return orders.filter((order) =>
+        [
+          OrderStatus.RECEIVED,
+          OrderStatus.CONFIRMED,
+          OrderStatus.PREPARING,
+          OrderStatus.READY,
+          OrderStatus.DELIVERING,
+        ].includes(order.status)
+      );
     case "finished":
-      return orders.filter(order => order.status === OrderStatus.DELIVERED);
+      return orders.filter((order) => order.status === OrderStatus.DELIVERED);
     case "cancelled":
-      return orders.filter(order => order.status === OrderStatus.CANCELLED);
+      return orders.filter((order) => order.status === OrderStatus.CANCELLED);
     default:
       return orders;
   }
@@ -42,29 +53,32 @@ export default function OrdersPage() {
   const params = useParams();
   const router = useRouter();
   const storeSlug = params.storeSlug as string;
-  
+
   const { orders, loading, refreshOrders } = usePublicOrders(storeSlug);
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { isAuthenticated } = useAuthContext();
   const { config: storeConfig } = useStoreConfig(storeSlug);
-  
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
   useEffect(() => {
     refreshOrders();
   }, []);
 
-  const filteredOrders = getOrdersByStatus(orders, statusFilter).filter(order => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      order.orderNumber.toLowerCase().includes(query) ||
-      order.items.some(item => item.name.toLowerCase().includes(query))
-    );
-  });
+  const filteredOrders = getOrdersByStatus(orders, statusFilter).filter(
+    (order) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.items.some((item) => item.name.toLowerCase().includes(query))
+      );
+    }
+  );
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -73,7 +87,7 @@ export default function OrdersPage() {
 
   const handleRepeatOrder = (order: Order) => {
     // Adicionar todos os itens do pedido ao carrinho
-    order.items.forEach(item => {
+    order.items.forEach((item) => {
       // Buscar produto completo seria ideal, mas por ora usamos os dados do item
       const product = {
         id: item.productId,
@@ -89,15 +103,15 @@ export default function OrdersPage() {
         ingredients: [],
         addons: [],
         tags: [],
-        tagColor: null
+        tagColor: null,
       } as any; // Type assertion para evitar problemas de tipagem
-      
+
       addToCart(product, item.quantity);
     });
 
     // Mostrar toast de sucesso
     showToast("Itens adicionados ao carrinho!", "success");
-    
+
     // Redirecionar para a página da loja
     router.push(`/store/${storeSlug}`);
   };
@@ -108,23 +122,26 @@ export default function OrdersPage() {
       router.push(`/login?redirect=/store/${storeSlug}/checkout`);
       return;
     }
-    
+
     // Prosseguir para checkout
     router.push(`/store/${storeSlug}/checkout`);
   };
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
     const toast = document.createElement("div");
     toast.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white font-medium transition-all duration-300 transform translate-x-full`;
     toast.style.backgroundColor = type === "success" ? "#10b981" : "#ef4444";
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.style.transform = "translate-x-0";
     }, 100);
-    
+
     setTimeout(() => {
       toast.style.transform = "translate-x-full";
       setTimeout(() => document.body.removeChild(toast), 300);
@@ -165,7 +182,8 @@ export default function OrdersPage() {
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
                 }`}
                 style={{
-                  backgroundColor: statusFilter === key ? primaryColor : undefined
+                  backgroundColor:
+                    statusFilter === key ? primaryColor : undefined,
                 }}
               >
                 {label}
@@ -197,13 +215,14 @@ export default function OrdersPage() {
               <FunnelSimple className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchQuery ? "Nenhum pedido encontrado" : "Nenhum pedido nesta categoria"}
+              {searchQuery
+                ? "Nenhum pedido encontrado"
+                : "Nenhum pedido nesta categoria"}
             </h3>
             <p className="text-gray-600">
-              {searchQuery 
-                ? "Tente ajustar sua busca ou filtros" 
-                : "Seus pedidos aparecerão aqui após serem realizados"
-              }
+              {searchQuery
+                ? "Tente ajustar sua busca ou filtros"
+                : "Seus pedidos aparecerão aqui após serem realizados"}
             </p>
           </div>
         ) : (
@@ -228,6 +247,50 @@ export default function OrdersPage() {
         )}
       </div>
 
+      {/* Menu inferior Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] md:hidden">
+        <div className="flex items-center justify-around py-2">
+          <Link
+            href={`/store/${storeSlug}`}
+            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1"
+          >
+            <House className="h-6 w-6 mb-1 text-gray-500" />
+            <span className="text-xs font-medium text-gray-500">Início</span>
+          </Link>
+
+          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+            <Receipt className="h-6 w-6 mb-1" style={{ color: primaryColor }} />
+            <span
+              className="text-xs font-medium"
+              style={{ color: primaryColor }}
+            >
+              Pedidos
+            </span>
+          </button>
+
+          <button
+            data-testid="cart-button"
+            onClick={() => setIsCartModalOpen(true)}
+            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
+          >
+            <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
+            <span className="text-xs font-medium text-gray-500">Carrinho</span>
+            {cart.itemCount > 0 && (
+              <span
+                data-testid="cart-count"
+                className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {cart.itemCount > 99 ? "99+" : cart.itemCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Espaço para o menu fixo */}
+      <div className="h-16 md:hidden" />
+
       {/* Modal de Detalhes do Pedido */}
       {showOrderDetails && selectedOrder && (
         <OrderDetailsModal
@@ -237,28 +300,36 @@ export default function OrdersPage() {
           primaryColor={primaryColor}
         />
       )}
+
+      {/* Modal do Carrinho */}
+      <CartModal
+        isOpen={isCartModalOpen}
+        onClose={() => setIsCartModalOpen(false)}
+        primaryColor={primaryColor}
+        storeSlug={storeSlug}
+      />
     </div>
   );
 }
 
 // Modal de Detalhes do Pedido (componente simples por enquanto)
-function OrderDetailsModal({ 
-  order, 
-  isOpen, 
-  onClose, 
-  primaryColor 
-}: { 
-  order: Order; 
-  isOpen: boolean; 
-  onClose: () => void; 
-  primaryColor: string; 
+function OrderDetailsModal({
+  order,
+  isOpen,
+  onClose,
+  primaryColor,
+}: {
+  order: Order;
+  isOpen: boolean;
+  onClose: () => void;
+  primaryColor: string;
 }) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      
+
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
@@ -276,11 +347,22 @@ function OrderDetailsModal({
               <div>
                 <h3 className="font-medium mb-2">Informações do Pedido</h3>
                 <div className="space-y-1 text-sm">
-                  <p><strong>Número:</strong> #{order.orderNumber}</p>
-                  <p><strong>Data:</strong> {new Date(order.createdAt).toLocaleString('pt-BR')}</p>
-                  <p><strong>Status:</strong> {order.status}</p>
-                  <p><strong>Tipo:</strong> {order.type}</p>
-                  <p><strong>Pagamento:</strong> {order.paymentMethod}</p>
+                  <p>
+                    <strong>Número:</strong> #{order.orderNumber}
+                  </p>
+                  <p>
+                    <strong>Data:</strong>{" "}
+                    {new Date(order.createdAt).toLocaleString("pt-BR")}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> {order.status}
+                  </p>
+                  <p>
+                    <strong>Tipo:</strong> {order.type}
+                  </p>
+                  <p>
+                    <strong>Pagamento:</strong> {order.paymentMethod}
+                  </p>
                 </div>
               </div>
 
@@ -288,12 +370,22 @@ function OrderDetailsModal({
                 <h3 className="font-medium mb-2">Itens do Pedido</h3>
                 <div className="space-y-2">
                   {order.items.map((item, index) => (
-                    <div key={index} className="flex justify-between p-2 bg-gray-50 rounded">
+                    <div
+                      key={index}
+                      className="flex justify-between p-2 bg-gray-50 rounded"
+                    >
                       <div>
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-600">Qtd: {item.quantity}</p>
+                        <p className="text-sm text-gray-600">
+                          Qtd: {item.quantity}
+                        </p>
                       </div>
-                      <p className="font-medium">R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}</p>
+                      <p className="font-medium">
+                        R${" "}
+                        {(item.price * item.quantity)
+                          .toFixed(2)
+                          .replace(".", ",")}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -302,7 +394,10 @@ function OrderDetailsModal({
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total:</span>
-                  <span className="font-bold text-lg" style={{ color: primaryColor }}>
+                  <span
+                    className="font-bold text-lg"
+                    style={{ color: primaryColor }}
+                  >
                     R$ {order.total.toFixed(2).replace(".", ",")}
                   </span>
                 </div>
@@ -311,7 +406,9 @@ function OrderDetailsModal({
               {order.notes && (
                 <div>
                   <h3 className="font-medium mb-2">Observações</h3>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">{order.notes}</p>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    {order.notes}
+                  </p>
                 </div>
               )}
             </div>

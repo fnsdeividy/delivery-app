@@ -628,7 +628,7 @@ function StorePageContent({ params }: PageProps) {
       </main>
 
       {/* Menu inferior Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] md:hidden">
         <div className="flex items-center justify-around py-2">
           <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
             <House className="h-6 w-6 mb-1" style={{ color: primary }} />
