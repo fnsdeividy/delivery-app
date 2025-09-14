@@ -5,7 +5,7 @@ import { useCardapioAuth } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { Package, Plus } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Componentes modulares
 import InventoryStatsCards from "./componentes/InventoryStatsCards";
@@ -96,67 +96,8 @@ export default function EstoquePage() {
     "inventory"
   );
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log("🔍 Verificando autenticação...");
-        console.log("🔍 isAuthenticated():", isAuthenticated());
-
-        if (!isAuthenticated()) {
-          console.log("❌ Usuário não autenticado, redirecionando para login");
-          router.push("/login");
-          return;
-        }
-
-        const token = getCurrentToken();
-        console.log("🔍 Token obtido:", token ? "Sim" : "Não");
-
-        if (!token) {
-          console.log("❌ Token não encontrado, redirecionando para login");
-          router.push("/login");
-          return;
-        }
-
-        // Decodificar token JWT
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        console.log("🔍 Payload do token:", payload);
-        console.log("🔍 Role:", payload.role);
-        console.log("🔍 StoreSlug no token:", payload.storeSlug);
-        console.log("🔍 Slug da loja atual:", slug);
-
-        const hasAccess =
-          payload.role === "SUPER_ADMIN" ||
-          (payload.role === "ADMIN" && payload.storeSlug === slug);
-
-        console.log("🔍 Tem acesso?", hasAccess);
-
-        if (hasAccess) {
-          console.log("✅ Acesso autorizado, carregando dados...");
-          await loadInitialData();
-        } else {
-          console.log("❌ Acesso negado, redirecionando para unauthorized");
-          router.push("/unauthorized");
-        }
-      } catch (error) {
-        console.error("❌ Erro na verificação de autenticação:", error);
-        router.push("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [slug, isAuthenticated, getCurrentToken, router]);
-
-  const loadInitialData = async () => {
-    await Promise.all([
-      loadInventorySummary(),
-      loadInventory(),
-      loadMovements(),
-    ]);
-  };
-
-  const loadInventorySummary = async () => {
+  // Memoizar função de carregamento do resumo do inventário
+  const loadInventorySummary = useCallback(async () => {
     try {
       console.log("🔍 Carregando resumo do inventário para loja:", slug);
       const data = await apiClient.get<InventorySummary>(
@@ -168,9 +109,10 @@ export default function EstoquePage() {
       console.error("❌ Erro ao carregar resumo do estoque:", error);
       showToast("Erro ao carregar resumo do estoque", "error");
     }
-  };
+  }, [slug, showToast]);
 
-  const loadInventory = async () => {
+  // Memoizar função de carregamento do inventário
+  const loadInventory = useCallback(async () => {
     setDataLoading(true);
     try {
       console.log("🔍 Carregando inventário para loja:", slug);
@@ -200,9 +142,10 @@ export default function EstoquePage() {
     } finally {
       setDataLoading(false);
     }
-  };
+  }, [slug, showToast]); // Removidas dependências que causam loops
 
-  const loadMovements = async () => {
+  // Memoizar função de carregamento das movimentações
+  const loadMovements = useCallback(async () => {
     setDataLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -229,81 +172,175 @@ export default function EstoquePage() {
     } finally {
       setDataLoading(false);
     }
-  };
+  }, [slug, showToast]); // Removidas dependências que causam loops
 
-  const handleSearch = () => {
+  // Memoizar função de carregamento inicial
+  const loadInitialData = useCallback(async () => {
+    await Promise.all([
+      loadInventorySummary(),
+      loadInventory(),
+      loadMovements(),
+    ]);
+  }, [loadInventorySummary, loadInventory, loadMovements]);
+
+  // UseEffect simplificado para evitar loops infinitos
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("🔍 Verificando autenticação...");
+
+        if (!isAuthenticated()) {
+          console.log("❌ Usuário não autenticado, redirecionando para login");
+          router.push("/login");
+          return;
+        }
+
+        const token = getCurrentToken();
+        if (!token) {
+          console.log("❌ Token não encontrado, redirecionando para login");
+          router.push("/login");
+          return;
+        }
+
+        // Decodificar token JWT
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("🔍 Validando acesso para loja:", slug);
+
+        const hasAccess =
+          payload.role === "SUPER_ADMIN" ||
+          (payload.role === "ADMIN" && payload.storeSlug === slug);
+
+        if (hasAccess) {
+          console.log("✅ Acesso autorizado, carregando dados...");
+          await loadInitialData();
+        } else {
+          console.log("❌ Acesso negado, redirecionando para unauthorized");
+          router.push("/unauthorized");
+        }
+      } catch (error) {
+        console.error("❌ Erro na verificação de autenticação:", error);
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Só verificar autenticação quando o componente montar ou o slug mudar
+    if (slug) {
+      checkAuth();
+    }
+  }, [slug]); // Apenas slug como dependência
+
+  // UseEffect para reagir a mudanças na paginação, busca, filtros
+  useEffect(() => {
+    if (isLoading) return; // Não executar se ainda estiver carregando inicialmente
+
     if (activeTab === "inventory") {
       loadInventory();
     } else {
       loadMovements();
     }
-  };
+  }, [
+    pagination.page,
+    searchQuery,
+    showLowStock,
+    selectedType,
+    activeTab,
+    isLoading,
+    loadInventory,
+    loadMovements,
+  ]);
 
-  const updateInventory = async (inventoryId: string, newQuantity: number) => {
-    try {
-      await apiClient.patch(`/inventory/${inventoryId}?storeSlug=${slug}`, {
-        quantity: newQuantity,
-      });
-
-      // Atualizar estado local
-      setInventory((prev) =>
-        prev.map((item) =>
-          item.id === inventoryId ? { ...item, quantity: newQuantity } : item
-        )
-      );
-      loadInventorySummary(); // Recarregar resumo
-      showToast("Estoque atualizado com sucesso", "success");
-    } catch (error) {
-      console.error("Erro ao atualizar inventário:", error);
-      showToast("Erro ao atualizar estoque", "error");
-    }
-  };
-
-  const createStockMovement = async (
-    productId: string,
-    type: "ENTRADA" | "SAIDA",
-    quantity: number,
-    reason: string
-  ) => {
-    try {
-      await apiClient.post(`/inventory/movements?storeSlug=${slug}`, {
-        productId,
-        type,
-        quantity,
-        reason,
-      });
-
-      loadInventory(); // Recarregar inventário
-      loadMovements(); // Recarregar movimentações
-      loadInventorySummary(); // Recarregar resumo
-      showToast(
-        `${type === "ENTRADA" ? "Entrada" : "Saída"} de estoque registrada`,
-        "success"
-      );
-    } catch (error) {
-      console.error("Erro ao criar movimentação:", error);
-      showToast("Erro ao registrar movimentação", "error");
-    }
-  };
-
-  const handleTabChange = (tab: "inventory" | "movements") => {
-    setActiveTab(tab);
-    setPagination((prev) => ({ ...prev, page: 1 }));
-    if (tab === "inventory") {
-      loadInventory();
-    } else {
-      loadMovements();
-    }
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
+  // Memoizar função de busca
+  const handleSearch = useCallback(() => {
     if (activeTab === "inventory") {
       loadInventory();
     } else {
       loadMovements();
     }
-  };
+  }, [activeTab, loadInventory, loadMovements]);
+
+  // Memoizar função de atualização de inventário
+  const updateInventory = useCallback(
+    async (inventoryId: string, newQuantity: number) => {
+      try {
+        await apiClient.patch(`/inventory/${inventoryId}?storeSlug=${slug}`, {
+          quantity: newQuantity,
+        });
+
+        // Atualizar estado local
+        setInventory((prev) =>
+          prev.map((item) =>
+            item.id === inventoryId ? { ...item, quantity: newQuantity } : item
+          )
+        );
+        loadInventorySummary(); // Recarregar resumo
+        showToast("Estoque atualizado com sucesso", "success");
+      } catch (error) {
+        console.error("Erro ao atualizar inventário:", error);
+        showToast("Erro ao atualizar estoque", "error");
+      }
+    },
+    [slug, loadInventorySummary, showToast]
+  );
+
+  // Memoizar função de criação de movimentação
+  const createStockMovement = useCallback(
+    async (
+      productId: string,
+      type: "ENTRADA" | "SAIDA",
+      quantity: number,
+      reason: string
+    ) => {
+      try {
+        await apiClient.post(`/inventory/movements?storeSlug=${slug}`, {
+          productId,
+          type,
+          quantity,
+          reason,
+        });
+
+        loadInventory(); // Recarregar inventário
+        loadMovements(); // Recarregar movimentações
+        loadInventorySummary(); // Recarregar resumo
+        showToast(
+          `${type === "ENTRADA" ? "Entrada" : "Saída"} de estoque registrada`,
+          "success"
+        );
+      } catch (error) {
+        console.error("Erro ao criar movimentação:", error);
+        showToast("Erro ao registrar movimentação", "error");
+      }
+    },
+    [slug, loadInventory, loadMovements, loadInventorySummary, showToast]
+  );
+
+  // Memoizar função de mudança de aba
+  const handleTabChange = useCallback(
+    (tab: "inventory" | "movements") => {
+      setActiveTab(tab);
+      setPagination((prev) => ({ ...prev, page: 1 }));
+      if (tab === "inventory") {
+        loadInventory();
+      } else {
+        loadMovements();
+      }
+    },
+    [loadInventory, loadMovements]
+  );
+
+  // Memoizar função de mudança de página
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPagination((prev) => ({ ...prev, page: newPage }));
+      if (activeTab === "inventory") {
+        loadInventory();
+      } else {
+        loadMovements();
+      }
+    },
+    [activeTab, loadInventory, loadMovements]
+  );
 
   if (isLoading) {
     return (

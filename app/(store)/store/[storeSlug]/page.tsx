@@ -518,7 +518,7 @@ function StorePageContent({ params }: PageProps) {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
               {filteredProducts.map((product: any) => {
                 const isSoldOut =
                   product?.stock === 0 ||
@@ -529,96 +529,94 @@ function StorePageContent({ params }: PageProps) {
                   <article
                     key={product.id}
                     data-testid="product-card"
-                    className="w-full bg-white rounded-xl border border-gray-200 overflow-hidden"
+                    className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full min-h-[320px] md:min-h-[380px]"
                   >
-                    <div className="flex items-stretch gap-4 p-4 sm:p-5">
-                      {/* Texto à esquerda */}
-                      <div className="flex-1 min-w-0">
-                        <h3
-                          data-testid="product-name"
-                          className="text-base sm:text-lg font-semibold text-gray-900"
-                        >
-                          {product.name}
-                        </h3>
+                    {/* Imagem no topo - altura fixa e aspect ratio consistente */}
+                    <div className="relative w-full h-36 md:h-44 bg-gray-100 flex-shrink-0">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className={`w-full h-full object-cover transition-transform duration-300 ${
+                            isSoldOut ? "grayscale" : ""
+                          }`}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                            const placeholder =
+                              target.nextElementSibling as HTMLElement;
+                            if (placeholder) placeholder.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
 
-                        {product?.subtitle ? (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                            {product.subtitle}
-                          </p>
-                        ) : (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                            {product.description}
+                      {/* Placeholder para imagem ausente */}
+                      <div
+                        className={`w-full h-full flex items-center justify-center bg-gray-200 ${
+                          product.image ? "hidden" : "flex"
+                        }`}
+                        style={{ display: product.image ? "none" : "flex" }}
+                      >
+                        <ImageIcon className="w-10 h-10 md:w-12 md:h-12 text-gray-400" />
+                      </div>
+
+                      {isSoldOut && (
+                        <span className="absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-md bg-black/70 text-white">
+                          Esgotado
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Conteúdo - flex-grow para ocupar espaço restante */}
+                    <div className="p-3 md:p-4 flex flex-col flex-grow">
+                      {/* Título com altura fixa */}
+                      <h3
+                        data-testid="product-name"
+                        className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2 h-10 md:h-12 flex items-start"
+                      >
+                        {product.name}
+                      </h3>
+
+                      {/* Descrição com altura fixa */}
+                      <div className="h-8 md:h-10 mt-1 mb-2">
+                        {(product?.subtitle || product?.description) && (
+                          <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
+                            {product?.subtitle || product?.description}
                           </p>
                         )}
+                      </div>
 
-                        <div className="mt-2 flex items-center gap-3">
-                          <span className="text-lg font-bold text-gray-900">
+                      {/* Seção inferior - preço e botão */}
+                      <div className="mt-auto flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-base md:text-lg font-bold text-gray-900">
                             R$ {formatPrice(product.price)}
                           </span>
 
                           {product?.preparationTime && (
-                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500">
-                              <Clock className="h-4 w-4" />
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                              <Clock className="h-3 w-3" />
                               {product.preparationTime}min
                             </span>
                           )}
                         </div>
 
-                        <div className="mt-3">
-                          <button
-                            data-testid="add-to-cart"
-                            onClick={() => handleAddToCart(product)}
-                            disabled={!isOpen || isSoldOut}
-                            className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
-                            style={{
-                              backgroundColor:
-                                !isOpen || isSoldOut ? "#9ca3af" : primary,
-                            }}
-                          >
-                            {!isOpen
-                              ? "Loja Fechada"
-                              : isSoldOut
-                              ? "Indisponível"
-                              : "+ Adicionar"}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Imagem à direita */}
-                      <div className="relative shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-100">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className={`w-full h-full object-cover transition-transform duration-300 ${
-                              isSoldOut ? "grayscale" : ""
-                            }`}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                              const placeholder =
-                                target.nextElementSibling as HTMLElement;
-                              if (placeholder)
-                                placeholder.style.display = "flex";
-                            }}
-                          />
-                        ) : null}
-
-                        {/* Placeholder para imagem ausente */}
-                        <div
-                          className={`w-full h-full flex items-center justify-center bg-gray-200 ${
-                            product.image ? "hidden" : "flex"
-                          }`}
-                          style={{ display: product.image ? "none" : "flex" }}
+                        <button
+                          data-testid="add-to-cart"
+                          onClick={() => handleAddToCart(product)}
+                          disabled={!isOpen || isSoldOut}
+                          className="w-full px-3 py-2.5 md:py-3 text-white rounded-lg text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                          style={{
+                            backgroundColor:
+                              !isOpen || isSoldOut ? "#9ca3af" : primary,
+                          }}
                         >
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
-                        </div>
-
-                        {isSoldOut && (
-                          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] sm:text-xs font-semibold px-2 py-1 rounded-md bg-black/70 text-white">
-                            Esgotado
-                          </span>
-                        )}
+                          {!isOpen
+                            ? "Loja Fechada"
+                            : isSoldOut
+                            ? "Indisponível"
+                            : "+ Adicionar"}
+                        </button>
                       </div>
                     </div>
                   </article>
