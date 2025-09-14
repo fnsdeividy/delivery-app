@@ -6,7 +6,6 @@ import { PaymentInfoSection } from "@/components/payment/PaymentInfoSection";
 import { PaymentMethodModal } from "@/components/payment/PaymentMethodModal";
 import { PaymentMethodsList } from "@/components/payment/PaymentMethodsList";
 import { StatusMessage } from "@/components/payment/StatusMessage";
-import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import { PaymentConfig, PaymentMethod } from "@/types/payment";
 import { useParams, useRouter } from "next/navigation";
@@ -15,9 +14,9 @@ import { useEffect, useState } from "react";
 export default function PagamentoPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slug = params.storeSlug as string;
 
-  const { config, loading } = useStoreConfig(slug);
+  const { config, loading, updateConfig } = useStoreConfig(slug);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -126,54 +125,83 @@ export default function PagamentoPage() {
 
   // Carregar configuração atual
   useEffect(() => {
-    // Converter estrutura de payments para PaymentConfig
-    if (config?.payments) {
-      const methods: PaymentMethod[] = [];
+    if (config) {
+      let methods: PaymentMethod[] = [];
 
-      // Adicionar métodos baseados na configuração
-      if (config.payments.pix) {
-        methods.push({
-          id: "pix",
-          name: "PIX",
-          type: "pix",
-          enabled: true,
-          fee: 0,
-          feeType: "percentage",
-          description: "Pagamento instantâneo via PIX",
-          icon: "💳",
-          minAmount: 0.01,
-          maxAmount: 10000,
-        });
-      }
+      // Priorizar nova estrutura paymentMethodsConfig se disponível
+      if (
+        config.config?.paymentMethodsConfig &&
+        Array.isArray(config.config.paymentMethodsConfig)
+      ) {
+        methods = config.config.paymentMethodsConfig.map((method: any) => ({
+          id: method.id,
+          name: method.name,
+          type: method.type,
+          enabled: method.enabled,
+          fee: method.fee || 0,
+          feeType: method.feeType || "percentage",
+          minAmount: method.minAmount,
+          maxAmount: method.maxAmount,
+          description: method.description || "",
+          icon: method.icon || "💳",
+          requiresChange: method.requiresChange || false,
+          changeAmount: method.changeAmount,
+        }));
+      } else if (config?.payments) {
+        // Fallback para estrutura antiga - adicionar métodos baseados na configuração
+        if (config.payments.pix) {
+          methods.push({
+            id: "pix",
+            name: "PIX",
+            type: "pix",
+            enabled: true,
+            fee: 0,
+            feeType: "percentage",
+            description: "Pagamento instantâneo via PIX",
+            icon: "💳",
+            minAmount: 0.01,
+            maxAmount: 10000,
+          });
+        }
 
-      if (config.payments.cash) {
-        methods.push({
-          id: "cash",
-          name: "Dinheiro",
-          type: "cash",
-          enabled: true,
-          fee: 0,
-          feeType: "percentage",
-          description: "Pagamento em dinheiro",
-          icon: "💵",
-          requiresChange: true,
-          changeAmount: 0,
-        });
-      }
+        if (config.payments.cash) {
+          methods.push({
+            id: "cash",
+            name: "Dinheiro",
+            type: "cash",
+            enabled: true,
+            fee: 0,
+            feeType: "percentage",
+            description: "Pagamento em dinheiro",
+            icon: "💵",
+            requiresChange: true,
+            changeAmount: 0,
+          });
+        }
 
-      if (config.payments.card) {
-        methods.push({
-          id: "credit_card",
-          name: "Cartão de Crédito",
-          type: "card",
-          enabled: true,
-          fee: 2.99,
-          feeType: "percentage",
-          description: "Visa, Mastercard, Elo e outros",
-          icon: "💳",
-          minAmount: 1,
-          maxAmount: 5000,
-        });
+        if (config.payments.card) {
+          methods.push({
+            id: "credit_card",
+            name: "Cartão de Crédito",
+            type: "card",
+            enabled: true,
+            fee: 2.99,
+            feeType: "percentage",
+            description: "Visa, Mastercard, Elo e outros",
+            icon: "💳",
+            minAmount: 1,
+            maxAmount: 5000,
+          });
+        }
+
+        // Para estrutura antiga, adicionar métodos padrão desabilitados que não estão presentes
+        const existingIds = methods.map((m) => m.id);
+        const missingDefaults = defaultMethods.filter(
+          (dm) => !existingIds.includes(dm.id)
+        );
+        methods.push(
+          ...missingDefaults.map((dm) => ({ ...dm, enabled: false }))
+        );
       }
 
       setPaymentConfig({
@@ -197,22 +225,25 @@ export default function PagamentoPage() {
     setMessage(null);
 
     try {
-      // Converter PaymentConfig para estrutura de payments
-      const paymentsConfig = {
-        pix: paymentConfig.methods.some((m) => m.id === "pix" && m.enabled),
-        cash: paymentConfig.methods.some((m) => m.id === "cash" && m.enabled),
-        card: paymentConfig.methods.some(
-          (m) => m.id === "credit_card" && m.enabled
-        ),
-        online: paymentConfig.methods.some(
-          (m) => m.type === "digital_wallet" && m.enabled
-        ),
-        integrations: {},
-      };
-
-      // Usar apiClient para sincronizar configurações de pagamento via API backend
-      await apiClient.patch(`/stores/${slug}`, {
+      // Usar updateConfig do hook para sincronizar e invalidar cache automaticamente
+      await updateConfig({
         config: {
+          // Enviar todos os métodos com seus status enabled/disabled
+          paymentMethodsConfig: paymentConfig.methods.map((method) => ({
+            id: method.id,
+            name: method.name,
+            type: method.type,
+            enabled: method.enabled,
+            fee: method.fee,
+            feeType: method.feeType,
+            minAmount: method.minAmount,
+            maxAmount: method.maxAmount,
+            description: method.description,
+            icon: method.icon,
+            requiresChange: method.requiresChange,
+            changeAmount: method.changeAmount,
+          })),
+          // Manter compatibilidade com o sistema antigo por enquanto
           paymentMethods: paymentConfig.methods
             .filter((m) => m.enabled)
             .map((m) => m.id),
