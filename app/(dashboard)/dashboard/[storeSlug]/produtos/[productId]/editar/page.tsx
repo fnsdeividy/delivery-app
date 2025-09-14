@@ -554,8 +554,8 @@ export default function EditarProdutoPage() {
         image: formData.image || undefined,
         originalPrice: originalPrice,
         active: formData.active,
-        ingredients: finalIngredients.length > 0 ? finalIngredients : undefined,
-        addons: normalizedAddons.length > 0 ? normalizedAddons : undefined,
+        ingredients: finalIngredients, // Sempre enviar array, mesmo que vazio
+        addons: normalizedAddons, // Sempre enviar array, mesmo que vazio
         tags: allTags,
         initialStock: initialStock >= 0 ? initialStock : 0,
         minStock: minStock >= 0 ? minStock : 0,

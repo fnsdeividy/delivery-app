@@ -16,6 +16,10 @@ import { useState } from "react";
 import CartModal from "../../../../components/cart/CartModal";
 import OrdersModal from "../../../../components/cart/OrdersModal";
 import { PhoneLoginModal } from "../../../../components/PhoneLoginModal";
+import {
+  ProductCustomization,
+  ProductCustomizationModal,
+} from "../../../../components/products/ProductCustomizationModal";
 import SearchModal from "../../../../components/SearchModal";
 import { useCustomerContext } from "../../../../contexts/CustomerContext";
 import { useCart } from "../../../../hooks/useCart";
@@ -137,6 +141,10 @@ function StorePageContent({ params }: PageProps) {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
   const [isPhoneLoginModalOpen, setIsPhoneLoginModalOpen] = useState(false);
+  const [isCustomizationModalOpen, setIsCustomizationModalOpen] =
+    useState(false);
+  const [selectedProductForCustomization, setSelectedProductForCustomization] =
+    useState<Product | null>(null);
 
   const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const { config, loading, error } = useStoreConfig(slug);
@@ -154,7 +162,29 @@ function StorePageContent({ params }: PageProps) {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart(product, 1);
+    // Verificar se o produto tem ingredientes ou addons para personalizar
+    const hasCustomizations =
+      (product.ingredients && product.ingredients.length > 0) ||
+      (product.addons && product.addons.length > 0);
+
+    if (hasCustomizations) {
+      // Abrir modal de personalização
+      setSelectedProductForCustomization(product);
+      setIsCustomizationModalOpen(true);
+    } else {
+      // Adicionar diretamente ao carrinho
+      addToCart(product, 1);
+      showToast(`${product.name} adicionado ao carrinho!`, "success");
+    }
+  };
+
+  const handleCustomizedAddToCart = (
+    product: Product,
+    quantity: number,
+    customizations: ProductCustomization
+  ) => {
+    // Adicionar produto personalizado ao carrinho
+    addToCart(product, quantity, customizations);
     showToast(`${product.name} adicionado ao carrinho!`, "success");
   };
 
@@ -678,6 +708,17 @@ function StorePageContent({ params }: PageProps) {
           setIsPhoneLoginModalOpen(false);
         }}
         storeSlug={slug}
+      />
+
+      <ProductCustomizationModal
+        product={selectedProductForCustomization}
+        isOpen={isCustomizationModalOpen}
+        onClose={() => {
+          setIsCustomizationModalOpen(false);
+          setSelectedProductForCustomization(null);
+        }}
+        onAddToCart={handleCustomizedAddToCart}
+        primaryColor={config?.branding?.primaryColor}
       />
     </div>
   );
