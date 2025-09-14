@@ -99,11 +99,9 @@ export default function EstoquePage() {
   // Memoizar função de carregamento do resumo do inventário
   const loadInventorySummary = useCallback(async () => {
     try {
-      console.log("🔍 Carregando resumo do inventário para loja:", slug);
       const data = await apiClient.get<InventorySummary>(
         `/inventory/store/${slug}/summary`
       );
-      console.log("✅ Resumo do inventário carregado:", data);
       setSummary(data);
     } catch (error) {
       console.error("❌ Erro ao carregar resumo do estoque:", error);
@@ -115,7 +113,6 @@ export default function EstoquePage() {
   const loadInventory = useCallback(async () => {
     setDataLoading(true);
     try {
-      console.log("🔍 Carregando inventário para loja:", slug);
       const queryParams = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
@@ -127,12 +124,8 @@ export default function EstoquePage() {
       }
 
       const url = `/inventory/store/${slug}?${queryParams.toString()}`;
-      console.log("🔍 URL da requisição:", url);
 
       const data = await apiClient.get<PaginatedResponse<InventoryItem>>(url);
-      console.log("✅ Inventário carregado:", data);
-      console.log("📊 Total de produtos:", data.pagination.total);
-      console.log("📦 Produtos retornados:", data.data.length);
 
       setInventory(data.data);
       setPagination(data.pagination);
@@ -187,34 +180,27 @@ export default function EstoquePage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("🔍 Verificando autenticação...");
-
         if (!isAuthenticated()) {
-          console.log("❌ Usuário não autenticado, redirecionando para login");
           router.push("/login");
           return;
         }
 
         const token = getCurrentToken();
         if (!token) {
-          console.log("❌ Token não encontrado, redirecionando para login");
           router.push("/login");
           return;
         }
 
         // Decodificar token JWT
         const payload = JSON.parse(atob(token.split(".")[1]));
-        console.log("🔍 Validando acesso para loja:", slug);
 
         const hasAccess =
           payload.role === "SUPER_ADMIN" ||
           (payload.role === "ADMIN" && payload.storeSlug === slug);
 
         if (hasAccess) {
-          console.log("✅ Acesso autorizado, carregando dados...");
           await loadInitialData();
         } else {
-          console.log("❌ Acesso negado, redirecionando para unauthorized");
           router.push("/unauthorized");
         }
       } catch (error) {

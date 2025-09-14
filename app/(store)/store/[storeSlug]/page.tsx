@@ -316,64 +316,73 @@ function StorePageContent({ params }: PageProps) {
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between h-16 sm:h-18 lg:h-20">
+            <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6">
               {config?.branding?.logo && (
                 <img
                   src={normalizeImageUrl(config.branding.logo)}
                   alt={`Logo ${config.name}`}
-                  className="h-10 w-auto object-contain"
+                  className="h-8 sm:h-10 lg:h-12 w-auto object-contain"
                 />
               )}
-              <h1 className="text-2xl font-bold" style={{ color: primary }}>
+              <h1
+                className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold truncate"
+                style={{ color: primary }}
+              >
                 {config?.slug || config?.name}
               </h1>
             </div>
 
             {/* Search Desktop */}
-            <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+            <div className="hidden md:flex flex-1 max-w-2xl mx-6 lg:mx-8">
               <button
                 onClick={handleSearchClick}
-                className="w-full flex items-center pl-12 pr-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:bg-white transition-all text-left relative"
+                className="w-full flex items-center pl-12 pr-4 py-3 lg:py-4 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:bg-white transition-all text-left relative"
                 style={{ ["--tw-ring-color" as any]: primary }}
               >
-                <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <span className="text-gray-500">Buscar produtos...</span>
+                <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5 lg:h-6 lg:w-6" />
+                <span className="text-gray-500 text-sm lg:text-base">
+                  Buscar produtos...
+                </span>
               </button>
             </div>
 
             {/* Search Mobile */}
             <button
               onClick={handleSearchClick}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+              className="md:hidden p-2 sm:p-3 hover:bg-gray-100 rounded-lg transition-colors"
               style={{ color: primary }}
               title="Buscar produtos"
             >
-              <MagnifyingGlass className="h-6 w-6" />
+              <MagnifyingGlass className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 lg:space-x-4">
               {/* Desktop Menu */}
-              <div className="hidden md:flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
                 <button
                   onClick={() => setIsOrdersModalOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75"
+                  className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
                   style={{ color: primary }}
                   title="Meus Pedidos"
                 >
-                  <Receipt className="h-5 w-5" />
-                  <span>Pedidos</span>
+                  <Receipt className="h-5 w-5 lg:h-6 lg:w-6" />
+                  <span className="text-sm lg:text-base font-medium">
+                    Pedidos
+                  </span>
                 </button>
 
                 <button
                   data-testid="cart-button"
                   onClick={() => setIsCartModalOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75 relative"
+                  className="flex items-center space-x-2 hover:opacity-75 relative transition-opacity"
                   style={{ color: primary }}
                   title="Carrinho"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  <span>Carrinho</span>
+                  <ShoppingCart className="h-5 w-5 lg:h-6 lg:w-6" />
+                  <span className="text-sm lg:text-base font-medium">
+                    Carrinho
+                  </span>
                   {cart.itemCount > 0 && (
                     <span
                       data-testid="cart-count"
@@ -391,20 +400,22 @@ function StorePageContent({ params }: PageProps) {
                   className="flex items-center space-x-2"
                   style={{ color: primary }}
                 >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">
+                  <User className="h-5 w-5 lg:h-6 lg:w-6" />
+                  <span className="hidden sm:block text-sm lg:text-base font-medium truncate max-w-[120px] lg:max-w-[160px]">
                     Olá, {customer.name || customer.phone}
                   </span>
                 </div>
               ) : (
                 <button
                   onClick={() => setIsPhoneLoginModalOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75"
+                  className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
                   style={{ color: primary }}
                   title="Fazer Login"
                 >
-                  <User className="h-5 w-5" />
-                  <span className="hidden sm:block">Login</span>
+                  <User className="h-5 w-5 lg:h-6 lg:w-6" />
+                  <span className="hidden sm:block text-sm lg:text-base font-medium">
+                    Login
+                  </span>
                 </button>
               )}
             </div>
@@ -415,21 +426,26 @@ function StorePageContent({ params }: PageProps) {
       {/* Categorias */}
       <section className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4 py-4 overflow-x-auto">
+          <div
+            className="flex items-center gap-3 sm:gap-4 lg:gap-6 py-4 sm:py-5 lg:py-6 overflow-x-auto scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             <button
               onClick={() => setSelectedCategory("todos")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              className={`flex items-center space-x-2 px-4 sm:px-5 lg:px-6 py-2 sm:py-3 lg:py-4 rounded-lg whitespace-nowrap transition-all duration-300 ${
                 selectedCategory === "todos"
-                  ? "text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
               }`}
               style={{
                 backgroundColor:
                   selectedCategory === "todos" ? primary : undefined,
               }}
             >
-              <span className="font-medium">Todos</span>
-              <span className="text-sm opacity-75">
+              <span className="font-medium text-sm sm:text-base lg:text-lg">
+                Todos
+              </span>
+              <span className="text-xs sm:text-sm lg:text-base opacity-75">
                 (
                 {config?.menu?.products?.filter((p: any) => p.active).length ||
                   0}
@@ -451,10 +467,10 @@ function StorePageContent({ params }: PageProps) {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                    className={`flex items-center space-x-2 px-4 sm:px-5 lg:px-6 py-2 sm:py-3 lg:py-4 rounded-lg whitespace-nowrap transition-all duration-300 ${
                       selectedCategory === category.name
-                        ? "text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
                     }`}
                     style={{
                       backgroundColor:
@@ -463,8 +479,12 @@ function StorePageContent({ params }: PageProps) {
                           : undefined,
                     }}
                   >
-                    <span className="font-medium">{category.name}</span>
-                    <span className="text-sm opacity-75">({count})</span>
+                    <span className="font-medium text-sm sm:text-base lg:text-lg">
+                      {category.name}
+                    </span>
+                    <span className="text-xs sm:text-sm lg:text-base opacity-75">
+                      ({count})
+                    </span>
                   </button>
                 );
               })}
@@ -474,31 +494,33 @@ function StorePageContent({ params }: PageProps) {
 
       {/* Banner */}
       {config?.branding?.banner && (
-        <div className="relative h-48 md:h-64 overflow-hidden">
+        <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden">
           <img
             src={normalizeImageUrl(config.branding.banner)}
             alt={config.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
+            <div className="text-center text-white max-w-4xl">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 lg:mb-4">
                 {config.name}
               </h2>
               {!!config.description && (
-                <p className="text-lg">{config.description}</p>
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed">
+                  {config.description}
+                </p>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Lista de Produtos — 1 por linha */}
+      {/* Lista de Produtos */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
           {/* Info de resultados */}
-          <div className="mb-6">
-            <p className="text-gray-600">
+          <div className="mb-6 sm:mb-8">
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
               {filteredProducts.length} produto
               {filteredProducts.length !== 1 ? "s" : ""} encontrado
               {filteredProducts.length !== 1 ? "s" : ""}
@@ -506,19 +528,19 @@ function StorePageContent({ params }: PageProps) {
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <MagnifyingGlass className="w-16 h-16 mx-auto" />
+            <div className="text-center py-12 sm:py-16 lg:py-20">
+              <div className="text-gray-400 mb-6">
+                <MagnifyingGlass className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-900 mb-3 sm:mb-4">
                 Nenhum produto encontrado
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base lg:text-lg max-w-md mx-auto">
                 Tente ajustar os filtros ou buscar por outro termo
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {filteredProducts.map((product: any) => {
                 const isSoldOut =
                   product?.stock === 0 ||
@@ -529,10 +551,10 @@ function StorePageContent({ params }: PageProps) {
                   <article
                     key={product.id}
                     data-testid="product-card"
-                    className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full min-h-[320px] md:min-h-[380px]"
+                    className="bg-white rounded-lg sm:rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full min-h-[280px] sm:min-h-[350px] lg:min-h-[420px]"
                   >
                     {/* Imagem no topo - altura fixa e aspect ratio consistente */}
-                    <div className="relative w-full h-36 md:h-44 bg-gray-100 flex-shrink-0">
+                    <div className="relative w-full h-32 sm:h-40 lg:h-48 bg-gray-100 flex-shrink-0">
                       {product.image ? (
                         <img
                           src={product.image}
@@ -557,7 +579,7 @@ function StorePageContent({ params }: PageProps) {
                         }`}
                         style={{ display: product.image ? "none" : "flex" }}
                       >
-                        <ImageIcon className="w-10 h-10 md:w-12 md:h-12 text-gray-400" />
+                        <ImageIcon className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-gray-400" />
                       </div>
 
                       {isSoldOut && (
@@ -568,19 +590,19 @@ function StorePageContent({ params }: PageProps) {
                     </div>
 
                     {/* Conteúdo - flex-grow para ocupar espaço restante */}
-                    <div className="p-3 md:p-4 flex flex-col flex-grow">
+                    <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-grow">
                       {/* Título com altura fixa */}
                       <h3
                         data-testid="product-name"
-                        className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2 h-10 md:h-12 flex items-start"
+                        className="text-sm sm:text-base lg:text-xl font-semibold text-gray-900 line-clamp-2 h-10 sm:h-12 lg:h-16 flex items-start"
                       >
                         {product.name}
                       </h3>
 
                       {/* Descrição com altura fixa */}
-                      <div className="h-8 md:h-10 mt-1 mb-2">
+                      <div className="h-8 sm:h-10 lg:h-14 mt-1 mb-2">
                         {(product?.subtitle || product?.description) && (
-                          <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
+                          <p className="text-xs sm:text-sm lg:text-lg text-gray-600 line-clamp-2">
                             {product?.subtitle || product?.description}
                           </p>
                         )}
@@ -589,13 +611,13 @@ function StorePageContent({ params }: PageProps) {
                       {/* Seção inferior - preço e botão */}
                       <div className="mt-auto flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-base md:text-lg font-bold text-gray-900">
+                          <span className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900">
                             R$ {formatPrice(product.price)}
                           </span>
 
                           {product?.preparationTime && (
-                            <span className="inline-flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
-                              <Clock className="h-3 w-3" />
+                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 flex-shrink-0">
+                              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                               {product.preparationTime}min
                             </span>
                           )}
@@ -605,7 +627,7 @@ function StorePageContent({ params }: PageProps) {
                           data-testid="add-to-cart"
                           onClick={() => handleAddToCart(product)}
                           disabled={!isOpen || isSoldOut}
-                          className="w-full px-3 py-2.5 md:py-3 text-white rounded-lg text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                          className="w-full px-3 py-2 sm:py-3 lg:py-5 text-white rounded-md sm:rounded-lg text-xs sm:text-sm lg:text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all duration-300 hover:scale-105"
                           style={{
                             backgroundColor:
                               !isOpen || isSoldOut ? "#9ca3af" : primary,
@@ -628,34 +650,41 @@ function StorePageContent({ params }: PageProps) {
       </main>
 
       {/* Menu inferior Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] md:hidden">
-        <div className="flex items-center justify-around py-2">
-          <button className="flex flex-col items-center py-2 px-4 min-w-0 flex-1">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] md:hidden backdrop-blur-sm bg-white/95">
+        <div className="flex items-center justify-around px-2 py-1 safe-area-inset-bottom">
+          <button className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg">
             <House className="h-6 w-6 mb-1" style={{ color: primary }} />
-            <span className="text-xs font-medium" style={{ color: primary }}>
+            <span
+              className="text-xs font-medium leading-none"
+              style={{ color: primary }}
+            >
               Início
             </span>
           </button>
 
-          <Link
-            href={`/store/${slug}/orders`}
-            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1"
+          <button
+            onClick={() => setIsOrdersModalOpen(true)}
+            className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg"
           >
             <Receipt className="h-6 w-6 mb-1 text-gray-500" />
-            <span className="text-xs font-medium text-gray-500">Pedidos</span>
-          </Link>
+            <span className="text-xs font-medium text-gray-500 leading-none">
+              Pedidos
+            </span>
+          </button>
 
           <button
             data-testid="cart-button"
             onClick={() => setIsCartModalOpen(true)}
-            className="flex flex-col items-center py-2 px-4 min-w-0 flex-1 relative"
+            className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 relative transition-colors hover:bg-gray-50 rounded-lg"
           >
             <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
-            <span className="text-xs font-medium text-gray-500">Carrinho</span>
+            <span className="text-xs font-medium text-gray-500 leading-none">
+              Carrinho
+            </span>
             {cart.itemCount > 0 && (
               <span
                 data-testid="cart-count"
-                className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full"
+                className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full shadow-md"
                 style={{ backgroundColor: primary }}
               >
                 {cart.itemCount > 99 ? "99+" : cart.itemCount}
@@ -666,7 +695,7 @@ function StorePageContent({ params }: PageProps) {
       </div>
 
       {/* Espaço para o menu fixo */}
-      <div className="h-16 md:hidden" />
+      <div className="h-20 md:hidden safe-area-inset-bottom" />
 
       {/* Modals */}
       <SearchModal

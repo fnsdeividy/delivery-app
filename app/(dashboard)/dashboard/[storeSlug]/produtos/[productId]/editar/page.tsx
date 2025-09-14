@@ -1167,7 +1167,7 @@ export default function EditarProdutoPage() {
                   disabled={isLoading || !isFormValid}
                   className={`flex items-center gap-2 transition-colors ${
                     isFormValid && !isLoading
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      ? "bg-purple-600 hover:bg-purple-700 text-white"
                       : "bg-gray-400 cursor-not-allowed text-gray-200"
                   }`}
                   title={
