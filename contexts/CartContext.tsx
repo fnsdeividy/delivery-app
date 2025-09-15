@@ -7,6 +7,8 @@ import {
   useEffect,
   useState,
 } from "react";
+import { ProductCustomization } from "../components/products/ProductCustomizationModal";
+import { parsePrice } from "../lib/utils/price";
 import { Product } from "../types/cardapio-api";
 
 export interface CartItem {
@@ -14,6 +16,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   notes?: string;
+  customizations?: ProductCustomization;
 }
 
 export interface Cart {
@@ -25,7 +28,11 @@ export interface Cart {
 
 interface CartContextType {
   cart: Cart;
-  addToCart: (product: Product, quantity?: number, notes?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    customizations?: ProductCustomization
+  ) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -85,37 +92,55 @@ export function CartProvider({
   const addToCart = (
     product: Product,
     quantity: number = 1,
-    notes?: string
+    customizations?: ProductCustomization
   ) => {
     setCart((prevCart) => {
-      const existingItemIndex = prevCart.items.findIndex(
-        (item) => item.product.id === product.id
-      );
+      // Para produtos personalizados, sempre criar um novo item (não agrupar)
+      const shouldGroupItems = !customizations;
+
+      const existingItemIndex = shouldGroupItems
+        ? prevCart.items.findIndex(
+            (item) => item.product.id === product.id && !item.customizations
+          )
+        : -1;
 
       let newItems: CartItem[];
 
       if (existingItemIndex >= 0) {
         newItems = prevCart.items.map((item, index) =>
           index === existingItemIndex
-            ? { ...item, quantity: item.quantity + quantity, notes }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
         newItems = [
           ...prevCart.items,
           {
-            id: `${product.id}-${Date.now()}`,
+            id: `${product.id}-${Date.now()}-${Math.random()}`,
             product,
             quantity,
-            notes,
+            customizations,
           },
         ];
       }
 
-      const total = newItems.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0
-      );
+      const total = newItems.reduce((sum, item) => {
+        let itemPrice = parsePrice(item.product.price);
+
+        // Adicionar preço dos addons se houver personalizações
+        if (item.customizations?.selectedAddons) {
+          Object.entries(item.customizations.selectedAddons).forEach(
+            ([addonId, addonQuantity]) => {
+              const addon = item.product.addons?.find((a) => a.id === addonId);
+              if (addon) {
+                itemPrice += parsePrice(addon.price) * addonQuantity;
+              }
+            }
+          );
+        }
+
+        return sum + itemPrice * item.quantity;
+      }, 0);
 
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -132,10 +157,23 @@ export function CartProvider({
     setCart((prevCart) => {
       const newItems = prevCart.items.filter((item) => item.id !== itemId);
 
-      const total = newItems.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0
-      );
+      const total = newItems.reduce((sum, item) => {
+        let itemPrice = parsePrice(item.product.price);
+
+        // Adicionar preço dos addons se houver personalizações
+        if (item.customizations?.selectedAddons) {
+          Object.entries(item.customizations.selectedAddons).forEach(
+            ([addonId, addonQuantity]) => {
+              const addon = item.product.addons?.find((a) => a.id === addonId);
+              if (addon) {
+                itemPrice += parsePrice(addon.price) * addonQuantity;
+              }
+            }
+          );
+        }
+
+        return sum + itemPrice * item.quantity;
+      }, 0);
 
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -159,10 +197,23 @@ export function CartProvider({
         item.id === itemId ? { ...item, quantity } : item
       );
 
-      const total = newItems.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0
-      );
+      const total = newItems.reduce((sum, item) => {
+        let itemPrice = parsePrice(item.product.price);
+
+        // Adicionar preço dos addons se houver personalizações
+        if (item.customizations?.selectedAddons) {
+          Object.entries(item.customizations.selectedAddons).forEach(
+            ([addonId, addonQuantity]) => {
+              const addon = item.product.addons?.find((a) => a.id === addonId);
+              if (addon) {
+                itemPrice += parsePrice(addon.price) * addonQuantity;
+              }
+            }
+          );
+        }
+
+        return sum + itemPrice * item.quantity;
+      }, 0);
 
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 

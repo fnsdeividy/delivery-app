@@ -4,7 +4,6 @@ import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
   CheckCircle,
   Clock,
-  CreditCard,
   DeviceMobile,
   FileText,
   Gear,
@@ -36,7 +35,6 @@ interface StoreStatus {
   isConfigured: boolean;
   hasVisualConfig: boolean;
   hasScheduleConfig: boolean;
-  hasPaymentConfig: boolean;
   hasDeliveryConfig: boolean;
   hasSecurityConfig: boolean;
   hasWhatsAppConfig: boolean;
@@ -85,7 +83,6 @@ export default function ConfiguracoesPage() {
     isConfigured: false,
     hasVisualConfig: false,
     hasScheduleConfig: false,
-    hasPaymentConfig: false,
     hasDeliveryConfig: false,
     hasSecurityConfig: false,
     hasWhatsAppConfig: false,
@@ -99,11 +96,6 @@ export default function ConfiguracoesPage() {
         isConfigured: true,
         hasVisualConfig: !!config.branding?.primaryColor,
         hasScheduleConfig: !!config.schedule?.workingHours,
-        hasPaymentConfig: !!(
-          config.payments?.pix ||
-          config.payments?.cash ||
-          config.payments?.card
-        ),
         hasDeliveryConfig: !!config.delivery?.enabled,
         hasSecurityConfig: false, // Implementar quando necessário
         hasWhatsAppConfig: !!(config as any).whatsapp?.enabled,
@@ -142,15 +134,6 @@ export default function ConfiguracoesPage() {
       href: `/dashboard/${storeSlug}/configuracoes/horarios`,
       status: storeStatus.hasScheduleConfig ? "completed" : "pending",
       badge: storeStatus.hasScheduleConfig ? "Configurado" : "Obrigatório",
-    },
-    {
-      id: "pagamento",
-      title: "Métodos de Pagamento",
-      description: "Configure formas de pagamento aceitas e taxas",
-      icon: CreditCard,
-      href: `/dashboard/${storeSlug}/configuracoes/pagamento`,
-      status: storeStatus.hasPaymentConfig ? "completed" : "optional",
-      badge: storeStatus.hasPaymentConfig ? "Configurado" : "Opcional",
     },
     {
       id: "entrega",
@@ -416,9 +399,6 @@ export default function ConfiguracoesPage() {
                 Configurações Recomendadas:
               </h4>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>
-                  • <strong>Pagamento:</strong> Configure formas de pagamento
-                </li>
                 <li>
                   • <strong>Entrega:</strong> Defina zonas e taxas de entrega
                 </li>

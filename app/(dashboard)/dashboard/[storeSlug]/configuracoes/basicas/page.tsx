@@ -29,6 +29,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 interface StoreBasicInfo {
   name: string;
+  description: string;
   email: string;
   phone: string;
   currentPassword?: string;
@@ -50,6 +51,7 @@ export default function ConfiguracoesBasicasPage() {
   const initialDataRef = useRef<StoreBasicInfo | null>(null);
   const [formData, setFormData] = useState<StoreBasicInfo>({
     name: "",
+    description: "",
     email: "",
     phone: "",
     currentPassword: "",
@@ -71,6 +73,7 @@ export default function ConfiguracoesBasicasPage() {
     Record<keyof StoreBasicInfo, string | undefined>
   >({
     name: undefined,
+    description: undefined,
     email: undefined,
     phone: undefined,
     currentPassword: undefined,
@@ -113,6 +116,10 @@ export default function ConfiguracoesBasicasPage() {
   const validateAll = (data: StoreBasicInfo) => {
     const newErrors: Record<keyof StoreBasicInfo, string | undefined> = {
       name: !data.name.trim() ? "Nome da loja é obrigatório" : undefined,
+      description:
+        data.description && data.description.length > 500
+          ? "Descrição deve ter no máximo 500 caracteres"
+          : undefined,
       email:
         data.email && !isValidEmail(data.email) ? "Email inválido" : undefined,
       phone:
@@ -165,6 +172,7 @@ export default function ConfiguracoesBasicasPage() {
     if (config) {
       const initialData = {
         name: config.name || "",
+        description: config.description || "",
         email: config.email || "",
         phone: config.phone || "",
         currentPassword: "",
@@ -177,6 +185,7 @@ export default function ConfiguracoesBasicasPage() {
       setHasChanges(false);
       setErrors({
         name: undefined,
+        description: undefined,
         email: undefined,
         phone: undefined,
         currentPassword: undefined,
@@ -195,6 +204,7 @@ export default function ConfiguracoesBasicasPage() {
     const base = initialDataRef.current;
     const changed =
       formData.name !== base.name ||
+      formData.description !== base.description ||
       formData.email !== base.email ||
       formData.phone !== base.phone ||
       (!!formData.password && formData.password.trim() !== "") ||
@@ -221,6 +231,14 @@ export default function ConfiguracoesBasicasPage() {
     // validação pontual
     if (field === "name" && !value.trim()) {
       setErrors((e) => ({ ...e, name: "Nome da loja é obrigatório" }));
+    } else if (field === "description") {
+      setErrors((e) => ({
+        ...e,
+        description:
+          value && value.length > 500
+            ? "Descrição deve ter no máximo 500 caracteres"
+            : undefined,
+      }));
     } else if (field === "email") {
       setErrors((e) => ({
         ...e,
@@ -424,6 +442,7 @@ export default function ConfiguracoesBasicasPage() {
     try {
       const updateData: Record<string, string> = {
         name: formData.name.trim(),
+        description: formData.description.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         slug: newSlug,
@@ -497,6 +516,7 @@ export default function ConfiguracoesBasicasPage() {
     });
     setErrors({
       name: undefined,
+      description: undefined,
       email: undefined,
       phone: undefined,
       currentPassword: undefined,
@@ -572,7 +592,7 @@ export default function ConfiguracoesBasicasPage() {
                 <span>Voltar</span>
               </Button>
               <span aria-hidden className="h-6 w-px bg-gray-300" />
-              <Building className="h-6 w-6 text-orange-500" />
+              <Building className="h-6 w-6 text-purple-500" />
               <h1 className="text-xl font-semibold text-gray-900">
                 Informações Básicas
               </h1>
@@ -581,10 +601,10 @@ export default function ConfiguracoesBasicasPage() {
             <div className="flex items-center gap-2">
               {hasChanges && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-orange-700">
+                  <span className="text-sm text-purple-700">
                     Alterações não salvas
                   </span>
-                  <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                  <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
                 </div>
               )}
               <Button
@@ -612,7 +632,7 @@ export default function ConfiguracoesBasicasPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-orange-500" />
+                <Building className="h-5 w-5 text-purple-500" />
                 <span>Informações da Loja</span>
               </CardTitle>
               <CardDescription>
@@ -636,10 +656,32 @@ export default function ConfiguracoesBasicasPage() {
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Digite o nome da sua loja"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.name ? "border-red-300" : "border-gray-300"
                   }`}
                   required
+                />
+              </Field>
+
+              {/* Descrição da Loja */}
+              <Field
+                id="description"
+                label="Descrição da Loja"
+                helper={`Breve descrição sobre sua loja que será exibida para os clientes. ${formData.description.length}/500 caracteres.`}
+                error={errors.description}
+              >
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  placeholder="Digite uma breve descrição da sua loja..."
+                  rows={3}
+                  maxLength={500}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none ${
+                    errors.description ? "border-red-300" : "border-gray-300"
+                  }`}
                 />
               </Field>
 
@@ -675,7 +717,7 @@ export default function ConfiguracoesBasicasPage() {
                     handleInputChange("slug", value);
                   }}
                   placeholder="minha-loja"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.slug || slugError
                       ? "border-red-300"
                       : "border-gray-300"
@@ -734,7 +776,7 @@ export default function ConfiguracoesBasicasPage() {
                     handlePhoneChange(text);
                   }}
                   placeholder="(00) 00000-0000"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.phone ? "border-red-300" : "border-gray-300"
                   }`}
                   maxLength={16}
@@ -749,7 +791,7 @@ export default function ConfiguracoesBasicasPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <svg
-                  className="h-5 w-5 text-orange-500"
+                  className="h-5 w-5 text-purple-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -786,7 +828,7 @@ export default function ConfiguracoesBasicasPage() {
                       handleInputChange("currentPassword", e.target.value)
                     }
                     placeholder="Digite sua senha atual"
-                    className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors ${
                       errors.currentPassword
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300"
@@ -828,7 +870,7 @@ export default function ConfiguracoesBasicasPage() {
                         handleInputChange("password", e.target.value)
                       }
                       placeholder="Digite a nova senha"
-                      className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                      className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors ${
                         errors.password
                           ? "border-red-300 bg-red-50"
                           : "border-gray-300"
@@ -869,7 +911,7 @@ export default function ConfiguracoesBasicasPage() {
                         handleInputChange("confirmPassword", e.target.value)
                       }
                       placeholder="Confirme a nova senha"
-                      className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                      className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors ${
                         errors.confirmPassword
                           ? "border-red-300 bg-red-50"
                           : "border-gray-300"
@@ -936,7 +978,7 @@ export default function ConfiguracoesBasicasPage() {
             <Button
               type="submit"
               disabled={!canSubmit}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white"
             >
               {isSubmitting ? (
                 <>

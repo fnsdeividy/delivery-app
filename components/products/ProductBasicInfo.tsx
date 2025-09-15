@@ -1,6 +1,5 @@
 "use client";
 
-import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { ListBullets, TextB, TextItalic } from "@phosphor-icons/react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -135,45 +134,6 @@ export function ProductBasicInfo({
                 </option>
               ))}
           </select>
-        </div>
-
-        <div>
-          <CurrencyInput
-            label="Preço *"
-            value={formData.price}
-            onChange={(cents) => onFormDataChange({ price: cents })}
-            onBlur={(cents) => onFormDataChange({ price: cents })}
-            placeholder="0,00"
-            required
-            min={0}
-            max={9999999}
-            allowEmpty={false}
-            id="product-price"
-            name="price"
-            aria-describedby="price-help"
-          />
-          <p id="price-help" className="mt-1 text-xs text-gray-500">
-            Digite o valor em reais (ex.: 2,50 ou 250)
-          </p>
-        </div>
-
-        <div>
-          <CurrencyInput
-            label="Preço Original"
-            value={formData.originalPrice || 0}
-            onChange={(cents) => onFormDataChange({ originalPrice: cents })}
-            onBlur={(cents) => onFormDataChange({ originalPrice: cents })}
-            placeholder="0,00"
-            min={0}
-            max={9999999}
-            allowEmpty={true}
-            id="product-original-price"
-            name="originalPrice"
-            aria-describedby="original-price-help"
-          />
-          <p id="original-price-help" className="mt-1 text-xs text-gray-500">
-            Deixe vazio se não houver preço original
-          </p>
         </div>
       </div>
 

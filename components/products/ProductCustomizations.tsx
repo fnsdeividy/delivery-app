@@ -1,6 +1,5 @@
 "use client";
 
-import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { Plus, X } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -265,26 +264,6 @@ export function ProductCustomizations({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Ex: Bacon, Queijo Extra"
               />
-            </div>
-
-            <div>
-              <CurrencyInput
-                label="Preço"
-                value={newAddon.price}
-                onChange={(cents) =>
-                  setNewAddon((prev) => ({ ...prev, price: cents }))
-                }
-                placeholder="0,00"
-                min={0}
-                max={9999999}
-                allowEmpty={true}
-                id="new-addon-price"
-                name="newAddonPrice"
-                aria-describedby="addon-price-help"
-              />
-              <p id="addon-price-help" className="mt-1 text-xs text-gray-500">
-                Deixe vazio para adicional sem custo
-              </p>
             </div>
 
             <div>

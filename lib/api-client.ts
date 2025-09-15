@@ -754,6 +754,32 @@ class ApiClient {
     );
   }
 
+  // ===== SUGESTÕES FISCAIS =====
+  async getNcmCestSuggestions(params: {
+    categoryName?: string;
+    productType?: "FOOD" | "BEVERAGE";
+  }): Promise<{ suggestions: Array<{ ncm: string; cest: string }> }> {
+    const q = new URLSearchParams();
+    if (params.categoryName) q.set("categoryName", params.categoryName);
+    if (params.productType) q.set("productType", params.productType);
+    return this.get<{ suggestions: Array<{ ncm: string; cest: string }> }>(
+      `/products/ncm-cest/suggestions?${q.toString()}`
+    );
+  }
+
+  // ===== MÉTRICAS =====
+  async logProductFormMetric(payload: {
+    storeSlug: string;
+    userEmail?: string;
+    durationMs: number;
+    completed: boolean;
+  }): Promise<{ success: boolean; id?: string }> {
+    return this.post<{ success: boolean; id?: string }>(
+      `/analytics/product-form`,
+      payload
+    );
+  }
+
   /** Faz upload de uma imagem para um produto */
   async uploadProductImage(
     product: CreateProductDto | Product,
@@ -853,7 +879,7 @@ class ApiClient {
     orderData: CreateOrderDto,
     storeSlug: string
   ): Promise<Order> {
-    return this.post<Order>(`/orders?storeSlug=${storeSlug}`, orderData);
+    return this.post<Order>(`/orders/public?storeSlug=${storeSlug}`, orderData);
   }
 
   async getPublicOrders(
@@ -861,9 +887,10 @@ class ApiClient {
     customerId?: string
   ): Promise<Order[]> {
     const url = customerId
-      ? `/orders?storeSlug=${storeSlug}&customerId=${customerId}`
-      : `/orders?storeSlug=${storeSlug}`;
-    return this.get<Order[]>(url);
+      ? `/orders/public?storeSlug=${storeSlug}&customerId=${customerId}`
+      : `/orders/public?storeSlug=${storeSlug}`;
+    const response = await this.get<{ data: Order[]; pagination: any }>(url);
+    return response.data;
   }
 
   async getPublicOrderById(id: string, storeSlug: string): Promise<Order> {

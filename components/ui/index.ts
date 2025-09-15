@@ -6,7 +6,6 @@ export {
   StaggerList,
 } from "./animated";
 export { Button, buttonVariants } from "./button";
-export { CurrencyInput } from "./CurrencyInput";
 export { DataCardList } from "./DataCardList";
 export { DataTable } from "./DataTable";
 export { FilterPanel } from "./FilterPanel";

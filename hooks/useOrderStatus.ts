@@ -21,5 +21,7 @@ export function useOrdersByStore(storeSlug: string, page = 1, limit = 10) {
     queryKey: ["orders", storeSlug, page, limit],
     queryFn: () => apiClient.getOrders(storeSlug, page, limit),
     enabled: !!storeSlug,
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
+    refetchIntervalInBackground: true, // Continuar atualizando mesmo quando a tab não está ativa
   });
 }

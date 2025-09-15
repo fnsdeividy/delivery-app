@@ -10,7 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useAuthContext } from "../../../../../contexts/AuthContext";
+import { useCustomerContext } from "../../../../../contexts/CustomerContext";
 import { useCart } from "../../../../../hooks/useCart";
 import { usePublicOrders } from "../../../../../hooks/usePublicOrders";
 import { apiClient } from "../../../../../lib/api-client";
@@ -18,6 +18,7 @@ import {
   CreateOrderDto,
   OrderItemDto,
   OrderType,
+  PaymentStatus,
 } from "../../../../../types/cardapio-api";
 
 interface CheckoutPageProps {
@@ -35,6 +36,19 @@ interface FormErrors {
   deliveryNumber?: string;
   deliveryNeighborhood?: string;
   deliveryCity?: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: string;
+  fee?: number;
+  feeType?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  description?: string;
+  requiresChange?: boolean;
+  changeAmount?: number;
 }
 
 const formatPrice = (price: any): string => {
@@ -92,7 +106,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const { storeSlug } = params;
   const { cart, clearCart } = useCart();
   const { createOrder } = usePublicOrders(storeSlug);
-  const { isAuthenticated, user } = useAuthContext();
+  const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const router = useRouter();
 
   const [config, setConfig] = useState<any>(null);
@@ -102,9 +116,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
   // Dados do formulário
   const [formData, setFormData] = useState({
-    customerName: user?.name || "",
-    customerPhone: "",
-    customerEmail: user?.email || "",
+    customerName: customer?.name || "",
+    customerPhone: customer?.phone || "",
+    customerEmail: "",
     postalCode: "",
     deliveryAddress: "",
     deliveryNumber: "",
@@ -191,9 +205,118 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     loadStoreConfig();
   }, [storeSlug, cart.items.length, router]);
 
+  // Função para obter métodos de pagamento habilitados (movida para fora para reutilização)
+  const getEnabledPaymentMethods = (): PaymentMethod[] => {
+    // Priorizar nova estrutura paymentMethodsConfig se disponível
+    if (
+      config?.config?.paymentMethodsConfig &&
+      Array.isArray(config.config.paymentMethodsConfig)
+    ) {
+      // Usar configurações detalhadas da nova estrutura
+      const enabledMethods = config.config.paymentMethodsConfig
+        .filter((method: any) => method.enabled)
+        .map(
+          (method: any): PaymentMethod => ({
+            id:
+              method.type === "pix"
+                ? "PIX"
+                : method.type === "cash"
+                ? "DINHEIRO"
+                : method.type === "card"
+                ? "CARTAO"
+                : method.name.toUpperCase(),
+            name: method.name,
+            icon: method.icon || "💳",
+            fee: method.fee || 0,
+            feeType: method.feeType || "percentage",
+            minAmount: method.minAmount,
+            maxAmount: method.maxAmount,
+            description: method.description,
+            requiresChange: method.requiresChange,
+            changeAmount: method.changeAmount,
+          })
+        );
+
+      // Se há métodos configurados, usar eles
+      if (enabledMethods.length > 0) {
+        return enabledMethods;
+      }
+    }
+
+    // Fallback para estrutura antiga
+    const paymentConfig = config?.config?.payments;
+    const enabledMethods = [];
+
+    if (paymentConfig?.pix !== false) {
+      enabledMethods.push({
+        id: "PIX",
+        name: "PIX",
+        icon: "💳",
+      });
+    }
+
+    if (paymentConfig?.cash !== false) {
+      enabledMethods.push({
+        id: "DINHEIRO",
+        name: "Dinheiro",
+        icon: "💵",
+      });
+    }
+
+    if (paymentConfig?.card !== false) {
+      enabledMethods.push({
+        id: "CARTAO",
+        name: "Cartão",
+        icon: "💳",
+      });
+    }
+
+    // Se nenhum método está configurado, usar os métodos padrão
+    if (enabledMethods.length === 0) {
+      return [
+        { id: "PIX", name: "PIX", icon: "💳" },
+        { id: "DINHEIRO", name: "Dinheiro", icon: "💵" },
+        { id: "CARTAO", name: "Cartão", icon: "💳" },
+      ];
+    }
+
+    return enabledMethods;
+  };
+
+  // Ajustar método de pagamento padrão baseado nos métodos habilitados
+  useEffect(() => {
+    if (config) {
+      const enabledMethods = getEnabledPaymentMethods();
+
+      if (enabledMethods.length > 0) {
+        const currentMethodEnabled = enabledMethods.some(
+          (method) => method.id === formData.paymentMethod
+        );
+
+        if (!currentMethodEnabled) {
+          setFormData((prev) => ({
+            ...prev,
+            paymentMethod: enabledMethods[0].id as any,
+          }));
+        }
+      }
+    }
+  }, [config, formData.paymentMethod]);
+
   // Validar formulário
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
+
+    // Validar pedido mínimo
+    if (minimumOrder > 0 && cart.total < minimumOrder) {
+      showToast(
+        `Pedido mínimo de R$ ${formatPrice(
+          minimumOrder
+        )} não atingido. Valor atual: R$ ${formatPrice(cart.total)}`,
+        "error"
+      );
+      return false;
+    }
 
     if (!formData.customerName.trim()) {
       errors.customerName = "Nome é obrigatório";
@@ -283,12 +406,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      router.push(
-        `/store/${storeSlug}/login?redirect=${encodeURIComponent(
-          `/store/${storeSlug}/checkout`
-        )}`
-      );
+    if (!isLoggedIn) {
+      // Redirecionar para a loja para fazer login
+      router.push(`/store/${storeSlug}`);
       return;
     }
 
@@ -317,17 +437,21 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     setIsSubmitting(true);
 
     try {
-      const deliveryFee = formData.orderType === OrderType.DELIVERY ? 5.0 : 0;
+      // Usar taxa de entrega configurada na loja, com fallback para 5.0
+      const configuredDeliveryFee = config?.config?.deliveryFee ?? 5.0;
+      const deliveryFee =
+        formData.orderType === OrderType.DELIVERY ? configuredDeliveryFee : 0;
 
       const orderData: CreateOrderDto = {
-        customerId: user?.id || "guest-" + Date.now(),
+        customerId: customer?.id || "guest-" + Date.now(),
         storeSlug,
         type: formData.orderType,
         deliveryFee,
         discount: 0,
+        paymentMethod: formData.paymentMethod,
+        paymentStatus: PaymentStatus.PENDING,
         subtotal: cart.total,
         total: cart.total + deliveryFee,
-        paymentMethod: formData.paymentMethod,
         notes: `Nome: ${formData.customerName}\nTelefone: ${
           formData.customerPhone
         }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
@@ -381,8 +505,24 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }
   };
 
-  const deliveryFee = formData.orderType === OrderType.DELIVERY ? 5.0 : 0;
+  // Usar configurações de entrega da loja
+  const configuredDeliveryFee = config?.config?.deliveryFee ?? 5.0;
+  const freeDeliveryThreshold = config?.config?.freeDeliveryThreshold;
+  const minimumOrder = config?.config?.minimumOrder ?? 0;
+
+  // Calcular taxa de entrega (pode ser grátis se atingir o threshold)
+  let deliveryFee = 0;
+  if (formData.orderType === OrderType.DELIVERY) {
+    if (freeDeliveryThreshold && cart.total >= freeDeliveryThreshold) {
+      deliveryFee = 0; // Entrega grátis
+    } else {
+      deliveryFee = configuredDeliveryFee;
+    }
+  }
+
   const total = cart.total + deliveryFee;
+
+  const enabledPaymentMethods = getEnabledPaymentMethods();
 
   // Cores do branding da loja
   const brandingColors = {
@@ -496,10 +636,39 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 </div>
                 {formData.orderType === OrderType.DELIVERY && (
                   <div className="flex justify-between text-gray-700">
-                    <span className="font-medium">Taxa de entrega</span>
-                    <span className="font-semibold">
-                      R$ {formatPrice(deliveryFee)}
+                    <span className="font-medium">
+                      Taxa de entrega
+                      {freeDeliveryThreshold &&
+                        cart.total >= freeDeliveryThreshold && (
+                          <span className="ml-2 text-green-600 text-sm font-bold">
+                            (GRÁTIS!)
+                          </span>
+                        )}
                     </span>
+                    <span className="font-semibold">
+                      {deliveryFee === 0 &&
+                      freeDeliveryThreshold &&
+                      cart.total >= freeDeliveryThreshold ? (
+                        <span className="text-green-600">Grátis</span>
+                      ) : (
+                        `R$ ${formatPrice(deliveryFee)}`
+                      )}
+                    </span>
+                  </div>
+                )}
+                {freeDeliveryThreshold &&
+                  cart.total < freeDeliveryThreshold &&
+                  formData.orderType === OrderType.DELIVERY && (
+                    <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                      💡 Faltam R${" "}
+                      {formatPrice(freeDeliveryThreshold - cart.total)} para
+                      entrega grátis!
+                    </div>
+                  )}
+                {minimumOrder > 0 && cart.total < minimumOrder && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                    ⚠️ Pedido mínimo: R$ {formatPrice(minimumOrder)}. Faltam R${" "}
+                    {formatPrice(minimumOrder - cart.total)}
                   </div>
                 )}
                 <div className="flex justify-between text-xl font-bold border-t border-gray-300 pt-3 bg-gray-50 -mx-3 px-3 py-2 rounded-lg">
@@ -569,7 +738,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     Entrega
                   </span>
                   <p className="text-sm text-gray-600 mt-1 font-medium">
-                    R$ {formatPrice(deliveryFee)}
+                    {freeDeliveryThreshold &&
+                    cart.total >= freeDeliveryThreshold ? (
+                      <span className="text-green-600 font-bold">Grátis!</span>
+                    ) : (
+                      `R$ ${formatPrice(configuredDeliveryFee)}`
+                    )}
                   </p>
                 </div>
               </label>
@@ -998,13 +1172,13 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
               Forma de Pagamento
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {["PIX", "DINHEIRO", "CARTAO"].map((method) => (
-                <label key={method} className="cursor-pointer">
+              {enabledPaymentMethods.map((method: PaymentMethod) => (
+                <label key={method.id} className="cursor-pointer">
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value={method}
-                    checked={formData.paymentMethod === method}
+                    value={method.id}
+                    checked={formData.paymentMethod === method.id}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -1015,28 +1189,27 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   />
                   <div
                     className={`p-4 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
-                      formData.paymentMethod === method
+                      formData.paymentMethod === method.id
                         ? "shadow-lg transform scale-105"
                         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
                     }`}
                     style={{
                       borderColor:
-                        formData.paymentMethod === method
+                        formData.paymentMethod === method.id
                           ? brandingColors.primary
                           : undefined,
                       backgroundColor:
-                        formData.paymentMethod === method
+                        formData.paymentMethod === method.id
                           ? brandingColors.background
                           : undefined,
                     }}
                   >
-                    <span className="font-bold text-black text-gray-900">
-                      {method === "PIX"
-                        ? "PIX"
-                        : method === "DINHEIRO"
-                        ? "Dinheiro"
-                        : "Cartão"}
-                    </span>
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-2xl">{method.icon}</span>
+                      <span className="font-bold text-black text-gray-900">
+                        {method.name}
+                      </span>
+                    </div>
                   </div>
                 </label>
               ))}
@@ -1071,7 +1244,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
             <button
               type="submit"
-              disabled={isSubmitting || !isAuthenticated}
+              disabled={isSubmitting || !isLoggedIn}
               className="w-full py-4 text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
               style={{
                 backgroundColor: brandingColors.primary,
@@ -1082,24 +1255,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
                   Finalizando pedido...
                 </>
-              ) : !isAuthenticated ? (
+              ) : !isLoggedIn ? (
                 "Faça login para continuar"
               ) : (
                 `Finalizar Pedido - R$ ${formatPrice(total)}`
               )}
             </button>
 
-            {!isAuthenticated && (
+            {!isLoggedIn && (
               <p className="text-center text-sm text-gray-600 mt-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    router.push(
-                      `/store/${storeSlug}/login?redirect=${encodeURIComponent(
-                        `/store/${storeSlug}/checkout`
-                      )}`
-                    )
-                  }
+                  onClick={() => router.push(`/store/${storeSlug}`)}
                   className="hover:underline transition-colors font-semibold"
                   style={{ color: brandingColors.primary }}
                 >

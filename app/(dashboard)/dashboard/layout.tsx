@@ -3,7 +3,6 @@
 import {
   ChartBar,
   Clock,
-  CreditCard,
   Gear,
   Layout,
   List,
@@ -16,10 +15,8 @@ import {
 } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import LoadingSpinner from "../../../components/LoadingSpinner";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
-import WelcomeNotification from "../../../components/WelcomeNotification";
 import { useAuthContext } from "../../../contexts/AuthContext";
 import { useStores } from "../../../hooks";
 import { useStoreConfig } from "../../../lib/store/useStoreConfig";
@@ -182,13 +179,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   pathname === `/dashboard/${slug}/configuracoes/entrega`,
               },
               {
-                name: "Pagamento",
-                href: `/dashboard/${slug}/configuracoes/pagamento`,
-                icon: CreditCard,
-                current:
-                  pathname === `/dashboard/${slug}/configuracoes/pagamento`,
-              },
-              {
                 name: "Horários",
                 href: `/dashboard/${slug}/configuracoes/horarios`,
                 icon: Clock,
@@ -224,9 +214,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   if (isFetchingStore || awaitingConfigSafely) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <OptimizedLoadingSpinner 
-          size="lg" 
-          text="Carregando configurações da loja..." 
+        <OptimizedLoadingSpinner
+          size="lg"
+          text="Carregando configurações da loja..."
         />
       </div>
     );
@@ -462,8 +452,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
 
-      {/* Welcome Notification */}
-      <WelcomeNotification />
       <ToastContainer />
     </div>
   );

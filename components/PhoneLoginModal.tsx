@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInlineStyles } from "@/hooks/useInlineStyles";
 import { useStoreTheme } from "@/hooks/useStoreTheme";
-import { apiClient } from "@/lib/api-client";
 import { Loader2, Phone, User } from "lucide-react";
 import { useState } from "react";
 
@@ -77,10 +76,12 @@ export function PhoneLoginModal({
         throw new Error("Telefone deve ter pelo menos 10 dígitos");
       }
 
-      const authData = await apiClient.authenticateByPhone(
-        cleanPhone,
-        name || undefined
-      );
+      // Simular autenticação - retornar dados do cliente
+      const authData = {
+        phone: cleanPhone,
+        name: name || undefined,
+        id: `customer_${Date.now()}`,
+      };
 
       onSuccess(authData);
       onClose();
