@@ -2,7 +2,6 @@
 
 import {
   Calendar,
-  CreditCard,
   Gear,
   Palette,
   PencilSimple,
@@ -55,18 +54,6 @@ export function StoreConfigSection({ storeSlug }: StoreConfigSectionProps) {
               Horários de Funcionamento
             </p>
             <p className="text-xs text-gray-600">Dias e horários</p>
-          </div>
-        </Link>
-        <Link
-          href={`/dashboard/${storeSlug}/configuracoes/pagamento`}
-          className="flex items-center p-1.5 sm:p-2 md:p-3 lg:p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
-        >
-          <CreditCard className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-600 mr-1 sm:mr-2 md:mr-3 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs md:text-sm font-medium text-gray-900">
-              Métodos de Pagamento
-            </p>
-            <p className="text-xs text-gray-600">PIX, cartão, dinheiro</p>
           </div>
         </Link>
       </div>

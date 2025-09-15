@@ -3,7 +3,6 @@
 import {
   ChartBar,
   Clock,
-  CreditCard,
   Gear,
   Layout,
   List,
@@ -180,13 +179,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 icon: Truck,
                 current:
                   pathname === `/dashboard/${slug}/configuracoes/entrega`,
-              },
-              {
-                name: "Pagamento",
-                href: `/dashboard/${slug}/configuracoes/pagamento`,
-                icon: CreditCard,
-                current:
-                  pathname === `/dashboard/${slug}/configuracoes/pagamento`,
               },
               {
                 name: "Horários",
