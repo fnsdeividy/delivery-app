@@ -295,7 +295,7 @@ export function ProductCustomizationModal({
                               )
                             }
                             disabled={
-                              addon.maxQuantity &&
+                              !!addon.maxQuantity &&
                               (selectedAddons[addon.id] || 0) >=
                                 addon.maxQuantity
                             }

@@ -514,15 +514,31 @@ export default function NovoProdutoPage() {
   const clearForm = () => {
     setFormData({
       storeSlug: slug,
+      productType: "FOOD" as "FOOD" | "BEVERAGE",
       name: "",
       categoryId: "",
       priceStr: "",
       originalPriceStr: "",
       description: "",
       image: undefined,
+      images: [],
       active: true,
       initialStockStr: "0",
       minStockStr: "5",
+      // Fiscais
+      ncm: "",
+      cest: "",
+      // Bebidas
+      alcoholic: false,
+      alcoholPercentageStr: "0",
+      // Unidade/Porção
+      unit: "",
+      volumeStr: "",
+      volumeUnit: "ml" as "ml" | "l",
+      // Classificações e tags
+      classifications: [],
+      tags: [],
+      tagColor: "blue",
     });
     setBaseOptions({});
     setIngredients([]);

@@ -3,10 +3,10 @@
 import { Minus, Plus, SignIn, Trash, X } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAuthContext } from "../../contexts/AuthContext";
+import { useCustomerContext } from "../../contexts/CustomerContext";
 import { useCart } from "../../hooks/useCart";
 import { usePublicOrders } from "../../hooks/usePublicOrders";
-import { CreateOrderDto, OrderType } from "../../types/cardapio-api";
+import { PhoneLoginModal } from "../PhoneLoginModal";
 
 interface CartModalProps {
   isOpen: boolean;
@@ -38,9 +38,10 @@ export default function CartModal({
 }: CartModalProps) {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { createOrder } = usePublicOrders(storeSlug);
-  const { isAuthenticated } = useAuthContext();
+  const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const router = useRouter();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   if (!isOpen) return null;
 
@@ -49,8 +50,9 @@ export default function CartModal({
     type: "success" | "error" = "success"
   ) => {
     const toast = document.createElement("div");
-    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${type === "success" ? "bg-green-500" : "bg-red-500"
-      }`;
+    toast.className = `fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg text-white font-medium shadow-lg transform transition-all duration-300 translate-x-full opacity-0 ${
+      type === "success" ? "bg-green-500" : "bg-red-500"
+    }`;
     toast.textContent = message;
 
     document.body.appendChild(toast);
@@ -69,15 +71,39 @@ export default function CartModal({
     }, 3000);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.items.length === 0) {
       showToast("Carrinho vazio", "error");
       return;
     }
 
-    // Navegar para a página de checkout
-    router.push(`/store/${storeSlug}/checkout`);
-    onClose();
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    try {
+      // Simular um pequeno delay para mostrar o loading
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Navegar para a página de checkout
+      router.push(`/store/${storeSlug}/checkout`);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao navegar para checkout:", error);
+      showToast("Erro ao redirecionar para checkout", "error");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
+  const handleLoginSuccess = (authData: any) => {
+    // Usar os dados do login para criar o cliente
+    loginCustomer(authData.phone, authData.name);
+    setShowLoginModal(false);
+    showToast("Login realizado com sucesso!", "success");
   };
 
   return (
@@ -182,11 +208,13 @@ export default function CartModal({
               </div>
 
               <div className="space-y-2">
-                {!isAuthenticated && (
+                {!isLoggedIn && (
                   <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center gap-2 text-yellow-800 text-sm">
                       <SignIn className="h-4 w-4" />
-                      <span>Entre para finalizar seu pedido</span>
+                      <span>
+                        Entre com seu telefone para finalizar seu pedido
+                      </span>
                     </div>
                   </div>
                 )}
@@ -199,11 +227,14 @@ export default function CartModal({
                   style={{ backgroundColor: primaryColor }}
                 >
                   {isCheckingOut ? (
-                    "Redirecionando..."
-                  ) : !isAuthenticated ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Redirecionando...
+                    </>
+                  ) : !isLoggedIn ? (
                     <>
                       <SignIn className="h-4 w-4" />
-                      Entrar para continuar
+                      Entrar com telefone
                     </>
                   ) : (
                     "Ir para Checkout"
@@ -221,6 +252,14 @@ export default function CartModal({
           )}
         </div>
       </div>
+
+      {/* Modal de Login */}
+      <PhoneLoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+        storeSlug={storeSlug}
+      />
     </div>
   );
 }

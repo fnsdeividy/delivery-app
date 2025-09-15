@@ -879,7 +879,7 @@ class ApiClient {
     orderData: CreateOrderDto,
     storeSlug: string
   ): Promise<Order> {
-    return this.post<Order>(`/orders?storeSlug=${storeSlug}`, orderData);
+    return this.post<Order>(`/orders/public?storeSlug=${storeSlug}`, orderData);
   }
 
   async getPublicOrders(
@@ -887,9 +887,10 @@ class ApiClient {
     customerId?: string
   ): Promise<Order[]> {
     const url = customerId
-      ? `/orders?storeSlug=${storeSlug}&customerId=${customerId}`
-      : `/orders?storeSlug=${storeSlug}`;
-    return this.get<Order[]>(url);
+      ? `/orders/public?storeSlug=${storeSlug}&customerId=${customerId}`
+      : `/orders/public?storeSlug=${storeSlug}`;
+    const response = await this.get<{ data: Order[]; pagination: any }>(url);
+    return response.data;
   }
 
   async getPublicOrderById(id: string, storeSlug: string): Promise<Order> {

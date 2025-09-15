@@ -208,6 +208,7 @@ export interface CreateOrderDto {
   deliveryAddress?: string;
   notes?: string;
   paymentMethod: string;
+  paymentStatus: PaymentStatus;
   subtotal: number;
   deliveryFee: number;
   discount: number;

@@ -18,6 +18,7 @@ import {
   CreateOrderDto,
   OrderItemDto,
   OrderType,
+  PaymentStatus,
 } from "../../../../../types/cardapio-api";
 
 interface CheckoutPageProps {
@@ -105,7 +106,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const { storeSlug } = params;
   const { cart, clearCart } = useCart();
   const { createOrder } = usePublicOrders(storeSlug);
-  const { customer, isLoggedIn } = useCustomerContext();
+  const { customer, isLoggedIn, login: loginCustomer } = useCustomerContext();
   const router = useRouter();
 
   const [config, setConfig] = useState<any>(null);
@@ -406,11 +407,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     e.preventDefault();
 
     if (!isLoggedIn) {
-      router.push(
-        `/store/${storeSlug}/login?redirect=${encodeURIComponent(
-          `/store/${storeSlug}/checkout`
-        )}`
-      );
+      // Redirecionar para a loja para fazer login
+      router.push(`/store/${storeSlug}`);
       return;
     }
 
@@ -450,9 +448,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         type: formData.orderType,
         deliveryFee,
         discount: 0,
+        paymentMethod: formData.paymentMethod,
+        paymentStatus: PaymentStatus.PENDING,
         subtotal: cart.total,
         total: cart.total + deliveryFee,
-        paymentMethod: formData.paymentMethod,
         notes: `Nome: ${formData.customerName}\nTelefone: ${
           formData.customerPhone
         }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
@@ -1267,13 +1266,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
               <p className="text-center text-sm text-gray-600 mt-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    router.push(
-                      `/store/${storeSlug}/login?redirect=${encodeURIComponent(
-                        `/store/${storeSlug}/checkout`
-                      )}`
-                    )
-                  }
+                  onClick={() => router.push(`/store/${storeSlug}`)}
                   className="hover:underline transition-colors font-semibold"
                   style={{ color: brandingColors.primary }}
                 >
