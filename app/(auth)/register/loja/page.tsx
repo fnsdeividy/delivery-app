@@ -213,14 +213,13 @@ export default function RegisterLojaPage() {
       setCreationStep("creating-store");
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // 3. Criar loja com slug único
-      const baseSlug =
+      // 3. Criar loja com slug do usuário
+      const userSlug =
         typeof formData.storeSlug === "string" ? formData.storeSlug : "";
-      const uniqueSlug = `${baseSlug}-${Date.now()}`;
 
       const storeCreationData: CreateStoreDto = {
         name: typeof formData.storeName === "string" ? formData.storeName : "",
-        slug: uniqueSlug,
+        slug: userSlug,
         description:
           typeof formData.description === "string" ? formData.description : "",
         config: {
