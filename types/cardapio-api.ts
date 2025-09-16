@@ -627,3 +627,11 @@ export interface AnalyticsData {
     averageOrderFrequency: number;
   };
 }
+
+// Re-export types from order.ts for convenience
+export type {
+  OrderCustomer,
+  OrderItem as OrderItemType,
+  PaymentStatusInfo,
+  StatusInfo,
+} from "./order";

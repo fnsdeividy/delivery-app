@@ -697,7 +697,7 @@ class ApiClient {
   }
 
   async getStoreStats(slug: string): Promise<StoreStats> {
-    return this.get<StoreStats>(`/stores/${slug}/stats`);
+    return this.get<StoreStats>(`/stores/dashboard-metrics/${slug}`);
   }
 
   // ===== CATEGORIAS =====
@@ -848,9 +848,10 @@ class ApiClient {
     page = 1,
     limit = 10
   ): Promise<PaginatedResponse<Order>> {
-    return this.get<PaginatedResponse<Order>>(
-      `/stores/${storeSlug}/orders?page=${page}&limit=${limit}`
-    );
+    const url = `/orders?storeSlug=${storeSlug}&page=${page}&limit=${limit}`;
+
+    const result = await this.get<PaginatedResponse<Order>>(url);
+    return result;
   }
 
   async getOrderById(id: string): Promise<Order> {
@@ -870,7 +871,7 @@ class ApiClient {
   }
 
   async getOrderStats(storeSlug: string): Promise<OrderStats> {
-    return this.get<OrderStats>(`/stores/${storeSlug}/orders/stats`);
+    return this.get<OrderStats>(`/orders/stats?storeSlug=${storeSlug}`);
   }
 
   // ===== PEDIDOS PÚBLICOS (CLIENTES) =====
@@ -893,8 +894,80 @@ class ApiClient {
     return response.data;
   }
 
+  // Método para dashboard que funciona com ou sem autenticação
+  async getDashboardOrders(
+    storeSlug: string,
+    page = 1,
+    limit = 10
+  ): Promise<PaginatedResponse<Order>> {
+    // Tentar usar rota autenticada primeiro
+    if (this.isAuthenticated()) {
+      try {
+        const url = `/orders?storeSlug=${storeSlug}&page=${page}&limit=${limit}`;
+        const result = await this.get<PaginatedResponse<Order>>(url);
+        return result;
+      } catch (error: any) {}
+    }
+
+    // Fallback para rota pública
+    const url = `/orders/public?storeSlug=${storeSlug}`;
+    const response = await this.get<{ data: Order[]; pagination: any }>(url);
+
+    // Simular paginação para compatibilidade
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedData = response.data.slice(startIndex, endIndex);
+
+    const result = {
+      data: paginatedData,
+      pagination: {
+        page,
+        limit,
+        total: response.data.length,
+        totalPages: Math.ceil(response.data.length / limit),
+      },
+    };
+
+    return result;
+  }
+
   async getPublicOrderById(id: string, storeSlug: string): Promise<Order> {
     return this.get<Order>(`/orders/${id}?storeSlug=${storeSlug}`);
+  }
+
+  async updatePublicOrderStatus(
+    id: string,
+    status: string,
+    storeSlug: string
+  ): Promise<Order> {
+    return this.patch<Order>(
+      `/orders/public/${id}/status?storeSlug=${storeSlug}`,
+      { status }
+    );
+  }
+
+  // Método para dashboard que funciona com ou sem autenticação
+  async updateDashboardOrderStatus(
+    id: string,
+    status: string,
+    storeSlug: string
+  ): Promise<Order> {
+    // Tentar usar rota autenticada primeiro
+    if (this.isAuthenticated()) {
+      try {
+        const result = await this.patch<Order>(`/orders/${id}`, { status });
+        return result;
+      } catch (error: any) {
+        console.warn(
+          "🔍 Erro na rota autenticada, tentando rota pública:",
+          error.message
+        );
+      }
+    }
+
+    // Fallback para rota pública
+    const result = await this.updatePublicOrderStatus(id, status, storeSlug);
+    return result;
   }
 
   // ===== ANALYTICS =====

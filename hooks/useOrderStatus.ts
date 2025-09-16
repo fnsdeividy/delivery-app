@@ -16,10 +16,35 @@ export function useUpdateOrderStatus() {
   });
 }
 
+// Hook para dashboard que funciona com ou sem autenticação
+export function useDashboardUpdateOrderStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      storeSlug,
+    }: {
+      id: string;
+      status: OrderStatus;
+      storeSlug: string;
+    }) => apiClient.updateDashboardOrderStatus(id, status, storeSlug),
+    onSuccess: (_, { id, storeSlug }) => {
+      queryClient.invalidateQueries({ queryKey: ["order", id] });
+      queryClient.invalidateQueries({ queryKey: ["orders", storeSlug] });
+      queryClient.invalidateQueries({ queryKey: ["orders", "stats"] });
+    },
+  });
+}
+
 export function useOrdersByStore(storeSlug: string, page = 1, limit = 10) {
   return useQuery({
     queryKey: ["orders", storeSlug, page, limit],
-    queryFn: () => apiClient.getOrders(storeSlug, page, limit),
+    queryFn: async () => {
+      const result = await apiClient.getDashboardOrders(storeSlug, page, limit);
+      return result;
+    },
     enabled: !!storeSlug,
     refetchInterval: 5000, // Atualizar a cada 5 segundos
     refetchIntervalInBackground: true, // Continuar atualizando mesmo quando a tab não está ativa
