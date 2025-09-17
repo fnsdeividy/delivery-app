@@ -92,7 +92,7 @@ export default function ConfiguracoesBasicasPage() {
 
   const isValidPassword = (password: string): boolean => {
     if (!password) return true; // vazio = não alterar
-    const minLength = password.length >= 8;
+    const minLength = password.length >= 6; // Consistente com o backend
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
@@ -131,7 +131,7 @@ export default function ConfiguracoesBasicasPage() {
           : undefined,
       password:
         data.password && !isValidPassword(data.password)
-          ? "Mín. 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
+          ? "Mín. 6 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
           : undefined,
       confirmPassword:
         data.password &&
@@ -261,7 +261,7 @@ export default function ConfiguracoesBasicasPage() {
         ...e,
         password:
           value && !isValidPassword(value)
-            ? "Mín. 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
+            ? "Mín. 6 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 especial"
             : undefined,
         confirmPassword:
           formData.confirmPassword &&
@@ -749,6 +749,43 @@ export default function ConfiguracoesBasicasPage() {
                   inputMode="numeric"
                 />
               </Field>
+
+              {/* Slug da Loja */}
+              <Field
+                id="slug"
+                label="Endereço da Loja *"
+                helper="Este será o endereço da sua loja na internet (ex: minhaloja.com.br/endereco-da-loja)"
+                error={errors.slug || slugError}
+                suffix={
+                  <SlugStatus
+                    isChecking={isCheckingSlug}
+                    available={slugAvailable}
+                    hasError={Boolean(errors.slug || slugError)}
+                  />
+                }
+                onFirstErrorRef={firstErrorRef}
+              >
+                <div className="relative">
+                  <input
+                    id="slug"
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => handleInputChange("slug", e.target.value)}
+                    placeholder="endereco-da-loja"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      errors.slug || slugError
+                        ? "border-red-300"
+                        : "border-gray-300"
+                    }`}
+                    required
+                  />
+                  {isCheckingSlug && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500" />
+                    </div>
+                  )}
+                </div>
+              </Field>
             </CardContent>
           </Card>
 
@@ -824,7 +861,7 @@ export default function ConfiguracoesBasicasPage() {
                 <Field
                   id="newPassword"
                   label="Nova Senha *"
-                  helper="Mínimo 8 caracteres com maiúscula, minúscula, número e especial."
+                  helper="Mínimo 6 caracteres com maiúscula, minúscula, número e especial."
                   error={errors.password}
                 >
                   <div className="relative">
@@ -919,7 +956,7 @@ export default function ConfiguracoesBasicasPage() {
                   💡 Dicas para uma senha segura:
                 </h4>
                 <ul className="text-xs text-blue-800 space-y-1">
-                  <li>• Use pelo menos 8 caracteres</li>
+                  <li>• Use pelo menos 6 caracteres</li>
                   <li>• Inclua letras maiúsculas e minúsculas</li>
                   <li>• Adicione números e símbolos especiais</li>
                   <li>• Evite informações pessoais óbvias</li>
@@ -1094,7 +1131,7 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
   const getStrength = (password: string) => {
     let score = 0;
     const checks = {
-      length: password.length >= 8,
+      length: password.length >= 6, // Consistente com o backend
       lowercase: /[a-z]/.test(password),
       uppercase: /[A-Z]/.test(password),
       numbers: /\d/.test(password),
@@ -1152,7 +1189,7 @@ function PasswordStrengthIndicator({ password }: { password: string }) {
             checks.length ? "text-green-600" : "text-gray-400"
           }`}
         >
-          {checks.length ? "✓" : "○"} 8+ caracteres
+          {checks.length ? "✓" : "○"} 6+ caracteres
         </div>
         <div
           className={`flex items-center gap-1 ${
