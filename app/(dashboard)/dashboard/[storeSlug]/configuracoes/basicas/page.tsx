@@ -110,7 +110,7 @@ export default function ConfiguracoesBasicasPage() {
     return password === confirmPassword;
   };
 
-  const isValidSlug = (slug: string): boolean => /^[a-z0-9-]{3,}$/.test(slug);
+  const isValidSlug = (slug: string): boolean => /^[a-z0-9-\s]{3,}$/.test(slug);
 
   const validateAll = (data: StoreBasicInfo) => {
     const newErrors: Record<keyof StoreBasicInfo, string | undefined> = {
@@ -141,7 +141,7 @@ export default function ConfiguracoesBasicasPage() {
       slug: !data.slug.trim()
         ? "Slug é obrigatório"
         : !isValidSlug(data.slug)
-        ? "Use apenas minúsculas, números e hífens (mín. 3)"
+        ? "Use apenas minúsculas, números, hífens e espaços (mín. 3)"
         : undefined,
     };
     setErrors(newErrors);
@@ -284,7 +284,7 @@ export default function ConfiguracoesBasicasPage() {
       } else if (!isValidSlug(value)) {
         setErrors((e) => ({
           ...e,
-          slug: "Use apenas minúsculas, números e hífens (mín. 3)",
+          slug: "Use apenas minúsculas, números, hífens e espaços (mín. 3)",
         }));
       } else {
         setErrors((e) => ({ ...e, slug: undefined }));
@@ -324,7 +324,9 @@ export default function ConfiguracoesBasicasPage() {
 
       // Validação de formato primeiro
       if (!isValidSlug(debouncedSlug)) {
-        setSlugError("Use apenas minúsculas, números e hífens (mín. 3)");
+        setSlugError(
+          "Use apenas minúsculas, números, hífens e espaços (mín. 3)"
+        );
         setSlugAvailable(false);
         setIsCheckingSlug(false);
         return;
@@ -771,7 +773,7 @@ export default function ConfiguracoesBasicasPage() {
                     type="text"
                     value={formData.slug}
                     onChange={(e) => handleInputChange("slug", e.target.value)}
-                    placeholder="endereco-da-loja"
+                    placeholder="endereco-da-loja ou endereco da loja"
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                       errors.slug || slugError
                         ? "border-red-300"
