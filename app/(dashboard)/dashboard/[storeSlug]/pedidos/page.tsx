@@ -1,15 +1,17 @@
 "use client";
 
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrderRealtime } from "@/hooks/useOrderRealtime";
 import {
+  useCancelOrder,
+  useConfirmOrder,
   useDashboardUpdateOrderStatus,
   useOrdersByStore,
 } from "@/hooks/useOrderStatus";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
-import { calculateOrderStats, filterOrders } from "@/lib/utils/order-utils";
-import { OrderStatus } from "@/types/cardapio-api";
-import { Order } from "@/types/order";
-import { ArrowsClockwise } from "@phosphor-icons/react";
+import { calculateOrderStats } from "@/lib/utils/order-utils";
+import { Order, OrderStatus } from "@/types/cardapio-api";
+import { ArrowsClockwise, WifiHigh, WifiSlash } from "@phosphor-icons/react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -33,6 +35,8 @@ export default function PedidosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -42,18 +46,30 @@ export default function PedidosPage() {
     isLoading: loadingOrders,
     refetch: refetchOrders,
     error: ordersError,
-  } = useOrdersByStore(slug, 1, 10);
+  } = useOrdersByStore(
+    slug,
+    1,
+    10,
+    searchTerm,
+    selectedStatus !== "all" ? selectedStatus : undefined,
+    selectedPaymentStatus !== "all" ? selectedPaymentStatus : undefined,
+    startDate || undefined,
+    endDate || undefined
+  );
   const updateStatusMutation = useDashboardUpdateOrderStatus();
+  const confirmOrderMutation = useConfirmOrder();
+  const cancelOrderMutation = useCancelOrder();
+
+  // WebSocket para atualizações em tempo real
+  const { isConnected: isRealtimeConnected } = useOrderRealtime({
+    storeSlug: slug,
+    enabled: isAuthenticated,
+  });
 
   const orders = ordersData?.data || [];
 
-  // Filtrar pedidos
-  const filteredOrders = filterOrders(
-    orders,
-    searchTerm,
-    selectedStatus,
-    selectedPaymentStatus
-  );
+  // Usar os pedidos já filtrados pela API
+  const filteredOrders = orders;
 
   // Atualizar status do pedido
   const handleStatusUpdate = async (
@@ -70,6 +86,35 @@ export default function PedidosPage() {
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       alert("Erro ao atualizar status do pedido");
+    }
+  };
+
+  // Confirmar pedido
+  const handleConfirmOrder = async (orderId: string) => {
+    try {
+      await confirmOrderMutation.mutateAsync({
+        id: orderId,
+        storeSlug: slug,
+      });
+      refetchOrders();
+    } catch (error) {
+      console.error("Erro ao confirmar pedido:", error);
+      alert("Erro ao confirmar pedido");
+    }
+  };
+
+  // Cancelar pedido
+  const handleCancelOrder = async (orderId: string, reason?: string) => {
+    try {
+      await cancelOrderMutation.mutateAsync({
+        id: orderId,
+        storeSlug: slug,
+        reason,
+      });
+      refetchOrders();
+    } catch (error) {
+      console.error("Erro ao cancelar pedido:", error);
+      alert("Erro ao cancelar pedido");
     }
   };
 
@@ -100,7 +145,26 @@ export default function PedidosPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
+            {isAuthenticated && (
+              <div className="flex items-center space-x-1">
+                {isRealtimeConnected ? (
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <WifiHigh className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Atualização Automática
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1 text-yellow-600">
+                    <WifiSlash className="h-4 w-4" />
+                    <span className="text-sm font-medium">Manual</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <p className="text-gray-600">Gerencie os pedidos da sua loja</p>
         </div>
         <button
@@ -123,6 +187,10 @@ export default function PedidosPage() {
         setSelectedStatus={setSelectedStatus}
         selectedPaymentStatus={selectedPaymentStatus}
         setSelectedPaymentStatus={setSelectedPaymentStatus}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
       />
 
       {/* Lista de Pedidos */}
@@ -132,6 +200,8 @@ export default function PedidosPage() {
             key={order.id}
             order={order}
             onStatusUpdate={handleStatusUpdate}
+            onConfirmOrder={handleConfirmOrder}
+            onCancelOrder={handleCancelOrder}
             onViewDetails={handleViewDetails}
           />
         ))}

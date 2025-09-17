@@ -23,6 +23,14 @@ export function useCardapioAuth() {
         );
 
         // Validar se a resposta contém o token
+        console.log("🔍 Resposta da API de login:", {
+          hasResponse: !!response,
+          responseType: typeof response,
+          hasAccessToken: !!response?.access_token,
+          accessTokenType: typeof response?.access_token,
+          accessTokenLength: response?.access_token?.length || 0,
+        });
+
         if (!response || typeof response !== "object") {
           throw new Error("Resposta inválida da API");
         }
@@ -60,7 +68,7 @@ export function useCardapioAuth() {
         }
 
         // Retornar dados do usuário do token ou da resposta da API
-        return {
+        const userData = {
           user: {
             id: payload.sub,
             email: payload.email,
@@ -69,6 +77,14 @@ export function useCardapioAuth() {
             storeSlug: response.user?.storeSlug || payload.storeSlug || null,
           },
         };
+
+        console.log("✅ Login realizado com sucesso:", {
+          user: userData.user,
+          hasToken: !!response.access_token,
+          tokenLength: response.access_token?.length || 0,
+        });
+
+        return userData;
       } catch (err: any) {
         // Melhorar tratamento de erros para evitar refresh da página
         let errorMessage = "Erro desconhecido durante o login";
@@ -181,7 +197,17 @@ export function useCardapioAuth() {
 
   // Função para verificar se está autenticado - estabilizada com useCallback
   const isAuthenticated = useCallback(() => {
-    return apiClient.isAuthenticated();
+    try {
+      const result = apiClient.isAuthenticated();
+      console.log("🔍 Debug useCardapioAuth.isAuthenticated:", {
+        result,
+        timestamp: new Date().toISOString(),
+      });
+      return result;
+    } catch (error) {
+      console.error("❌ Erro ao verificar autenticação:", error);
+      return false;
+    }
   }, []);
 
   // Função para obter token atual - estabilizada com useCallback

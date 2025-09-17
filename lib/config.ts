@@ -24,6 +24,13 @@ export const config = {
     },
   },
 
+  // Configurações do WebSocket
+  ws: {
+    baseURL: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001",
+    reconnectInterval: 3000,
+    maxReconnectAttempts: 5,
+  },
+
   // Configurações da aplicação
   app: {
     name: process.env.NEXT_PUBLIC_APP_NAME || "Cardapio.IO Delivery",

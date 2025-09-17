@@ -6,7 +6,7 @@ import { ProductBasicInfo } from "@/components/products/ProductBasicInfo";
 import { ProductClassifications } from "@/components/products/ProductClassifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useCardapioAuth } from "@/hooks/useCardapioAuth";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useToast } from "@/hooks/useToast";
 import { apiClient } from "@/lib/api-client";
@@ -139,7 +139,7 @@ export default function NovoProdutoPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.storeSlug as string;
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useCardapioAuth();
   const { showToast } = useToast();
   const { parseAndFormatBRL, formatBRL } = useCurrencyFormatter();
 
@@ -147,6 +147,45 @@ export default function NovoProdutoPage() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [formStartTime, setFormStartTime] = useState<number>(Date.now());
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  // Verificar autenticação e preparar redirecionamento
+  useEffect(() => {
+    const checkAuth = () => {
+      const authStatus = isAuthenticated();
+
+      if (!authStatus) {
+        setShouldRedirect(true);
+      }
+    };
+
+    // Verificar imediatamente
+    checkAuth();
+
+    // Verificar novamente após um pequeno delay para garantir que o token foi carregado
+    const timeoutId = setTimeout(checkAuth, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [isAuthenticated]);
+
+  // Redirecionar se necessário
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/login");
+    }
+  }, [shouldRedirect, router]);
+
+  // Mostrar loading se não estiver autenticado
+  if (!isAuthenticated()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecionando para login...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Guardamos strings para inputs com máscara, e números no submit
   const [formData, setFormData] = useState({
@@ -339,7 +378,7 @@ export default function NovoProdutoPage() {
       }
     };
 
-    if (isAuthenticated && slug) {
+    if (isAuthenticated() && slug) {
       loadCategories();
       setFormStartTime(Date.now());
     }

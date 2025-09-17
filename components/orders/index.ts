@@ -1,3 +1,4 @@
+export { default as CancelOrderModal } from "./CancelOrderModal";
 export { default as EmptyOrdersList } from "./EmptyOrdersList";
 export { default as OrderCard } from "./OrderCard";
 export { default as OrderDetailsModal } from "./OrderDetailsModal";

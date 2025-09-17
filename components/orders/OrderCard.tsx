@@ -4,21 +4,28 @@ import {
   getPaymentStatusInfo,
   getStatusInfo,
 } from "@/lib/utils/order-utils";
-import { OrderStatus, PaymentStatus } from "@/types/cardapio-api";
-import { Order } from "@/types/order";
+import { Order, OrderStatus, PaymentStatus } from "@/types/cardapio-api";
 import { MapPin, Phone, User } from "@phosphor-icons/react";
+import { useState } from "react";
+import CancelOrderModal from "./CancelOrderModal";
 
 interface OrderCardProps {
   order: Order;
   onStatusUpdate: (orderId: string, newStatus: OrderStatus) => Promise<void>;
+  onConfirmOrder: (orderId: string) => Promise<void>;
+  onCancelOrder: (orderId: string, reason?: string) => Promise<void>;
   onViewDetails: (order: Order) => void;
 }
 
 export default function OrderCard({
   order,
   onStatusUpdate,
+  onConfirmOrder,
+  onCancelOrder,
   onViewDetails,
 }: OrderCardProps) {
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   const statusInfo = getStatusInfo(order.status as OrderStatus);
   const paymentStatusInfo = getPaymentStatusInfo(
     order.paymentStatus as PaymentStatus
@@ -27,11 +34,11 @@ export default function OrderCard({
 
   const getDeliveryTypeLabel = (type: string) => {
     switch (type) {
-      case "delivery":
+      case "DELIVERY":
         return "Entrega";
-      case "pickup":
+      case "PICKUP":
         return "Retirada";
-      case "table":
+      case "TABLE":
         return "Mesa";
       default:
         return type;
@@ -90,7 +97,7 @@ export default function OrderCard({
         <div className="flex items-center space-x-2">
           <MapPin className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-900">
-            {getDeliveryTypeLabel(order.deliveryType)}
+            {getDeliveryTypeLabel(order.type)}
           </span>
         </div>
       </div>
@@ -114,18 +121,14 @@ export default function OrderCard({
             {order.status === OrderStatus.RECEIVED && (
               <>
                 <button
-                  onClick={() =>
-                    onStatusUpdate(order.id, OrderStatus.CONFIRMED)
-                  }
-                  className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                  onClick={() => onConfirmOrder(order.id)}
+                  className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                 >
                   Confirmar
                 </button>
                 <button
-                  onClick={() =>
-                    onStatusUpdate(order.id, OrderStatus.CANCELLED)
-                  }
-                  className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                  onClick={() => setShowCancelModal(true)}
+                  className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -135,7 +138,7 @@ export default function OrderCard({
             {order.status === OrderStatus.CONFIRMED && (
               <button
                 onClick={() => onStatusUpdate(order.id, OrderStatus.PREPARING)}
-                className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
               >
                 Preparar
               </button>
@@ -144,20 +147,20 @@ export default function OrderCard({
             {order.status === OrderStatus.PREPARING && (
               <button
                 onClick={() => onStatusUpdate(order.id, OrderStatus.READY)}
-                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
                 Pronto
               </button>
             )}
 
             {order.status === OrderStatus.READY &&
-              order.deliveryType === "delivery" && (
+              order.type === "DELIVERY" && (
                 <div className="flex flex-col items-end space-y-1">
                   <button
                     onClick={() =>
                       onStatusUpdate(order.id, OrderStatus.DELIVERING)
                     }
-                    className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                    className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                   >
                     Saiu para Entrega
                   </button>
@@ -168,12 +171,12 @@ export default function OrderCard({
               )}
 
             {order.status === OrderStatus.READY &&
-              order.deliveryType !== "delivery" && (
+              order.type !== "DELIVERY" && (
                 <button
                   onClick={() =>
                     onStatusUpdate(order.id, OrderStatus.DELIVERED)
                   }
-                  className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                  className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                 >
                   Entregue
                 </button>
@@ -182,7 +185,7 @@ export default function OrderCard({
             {order.status === OrderStatus.DELIVERING && (
               <button
                 onClick={() => onStatusUpdate(order.id, OrderStatus.DELIVERED)}
-                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
                 Entregue
               </button>
@@ -190,6 +193,14 @@ export default function OrderCard({
           </div>
         </div>
       </div>
+
+      {/* Modal de Cancelamento */}
+      <CancelOrderModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={(reason) => onCancelOrder(order.id, reason)}
+        orderNumber={order.id}
+      />
     </div>
   );
 }

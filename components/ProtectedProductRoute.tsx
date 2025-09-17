@@ -36,8 +36,18 @@ export function ProtectedProductRoute({
           return;
         }
 
-        // Decodificar token JWT
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        // Decodificar token JWT de forma mais segura
+        let payload: any;
+        try {
+          const tokenParts = token.split(".");
+          if (tokenParts.length !== 3) {
+            throw new Error("Token JWT inválido");
+          }
+          payload = JSON.parse(atob(tokenParts[1]));
+        } catch (decodeError) {
+          router.push("/login");
+          return;
+        }
 
         // Verificar permissões baseadas no role
         let access = false;
@@ -47,14 +57,30 @@ export function ProtectedProductRoute({
           access = true;
         } else if (payload.role === "ADMIN") {
           // Admin pode acessar apenas sua própria loja
-          if (payload.storeSlug === storeSlug) {
+          const userStoreSlug = payload.storeSlug || payload.currentStoreSlug;
+          const userStores = payload.stores || [];
+
+          // Verificar se o usuário tem acesso à loja solicitada
+          const hasStoreAccess =
+            userStoreSlug === storeSlug ||
+            userStores.some((store: any) => store.storeSlug === storeSlug);
+
+          if (hasStoreAccess) {
             access = true;
           } else {
             access = false;
           }
         } else if (payload.role === "MANAGER") {
           // Manager pode ler e escrever produtos
-          if (payload.storeSlug === storeSlug && requiredAction !== "delete") {
+          const userStoreSlug = payload.storeSlug || payload.currentStoreSlug;
+          const userStores = payload.stores || [];
+
+          // Verificar se o usuário tem acesso à loja solicitada
+          const hasStoreAccess =
+            userStoreSlug === storeSlug ||
+            userStores.some((store: any) => store.storeSlug === storeSlug);
+
+          if (hasStoreAccess && requiredAction !== "delete") {
             access = true;
           } else {
             access = false;
@@ -70,7 +96,6 @@ export function ProtectedProductRoute({
           router.push("/unauthorized");
         }
       } catch (error) {
-        console.error("❌ Erro na verificação de permissões:", error);
         router.push("/login");
       } finally {
         setIsLoading(false);

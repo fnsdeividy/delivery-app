@@ -22,8 +22,8 @@ export { useLoadingState, useMultipleLoadingStates } from "./useLoadingState";
 export {
   useCancelOrder,
   useCreateOrder,
-  useOrders,
   useOrderStats,
+  useOrders,
   useUpdateOrder,
 } from "./useOrders";
 export { useOrdersByStore, useUpdateOrderStatus } from "./useOrderStatus";
@@ -38,14 +38,15 @@ export {
   useSearchProducts,
   useUpdateProduct,
 } from "./useProducts";
+export { useSearchSuggestions } from "./useSearchSuggestions";
 export { useStore } from "./useStore";
 export { useStoreRedirect } from "./useStoreRedirect";
 export {
   useApproveStore,
   useDeleteStore,
   useRejectStore,
-  useStores,
   useStoreStats,
+  useStores,
   useUpdateStore,
 } from "./useStores";
 export {

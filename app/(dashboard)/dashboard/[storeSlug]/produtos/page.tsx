@@ -10,13 +10,7 @@ import { useApiErrorHandler, useCardapioAuth } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { EyeSlash, Pencil, Plus, Trash } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  startTransition,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
 interface Product {
   id: string;
@@ -64,6 +58,47 @@ export default function ProdutosPage() {
   const { handleErrorWithRedirect } = useApiErrorHandler();
   const { success } = useToast();
 
+  // Estado para controlar redirecionamento
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  // Verificar autenticação e preparar redirecionamento
+  useEffect(() => {
+    const checkAuth = () => {
+      const authStatus = isAuthenticated();
+
+      if (!authStatus) {
+        setShouldRedirect(true);
+      }
+    };
+
+    // Verificar imediatamente
+    checkAuth();
+
+    // Verificar novamente após um pequeno delay para garantir que o token foi carregado
+    const timeoutId = setTimeout(checkAuth, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [isAuthenticated]);
+
+  // Redirecionar se necessário
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.push("/login");
+    }
+  }, [shouldRedirect, router]);
+
+  // Mostrar loading se não estiver autenticado
+  if (!isAuthenticated()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecionando para login...</p>
+        </div>
+      </div>
+    );
+  }
+
   /** guards */
   const mountedRef = useRef(true);
   const loadingRef = useRef(false);
@@ -108,7 +143,7 @@ export default function ProdutosPage() {
   /** Carregamento inicial de categorias */
   useEffect(() => {
     if (!isAuthenticated()) return;
-    
+
     const loadCategories = async () => {
       try {
         const categoriesData = await apiClient.get<CategoryDTO>(
@@ -119,14 +154,14 @@ export default function ProdutosPage() {
         console.error("Erro ao carregar categorias:", error);
       }
     };
-    
+
     loadCategories();
   }, [slug, isAuthenticated]);
 
   /** Carregamento inicial de produtos */
   useEffect(() => {
     if (!isAuthenticated()) return;
-    
+
     const loadProducts = async () => {
       setIsLoading(true);
       try {
@@ -134,11 +169,11 @@ export default function ProdutosPage() {
         p.set("page", "1");
         p.set("limit", "10");
         p.set("active", "true");
-        
+
         const productsData = await apiClient.get<PaginatedResponse<Product>>(
           `/stores/${slug}/products?${p.toString()}`
         );
-        
+
         if (productsData?.data) {
           setProducts(productsData.data ?? []);
           setPagination({
@@ -155,7 +190,7 @@ export default function ProdutosPage() {
         setIsLoading(false);
       }
     };
-    
+
     loadProducts();
   }, [slug, isAuthenticated]);
 
@@ -202,7 +237,9 @@ export default function ProdutosPage() {
           setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
         } else {
           // recarregar a página para atualizar a lista
-          window.location.reload();
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          }
         }
       });
 
@@ -249,8 +286,6 @@ export default function ProdutosPage() {
     const n = toNum(price);
     return isNaN(n) ? "0,00" : n.toFixed(2);
   };
-
-  if (!isAuthenticated()) return null;
 
   return (
     <ProtectedProductRoute storeSlug={slug}>
