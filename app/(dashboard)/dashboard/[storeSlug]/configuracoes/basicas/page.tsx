@@ -114,7 +114,13 @@ export default function ConfiguracoesBasicasPage() {
 
   const validateAll = (data: StoreBasicInfo) => {
     const newErrors: Record<keyof StoreBasicInfo, string | undefined> = {
-      name: !data.name.trim() ? "Nome da loja é obrigatório" : undefined,
+      name: !data.name.trim()
+        ? "Nome da loja é obrigatório"
+        : data.name.trim().length < 2
+        ? "Nome deve ter pelo menos 2 caracteres"
+        : data.name.trim().length > 100
+        ? "Nome deve ter no máximo 100 caracteres"
+        : undefined,
       description:
         data.description && data.description.length > 500
           ? "Descrição deve ter no máximo 500 caracteres"
@@ -228,8 +234,17 @@ export default function ConfiguracoesBasicasPage() {
   const handleInputChange = (field: keyof StoreBasicInfo, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // validação pontual
-    if (field === "name" && !value.trim()) {
-      setErrors((e) => ({ ...e, name: "Nome da loja é obrigatório" }));
+    if (field === "name") {
+      setErrors((e) => ({
+        ...e,
+        name: !value.trim()
+          ? "Nome da loja é obrigatório"
+          : value.trim().length < 2
+          ? "Nome deve ter pelo menos 2 caracteres"
+          : value.trim().length > 100
+          ? "Nome deve ter no máximo 100 caracteres"
+          : undefined,
+      }));
     } else if (field === "description") {
       setErrors((e) => ({
         ...e,
@@ -655,7 +670,7 @@ export default function ConfiguracoesBasicasPage() {
               <Field
                 id="name"
                 label="Nome da Loja *"
-                helper="Este nome será exibido no topo da sua loja e nos pedidos."
+                helper={`Este nome será exibido no topo da sua loja e nos pedidos. ${formData.name.length}/100 caracteres.`}
                 error={errors.name}
                 onFirstErrorRef={firstErrorRef}
               >
@@ -665,6 +680,7 @@ export default function ConfiguracoesBasicasPage() {
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Digite o nome da sua loja"
+                  maxLength={100}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     errors.name ? "border-red-300" : "border-gray-300"
                   }`}
