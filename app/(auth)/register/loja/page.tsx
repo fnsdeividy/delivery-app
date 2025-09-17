@@ -286,7 +286,7 @@ export default function RegisterLojaPage() {
 
       // 4. Definir loja atual de forma otimista para ajudar os guards
       try {
-        await apiClient.setCurrentStore({ storeSlug: uniqueSlug });
+        await apiClient.setCurrentStore({ storeSlug: storeResponse.slug });
       } catch (e) {
         // se falhar, seguimos com polling
       }
@@ -299,7 +299,7 @@ export default function RegisterLojaPage() {
       const canAccessDashboard = async () => {
         try {
           // Se conseguir obter a loja pelo slug autenticado, pressupomos acesso
-          await apiClient.getStoreBySlug(uniqueSlug);
+          await apiClient.getStoreBySlug(storeResponse.slug);
           return true;
         } catch (err: any) {
           // 401/403: ainda não propagou permissão; continuar tentando
