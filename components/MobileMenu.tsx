@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuthContext } from "@/contexts/AuthContext";
+import { apiClient } from "@/lib/api-client";
 import {
   ChartLineUp,
   Crown,
@@ -48,17 +49,20 @@ const DEFAULT_LINKS: NavLink[] = [
   },
 ];
 
-const getAuthenticatedLinks = (user: any): NavLink[] => [
+const getAuthenticatedLinks = (
+  user: any,
+  effectiveStoreSlug?: string
+): NavLink[] => [
   {
     href: "/",
     label: "Início",
     icon: ChartLineUp,
     description: "Voltar para a página inicial",
   },
-  ...(user?.storeSlug
+  ...(effectiveStoreSlug || user?.storeSlug
     ? [
         {
-          href: `/dashboard/${user.storeSlug}`,
+          href: `/dashboard/${effectiveStoreSlug || user.storeSlug}`,
           label: "Dashboard",
           icon: ChartLineUp,
           requiresAuth: true,
@@ -74,6 +78,10 @@ export const MobileMenu = memo(function MobileMenu({
   onOpenChange,
 }: MobileMenuProps) {
   const { user, isAuthenticated, logout, isLoading } = useAuthContext();
+  const effectiveStoreSlug =
+    (user as any)?.currentStoreSlug ||
+    (user as any)?.storeSlug ||
+    apiClient.getCurrentStoreSlug();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isInternalOpen, setIsInternalOpen] = useState(false);
 
@@ -101,9 +109,10 @@ export const MobileMenu = memo(function MobileMenu({
   };
 
   const allNavLinks = isAuthenticated
-    ? getAuthenticatedLinks(user).filter(
+    ? getAuthenticatedLinks(user, effectiveStoreSlug).filter(
         (link) =>
-          link.href !== `/dashboard/${user?.storeSlug || ""}` || user?.storeSlug
+          link.href !== `/dashboard/${effectiveStoreSlug || ""}` ||
+          effectiveStoreSlug
       )
     : navLinks;
 
@@ -154,10 +163,12 @@ export const MobileMenu = memo(function MobileMenu({
             {isAuthenticated && user && (
               <div className="mt-2 text-sm text-gray-600">
                 <p className="truncate">{user.email}</p>
-                {user.storeSlug && (
+                {(effectiveStoreSlug || user.storeSlug) && (
                   <div className="mt-3">
                     <Link
-                      href={`/dashboard/${user.storeSlug}`}
+                      href={`/dashboard/${
+                        effectiveStoreSlug || user.storeSlug
+                      }`}
                       className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >

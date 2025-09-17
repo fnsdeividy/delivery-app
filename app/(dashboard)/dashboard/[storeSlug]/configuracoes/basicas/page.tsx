@@ -20,7 +20,6 @@ import {
   EyeSlash,
   FloppyDisk,
   Info,
-  Link as LinkIcon,
   Phone,
   XCircle,
 } from "@phosphor-icons/react";
@@ -485,11 +484,19 @@ export default function ConfiguracoesBasicasPage() {
 
       showToast("Informações básicas atualizadas com sucesso!", "success");
 
-      // Se o slug foi alterado, redirecionar para nova URL após um delay
+      // Se o slug foi alterado, deslogar por segurança e redirecionar para login
       if (slugChanged) {
+        showToast(
+          "Endereço da loja alterado com sucesso. Você será deslogado por segurança.",
+          "success"
+        );
         setTimeout(() => {
-          router.push(`/dashboard/${newSlug}/configuracoes/basicas`);
-        }, 1500);
+          logout();
+          router.push(
+            `/login?next=/dashboard/${newSlug}/configuracoes/basicas`
+          );
+        }, 2000);
+        return;
       }
     } catch (error) {
       console.error("Erro ao atualizar informações básicas:", error);
@@ -682,47 +689,6 @@ export default function ConfiguracoesBasicasPage() {
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none ${
                     errors.description ? "border-red-300" : "border-gray-300"
                   }`}
-                />
-              </Field>
-
-              {/* Slug */}
-              <Field
-                id="slug"
-                label={
-                  <span className="inline-flex items-center gap-2">
-                    <LinkIcon className="h-4 w-4" />
-                    Slug *
-                    <Tooltip text="Endereço usado para acessar sua loja online" />
-                  </span>
-                }
-                error={errors.slug || slugError}
-                onFirstErrorRef={!errors.name ? firstErrorRef : undefined}
-                helper="Apenas letras minúsculas, números e hífens. Ex: minha-loja"
-                suffix={
-                  <SlugStatus
-                    isChecking={isCheckingSlug}
-                    available={slugAvailable}
-                    hasError={Boolean(errors.slug || slugError)}
-                  />
-                }
-              >
-                <input
-                  id="slug"
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => {
-                    const value = e.target.value
-                      .toLowerCase()
-                      .replace(/[^a-z0-9-]/g, "");
-                    handleInputChange("slug", value);
-                  }}
-                  placeholder="minha-loja"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.slug || slugError
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  }`}
-                  required
                 />
               </Field>
 

@@ -1,15 +1,54 @@
 "use client";
 
+import { useCardapioAuth } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function DashboardAdmin() {
   const router = useRouter();
+  const { isAuthenticated, getCurrentToken } = useCardapioAuth();
 
   useEffect(() => {
-    // Redirecionamento será tratado pelo middleware ou componente pai
-    // Removido redirecionamento automático para dashboard admin (não existe mais)
-  }, [router]);
+    try {
+      // Se não estiver autenticado, enviar para login
+      if (!isAuthenticated()) {
+        router.push("/login");
+        return;
+      }
+
+      const token = getCurrentToken();
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      // Decodificar token JWT
+      const payload = JSON.parse(atob(token.split(".")[1]));
+
+      // SUPER_ADMIN vai para área de admin
+      if (payload.role === "SUPER_ADMIN") {
+        router.push("/admin");
+        return;
+      }
+
+      // ADMIN com loja definida -> dashboard da loja
+      if (payload.role === "ADMIN" && payload.storeSlug) {
+        router.push(`/dashboard/${payload.storeSlug}`);
+        return;
+      }
+
+      // ADMIN sem loja -> gerenciar lojas
+      if (payload.role === "ADMIN" && !payload.storeSlug) {
+        router.push("/dashboard/gerenciar-lojas");
+        return;
+      }
+
+      // Outros perfis não têm dashboard
+      router.push("/");
+    } catch {
+      router.push("/login");
+    }
+  }, [router, isAuthenticated, getCurrentToken]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

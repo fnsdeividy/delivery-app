@@ -280,7 +280,7 @@ export default function RegisterLojaPage() {
 
       // Mostrar toast de sucesso
       showToast(
-        "Loja criada com sucesso! Redirecionando para a página inicial...",
+        "Loja criada com sucesso! Redirecionando para o seu dashboard...",
         "success"
       );
 
@@ -312,22 +312,22 @@ export default function RegisterLojaPage() {
       while (Date.now() - start < timeoutMs) {
         const ok = await canAccessDashboard();
         if (ok) {
-          // Redirecionar para página inicial com usuário logado
-          router.push("/");
+          // Redirecionar para o dashboard da loja
+          router.push(`/dashboard/${storeResponse.slug}`);
           return;
         }
         await new Promise((r) => setTimeout(r, intervalMs));
       }
 
-      // Se expirou, redirecionar para home mesmo assim
+      // Se expirou, redirecionar para o dashboard mesmo assim
       showToast(
-        "Loja criada com sucesso! Você já pode acessar sua conta.",
+        "Loja criada com sucesso! Você já pode acessar seu dashboard.",
         "success"
       );
 
       // Aguardar um pouco para o toast aparecer e redirecionar
       setTimeout(() => {
-        router.push("/");
+        router.push(`/dashboard/${storeResponse.slug}`);
       }, 2000);
     } catch (err: any) {
       console.error("❌ Erro durante o processo de registro:", err);
