@@ -1,19 +1,14 @@
 "use client";
 
+import { cancelOrderAction, updateOrderAction } from "@/app/actions/orders";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useOrderRealtime } from "@/hooks/useOrderRealtime";
-import {
-  useCancelOrder,
-  useConfirmOrder,
-  useDashboardUpdateOrderStatus,
-  useOrdersByStore,
-} from "@/hooks/useOrderStatus";
+import { useOrdersPageSSE } from "@/hooks/useOrdersSSE";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import { calculateOrderStats } from "@/lib/utils/order-utils";
 import { Order, OrderStatus } from "@/types/cardapio-api";
 import { ArrowsClockwise, WifiHigh, WifiSlash } from "@phosphor-icons/react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 // Componentes
 import {
@@ -24,6 +19,7 @@ import {
   OrdersLoading,
   OrderStats,
 } from "@/components/orders";
+import { NewOrderNotification } from "@/components/orders/NewOrderNotification";
 
 export default function PedidosPage() {
   const params = useParams();
@@ -39,84 +35,116 @@ export default function PedidosPage() {
   const [endDate, setEndDate] = useState("");
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [newOrderNotification, setNewOrderNotification] =
+    useState<Order | null>(null);
 
-  // Hooks da API Cardap.IO - só buscar pedidos se estiver autenticado
+  // SSE para atualizações em tempo real
   const {
-    data: ordersData,
+    orders,
+    setOrders,
     isLoading: loadingOrders,
-    refetch: refetchOrders,
-    error: ordersError,
-  } = useOrdersByStore(
-    slug,
-    1,
-    10,
-    searchTerm,
-    selectedStatus !== "all" ? selectedStatus : undefined,
-    selectedPaymentStatus !== "all" ? selectedPaymentStatus : undefined,
-    startDate || undefined,
-    endDate || undefined
-  );
-  const updateStatusMutation = useDashboardUpdateOrderStatus();
-  const confirmOrderMutation = useConfirmOrder();
-  const cancelOrderMutation = useCancelOrder();
-
-  // WebSocket para atualizações em tempo real
-  const { isConnected: isRealtimeConnected } = useOrderRealtime({
-    storeSlug: slug,
-    enabled: isAuthenticated,
+    isConnected: isRealtimeConnected,
+    connectionError,
+    reconnect,
+  } = useOrdersPageSSE(slug, {
+    onNewOrder: (order) => {
+      setNewOrderNotification(order);
+    },
+    onOrderUpdate: (orderId, updatedOrder) => {
+      // Atualizar pedido na lista
+      setOrders((prev) =>
+        prev.map((order) => (order.id === orderId ? updatedOrder : order))
+      );
+    },
+    onOrderCancel: (orderId) => {
+      // Remover pedido cancelado da lista
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+    },
   });
 
-  const orders = ordersData?.data || [];
+  // Os pedidos iniciais são carregados pelo hook useOrdersPageSSE
 
-  // Usar os pedidos já filtrados pela API
-  const filteredOrders = orders;
+  // Filtrar pedidos localmente
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      !searchTerm ||
+      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Atualizar status do pedido
-  const handleStatusUpdate = async (
-    orderId: string,
-    newStatus: OrderStatus
-  ) => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        id: orderId,
-        status: newStatus,
-        storeSlug: slug,
-      });
-      refetchOrders();
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      alert("Erro ao atualizar status do pedido");
-    }
-  };
+    const matchesStatus =
+      selectedStatus === "all" || order.status === selectedStatus;
+    const matchesPaymentStatus =
+      selectedPaymentStatus === "all" ||
+      (selectedPaymentStatus === "paid"
+        ? order.paymentStatus === "PAID"
+        : selectedPaymentStatus === "pending"
+        ? order.paymentStatus === "PENDING"
+        : true);
+
+    const matchesDateRange =
+      !startDate ||
+      !endDate ||
+      (new Date(order.createdAt) >= new Date(startDate) &&
+        new Date(order.createdAt) <= new Date(endDate));
+
+    return (
+      matchesSearch && matchesStatus && matchesPaymentStatus && matchesDateRange
+    );
+  });
+
+  // Atualizar status do pedido usando Server Action
+  const handleStatusUpdate = useCallback(
+    async (orderId: string, newStatus: OrderStatus) => {
+      try {
+        const result = await updateOrderAction({
+          orderId,
+          status: newStatus,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+        alert("Erro ao atualizar status do pedido");
+      }
+    },
+    []
+  );
 
   // Confirmar pedido
-  const handleConfirmOrder = async (orderId: string) => {
+  const handleConfirmOrder = useCallback(async (orderId: string) => {
     try {
-      await confirmOrderMutation.mutateAsync({
-        id: orderId,
-        storeSlug: slug,
+      const result = await updateOrderAction({
+        orderId,
+        status: OrderStatus.CONFIRMED,
       });
-      refetchOrders();
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error("Erro ao confirmar pedido:", error);
       alert("Erro ao confirmar pedido");
     }
-  };
+  }, []);
 
-  // Cancelar pedido
-  const handleCancelOrder = async (orderId: string, reason?: string) => {
-    try {
-      await cancelOrderMutation.mutateAsync({
-        id: orderId,
-        storeSlug: slug,
-        reason,
-      });
-      refetchOrders();
-    } catch (error) {
-      console.error("Erro ao cancelar pedido:", error);
-      alert("Erro ao cancelar pedido");
-    }
-  };
+  // Cancelar pedido usando Server Action
+  const handleCancelOrder = useCallback(
+    async (orderId: string, reason?: string) => {
+      try {
+        const result = await cancelOrderAction(orderId, slug);
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error("Erro ao cancelar pedido:", error);
+        alert("Erro ao cancelar pedido");
+      }
+    },
+    [slug]
+  );
 
   // Estatísticas
   const stats = calculateOrderStats(orders);
@@ -136,7 +164,7 @@ export default function PedidosPage() {
     searchTerm || selectedStatus !== "all" || selectedPaymentStatus !== "all"
   );
 
-  if (loading || loadingOrders) {
+  if (loading) {
     return <OrdersLoading />;
   }
 
@@ -167,13 +195,24 @@ export default function PedidosPage() {
           </div>
           <p className="text-gray-600">Gerencie os pedidos da sua loja</p>
         </div>
-        <button
-          onClick={() => refetchOrders()}
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center space-x-2"
-        >
-          <ArrowsClockwise className="h-4 w-4" />
-          <span>Atualizar</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          {connectionError && (
+            <button
+              onClick={reconnect}
+              className="bg-yellow-600 text-white px-3 py-2 rounded-lg hover:bg-yellow-700 flex items-center space-x-2 text-sm"
+            >
+              <ArrowsClockwise className="h-4 w-4" />
+              <span>Reconectar</span>
+            </button>
+          )}
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center space-x-2"
+          >
+            <ArrowsClockwise className="h-4 w-4" />
+            <span>Atualizar</span>
+          </button>
+        </div>
       </div>
 
       {/* Estatísticas */}
@@ -216,6 +255,12 @@ export default function PedidosPage() {
         order={selectedOrder}
         isOpen={showOrderDetails}
         onClose={handleCloseDetails}
+      />
+
+      {/* Notificação de Novo Pedido */}
+      <NewOrderNotification
+        newOrder={newOrderNotification}
+        onClose={() => setNewOrderNotification(null)}
       />
     </div>
   );

@@ -133,7 +133,9 @@ export default function OrderDetailsModal({
                     <MapPin className="h-4 w-4 text-gray-400" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {order.customer.address}
+                        {typeof order.customer.address === "string"
+                          ? order.customer.address
+                          : `${order.customer.address.street}, ${order.customer.address.neighborhood} - ${order.customer.address.city}/${order.customer.address.state} - ${order.customer.address.zipCode}`}
                       </p>
                       <p className="text-xs text-gray-500">
                         Endereço de Entrega

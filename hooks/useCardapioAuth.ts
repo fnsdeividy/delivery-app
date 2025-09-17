@@ -1,3 +1,4 @@
+import { useAuthContext } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { CreateUserDto, LoginDto } from "@/types/cardapio-api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,11 @@ export function useCardapioAuth() {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const {
+    login: contextLogin,
+    register: contextRegister,
+    logout: contextLogout,
+  } = useAuthContext();
 
   // Mutation para login
   const loginMutation = useMutation({
@@ -17,74 +23,19 @@ export function useCardapioAuth() {
       setError(null);
 
       try {
-        const response = await apiClient.authenticate(
+        // Usar o AuthContext para fazer login
+        const response = await contextLogin(
           credentials.email,
           credentials.password
         );
 
-        // Validar se a resposta contém o token
-        console.log("🔍 Resposta da API de login:", {
-          hasResponse: !!response,
-          responseType: typeof response,
-          hasAccessToken: !!response?.access_token,
-          accessTokenType: typeof response?.access_token,
-          accessTokenLength: response?.access_token?.length || 0,
-        });
-
-        if (!response || typeof response !== "object") {
-          throw new Error("Resposta inválida da API");
-        }
-
-        if (
-          !response.access_token ||
-          typeof response.access_token !== "string"
-        ) {
-          throw new Error("Token de acesso inválido ou ausente na resposta");
-        }
-
-        // Validar se o token tem o formato JWT correto (3 partes separadas por ponto)
-        const tokenParts = response.access_token.split(".");
-        if (tokenParts.length !== 3) {
-          throw new Error("Formato de token JWT inválido");
-        }
-
-        // Decodificar o token JWT para obter informações do usuário
-        let payload: any;
-        try {
-          payload = JSON.parse(atob(tokenParts[1]));
-        } catch (decodeError) {
-          // Fallback: usar dados do usuário da resposta da API
-          if (response.user) {
-            payload = {
-              sub: response.user.id,
-              email: response.user.email,
-              name: response.user.name,
-              role: response.user.role,
-              storeSlug: response.user.storeSlug,
-            };
-          } else {
-            throw new Error("Não foi possível obter informações do usuário");
-          }
-        }
-
-        // Retornar dados do usuário do token ou da resposta da API
-        const userData = {
-          user: {
-            id: payload.sub,
-            email: payload.email,
-            name: payload.name || payload.email.split("@")[0],
-            role: response.user?.role || payload.role,
-            storeSlug: response.user?.storeSlug || payload.storeSlug || null,
-          },
-        };
-
         console.log("✅ Login realizado com sucesso:", {
-          user: userData.user,
+          user: response.user,
           hasToken: !!response.access_token,
           tokenLength: response.access_token?.length || 0,
         });
 
-        return userData;
+        return response;
       } catch (err: any) {
         // Melhorar tratamento de erros para evitar refresh da página
         let errorMessage = "Erro desconhecido durante o login";
@@ -153,11 +104,8 @@ export function useCardapioAuth() {
       setError(null);
 
       try {
-        const response = await apiClient.register(userData);
-
-        // O apiClient.register já armazena o token automaticamente
-        if (response.access_token) {
-        }
+        // Usar o AuthContext para fazer registro
+        const response = await contextRegister(userData);
 
         return response;
       } catch (err: any) {
@@ -185,10 +133,10 @@ export function useCardapioAuth() {
 
   // Função para logout
   const logout = useCallback(() => {
-    apiClient.logout();
+    contextLogout();
     queryClient.clear();
     router.push("/login");
-  }, [queryClient, router]);
+  }, [contextLogout, queryClient, router]);
 
   // Função para limpar erro
   const clearError = useCallback(() => {
@@ -199,10 +147,6 @@ export function useCardapioAuth() {
   const isAuthenticated = useCallback(() => {
     try {
       const result = apiClient.isAuthenticated();
-      console.log("🔍 Debug useCardapioAuth.isAuthenticated:", {
-        result,
-        timestamp: new Date().toISOString(),
-      });
       return result;
     } catch (error) {
       console.error("❌ Erro ao verificar autenticação:", error);

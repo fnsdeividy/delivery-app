@@ -1,20 +1,23 @@
 "use client";
 
-import { DashboardMetrics } from "@/components/DashboardMetrics";
-import { DashboardQuickActions } from "@/components/DashboardQuickActions";
+import { LazyLoad } from "@/components/ui/lazy-load";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 
-// Componentes locais
-import { AdditionalInfoSection } from "./components/AdditionalInfoSection";
-import { OrderManagementSection } from "./components/OrderManagementSection";
-import { StockAlertsSection } from "./components/StockAlertsSection";
-import { StoreConfigSection } from "./components/StoreConfigSection";
+// Lazy loading dos componentes pesados
+const DashboardMetrics = React.lazy(() => import("@/components/DashboardMetrics").then(m => ({ default: m.DashboardMetrics })));
+const DashboardQuickActions = React.lazy(() => import("@/components/DashboardQuickActions").then(m => ({ default: m.DashboardQuickActions })));
+
+// Componentes locais com lazy loading
+const AdditionalInfoSection = React.lazy(() => import("./components/AdditionalInfoSection").then(m => ({ default: m.AdditionalInfoSection })));
+const OrderManagementSection = React.lazy(() => import("./components/OrderManagementSection").then(m => ({ default: m.OrderManagementSection })));
+const StockAlertsSection = React.lazy(() => import("./components/StockAlertsSection").then(m => ({ default: m.StockAlertsSection })));
+const StoreConfigSection = React.lazy(() => import("./components/StoreConfigSection").then(m => ({ default: m.StoreConfigSection })));
 
 export default function DashboardPage() {
   const params = useParams();
@@ -150,22 +153,38 @@ export default function DashboardPage() {
         </nav>
 
         {/* Ações Rápidas */}
-        <DashboardQuickActions storeSlug={slug} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <DashboardQuickActions storeSlug={slug} />
+        </Suspense>
 
         {/* Métricas Rápidas */}
-        {metrics && <DashboardMetrics metrics={metrics} storeSlug={slug} />}
+        {metrics && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardMetrics metrics={metrics} storeSlug={slug} />
+          </Suspense>
+        )}
 
         {/* Alertas de Estoque */}
-        {metrics && <StockAlertsSection metrics={metrics} storeSlug={slug} />}
+        {metrics && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <StockAlertsSection metrics={metrics} storeSlug={slug} />
+          </Suspense>
+        )}
 
         {/* Configuração da Loja */}
-        <StoreConfigSection storeSlug={slug} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <StoreConfigSection storeSlug={slug} />
+        </Suspense>
 
         {/* Gestão de Pedidos */}
-        <OrderManagementSection storeSlug={slug} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <OrderManagementSection storeSlug={slug} />
+        </Suspense>
 
         {/* Informações Adicionais */}
-        <AdditionalInfoSection storeSlug={slug} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <AdditionalInfoSection storeSlug={slug} />
+        </Suspense>
       </main>
     </div>
   );

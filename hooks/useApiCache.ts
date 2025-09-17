@@ -64,6 +64,9 @@ export function useApiCache<T>(
     refetchOnWindowFocus,
     refetchOnMount,
     refetchOnReconnect,
+    // Otimizações adicionais
+    placeholderData: (previousData) => previousData,
+    structuralSharing: true,
   });
 
   const invalidate = useCallback(() => {

@@ -511,6 +511,20 @@ class ApiClient {
     return this.patch<Order>(`/orders/${id}`, orderData);
   }
 
+  // ==== PEDIDOS PÚBLICOS ==== //
+  async getPublicOrders(storeSlug: string): Promise<Order[]> {
+    const response = await this.get<PaginatedResponse<Order>>(
+      `/orders/public?storeSlug=${storeSlug}`
+    );
+    return response.data || [];
+  }
+  async createPublicOrder(
+    orderData: CreateOrderDto,
+    storeSlug: string
+  ): Promise<Order> {
+    return this.post<Order>(`/orders/public?storeSlug=${storeSlug}`, orderData);
+  }
+
   // ==== ANALYTICS ==== //
   async getAnalytics(
     storeSlug: string,

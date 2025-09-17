@@ -240,17 +240,18 @@ export default function DeliveryConfigPage() {
 
     setIsSaving(true);
     try {
-      const updatedConfig: DeliveryConfig = {
-        ...config,
-        deliveryFee,
-        minimumOrder,
-        estimatedDeliveryTime: estimatedTime,
-        freeDeliveryThreshold: enableFreeDelivery
-          ? freeDeliveryThreshold
-          : undefined,
+      const updatedConfig = {
+        config: {
+          deliveryFee,
+          minimumOrder,
+          estimatedDeliveryTime: estimatedTime,
+          freeDeliveryThreshold: enableFreeDelivery
+            ? freeDeliveryThreshold
+            : undefined,
+        },
       };
 
-      await apiClient.updateStoreConfig(slug, updatedConfig);
+      await apiClient.updateStore(slug, updatedConfig);
       showToast("Configurações de entrega salvas com sucesso!", "success");
       await loadStoreConfig();
     } catch (error) {

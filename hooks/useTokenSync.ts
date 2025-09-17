@@ -62,8 +62,10 @@ export function useTokenSync() {
   }, []);
 
   useEffect(() => {
-    // Sincronizar imediatamente
-    syncToken();
+    // Sincronizar imediatamente apenas uma vez
+    if (!isSynced) {
+      syncToken();
+    }
 
     // Sincronizar quando o storage mudar
     const handleStorageChange = (e: StorageEvent) => {
@@ -79,27 +81,18 @@ export function useTokenSync() {
     const handleFocus = () => {
       clearTimeout(focusTimeout);
       focusTimeout = setTimeout(() => {
-        syncAttempts.current = 0;
-        setIsSynced(false);
-        syncToken();
-      }, 100);
-    };
-
-    // Sincronizar quando a página carregar completamente - com debounce
-    let loadTimeout: NodeJS.Timeout;
-    const handleLoad = () => {
-      clearTimeout(loadTimeout);
-      loadTimeout = setTimeout(() => {
-        syncAttempts.current = 0;
-        setIsSynced(false);
-        syncToken();
+        if (!isSynced) {
+          syncAttempts.current = 0;
+          setIsSynced(false);
+          syncToken();
+        }
       }, 100);
     };
 
     // Sincronizar quando a visibilidade da página mudar - com debounce
     let visibilityTimeout: NodeJS.Timeout;
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && !isSynced) {
         clearTimeout(visibilityTimeout);
         visibilityTimeout = setTimeout(() => {
           syncAttempts.current = 0;
@@ -111,19 +104,16 @@ export function useTokenSync() {
 
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("focus", handleFocus);
-    window.addEventListener("load", handleLoad);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearTimeout(focusTimeout);
-      clearTimeout(loadTimeout);
       clearTimeout(visibilityTimeout);
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("load", handleLoad);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [syncToken]);
+  }, [syncToken, isSynced]);
 
   return { isSynced };
 }

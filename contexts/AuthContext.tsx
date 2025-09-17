@@ -50,6 +50,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshUserData = async () => {
     try {
       if (apiClient.isAuthenticated()) {
+        // Primeiro, tentar obter dados do localStorage
+        const savedUser = localStorage.getItem("user");
+        if (savedUser) {
+          try {
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+            setUserStores(userData.stores || []);
+
+            const currentStoreSlug =
+              userData.currentStoreSlug || apiClient.getCurrentStoreSlug();
+            if (currentStoreSlug) {
+              const store = userData.stores?.find(
+                (s: UserStoreAssociation) => s.storeSlug === currentStoreSlug
+              );
+              setCurrentStoreState(store || null);
+            }
+            return;
+          } catch {
+            localStorage.removeItem("user");
+          }
+        }
+
+        // Se não há dados salvos, tentar decodificar o token como fallback
         const token = apiClient.getCurrentToken();
         if (token) {
           try {
@@ -93,16 +116,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
               localStorage.setItem("user", JSON.stringify(currentUser));
             }
           } catch {
-            const savedUser = localStorage.getItem("user");
-            if (savedUser) {
-              try {
-                const userData = JSON.parse(savedUser);
-                setUser(userData);
-                setUserStores(userData.stores || []);
-              } catch {
-                localStorage.removeItem("user");
-              }
-            }
+            // Se falhar ao decodificar o token, limpar tudo
+            apiClient.logout();
+            localStorage.removeItem("user");
+            setUser(null);
+            setUserStores([]);
+            setCurrentStoreState(null);
           }
         }
       }
@@ -166,11 +185,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await apiClient.authenticate(email, password, storeSlug);
 
-      const userData = {
-        ...response.user,
+      // Estruturar dados do usuário corretamente
+      const userData: User = {
+        id: response.user.id,
+        email: response.user.email || "",
+        name: response.user.name || "",
+        role: response.user.role || "USER",
+        storeSlug: response.user.storeSlug || undefined,
+        active: response.user.active !== false,
+        phone: response.user.phone || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      } as User;
+        lastLogin: new Date().toISOString(),
+        stores: response.user.userStores || [],
+        currentStoreSlug: response.user.storeSlug || undefined,
+      };
+
       setUser(userData);
       setUserStores(userData.stores || []);
 
@@ -196,11 +226,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await apiClient.authenticateByPhone(phone, name);
 
-      const userData = {
-        ...response.user,
+      // Estruturar dados do usuário corretamente
+      const userData: User = {
+        id: response.user.id,
+        email: response.user.email || "",
+        name: response.user.name || "",
+        role: response.user.role || "USER",
+        storeSlug: response.user.storeSlug || undefined,
+        active: response.user.active !== false,
+        phone: response.user.phone || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      } as User;
+        lastLogin: new Date().toISOString(),
+        stores: response.user.userStores || [],
+        currentStoreSlug: response.user.storeSlug || undefined,
+      };
+
       setUser(userData);
       setUserStores(userData.stores || []);
 
@@ -222,16 +263,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const register = async (userData: any): Promise<AuthResponse> => {
     try {
       const response = await apiClient.register(userData);
-      const userDataWithDates = {
-        ...response.user,
+
+      // Estruturar dados do usuário corretamente
+      const userDataWithDates: User = {
+        id: response.user.id,
+        email: response.user.email || "",
+        name: response.user.name || "",
+        role: response.user.role || "USER",
+        storeSlug: response.user.storeSlug || undefined,
+        active: response.user.active !== false,
+        phone: response.user.phone || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        stores: response.user.userStores || [],
+        currentStoreSlug: response.user.storeSlug || undefined,
       };
+
       setUser(userDataWithDates);
+      setUserStores(userDataWithDates.stores || []);
+
+      if (userDataWithDates.currentStoreSlug) {
+        const store = userDataWithDates.stores?.find(
+          (s) => s.storeSlug === userDataWithDates.currentStoreSlug
+        );
+        setCurrentStoreState(store || null);
+      }
 
       localStorage.setItem("user", JSON.stringify(userDataWithDates));
-
-      await refreshUserData();
 
       return response;
     } catch (error) {

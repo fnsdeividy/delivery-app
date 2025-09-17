@@ -1,12 +1,13 @@
 "use client";
 
 import { useToast } from "@/hooks/useToast";
+import { useOptimizedImage } from "@/hooks/useOptimizedImage";
 import { apiClient } from "@/lib/api-client";
 import { normalizeImageUrl } from "@/lib/utils";
 import { Image as ImageIcon, UploadSimple, X } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 
 interface ProductImageUploadProps {
   imageUrl?: string;
@@ -14,11 +15,11 @@ interface ProductImageUploadProps {
   onImageChange: (url: string) => void;
 }
 
-export function ProductImageUpload({
+const ProductImageUploadComponent = ({
   imageUrl,
   storeSlug,
   onImageChange,
-}: ProductImageUploadProps) {
+}: ProductImageUploadProps) => {
   const { showToast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(
     imageUrl ? normalizeImageUrl(imageUrl) : null
@@ -26,6 +27,14 @@ export function ProductImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Otimização de imagem
+  const { src: optimizedSrc, loading: imageLoading, error: imageError } = useOptimizedImage({
+    src: imagePreview || '',
+    fallback: '/placeholder-image.png',
+    quality: 80,
+    lazy: true
+  });
 
   const normalizeUrl = (url: string | undefined): string | null => {
     if (!url) return null;
@@ -36,10 +45,10 @@ export function ProductImageUpload({
     }
   };
 
-  const handleImageChange = (url: string) => {
+  const handleImageChange = useCallback((url: string) => {
     onImageChange(url);
     setImagePreview(normalizeUrl(url) || null);
-  };
+  }, [onImageChange]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -194,4 +203,7 @@ export function ProductImageUpload({
       </div>
     </div>
   );
-}
+};
+
+// Memoizar o componente para evitar re-renders desnecessários
+export const ProductImageUpload = memo(ProductImageUploadComponent);

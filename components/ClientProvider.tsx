@@ -5,22 +5,25 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { createQueryClient } from "@/lib/query-config";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 
 interface ClientProviderProps {
   children: ReactNode;
 }
 
 export function ClientProvider({ children }: ClientProviderProps) {
-  const [queryClient] = useState(() => createQueryClient());
+  // Memoizar o QueryClient para evitar recriações desnecessárias
+  const queryClient = useMemo(() => createQueryClient(), []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
           {children}
-          {/* Temporariamente removido para testes */}
-          {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+          {/* DevTools apenas em desenvolvimento */}
+          {process.env.NODE_ENV === 'development' && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

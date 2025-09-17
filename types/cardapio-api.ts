@@ -1,6 +1,15 @@
 // Tipos e interfaces para a API Cardap.IO Delivery API
 // Alinhados com o schema Prisma do backend
 
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  PREPARING = 'PREPARING',
+  READY = 'READY',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+}
+
 export interface LoginDto {
   email: string;
   password: string;

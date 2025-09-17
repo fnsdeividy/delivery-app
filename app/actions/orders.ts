@@ -1,0 +1,122 @@
+"use server";
+
+import { apiClient } from "@/lib/api-client";
+import { OrderStatus } from "@/types/cardapio-api";
+import { revalidatePath } from "next/cache";
+
+export interface CreateOrderActionData {
+  storeSlug: string;
+  customerName: string;
+  customerPhone: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    price: number;
+  }>;
+  total: number;
+  deliveryFee: number;
+  notes?: string;
+}
+
+export interface UpdateOrderActionData {
+  orderId: string;
+  status: OrderStatus;
+  notes?: string;
+}
+
+export async function createOrderAction(data: CreateOrderActionData) {
+  try {
+    const order = await apiClient.createOrder({
+      storeSlug: data.storeSlug,
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      items: data.items,
+      total: data.total,
+      deliveryFee: data.deliveryFee,
+      notes: data.notes,
+      status: "PENDING",
+    });
+
+    // Notificar via SSE
+    const { notifyNewOrder } = await import("@/app/api/orders/events/route");
+    notifyNewOrder(data.storeSlug, order);
+
+    // Revalidar cache
+    revalidatePath(`/dashboard/${data.storeSlug}/pedidos`);
+    revalidatePath(`/dashboard/${data.storeSlug}`);
+
+    return { success: true, order };
+  } catch (error) {
+    console.error("Erro ao criar pedido:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    };
+  }
+}
+
+export async function updateOrderAction(data: UpdateOrderActionData) {
+  try {
+    const order = await apiClient.updateOrder(data.orderId, {
+      status: data.status,
+      notes: data.notes,
+    });
+
+    // Notificar via SSE
+    const { notifyOrderUpdate } = await import("@/app/api/orders/events/route");
+    notifyOrderUpdate(order.storeSlug, data.orderId, order);
+
+    // Revalidar cache
+    revalidatePath(`/dashboard/${order.storeSlug}/pedidos`);
+    revalidatePath(`/dashboard/${order.storeSlug}`);
+
+    return { success: true, order };
+  } catch (error) {
+    console.error("Erro ao atualizar pedido:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    };
+  }
+}
+
+export async function cancelOrderAction(orderId: string, storeSlug: string) {
+  try {
+    const order = await apiClient.updateOrder(orderId, {
+      status: "CANCELLED",
+    });
+
+    // Notificar via SSE
+    const { notifyOrderCancel } = await import("@/app/api/orders/events/route");
+    notifyOrderCancel(storeSlug, orderId);
+
+    // Revalidar cache
+    revalidatePath(`/dashboard/${storeSlug}/pedidos`);
+    revalidatePath(`/dashboard/${storeSlug}`);
+
+    return { success: true, order };
+  } catch (error) {
+    console.error("Erro ao cancelar pedido:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    };
+  }
+}
+
+export async function getOrdersAction(
+  storeSlug: string,
+  page: number = 1,
+  limit: number = 10
+) {
+  try {
+    const orders = await apiClient.getOrders(storeSlug, page, limit);
+    return { success: true, orders };
+  } catch (error) {
+    console.error("Erro ao buscar pedidos:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    };
+  }
+}

@@ -10,7 +10,7 @@ import {
   useStoreStats,
 } from "@/hooks";
 import { OrderStatus, UserRole } from "@/types/cardapio-api";
-import { useState } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { OrderManagement } from "./OrderManagement";
 import { StoreManagement } from "./StoreManagement";
@@ -20,11 +20,16 @@ interface DashboardProps {
   storeSlug?: string;
 }
 
-export function Dashboard({ storeSlug }: DashboardProps) {
+const DashboardComponent = ({ storeSlug }: DashboardProps) => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
   const [activeTab, setActiveTab] = useState<
     "overview" | "users" | "stores" | "products" | "orders" | "analytics"
   >("overview");
+
+  // Memoizar a função de mudança de tab
+  const handleTabChange = useCallback((tab: typeof activeTab) => {
+    setActiveTab(tab);
+  }, []);
 
   // Hooks para dados
   const { data: stores, isLoading: storesLoading } = useStores();
@@ -122,7 +127,7 @@ export function Dashboard({ storeSlug }: DashboardProps) {
             ].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => handleTabChange(tab as any)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab
                     ? "border-blue-500 text-blue-600"
@@ -497,4 +502,7 @@ export function Dashboard({ storeSlug }: DashboardProps) {
       </main>
     </div>
   );
-}
+};
+
+// Memoizar o componente Dashboard para evitar re-renders desnecessários
+export const Dashboard = memo(DashboardComponent);
