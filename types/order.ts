@@ -4,13 +4,20 @@ export interface OrderCustomer {
   phone: string;
 }
 
+export interface OrderItemCustomizations {
+  removedIngredients: string[];
+  addons: Array<{ name: string; price: number; quantity: number }>;
+  observations?: string;
+}
+
 export interface OrderItem {
   id: string;
-  productName: string;
+  name: string;
   quantity: number;
   price: number;
   total: number;
   notes?: string;
+  customizations?: OrderItemCustomizations;
 }
 
 export interface Order {

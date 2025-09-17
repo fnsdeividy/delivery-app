@@ -105,7 +105,7 @@ export default function OrderCard({
             </p>
             <p className="text-xs text-gray-500">
               {order.items
-                ?.map((item: any) => `${item.quantity}x ${item.productName}`)
+                ?.map((item: any) => `${item.quantity}x ${item.name}`)
                 .join(", ")}
             </p>
           </div>
@@ -152,14 +152,19 @@ export default function OrderCard({
 
             {order.status === OrderStatus.READY &&
               order.deliveryType === "delivery" && (
-                <button
-                  onClick={() =>
-                    onStatusUpdate(order.id, OrderStatus.DELIVERING)
-                  }
-                  className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                >
-                  Entregar
-                </button>
+                <div className="flex flex-col items-end space-y-1">
+                  <button
+                    onClick={() =>
+                      onStatusUpdate(order.id, OrderStatus.DELIVERING)
+                    }
+                    className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                  >
+                    Saiu para Entrega
+                  </button>
+                  <span className="text-xs text-amber-600 font-medium">
+                    ⏰ Auto-transição em 2min
+                  </span>
+                </div>
               )}
 
             {order.status === OrderStatus.READY &&

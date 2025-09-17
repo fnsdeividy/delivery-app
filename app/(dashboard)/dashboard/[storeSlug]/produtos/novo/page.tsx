@@ -232,6 +232,56 @@ export default function NovoProdutoPage() {
     }
   };
 
+  // Validação por passo
+  const isStepValid = useMemo(() => {
+    switch (currentStep) {
+      case 1:
+        // Passo 1: Tipo de produto é sempre válido (tem valor padrão)
+        return true;
+
+      case 2:
+        // Passo 2: Nome, categoria e preço são obrigatórios
+        return (
+          formData.name.trim() !== "" &&
+          formData.categoryId !== "" &&
+          price > 0 &&
+          price <= 999999.99 &&
+          isValidUrlOrEmpty(formData.image)
+        );
+
+      case 3:
+        // Passo 3: Detalhes opcionais - validações específicas se preenchidos
+        const hasInvalidAddons = addons.some(
+          (addon) => addon.name.trim() && addon.price < 0
+        );
+
+        // Validação específica para bebidas alcoólicas
+        const isBeverageValid =
+          formData.productType !== "BEVERAGE" ||
+          !formData.alcoholic ||
+          (alcoholPercentage > 0 && alcoholPercentage <= 100);
+
+        return !hasInvalidAddons && isBeverageValid;
+
+      case 4:
+        // Passo 4: Pré-visualização - todos os campos obrigatórios já validados
+        return true;
+
+      default:
+        return false;
+    }
+  }, [
+    currentStep,
+    formData.name,
+    formData.categoryId,
+    formData.image,
+    formData.productType,
+    formData.alcoholic,
+    price,
+    alcoholPercentage,
+    addons,
+  ]);
+
   // Validação dinâmica para habilitar/desabilitar botão de salvar
   const isFormValid = useMemo(() => {
     // Campos obrigatórios básicos
@@ -768,8 +818,13 @@ export default function NovoProdutoPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" onClick={() => setCurrentStep(2)}>
+                  <div className="flex justify-end gap-2 ">
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      variant="purple"
+                      disabled={!isStepValid}
+                    >
                       Próximo
                     </Button>
                   </div>
@@ -779,7 +834,19 @@ export default function NovoProdutoPage() {
               {/* Passo 2: Informações Básicas */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Informações Básicas</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      Informações Básicas
+                    </h3>
+                    {!isStepValid && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-700">
+                          <strong>Campos obrigatórios:</strong> Nome, categoria,
+                          preço e URL da imagem são necessários para continuar.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                   <ProductBasicInfo
                     formData={{
                       name: formData.name,
@@ -813,7 +880,7 @@ export default function NovoProdutoPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label htmlFor="price" className="text-sm font-medium">
-                        Preço
+                        Preço <span className="text-red-500">*</span>
                       </label>
                       <input
                         id="price"
@@ -829,8 +896,19 @@ export default function NovoProdutoPage() {
                         }
                         placeholder="R$ 0,00"
                         aria-label="Campo para preço em reais"
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                          formData.priceStr && (price <= 0 || price > 999999.99)
+                            ? "border-red-500 focus:ring-red-500"
+                            : "focus:ring-blue-500"
+                        }`}
                       />
+                      {formData.priceStr &&
+                        (price <= 0 || price > 999999.99) && (
+                          <p className="text-[11px] text-red-500">
+                            Preço deve ser maior que zero e menor que R$
+                            999.999,99
+                          </p>
+                        )}
                       <p className="text-[11px] text-gray-500">
                         Digite números; usamos máscara BRL automaticamente
                       </p>
@@ -867,7 +945,7 @@ export default function NovoProdutoPage() {
                   {/* URL da Imagem */}
                   <div className="space-y-2 mt-2">
                     <label htmlFor="image" className="text-sm font-medium">
-                      URL da Imagem
+                      URL da Imagem <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="image"
@@ -876,9 +954,18 @@ export default function NovoProdutoPage() {
                       pattern="https?://.*"
                       value={formData.image ?? ""}
                       onChange={(e) => handleImageChange(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                        formData.image && !isValidUrlOrEmpty(formData.image)
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-blue-500"
+                      }`}
                       placeholder="https://exemplo.com/imagem.jpg"
                     />
+                    {formData.image && !isValidUrlOrEmpty(formData.image) && (
+                      <p className="text-[11px] text-red-500">
+                        URL inválida. Deve começar com http:// ou https://
+                      </p>
+                    )}
                     <div className="flex gap-2 items-center">
                       <input
                         type="url"
@@ -929,7 +1016,12 @@ export default function NovoProdutoPage() {
                     >
                       Voltar
                     </Button>
-                    <Button type="button" onClick={() => setCurrentStep(3)}>
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep(3)}
+                      variant="purple"
+                      disabled={!isStepValid}
+                    >
                       Próximo
                     </Button>
                   </div>
@@ -939,7 +1031,20 @@ export default function NovoProdutoPage() {
               {/* Passo 3: Detalhes Opcionais */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Detalhes Opcionais</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      Detalhes Opcionais
+                    </h3>
+                    {!isStepValid && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-700">
+                          <strong>Validação:</strong> Verifique se os adicionais
+                          têm preços válidos e se as bebidas alcoólicas têm teor
+                          alcoólico correto.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                   {/* Opções por Categoria */}
                   {formData.categoryId && (
                     <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -1248,9 +1353,18 @@ export default function NovoProdutoPage() {
                                 });
                               }}
                               placeholder="R$ 0,00"
-                              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                                addon.name.trim() && addon.price < 0
+                                  ? "border-red-500 focus:ring-red-500"
+                                  : "focus:ring-blue-500"
+                              }`}
                               aria-label={`Preço do adicional ${index + 1}`}
                             />
+                            {addon.name.trim() && addon.price < 0 && (
+                              <p className="text-[11px] text-red-500">
+                                Preço não pode ser negativo
+                              </p>
+                            )}
 
                             <p className="text-[11px] text-gray-500">
                               Digite apenas números (ex.: 250 vira R$ 2,50)
@@ -1547,10 +1661,23 @@ export default function NovoProdutoPage() {
                                   ),
                                 })
                               }
-                              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                                formData.alcoholic &&
+                                (alcoholPercentage <= 0 ||
+                                  alcoholPercentage > 100)
+                                  ? "border-red-500 focus:ring-red-500"
+                                  : "focus:ring-blue-500"
+                              }`}
                               placeholder="Ex.: 4,5"
                               aria-label="Teor alcoólico"
                             />
+                            {formData.alcoholic &&
+                              (alcoholPercentage <= 0 ||
+                                alcoholPercentage > 100) && (
+                                <p className="text-[11px] text-red-500">
+                                  Teor alcoólico deve estar entre 0 e 100%
+                                </p>
+                              )}
                           </div>
                           <div className="md:col-span-2 flex items-center text-sm text-red-700">
                             Venda proibida para menores de 18 anos
@@ -1568,7 +1695,12 @@ export default function NovoProdutoPage() {
                     >
                       Voltar
                     </Button>
-                    <Button type="button" onClick={() => setCurrentStep(4)}>
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep(4)}
+                      variant="purple"
+                      disabled={!isStepValid}
+                    >
                       Próximo
                     </Button>
                   </div>

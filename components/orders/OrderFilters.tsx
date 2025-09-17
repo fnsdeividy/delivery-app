@@ -44,7 +44,7 @@ export default function OrderFilters({
             <option value="confirmed">Confirmado</option>
             <option value="preparing">Preparando</option>
             <option value="ready">Pronto</option>
-            <option value="delivering">Entregando</option>
+            <option value="delivering">Saiu para Entrega</option>
             <option value="delivered">Entregue</option>
             <option value="cancelled">Cancelado</option>
           </select>

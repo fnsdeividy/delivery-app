@@ -33,7 +33,7 @@ const getStatusText = (status: OrderStatus) => {
     [OrderStatus.CONFIRMED]: "Confirmado",
     [OrderStatus.PREPARING]: "Preparando",
     [OrderStatus.READY]: "Pronto",
-    [OrderStatus.DELIVERING]: "Saindo para entrega",
+    [OrderStatus.DELIVERING]: "Saiu para entrega",
     [OrderStatus.DELIVERED]: "Entregue",
     [OrderStatus.CANCELLED]: "Cancelado",
   };

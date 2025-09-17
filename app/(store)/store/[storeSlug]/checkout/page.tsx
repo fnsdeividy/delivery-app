@@ -14,6 +14,7 @@ import { useCustomerContext } from "../../../../../contexts/CustomerContext";
 import { useCart } from "../../../../../hooks/useCart";
 import { usePublicOrders } from "../../../../../hooks/usePublicOrders";
 import { apiClient } from "../../../../../lib/api-client";
+import { parsePrice } from "../../../../../lib/utils/price";
 import {
   CreateOrderDto,
   OrderItemDto,
@@ -446,12 +447,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         customerId: customer?.id || "guest-" + Date.now(),
         storeSlug,
         type: formData.orderType,
-        deliveryFee,
+        deliveryFee: parsePrice(deliveryFee),
         discount: 0,
         paymentMethod: formData.paymentMethod,
         paymentStatus: PaymentStatus.PENDING,
-        subtotal: cart.total,
-        total: cart.total + deliveryFee,
+        subtotal: parsePrice(cart.total),
+        total: parsePrice(cart.total) + parsePrice(deliveryFee),
         notes: `Nome: ${formData.customerName}\nTelefone: ${
           formData.customerPhone
         }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
@@ -474,7 +475,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             productId: item.product.id,
             name: item.product.name,
             quantity: item.quantity,
-            price: item.product.price,
+            price: parsePrice(item.product.price),
             customizations: {
               removedIngredients: [],
               addons: [],

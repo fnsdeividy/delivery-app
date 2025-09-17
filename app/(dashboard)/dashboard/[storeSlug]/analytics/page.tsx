@@ -28,7 +28,6 @@ import {
   OrderStatusChart,
   ProductsTable,
   SalesChart,
-  StatusIndicator,
   TopProductsChart,
 } from "./components";
 
@@ -102,7 +101,7 @@ export default function AnalyticsPage() {
       CONFIRMED: "Confirmado",
       PREPARING: "Em Preparo",
       READY: "Pronto",
-      DELIVERING: "Em Entrega",
+      DELIVERING: "Saiu para Entrega",
       DELIVERED: "Entregue",
       CANCELLED: "Cancelado",
     };
@@ -145,7 +144,7 @@ export default function AnalyticsPage() {
 
     topProducts:
       finalTopProductsData?.topProducts?.map((product: any) => ({
-        name: product.productName,
+        name: product.name,
         quantity: product.quantity,
         revenue: product.revenue,
       })) || [],
@@ -243,18 +242,14 @@ export default function AnalyticsPage() {
   const productsChartData = {
     labels: metrics.topProducts
       .slice(0, 5)
-      .map(
-        (product: { productName: string; quantity: number }) =>
-          product.productName
-      ),
+      .map((product: { name: string; quantity: number }) => product.name),
     datasets: [
       {
         label: "Quantidade Vendida",
         data: metrics.topProducts
           .slice(0, 5)
           .map(
-            (product: { productName: string; quantity: number }) =>
-              product.quantity
+            (product: { name: string; quantity: number }) => product.quantity
           ),
         backgroundColor: "rgba(147, 51, 234, 0.8)",
         borderColor: "rgb(147, 51, 234)",
@@ -359,13 +354,9 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <AnalyticsHeader
-        timeRange={timeRange}
-        onTimeRangeChange={setTimeRange}
-      />
+      <AnalyticsHeader timeRange={timeRange} onTimeRangeChange={setTimeRange} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
         {/* Métricas Principais */}
         <MetricsCards
           metrics={metrics}
@@ -383,9 +374,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Gráfico de Produtos Mais Vendidos */}
-        <TopProductsChart
-          topProducts={metrics.topProducts}
-        />
+        <TopProductsChart topProducts={metrics.topProducts} />
 
         {/* Tabela Detalhada de Produtos */}
         <ProductsTable

@@ -31,7 +31,7 @@ export const getStatusInfo = (status: OrderStatus): StatusInfo => {
       icon: CheckCircle,
     },
     [OrderStatus.DELIVERING]: {
-      label: "Entregando",
+      label: "Saiu para Entrega",
       color: "bg-purple-100 text-purple-800",
       icon: Truck,
     },

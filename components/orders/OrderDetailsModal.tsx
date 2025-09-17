@@ -83,22 +83,75 @@ export default function OrderDetailsModal({
             {/* Itens do Pedido */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Itens</h4>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {order.items?.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{item.productName}</p>
-                      <p className="text-xs text-gray-500">
-                        {item.quantity}x {formatCurrency(item.price)}
-                        {item.notes && ` • ${item.notes}`}
+                  <div key={item.id} className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{item.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {item.quantity}x {formatCurrency(item.price)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium">
+                        {formatCurrency(
+                          item.total || item.price * item.quantity
+                        )}
                       </p>
                     </div>
-                    <p className="text-sm font-medium">
-                      {formatCurrency(item.total)}
-                    </p>
+
+                    {/* Customizações do item */}
+                    {item.customizations && (
+                      <div className="mt-2 space-y-1">
+                        {/* Ingredientes removidos */}
+                        {item.customizations.removedIngredients &&
+                          item.customizations.removedIngredients.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-red-600">
+                                Remover:
+                              </p>
+                              <p className="text-xs text-red-500">
+                                {item.customizations.removedIngredients.join(
+                                  ", "
+                                )}
+                              </p>
+                            </div>
+                          )}
+
+                        {/* Adicionais */}
+                        {item.customizations.addons &&
+                          item.customizations.addons.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-green-600">
+                                Adicionais:
+                              </p>
+                              {item.customizations.addons.map(
+                                (addon: any, index: number) => (
+                                  <p
+                                    key={index}
+                                    className="text-xs text-green-500"
+                                  >
+                                    {addon.quantity}x {addon.name} (+
+                                    {formatCurrency(addon.price)})
+                                  </p>
+                                )
+                              )}
+                            </div>
+                          )}
+
+                        {/* Observações */}
+                        {(item.customizations.observations || item.notes) && (
+                          <div>
+                            <p className="text-xs font-medium text-blue-600">
+                              Observações:
+                            </p>
+                            <p className="text-xs text-blue-500">
+                              {item.customizations.observations || item.notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

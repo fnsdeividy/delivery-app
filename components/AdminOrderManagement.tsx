@@ -1,143 +1,145 @@
-'use client'
+"use client";
 
-import { MagnifyingGlass, Package } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { MagnifyingGlass, Package } from "@phosphor-icons/react";
+import { useState } from "react";
 
 interface AdminOrder {
-  id: string
-  orderNumber: string
-  storeName: string
-  customerName: string
-  customerPhone: string
-  status: string
-  type: string
-  paymentStatus: string
-  total: number
-  discount: number
-  createdAt: string
+  id: string;
+  orderNumber: string;
+  storeName: string;
+  customerName: string;
+  customerPhone: string;
+  status: string;
+  type: string;
+  paymentStatus: string;
+  total: number;
+  discount: number;
+  createdAt: string;
 }
 
 interface AdminOrderStats {
-  totalOrders: number
-  totalRevenue: number
-  ordersByStatus: Record<string, number>
-  ordersByStore: Record<string, number>
+  totalOrders: number;
+  totalRevenue: number;
+  ordersByStatus: Record<string, number>;
+  ordersByStore: Record<string, number>;
 }
 
 export function AdminOrderManagement() {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [selectedStore, setSelectedStore] = useState<string>('all')
-  const [isLoading, setIsLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStore, setSelectedStore] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Mock data - será substituído por dados reais da API
-  const mockOrders: AdminOrder[] = []
+  const mockOrders: AdminOrder[] = [];
   const mockStats: AdminOrderStats = {
     totalOrders: 0,
     totalRevenue: 0,
     ordersByStatus: {},
-    ordersByStore: {}
-  }
+    ordersByStore: {},
+  };
 
   // Filtrar pedidos
-  const filteredOrders = mockOrders.filter(order => {
-    const matchesSearch = 
+  const filteredOrders = mockOrders.filter((order) => {
+    const matchesSearch =
       order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerPhone?.includes(searchTerm) ||
-      order.storeName?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus
-    const matchesStore = selectedStore === 'all' || order.storeName === selectedStore
-    
-    return matchesSearch && matchesStatus && matchesStore
-  })
+      order.storeName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      selectedStatus === "all" || order.status === selectedStatus;
+    const matchesStore =
+      selectedStore === "all" || order.storeName === selectedStore;
+
+    return matchesSearch && matchesStatus && matchesStore;
+  });
 
   // Obter cor do status
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'RECEIVED':
-        return 'bg-blue-100 text-blue-800'
-      case 'PREPARING':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'READY':
-        return 'bg-green-100 text-green-800'
-      case 'DELIVERING':
-        return 'bg-purple-100 text-purple-800'
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800'
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800'
+      case "RECEIVED":
+        return "bg-blue-100 text-blue-800";
+      case "PREPARING":
+        return "bg-yellow-100 text-yellow-800";
+      case "READY":
+        return "bg-green-100 text-green-800";
+      case "DELIVERING":
+        return "bg-purple-100 text-purple-800";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   // Obter texto do status
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'RECEIVED':
-        return 'Recebido'
-      case 'PREPARING':
-        return 'Preparando'
-      case 'READY':
-        return 'Pronto'
-      case 'DELIVERING':
-        return 'Entregando'
-      case 'DELIVERED':
-        return 'Entregue'
-      case 'CANCELLED':
-        return 'Cancelado'
+      case "RECEIVED":
+        return "Recebido";
+      case "PREPARING":
+        return "Preparando";
+      case "READY":
+        return "Pronto";
+      case "DELIVERING":
+        return "Entregando";
+      case "DELIVERED":
+        return "Entregue";
+      case "CANCELLED":
+        return "Cancelado";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   // Obter cor do tipo
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'DELIVERY':
-        return 'bg-blue-100 text-blue-800'
-      case 'PICKUP':
-        return 'bg-green-100 text-green-800'
+      case "DELIVERY":
+        return "bg-blue-100 text-blue-800";
+      case "PICKUP":
+        return "bg-green-100 text-green-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   // Obter texto do tipo
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'DELIVERY':
-        return 'Entrega'
-      case 'PICKUP':
-        return 'Retirada'
+      case "DELIVERY":
+        return "Entrega";
+      case "PICKUP":
+        return "Retirada";
       default:
-        return type
+        return type;
     }
-  }
+  };
 
   // Obter cor do status de pagamento
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case 'PAID':
-        return 'bg-green-100 text-green-800'
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'FAILED':
-        return 'bg-red-100 text-red-800'
+      case "PAID":
+        return "bg-green-100 text-green-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "FAILED":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -145,19 +147,27 @@ export function AdminOrderManagement() {
       {/* Stats dos Pedidos */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-2xl font-bold text-blue-600">{mockStats.totalOrders}</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {mockStats.totalOrders}
+          </div>
           <div className="text-sm text-gray-600">Total de Pedidos</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-2xl font-bold text-green-600">R$ {mockStats.totalRevenue.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-green-600">
+            R$ {mockStats.totalRevenue.toFixed(2)}
+          </div>
           <div className="text-sm text-gray-600">Receita Total</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-2xl font-bold text-yellow-600">{mockStats.ordersByStatus.RECEIVED || 0}</div>
+          <div className="text-2xl font-bold text-yellow-600">
+            {mockStats.ordersByStatus.RECEIVED || 0}
+          </div>
           <div className="text-sm text-gray-600">Pedidos Pendentes</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-2xl font-bold text-purple-600">{mockStats.ordersByStatus.DELIVERED || 0}</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {mockStats.ordersByStatus.DELIVERED || 0}
+          </div>
           <div className="text-sm text-gray-600">Pedidos Entregues</div>
         </div>
       </div>
@@ -184,7 +194,7 @@ export function AdminOrderManagement() {
             <option value="RECEIVED">Recebido</option>
             <option value="PREPARING">Preparando</option>
             <option value="READY">Pronto</option>
-            <option value="DELIVERING">Entregando</option>
+            <option value="DELIVERING">Saiu para Entrega</option>
             <option value="DELIVERED">Entregue</option>
             <option value="CANCELLED">Cancelado</option>
           </select>
@@ -202,17 +212,21 @@ export function AdminOrderManagement() {
       {/* Lista de Pedidos */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Pedidos do Sistema</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            Pedidos do Sistema
+          </h3>
         </div>
-        
+
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum pedido encontrado</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Nenhum pedido encontrado
+            </h3>
             <p className="text-gray-500">
-              {mockOrders.length === 0 
-                ? 'Não há pedidos no sistema ainda.' 
-                : 'Nenhum pedido corresponde aos filtros aplicados.'}
+              {mockOrders.length === 0
+                ? "Não há pedidos no sistema ainda."
+                : "Nenhum pedido corresponde aos filtros aplicados."}
             </p>
           </div>
         ) : (
@@ -255,38 +269,56 @@ export function AdminOrderManagement() {
                           #{order.orderNumber || order.id.slice(-8)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleString('pt-BR')}
+                          {new Date(order.createdAt).toLocaleString("pt-BR")}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.storeName}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.storeName}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {order.customerName || 'Cliente não identificado'}
+                          {order.customerName || "Cliente não identificado"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {order.customerPhone || 'Telefone não informado'}
+                          {order.customerPhone || "Telefone não informado"}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
                         {getStatusText(order.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(order.type)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(
+                          order.type
+                        )}`}
+                      >
                         {getTypeText(order.type)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
-                        {order.paymentStatus === 'PAID' ? 'Pago' : 
-                         order.paymentStatus === 'PENDING' ? 'Pendente' : 
-                         order.paymentStatus === 'FAILED' ? 'Falhou' : 'N/A'}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(
+                          order.paymentStatus
+                        )}`}
+                      >
+                        {order.paymentStatus === "PAID"
+                          ? "Pago"
+                          : order.paymentStatus === "PENDING"
+                          ? "Pendente"
+                          : order.paymentStatus === "FAILED"
+                          ? "Falhou"
+                          : "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -337,5 +369,5 @@ export function AdminOrderManagement() {
         </div>
       )}
     </div>
-  )
-} 
+  );
+}
