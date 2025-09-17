@@ -119,11 +119,11 @@ export function PhoneLoginModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Phone className="h-5 w-5 icon" />
-            Login com Telefone
+            Entrar com Telefone
           </DialogTitle>
           <DialogDescription>
-            Digite seu telefone para entrar. Se for sua primeira vez, criaremos
-            sua conta automaticamente.
+            Informe seu número de telefone com DDD para acessar sua conta. Se
+            este for seu primeiro acesso, sua conta será criada automaticamente.
           </DialogDescription>
         </DialogHeader>
 

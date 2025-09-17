@@ -725,10 +725,10 @@ function StorePageContent({ params }: PageProps) {
         isOpen={isPhoneLoginModalOpen}
         onClose={() => setIsPhoneLoginModalOpen(false)}
         onSuccess={(authData) => {
-          if (authData.user) {
-            loginCustomer(authData.user.phone, authData.user.name);
+          if (authData) {
+            loginCustomer(authData.phone, authData.name);
             showToast(
-              `Bem-vindo, ${authData.user.name || authData.user.phone}!`,
+              `Bem-vindo, ${authData.name || authData.phone}!`,
               "success"
             );
           }
