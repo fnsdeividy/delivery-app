@@ -4,6 +4,7 @@ import { DashboardMetrics } from "@/components/DashboardMetrics";
 import { DashboardQuickActions } from "@/components/DashboardQuickActions";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
+import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -60,15 +61,19 @@ export default function DashboardPage() {
         if (payload.role === "SUPER_ADMIN") {
           setHasAccess(true);
         } else if (payload.role === "ADMIN") {
-          // ADMIN pode acessar apenas sua própria loja
+          // ADMIN deve acessar a loja atual. Caso o token ainda não traga o storeSlug
+          // recém-definido, forçamos a definição da loja atual e liberamos o acesso.
           if (payload.storeSlug === slug) {
             setHasAccess(true);
-          } else if (payload.storeSlug === null) {
-            router.push("/dashboard/gerenciar-lojas");
-            return;
           } else {
-            router.push("/unauthorized");
-            return;
+            try {
+              await apiClient.setCurrentStore({ storeSlug: slug });
+              setHasAccess(true);
+            } catch (e) {
+              // fallback: enviar para gerenciar lojas
+              router.push("/dashboard/gerenciar-lojas");
+              return;
+            }
           }
         } else {
           router.push("/unauthorized");

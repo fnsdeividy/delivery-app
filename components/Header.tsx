@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuthContext } from "@/contexts/AuthContext";
+import { apiClient } from "@/lib/api-client";
 import { CaretDown, SignOut, Storefront, User } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { MobileMenu } from "./MobileMenu";
 export function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuthContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const effectiveStoreSlug = (user as any)?.currentStoreSlug || (user as any)?.storeSlug || apiClient.getCurrentStoreSlug();
 
   const handleLogout = async () => {
     try {
@@ -31,14 +33,14 @@ export function Header() {
             </div>
 
             {/* Botão Ver Loja - Mobile */}
-            {isAuthenticated && user?.storeSlug && (
+            {isAuthenticated && effectiveStoreSlug && (
               <div className="lg:hidden">
                 <Link
-                  href={`/store/${user.storeSlug}`}
+                  href={`/dashboard/${effectiveStoreSlug}`}
                   className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
                 >
                   <Storefront className="w-3.5 h-3.5 mr-1.5" />
-                  Ver Loja
+                  Dashboard
                 </Link>
               </div>
             )}
@@ -52,13 +54,13 @@ export function Header() {
                 </div>
               ) : isAuthenticated && user ? (
                 <div className="flex items-center space-x-3">
-                  {user.storeSlug && (
+                  {effectiveStoreSlug && (
                     <Link
-                      href={`/store/${user.storeSlug}`}
+                      href={`/dashboard/${effectiveStoreSlug}`}
                       className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
                     >
                       <Storefront className="w-4 h-4 mr-2" />
-                      Ver Loja
+                      Dashboard
                     </Link>
                   )}
                   <div className="relative">
@@ -90,9 +92,9 @@ export function Header() {
                           </p>
                         </div>
 
-                        {user.storeSlug && (
+                        {effectiveStoreSlug && (
                           <Link
-                            href={`/dashboard/${user.storeSlug}`}
+                            href={`/dashboard/${effectiveStoreSlug}`}
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             onClick={() => setIsDropdownOpen(false)}
                           >

@@ -213,14 +213,13 @@ export default function RegisterLojaPage() {
       setCreationStep("creating-store");
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // 3. Criar loja com slug único
-      const baseSlug =
+      // 3. Criar loja com slug do usuário
+      const userSlug =
         typeof formData.storeSlug === "string" ? formData.storeSlug : "";
-      const uniqueSlug = `${baseSlug}-${Date.now()}`;
 
       const storeCreationData: CreateStoreDto = {
         name: typeof formData.storeName === "string" ? formData.storeName : "",
-        slug: uniqueSlug,
+        slug: userSlug,
         description:
           typeof formData.description === "string" ? formData.description : "",
         config: {
@@ -281,13 +280,13 @@ export default function RegisterLojaPage() {
 
       // Mostrar toast de sucesso
       showToast(
-        "Loja criada com sucesso! Redirecionando para a página inicial...",
+        "Loja criada com sucesso! Redirecionando para o seu dashboard...",
         "success"
       );
 
       // 4. Definir loja atual de forma otimista para ajudar os guards
       try {
-        await apiClient.setCurrentStore({ storeSlug: uniqueSlug });
+        await apiClient.setCurrentStore({ storeSlug: storeResponse.slug });
       } catch (e) {
         // se falhar, seguimos com polling
       }
@@ -300,7 +299,7 @@ export default function RegisterLojaPage() {
       const canAccessDashboard = async () => {
         try {
           // Se conseguir obter a loja pelo slug autenticado, pressupomos acesso
-          await apiClient.getStoreBySlug(uniqueSlug);
+          await apiClient.getStoreBySlug(storeResponse.slug);
           return true;
         } catch (err: any) {
           // 401/403: ainda não propagou permissão; continuar tentando
@@ -313,22 +312,22 @@ export default function RegisterLojaPage() {
       while (Date.now() - start < timeoutMs) {
         const ok = await canAccessDashboard();
         if (ok) {
-          // Redirecionar para página inicial com usuário logado
-          router.push("/");
+          // Redirecionar para o dashboard da loja
+          router.push(`/dashboard/${storeResponse.slug}`);
           return;
         }
         await new Promise((r) => setTimeout(r, intervalMs));
       }
 
-      // Se expirou, redirecionar para home mesmo assim
+      // Se expirou, redirecionar para o dashboard mesmo assim
       showToast(
-        "Loja criada com sucesso! Você já pode acessar sua conta.",
+        "Loja criada com sucesso! Você já pode acessar seu dashboard.",
         "success"
       );
 
       // Aguardar um pouco para o toast aparecer e redirecionar
       setTimeout(() => {
-        router.push("/");
+        router.push(`/dashboard/${storeResponse.slug}`);
       }, 2000);
     } catch (err: any) {
       console.error("❌ Erro durante o processo de registro:", err);
