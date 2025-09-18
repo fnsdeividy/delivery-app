@@ -1,7 +1,7 @@
 "use client";
 
 import { CartItem } from "../../contexts/CartContext";
-import { ProductAddon, ProductIngredient } from "../../types/cardapio-api";
+import { ProductAddon } from "../../types/cardapio-api";
 
 interface OrderItemDetailsProps {
   item: CartItem;
@@ -67,16 +67,17 @@ export function OrderItemDetails({
       {/* Ingredientes removidos */}
       {hasRemovedIngredients && (
         <div className="space-y-1">
-          {customizations.removedIngredients.map((ingredientId) => {
+          {customizations.removedIngredients.map((ingredientId, index) => {
+            // Buscar o nome do ingrediente pelo ID
             const ingredient = product.ingredients?.find(
-              (i: ProductIngredient) => i.id === ingredientId
+              (i) => i.id === ingredientId
             );
-            if (!ingredient) return null;
+            const ingredientName = ingredient?.name || ingredientId;
 
             return (
-              <div key={ingredientId} className="flex items-center text-sm">
+              <div key={index} className="flex items-center text-sm">
                 <span className="text-red-500 font-medium">
-                  –{ingredient.name}
+                  –{ingredientName}
                 </span>
               </div>
             );

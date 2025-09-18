@@ -471,19 +471,51 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         }${
           formData.observations ? `\nObservações: ${formData.observations}` : ""
         }`,
-        items: cart.items.map(
-          (item): OrderItemDto => ({
+        items: cart.items.map((item): OrderItemDto => {
+          const customizations = item.customizations
+            ? {
+                removedIngredients: item.customizations.removedIngredients
+                  ? item.customizations.removedIngredients.map(
+                      (ingredientId) => {
+                        const ingredient = item.product.ingredients?.find(
+                          (i) => i.id === ingredientId
+                        );
+                        return ingredient?.name || ingredientId;
+                      }
+                    )
+                  : [],
+                addons: item.customizations.selectedAddons
+                  ? Object.entries(item.customizations.selectedAddons).map(
+                      ([addonId, quantity]) => {
+                        const addon = item.product.addons?.find(
+                          (a) => a.id === addonId
+                        );
+                        return {
+                          id: addonId,
+                          name: addon?.name || "Adicional",
+                          quantity: quantity,
+                          price: addon?.price || 0,
+                        };
+                      }
+                    )
+                  : [],
+                observations:
+                  item.customizations.specialInstructions || item.notes || "",
+              }
+            : {
+                removedIngredients: [],
+                addons: [],
+                observations: item.notes || "",
+              };
+
+          return {
             productId: item.product.id,
             name: item.product.name,
             quantity: item.quantity,
             price: parsePrice(item.product.price),
-            customizations: {
-              removedIngredients: [],
-              addons: [],
-              observations: item.notes || "",
-            },
-          })
-        ),
+            customizations,
+          };
+        }),
       };
 
       const order = await createOrder(orderData);
