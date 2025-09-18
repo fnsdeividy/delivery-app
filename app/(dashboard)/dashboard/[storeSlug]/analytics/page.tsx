@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
 
     topProducts:
       finalTopProductsData?.topProducts?.map((product: any) => ({
-        name: product.name,
+        name: product.productName || product.name,
         quantity: product.quantity,
         revenue: product.revenue,
       })) || [],

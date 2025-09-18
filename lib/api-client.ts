@@ -566,6 +566,73 @@ class ApiClient {
     );
   }
 
+  async getStoreMetrics(storeSlug: string): Promise<{
+    totalOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    ordersGrowth: number;
+    ordersByStatus: Record<string, number>;
+  }> {
+    return this.get<{
+      totalOrders: number;
+      totalRevenue: number;
+      averageOrderValue: number;
+      ordersGrowth: number;
+      ordersByStatus: Record<string, number>;
+    }>(`/analytics/store/${storeSlug}/metrics`);
+  }
+
+  async getTopProducts(
+    storeSlug: string,
+    limit: number = 5
+  ): Promise<{
+    topProducts: Array<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      revenue: number;
+    }>;
+  }> {
+    return this.get<{
+      topProducts: Array<{
+        productId: string;
+        productName: string;
+        quantity: number;
+        revenue: number;
+      }>;
+    }>(`/analytics/store/${storeSlug}/top-products?limit=${limit}`);
+  }
+
+  async getCustomerMetrics(storeSlug: string): Promise<{
+    customerMetrics: {
+      newCustomers: number;
+      totalCustomers: number;
+      returningCustomers: number;
+    };
+  }> {
+    return this.get<{
+      customerMetrics: {
+        newCustomers: number;
+        totalCustomers: number;
+        returningCustomers: number;
+      };
+    }>(`/analytics/store/${storeSlug}/customer-metrics`);
+  }
+
+  async getPeakHours(storeSlug: string): Promise<
+    Array<{
+      hour: string;
+      orders: number;
+    }>
+  > {
+    return this.get<
+      Array<{
+        hour: string;
+        orders: number;
+      }>
+    >(`/analytics/store/${storeSlug}/peak-hours`);
+  }
+
   // ==== ERRO HANDLING ==== //
   private createApiError(error: unknown): ApiError {
     if (this.isAxiosError(error)) return this.createAxiosError(error);
