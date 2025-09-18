@@ -1049,6 +1049,7 @@ export default function NovoProdutoPage() {
 
                   <div className="flex justify-between gap-2">
                     <Button
+                      className="bg-violet-500 text-white"
                       type="button"
                       variant="outline"
                       onClick={() => setCurrentStep(1)}
@@ -1731,6 +1732,7 @@ export default function NovoProdutoPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setCurrentStep(2)}
+                      className="bg-violet-500 text-white"
                     >
                       Voltar
                     </Button>
@@ -1739,6 +1741,7 @@ export default function NovoProdutoPage() {
                       onClick={() => setCurrentStep(4)}
                       variant="purple"
                       disabled={!isStepValid}
+                      className="bg-violet-500 text-white"
                     >
                       Próximo
                     </Button>

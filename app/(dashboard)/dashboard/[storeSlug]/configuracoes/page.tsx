@@ -2,21 +2,18 @@
 
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import {
+  ChatCircle,
   CheckCircle,
   Clock,
-  DeviceMobile,
   FileText,
+  ForkKnife,
   Gear,
-  Globe,
   Lightning,
-  ChatCircle,
   Palette,
-  Shield,
   Storefront,
   Truck,
   Users,
   WarningCircle,
-  ForkKnife,
 } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -51,26 +48,30 @@ export default function ConfiguracoesPage() {
   // Validar se o storeSlug existe
   if (!storeSlug || storeSlug === "undefined") {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <WarningCircle className="h-5 w-5 text-red-400" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Erro de Configuração
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>Identificador da loja não encontrado ou inválido.</p>
-              <p className="mt-2">StoreSlug: {storeSlug || "não definido"}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 sm:p-6 w-full max-w-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <WarningCircle className="h-5 w-5 text-red-400" />
             </div>
-            <div className="mt-4">
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="bg-red-100 text-red-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-200"
-              >
-                Voltar ao Dashboard
-              </button>
+            <div className="ml-3 flex-1 min-w-0">
+              <h3 className="text-sm font-medium text-red-800">
+                Erro de Configuração
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>Identificador da loja não encontrado ou inválido.</p>
+                <p className="mt-2 break-all">
+                  StoreSlug: {storeSlug || "não definido"}
+                </p>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="bg-red-100 text-red-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-200 w-full sm:w-auto"
+                >
+                  Voltar ao Dashboard
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -108,8 +109,7 @@ export default function ConfiguracoesPage() {
     {
       id: "basicas",
       title: "Informações Básicas",
-      description:
-        "Configure nome da loja, email de contato e telefone",
+      description: "Configure nome da loja, email de contato e telefone",
       icon: Storefront,
       href: `/dashboard/${storeSlug}/configuracoes/basicas`,
       status: config?.name ? "completed" : "pending",
@@ -147,7 +147,8 @@ export default function ConfiguracoesPage() {
     {
       id: "whatsapp",
       title: "Integração WhatsApp",
-      description: "Configure mensagens automáticas e notificações via WhatsApp",
+      description:
+        "Configure mensagens automáticas e notificações via WhatsApp",
       icon: ChatCircle,
       href: `/dashboard/${storeSlug}/configuracoes/whatsapp`,
       status: storeStatus.hasWhatsAppConfig ? "completed" : "optional",
@@ -156,7 +157,8 @@ export default function ConfiguracoesPage() {
     {
       id: "ifood",
       title: "Integração iFood",
-      description: "Sincronize seu menu e receba pedidos automaticamente do iFood",
+      description:
+        "Sincronize seu menu e receba pedidos automaticamente do iFood",
       icon: ForkKnife,
       href: `/dashboard/${storeSlug}/configuracoes/ifood`,
       status: storeStatus.hasIfoodConfig ? "completed" : "optional",
@@ -205,11 +207,13 @@ export default function ConfiguracoesPage() {
   const getStatusIcon = (status: "completed" | "pending" | "optional") => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />;
       case "pending":
-        return <WarningCircle className="h-5 w-5 text-blue-600" />;
+        return (
+          <WarningCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+        );
       case "optional":
-        return <Gear className="h-5 w-5 text-gray-600" />;
+        return <Gear className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />;
     }
   };
 
@@ -222,10 +226,12 @@ export default function ConfiguracoesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando configurações...</p>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600">
+            Carregando configurações...
+          </p>
         </div>
       </div>
     );
@@ -235,60 +241,62 @@ export default function ConfiguracoesPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Gear className="h-6 w-6 text-blue-500" />
-              <h1 className="text-xl font-semibold text-gray-900">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 py-2">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Gear className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 flex-shrink-0" />
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Configurações
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                {completedCount} de {configSections.length} configuradas
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                {completedCount}/{configSections.length}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Status Geral */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-0">
               Status das Configurações
             </h2>
             <div className="flex items-center space-x-2">
-              <Storefront className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-600">{storeSlug}</span>
+              <Storefront className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-gray-600 truncate">
+                {storeSlug}
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-3 sm:gap-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {completedCount}
               </div>
-              <p className="text-sm text-gray-600">Configuradas</p>
+              <p className="text-xs sm:text-sm text-gray-600">Configuradas</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {totalRequired}
               </div>
-              <p className="text-sm text-gray-600">Pendentes</p>
+              <p className="text-xs sm:text-sm text-gray-600">Pendentes</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-600">
+              <div className="text-xl sm:text-2xl font-bold text-gray-600">
                 {Math.round((completedCount / configSections.length) * 100)}%
               </div>
-              <p className="text-sm text-gray-600">Completude</p>
+              <p className="text-xs sm:text-sm text-gray-600">Completude</p>
             </div>
           </div>
 
           {/* Barra de Progresso */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+          <div className="mt-4 sm:mt-6">
+            <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 mb-2">
               <span>Progresso geral</span>
               <span>
                 {Math.round((completedCount / configSections.length) * 100)}%
@@ -306,48 +314,53 @@ export default function ConfiguracoesPage() {
         </div>
 
         {/* Seções de Configuração */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {configSections.map((section) => (
             <div
               key={section.id}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer ${section.status === "completed" ? "ring-2 ring-green-200" : ""
-                }`}
+              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer min-h-[120px] sm:min-h-[140px] ${
+                section.status === "completed" ? "ring-2 ring-green-200" : ""
+              }`}
               onClick={() => router.push(section.href)}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex items-start space-x-3 flex-1 min-w-0">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${section.status === "completed"
-                      ? "bg-green-100"
-                      : section.status === "pending"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      section.status === "completed"
+                        ? "bg-green-100"
+                        : section.status === "pending"
                         ? "bg-blue-100"
                         : "bg-gray-100"
-                      }`}
+                    }`}
                   >
                     <section.icon
-                      className={`h-5 w-5 ${section.status === "completed"
-                        ? "text-green-600"
-                        : section.status === "pending"
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${
+                        section.status === "completed"
+                          ? "text-green-600"
+                          : section.status === "pending"
                           ? "text-blue-600"
                           : "text-gray-600"
-                        }`}
+                      }`}
                     />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm sm:text-lg font-semibold text-gray-900 leading-tight">
                       {section.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
                       {section.description}
                     </p>
                   </div>
                 </div>
-                {getStatusIcon(section.status)}
+                <div className="flex-shrink-0 ml-2">
+                  {getStatusIcon(section.status)}
+                </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
+                  className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
                     section.status
                   )}`}
                 >
@@ -374,16 +387,16 @@ export default function ConfiguracoesPage() {
         </div>
 
         {/* Dicas e Informações */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">
+        <div className="mt-6 sm:mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-3 sm:mb-4">
             💡 Dicas de Configuração
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h4 className="font-medium text-blue-800 mb-2">
+              <h4 className="font-medium text-blue-800 mb-2 text-sm sm:text-base">
                 Configurações Obrigatórias:
               </h4>
-              <ul className="text-sm text-blue-700 space-y-1">
+              <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
                 <li>
                   • <strong>Aparência Visual:</strong> Defina a identidade da
                   sua marca
@@ -395,10 +408,10 @@ export default function ConfiguracoesPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-800 mb-2">
+              <h4 className="font-medium text-blue-800 mb-2 text-sm sm:text-base">
                 Configurações Recomendadas:
               </h4>
-              <ul className="text-sm text-blue-700 space-y-1">
+              <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
                 <li>
                   • <strong>Entrega:</strong> Defina zonas e taxas de entrega
                 </li>
@@ -412,16 +425,16 @@ export default function ConfiguracoesPage() {
         </div>
 
         {/* Suporte */}
-        <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <Gear className="h-4 w-4 text-blue-600" />
+        <div className="mt-4 sm:mt-6 bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Gear className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-900">
                 Precisa de ajuda?
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Consulte nossa documentação ou entre em contato com o suporte
               </p>
             </div>
