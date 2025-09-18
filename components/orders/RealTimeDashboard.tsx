@@ -94,6 +94,7 @@ export function RealTimeDashboard({
 
   const getStatusColor = (status: OrderStatus) => {
     const colors = {
+      [OrderStatus.PENDING]: "bg-gray-100 text-gray-800",
       [OrderStatus.RECEIVED]: "bg-blue-100 text-blue-800",
       [OrderStatus.CONFIRMED]: "bg-green-100 text-green-800",
       [OrderStatus.PREPARING]: "bg-orange-100 text-orange-800",
@@ -107,6 +108,7 @@ export function RealTimeDashboard({
 
   const getStatusIcon = (status: OrderStatus) => {
     const icons = {
+      [OrderStatus.PENDING]: Clock,
       [OrderStatus.RECEIVED]: Clock,
       [OrderStatus.CONFIRMED]: CheckCircle,
       [OrderStatus.PREPARING]: CookingPot,
@@ -120,6 +122,7 @@ export function RealTimeDashboard({
 
   const getStatusLabel = (status: OrderStatus) => {
     const labels = {
+      [OrderStatus.PENDING]: "Pendentes",
       [OrderStatus.RECEIVED]: "Recebidos",
       [OrderStatus.CONFIRMED]: "Confirmados",
       [OrderStatus.PREPARING]: "Em Preparo",
@@ -181,7 +184,7 @@ export function RealTimeDashboard({
       </div>
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 xl:grid-cols-8 gap-1.5 sm:gap-2 md:gap-3 lg:gap-4">
         {Object.entries(stats).map(([key, value]) => {
           if (key === "total" || key === "revenue") return null;
 
@@ -192,15 +195,19 @@ export function RealTimeDashboard({
           return (
             <div
               key={key}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-1.5 sm:p-2 md:p-3 lg:p-4 min-h-[60px] sm:min-h-[70px] md:min-h-[80px]"
             >
-              <div className="flex items-center space-x-2">
-                <div className={`p-2 rounded-full ${color}`}>
-                  <Icon className="h-4 w-4" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 h-full">
+                <div
+                  className={`p-1 sm:p-1.5 md:p-2 rounded-full ${color} flex-shrink-0 self-center sm:self-start`}
+                >
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{value}</p>
-                  <p className="text-sm text-gray-600">
+                <div className="min-w-0 flex-1 text-center sm:text-left">
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 leading-tight">
+                    {value}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 truncate leading-tight">
                     {getStatusLabel(status)}
                   </p>
                 </div>
@@ -211,40 +218,48 @@ export function RealTimeDashboard({
       </div>
 
       {/* Resumo financeiro */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total de Pedidos</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                Total de Pedidos
+              </p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+                {stats.total}
+              </p>
             </div>
-            <Bell className="h-8 w-8 text-blue-600" />
+            <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Receita Total</p>
-              <p className="text-2xl font-bold text-green-600">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                Receita Total
+              </p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">
                 {formatCurrency(stats.revenue)}
               </p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Ticket Médio</p>
-              <p className="text-2xl font-bold text-purple-600">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                Ticket Médio
+              </p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
                 {stats.total > 0
                   ? formatCurrency(stats.revenue / stats.total)
                   : "R$ 0,00"}
               </p>
             </div>
-            <Clock className="h-8 w-8 text-purple-600" />
+            <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
           </div>
         </div>
       </div>

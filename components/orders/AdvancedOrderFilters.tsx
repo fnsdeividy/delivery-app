@@ -162,45 +162,49 @@ export default function AdvancedOrderFilters({
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg shadow mb-4 sm:mb-6">
       {/* Header com botões de controle */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center space-x-2">
-          <FunnelSimple className="h-5 w-5 text-gray-600" />
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-            Filtros Avançados
-          </h3>
-          {hasActiveFilters && (
-            <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full">
-              {
-                [
-                  searchTerm && "Busca",
-                  selectedStatus !== "all" && "Status",
-                  selectedPaymentStatus !== "all" && "Pagamento",
-                  selectedType !== "all" && "Tipo",
-                  startDate && "Data",
-                  minValue && "Valor",
-                ].filter(Boolean).length
-              }{" "}
-              filtro(s) ativo(s)
-            </span>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-          >
-            <FunnelSimple className="h-4 w-4" />
-            <span>{showAdvanced ? "Ocultar" : "Mostrar"} Avançado</span>
-          </button>
-          {hasActiveFilters && (
+      <div className="flex flex-col gap-3 mb-3 sm:mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex items-center space-x-2 min-w-0 flex-1">
+            <FunnelSimple className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 truncate">
+              Filtros Avançados
+            </h3>
+            {hasActiveFilters && (
+              <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">
+                {
+                  [
+                    searchTerm && "Busca",
+                    selectedStatus !== "all" && "Status",
+                    selectedPaymentStatus !== "all" && "Pagamento",
+                    selectedType !== "all" && "Tipo",
+                    startDate && "Data",
+                    minValue && "Valor",
+                  ].filter(Boolean).length
+                }{" "}
+                filtro(s) ativo(s)
+              </span>
+            )}
+          </div>
+          <div className="flex items-center space-x-2 flex-wrap">
             <button
-              onClick={clearAllFilters}
-              className="text-xs sm:text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1 min-h-[32px] px-2 py-1 rounded hover:bg-blue-50"
             >
-              <X className="h-4 w-4" />
-              <span>Limpar Tudo</span>
+              <FunnelSimple className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="truncate">
+                {showAdvanced ? "Ocultar" : "Mostrar"} Avançado
+              </span>
             </button>
-          )}
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs sm:text-sm text-red-600 hover:text-red-800 flex items-center space-x-1 min-h-[32px] px-2 py-1 rounded hover:bg-red-50"
+              >
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="truncate">Limpar Tudo</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -209,7 +213,7 @@ export default function AdvancedOrderFilters({
         <div className="flex-1">
           <div className="relative" ref={searchRef}>
             <div className="relative">
-              <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <MagnifyingGlass className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3 sm:h-4 sm:w-4" />
               <input
                 ref={inputRef}
                 type="text"
@@ -224,21 +228,21 @@ export default function AdvancedOrderFilters({
                     setShowSuggestions(false);
                   }
                 }}
-                className="w-full pl-10 pr-10 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-2 text-xs sm:text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent min-h-[36px]"
               />
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
                 </button>
               )}
             </div>
 
             {/* Sugestões de Busca */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 sm:max-h-60 overflow-y-auto">
                 <div className="p-2">
                   <div className="text-xs text-gray-500 mb-2 flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
@@ -248,16 +252,16 @@ export default function AdvancedOrderFilters({
                     <button
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
+                      className="w-full flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors min-h-[40px]"
                     >
-                      <div className="text-gray-400">
+                      <div className="text-gray-400 flex-shrink-0">
                         {getReactIcon(suggestion.icon)}
                       </div>
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs sm:text-sm text-gray-900 truncate">
                           {suggestion.label}
                         </div>
-                        <div className="text-xs text-gray-500 capitalize">
+                        <div className="text-xs text-gray-500 capitalize truncate">
                           {suggestion.type === "name" && "Nome do cliente"}
                           {suggestion.type === "phone" && "Telefone"}
                           {suggestion.type === "email" && "Email"}
@@ -275,10 +279,10 @@ export default function AdvancedOrderFilters({
 
           {/* Indicador de Tipo de Busca */}
           {searchTerm && (
-            <div className="mt-2 flex items-center space-x-2">
+            <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
               <div className="flex items-center space-x-1 text-xs text-gray-500">
                 {getReactIcon(getSearchIcon(currentSearchType))}
-                <span className="capitalize">
+                <span className="capitalize truncate">
                   {currentSearchType === "name"
                     ? "Nome"
                     : currentSearchType === "phone"
@@ -292,7 +296,7 @@ export default function AdvancedOrderFilters({
                     : "Busca"}
                 </span>
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-400 truncate">
                 Buscando em: Nome, Telefone, Email, ID do pedido
               </div>
             </div>
@@ -300,11 +304,11 @@ export default function AdvancedOrderFilters({
         </div>
 
         {/* Filtros Básicos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="px-2 sm:px-3 py-2 text-xs sm:text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[36px]"
           >
             <option value="all">Todos os status</option>
             <option value="RECEIVED">Pendente</option>
@@ -319,7 +323,7 @@ export default function AdvancedOrderFilters({
           <select
             value={selectedPaymentStatus}
             onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-            className="px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="px-2 sm:px-3 py-2 text-xs sm:text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[36px]"
           >
             <option value="all">Todos os pagamentos</option>
             <option value="PENDING">Pendente</option>
@@ -331,7 +335,7 @@ export default function AdvancedOrderFilters({
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="px-2 sm:px-3 py-2 text-xs sm:text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[36px]"
           >
             <option value="all">Todos os tipos</option>
             <option value="DELIVERY">Entrega</option>
@@ -339,11 +343,11 @@ export default function AdvancedOrderFilters({
             <option value="DINE_IN">Consumo no local</option>
           </select>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 px-2 sm:px-3 py-2 text-xs sm:text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[36px]"
             >
               <option value="createdAt">Data de criação</option>
               <option value="total">Valor total</option>
@@ -352,15 +356,15 @@ export default function AdvancedOrderFilters({
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex-shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center"
               title={`Ordenar ${
                 sortOrder === "asc" ? "decrescente" : "crescente"
               }`}
             >
               {sortOrder === "asc" ? (
-                <SortAscending className="h-4 w-4" />
+                <SortAscending className="h-3 w-3 sm:h-4 sm:w-4" />
               ) : (
-                <SortDescending className="h-4 w-4" />
+                <SortDescending className="h-3 w-3 sm:h-4 sm:w-4" />
               )}
             </button>
           </div>

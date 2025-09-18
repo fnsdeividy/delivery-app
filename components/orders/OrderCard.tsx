@@ -148,7 +148,7 @@ export default function OrderCard({
 
   return (
     <div
-      className={`relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 hover:shadow-md transition-all duration-200 ${
+      className={`relative bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-md transition-all duration-200 ${
         isLoading ? "opacity-75 pointer-events-none" : ""
       }`}
     >
@@ -156,86 +156,90 @@ export default function OrderCard({
       {isLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-xl z-10">
           <div className="flex items-center space-x-2 text-purple-600">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-            <span className="text-sm font-medium">Processando...</span>
+            <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-purple-600"></div>
+            <span className="text-xs sm:text-sm font-medium">
+              Processando...
+            </span>
           </div>
         </div>
       )}
       {/* Header com status e informações principais */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 md:mb-6">
-        <div className="flex items-center space-x-3 md:space-x-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <StatusIcon className="h-5 w-5 text-gray-500" />
-              <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold ${statusInfo.color}`}
-              >
-                {statusInfo.label}
-              </span>
-            </div>
-            <div className="flex items-center space-x-1 text-gray-500">
-              <span className="text-xs md:text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                #{order.id.slice(-8)}
-              </span>
+      <div className="flex flex-col gap-3 mb-3 sm:mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0 flex-1">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <StatusIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0" />
+                <span
+                  className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-xs sm:text-sm font-semibold ${statusInfo.color} truncate`}
+                >
+                  {statusInfo.label}
+                </span>
+              </div>
+              <div className="flex items-center space-x-1 text-gray-500">
+                <span className="text-xs sm:text-sm font-mono bg-gray-100 px-1.5 sm:px-2 py-1 rounded truncate">
+                  #{order.id.slice(-8)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center space-x-2 md:space-x-3">
-          {order.paymentStatus !== PaymentStatus.PENDING && (
-            <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold ${paymentStatusInfo.color}`}
+          <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+            {order.paymentStatus !== PaymentStatus.PENDING && (
+              <span
+                className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-xs sm:text-sm font-semibold ${paymentStatusInfo.color} truncate`}
+              >
+                {paymentStatusInfo.label}
+              </span>
+            )}
+            <button
+              onClick={() => onViewDetails(order)}
+              className="px-3 py-1.5 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md flex-shrink-0 min-h-[32px]"
             >
-              {paymentStatusInfo.label}
-            </span>
-          )}
-          <button
-            onClick={() => onViewDetails(order)}
-            className="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-          >
-            Ver Detalhes
-          </button>
+              Ver Detalhes
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Informações do cliente e entrega */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
-        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
-          <User className="h-5 w-5 text-gray-600" />
-          <div>
-            <p className="text-sm md:text-base font-semibold text-gray-900">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
+        <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 rounded-lg min-w-0">
+          <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 truncate">
               {order.customer?.name || "Cliente"}
             </p>
-            <p className="text-xs md:text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600 truncate">
               {order.customer?.email || "Email não informado"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
-          <Phone className="h-5 w-5 text-gray-600" />
-          <span className="text-sm md:text-base font-medium text-gray-900">
+        <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 rounded-lg min-w-0">
+          <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+          <span className="text-xs sm:text-sm md:text-base font-medium text-gray-900 truncate">
             {order.customer?.phone || "Telefone não informado"}
           </span>
         </div>
 
-        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
-          <MapPin className="h-5 w-5 text-gray-600" />
-          <span className="text-sm md:text-base font-medium text-gray-900">
+        <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-gray-50 rounded-lg min-w-0 sm:col-span-2 lg:col-span-1">
+          <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+          <span className="text-xs sm:text-sm md:text-base font-medium text-gray-900 truncate">
             {getDeliveryTypeLabel(order.type)}
           </span>
         </div>
       </div>
 
       {/* Informações do pedido */}
-      <div className="border-t border-gray-200 pt-4">
-        <div className="flex justify-between items-center mb-3 md:mb-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">
+      <div className="border-t border-gray-200 pt-3 sm:pt-4">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">
               {order.items?.length || 0} item
               {(order.items?.length || 0) > 1 ? "s" : ""}
             </p>
-            <p className="text-base md:text-lg font-bold text-gray-900">
+            <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
               {formatCurrency(order.total || 0)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
@@ -246,18 +250,18 @@ export default function OrderCard({
 
         {/* Lista de itens */}
         {order.items && order.items.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <p className="text-xs font-medium text-gray-700 mb-2">
               Itens do pedido:
             </p>
             <div className="space-y-2">
               {order.items.map((item: any, index: number) => (
                 <div key={index} className="space-y-1">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700">
+                  <div className="flex justify-between items-center text-xs sm:text-sm">
+                    <span className="text-gray-700 truncate min-w-0 flex-1 mr-2">
                       {item.quantity}x {item.name}
                     </span>
-                    <span className="text-gray-600 font-medium">
+                    <span className="text-gray-600 font-medium flex-shrink-0">
                       {formatCurrency(item.price * item.quantity)}
                     </span>
                   </div>
@@ -282,16 +286,16 @@ export default function OrderCard({
               <button
                 onClick={() => handleConfirmOrder(order.id)}
                 disabled={isActionLoading("confirm")}
-                className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
               >
                 {isActionLoading("confirm") ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
                     <span>Confirmando...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4" />
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span>Confirmar</span>
                   </>
                 )}
@@ -299,9 +303,9 @@ export default function OrderCard({
               <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isActionLoading("cancel")}
-                className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
               >
-                <XCircle className="h-4 w-4" />
+                <XCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Cancelar</span>
               </button>
             </>
@@ -313,16 +317,16 @@ export default function OrderCard({
                 handleStatusUpdate(order.id, OrderStatus.PREPARING)
               }
               disabled={isActionLoading("status-PREPARING")}
-              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
             >
               {isActionLoading("status-PREPARING") ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
                   <span>Preparando...</span>
                 </>
               ) : (
                 <>
-                  <Package className="h-4 w-4" />
+                  <Package className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Preparar</span>
                 </>
               )}
@@ -333,16 +337,16 @@ export default function OrderCard({
             <button
               onClick={() => handleStatusUpdate(order.id, OrderStatus.READY)}
               disabled={isActionLoading("status-READY")}
-              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
             >
               {isActionLoading("status-READY") ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
                   <span>Finalizando...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Pronto</span>
                 </>
               )}
