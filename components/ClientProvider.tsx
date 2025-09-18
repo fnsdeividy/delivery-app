@@ -1,6 +1,7 @@
 "use client";
 
 import { ToastProvider } from "@/components/Toast";
+import { TrialWelcomeToast } from "@/components/TrialWelcomeToast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { createQueryClient } from "@/lib/query-config";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ export function ClientProvider({ children }: ClientProviderProps) {
       <AuthProvider>
         <ToastProvider>
           {children}
+          <TrialWelcomeToast />
           {/* Temporariamente removido para testes */}
           {/* <ReactQueryDevtools initialIsOpen={false} /> */}
         </ToastProvider>

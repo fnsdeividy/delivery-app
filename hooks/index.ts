@@ -56,3 +56,4 @@ export {
 export { useWhatsAppConfig } from "./useWhatsAppConfig";
 export { useIfoodConfig } from "./useIfoodConfig";
 export { useToast } from "./useToast";
+export { useTrialStatus } from "./useTrialStatus";

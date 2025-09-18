@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
+import { TrialBanner } from "./TrialBanner";
 
 export function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuthContext();
@@ -22,6 +23,9 @@ export function Header() {
 
   return (
     <>
+      {/* Trial Banner */}
+      <TrialBanner />
+
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 sm:h-24">
@@ -73,9 +77,8 @@ export function Header() {
                         {user.name || user.email}
                       </span>
                       <CaretDown
-                        className={`w-4 h-4 transition-transform ${
-                          isDropdownOpen ? "rotate-180" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 
