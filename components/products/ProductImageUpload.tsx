@@ -1,13 +1,13 @@
 "use client";
 
-import { useToast } from "@/hooks/useToast";
 import { useOptimizedImage } from "@/hooks/useOptimizedImage";
+import { useToast } from "@/hooks/useToast";
 import { apiClient } from "@/lib/api-client";
 import { normalizeImageUrl } from "@/lib/utils";
 import { Image as ImageIcon, UploadSimple, X } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState, useCallback, memo } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 
 interface ProductImageUploadProps {
   imageUrl?: string;
@@ -29,11 +29,15 @@ const ProductImageUploadComponent = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Otimização de imagem
-  const { src: optimizedSrc, loading: imageLoading, error: imageError } = useOptimizedImage({
-    src: imagePreview || '',
-    fallback: '/placeholder-image.png',
+  const {
+    src: optimizedSrc,
+    loading: imageLoading,
+    error: imageError,
+  } = useOptimizedImage({
+    src: imagePreview || "",
+    fallback: "/placeholder-image.png",
     quality: 80,
-    lazy: true
+    lazy: true,
   });
 
   const normalizeUrl = (url: string | undefined): string | null => {
@@ -45,10 +49,13 @@ const ProductImageUploadComponent = ({
     }
   };
 
-  const handleImageChange = useCallback((url: string) => {
-    onImageChange(url);
-    setImagePreview(normalizeUrl(url) || null);
-  }, [onImageChange]);
+  const handleImageChange = useCallback(
+    (url: string) => {
+      onImageChange(url);
+      setImagePreview(normalizeUrl(url) || null);
+    },
+    [onImageChange]
+  );
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,8 +89,8 @@ const ProductImageUploadComponent = ({
       clearInterval(uploadTimer);
       setUploadProgress(100);
 
-      if (response && response.url) {
-        handleImageChange(response.url);
+      if (response && (response as any).url) {
+        handleImageChange((response as any).url);
         showToast("Imagem carregada com sucesso!", "success");
       } else {
         throw new Error("URL da imagem não retornada pelo servidor");

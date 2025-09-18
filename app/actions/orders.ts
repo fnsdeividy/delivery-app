@@ -1,7 +1,7 @@
 "use server";
 
-import { apiClient } from "@/lib/api-client";
-import { OrderStatus } from "@/types/cardapio-api";
+import { apiClientServer } from "@/lib/api-client-server";
+import { OrderStatus, OrderType, PaymentStatus } from "@/types/cardapio-api";
 import { revalidatePath } from "next/cache";
 
 export interface CreateOrderActionData {
@@ -10,8 +10,14 @@ export interface CreateOrderActionData {
   customerPhone: string;
   items: Array<{
     productId: string;
+    name: string;
     quantity: number;
     price: number;
+    customizations: {
+      removedIngredients: string[];
+      addons: Array<{ name: string; price: number; quantity: number }>;
+      observations?: string;
+    };
   }>;
   total: number;
   deliveryFee: number;
@@ -26,19 +32,23 @@ export interface UpdateOrderActionData {
 
 export async function createOrderAction(data: CreateOrderActionData) {
   try {
-    const order = await apiClient.createOrder({
+    const order = await apiClientServer.createOrder({
+      customerId: data.customerPhone, // Usando phone como ID temporário
       storeSlug: data.storeSlug,
-      customerName: data.customerName,
-      customerPhone: data.customerPhone,
       items: data.items,
-      total: data.total,
-      deliveryFee: data.deliveryFee,
+      type: OrderType.DELIVERY, // Tipo padrão
+      deliveryAddress: "", // Endereço será preenchido pelo cliente
       notes: data.notes,
-      status: "PENDING",
+      paymentMethod: "PIX", // Método padrão
+      paymentStatus: PaymentStatus.PENDING,
+      subtotal: data.total - data.deliveryFee,
+      deliveryFee: data.deliveryFee,
+      discount: 0,
+      total: data.total,
     });
 
     // Notificar via SSE
-    const { notifyNewOrder } = await import("@/app/api/orders/events/route");
+    const { notifyNewOrder } = await import("@/lib/sse-notifications");
     notifyNewOrder(data.storeSlug, order);
 
     // Revalidar cache
@@ -57,13 +67,13 @@ export async function createOrderAction(data: CreateOrderActionData) {
 
 export async function updateOrderAction(data: UpdateOrderActionData) {
   try {
-    const order = await apiClient.updateOrder(data.orderId, {
+    const order = await apiClientServer.updateOrder(data.orderId, {
       status: data.status,
       notes: data.notes,
     });
 
     // Notificar via SSE
-    const { notifyOrderUpdate } = await import("@/app/api/orders/events/route");
+    const { notifyOrderUpdate } = await import("@/lib/sse-notifications");
     notifyOrderUpdate(order.storeSlug, data.orderId, order);
 
     // Revalidar cache
@@ -82,12 +92,12 @@ export async function updateOrderAction(data: UpdateOrderActionData) {
 
 export async function cancelOrderAction(orderId: string, storeSlug: string) {
   try {
-    const order = await apiClient.updateOrder(orderId, {
-      status: "CANCELLED",
+    const order = await apiClientServer.updateOrder(orderId, {
+      status: OrderStatus.CANCELLED,
     });
 
     // Notificar via SSE
-    const { notifyOrderCancel } = await import("@/app/api/orders/events/route");
+    const { notifyOrderCancel } = await import("@/lib/sse-notifications");
     notifyOrderCancel(storeSlug, orderId);
 
     // Revalidar cache
@@ -110,7 +120,7 @@ export async function getOrdersAction(
   limit: number = 10
 ) {
   try {
-    const orders = await apiClient.getOrders(storeSlug, page, limit);
+    const orders = await apiClientServer.getOrders(storeSlug, page, limit);
     return { success: true, orders };
   } catch (error) {
     console.error("Erro ao buscar pedidos:", error);

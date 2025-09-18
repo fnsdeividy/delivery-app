@@ -18,7 +18,7 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
     error: storeStatsError,
   } = useQuery({
     queryKey: ["store", storeSlug, "stats"],
-    queryFn: () => apiClient.getStoreStats(storeSlug),
+    queryFn: () => (apiClient as any).getStoreStats(storeSlug),
     enabled: !!storeSlug,
   });
 
@@ -29,7 +29,7 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
     error: orderStatsError,
   } = useQuery({
     queryKey: ["orders", storeSlug, "stats"],
-    queryFn: () => apiClient.getOrderStats(storeSlug),
+    queryFn: () => (apiClient as any).getOrderStats(storeSlug),
     enabled: !!storeSlug,
   });
 
@@ -42,7 +42,7 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
     queryKey: ["products", storeSlug, "all"],
     queryFn: async () => {
       // Buscar todos os produtos (sem paginação para contar total)
-      const response = await apiClient.getProducts(storeSlug, 1, 1000);
+      const response = await (apiClient as any).getProducts(storeSlug, 1, 1000);
       return response;
     },
     enabled: !!storeSlug,
@@ -57,7 +57,7 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
     queryKey: ["orders", storeSlug, "all"],
     queryFn: async () => {
       // Buscar todos os pedidos (sem paginação para contar total)
-      const response = await apiClient.getOrders(storeSlug, 1, 1000);
+      const response = await (apiClient as any).getOrders(storeSlug, 1, 1000);
       return response;
     },
     enabled: !!storeSlug,
@@ -68,7 +68,8 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
   const totalOrders = storeStats?.totalOrders || 0;
   const pendingOrders =
     orders?.data?.filter(
-      (order) => order.status === "RECEIVED" || order.status === "CONFIRMED"
+      (order: any) =>
+        order.status === "RECEIVED" || order.status === "CONFIRMED"
     )?.length || 0;
 
   // Calcular vendas do dia
@@ -80,8 +81,8 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
   );
   const dailySales =
     orders?.data
-      ?.filter((order) => new Date(order.createdAt) >= startOfDay)
-      ?.reduce((total, order) => total + order.total, 0) || 0;
+      ?.filter((order: any) => new Date(order.createdAt) >= startOfDay)
+      ?.reduce((total: number, order: any) => total + order.total, 0) || 0;
 
   const isLoading =
     storeStatsLoading || orderStatsLoading || productsLoading || ordersLoading;

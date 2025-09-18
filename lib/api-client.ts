@@ -95,7 +95,26 @@ class ApiClient {
   }
 
   private handleResponseError(error: AxiosError): void {
-    // Não limpar token automaticamente. Apenas dispara handler.
+    // Se for erro 401, limpar token e redirecionar para login
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      console.error("❌ Erro 401 detectado - Token inválido ou expirado");
+      console.error("Response data:", error.response?.data);
+      console.error("Request URL:", error.config?.url);
+
+      this.logout();
+
+      // Mostrar notificação de erro antes de redirecionar
+      if (typeof window !== "undefined") {
+        // Verificar se já estamos na página de login para evitar loop
+        if (!window.location.pathname.includes("/login")) {
+          // Redirecionar para login após um pequeno delay
+          setTimeout(() => {
+            window.location.href = "/login?error=session_expired";
+          }, 1500);
+        }
+      }
+    }
+
     if (typeof window !== "undefined") {
       import("./error-handler")
         .then(({ ErrorHandler }) => {

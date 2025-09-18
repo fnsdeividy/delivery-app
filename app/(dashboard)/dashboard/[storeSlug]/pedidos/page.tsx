@@ -2,11 +2,17 @@
 
 import { cancelOrderAction, updateOrderAction } from "@/app/actions/orders";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useOrdersPageSSE } from "@/hooks/useOrdersSSE";
+import { useOrdersPagePolling } from "@/hooks/useOrdersPolling";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import { calculateOrderStats } from "@/lib/utils/order-utils";
 import { Order, OrderStatus } from "@/types/cardapio-api";
-import { ArrowsClockwise, WifiHigh, WifiSlash } from "@phosphor-icons/react";
+import {
+  ArrowsClockwise,
+  WarningCircle,
+  WifiHigh,
+  WifiSlash,
+  X,
+} from "@phosphor-icons/react";
 import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -37,8 +43,12 @@ export default function PedidosPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newOrderNotification, setNewOrderNotification] =
     useState<Order | null>(null);
+  const [actionLoading, setActionLoading] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // SSE para atualizações em tempo real
+  // Polling para atualizações em tempo real
   const {
     orders,
     setOrders,
@@ -46,7 +56,7 @@ export default function PedidosPage() {
     isConnected: isRealtimeConnected,
     connectionError,
     reconnect,
-  } = useOrdersPageSSE(slug, {
+  } = useOrdersPagePolling(slug, {
     onNewOrder: (order) => {
       setNewOrderNotification(order);
     },
@@ -62,7 +72,7 @@ export default function PedidosPage() {
     },
   });
 
-  // Os pedidos iniciais são carregados pelo hook useOrdersPageSSE
+  // Os pedidos iniciais são carregados pelo hook useOrdersPagePolling
 
   // Filtrar pedidos localmente
   const filteredOrders = orders.filter((order) => {
@@ -95,6 +105,10 @@ export default function PedidosPage() {
   // Atualizar status do pedido usando Server Action
   const handleStatusUpdate = useCallback(
     async (orderId: string, newStatus: OrderStatus) => {
+      const actionKey = `update-${orderId}`;
+      setActionLoading((prev) => ({ ...prev, [actionKey]: true }));
+      setErrorMessage(null);
+
       try {
         const result = await updateOrderAction({
           orderId,
@@ -104,46 +118,92 @@ export default function PedidosPage() {
         if (!result.success) {
           throw new Error(result.error);
         }
+
+        // Atualizar estado local imediatamente
+        if (result.order) {
+          setOrders((prev) =>
+            prev.map((order) => (order.id === orderId ? result.order : order))
+          );
+        }
       } catch (error) {
         console.error("Erro ao atualizar status:", error);
-        alert("Erro ao atualizar status do pedido");
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Erro ao atualizar status do pedido"
+        );
+      } finally {
+        setActionLoading((prev) => ({ ...prev, [actionKey]: false }));
       }
     },
-    []
+    [setOrders]
   );
 
   // Confirmar pedido
-  const handleConfirmOrder = useCallback(async (orderId: string) => {
-    try {
-      const result = await updateOrderAction({
-        orderId,
-        status: OrderStatus.CONFIRMED,
-      });
+  const handleConfirmOrder = useCallback(
+    async (orderId: string) => {
+      const actionKey = `confirm-${orderId}`;
+      setActionLoading((prev) => ({ ...prev, [actionKey]: true }));
+      setErrorMessage(null);
 
-      if (!result.success) {
-        throw new Error(result.error);
+      try {
+        const result = await updateOrderAction({
+          orderId,
+          status: OrderStatus.CONFIRMED,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+
+        // Atualizar estado local imediatamente
+        if (result.order) {
+          setOrders((prev) =>
+            prev.map((order) => (order.id === orderId ? result.order : order))
+          );
+        }
+      } catch (error) {
+        console.error("Erro ao confirmar pedido:", error);
+        setErrorMessage(
+          error instanceof Error ? error.message : "Erro ao confirmar pedido"
+        );
+      } finally {
+        setActionLoading((prev) => ({ ...prev, [actionKey]: false }));
       }
-    } catch (error) {
-      console.error("Erro ao confirmar pedido:", error);
-      alert("Erro ao confirmar pedido");
-    }
-  }, []);
+    },
+    [setOrders]
+  );
 
   // Cancelar pedido usando Server Action
   const handleCancelOrder = useCallback(
     async (orderId: string, reason?: string) => {
+      const actionKey = `cancel-${orderId}`;
+      setActionLoading((prev) => ({ ...prev, [actionKey]: true }));
+      setErrorMessage(null);
+
       try {
         const result = await cancelOrderAction(orderId, slug);
 
         if (!result.success) {
           throw new Error(result.error);
         }
+
+        // Atualizar estado local imediatamente
+        if (result.order) {
+          setOrders((prev) =>
+            prev.map((order) => (order.id === orderId ? result.order : order))
+          );
+        }
       } catch (error) {
         console.error("Erro ao cancelar pedido:", error);
-        alert("Erro ao cancelar pedido");
+        setErrorMessage(
+          error instanceof Error ? error.message : "Erro ao cancelar pedido"
+        );
+      } finally {
+        setActionLoading((prev) => ({ ...prev, [actionKey]: false }));
       }
     },
-    [slug]
+    [slug, setOrders]
   );
 
   // Estatísticas
@@ -170,6 +230,22 @@ export default function PedidosPage() {
 
   return (
     <div className="p-6">
+      {/* Notificação de Erro */}
+      {errorMessage && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
+          <WarningCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-red-800 text-sm">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-red-600 hover:text-red-800 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -181,13 +257,13 @@ export default function PedidosPage() {
                   <div className="flex items-center space-x-1 text-green-600">
                     <WifiHigh className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      Atualização Automática
+                      Sincronização Ativa
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-1 text-yellow-600">
                     <WifiSlash className="h-4 w-4" />
-                    <span className="text-sm font-medium">Manual</span>
+                    <span className="text-sm font-medium">Desconectado</span>
                   </div>
                 )}
               </div>
@@ -242,6 +318,11 @@ export default function PedidosPage() {
             onConfirmOrder={handleConfirmOrder}
             onCancelOrder={handleCancelOrder}
             onViewDetails={handleViewDetails}
+            isLoading={
+              actionLoading[`update-${order.id}`] ||
+              actionLoading[`confirm-${order.id}`] ||
+              actionLoading[`cancel-${order.id}`]
+            }
           />
         ))}
 

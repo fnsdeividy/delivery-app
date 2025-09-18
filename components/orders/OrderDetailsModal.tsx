@@ -15,6 +15,7 @@ import {
   User,
   XCircle,
 } from "@phosphor-icons/react";
+import { OrderItemCustomizations } from "./OrderItemCustomizations";
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -175,54 +176,11 @@ export default function OrderDetailsModal({
 
                   {/* Customizações do item */}
                   {item.customizations && (
-                    <div className="mt-3 space-y-2">
-                      {/* Ingredientes removidos */}
-                      {item.customizations.removedIngredients &&
-                        item.customizations.removedIngredients.length > 0 && (
-                          <div className="bg-red-50 border border-red-200 rounded p-2">
-                            <p className="text-xs font-medium text-red-700 mb-1">
-                              Remover:
-                            </p>
-                            <p className="text-xs text-red-600">
-                              {item.customizations.removedIngredients.join(
-                                ", "
-                              )}
-                            </p>
-                          </div>
-                        )}
-
-                      {/* Adicionais */}
-                      {item.customizations.addons &&
-                        item.customizations.addons.length > 0 && (
-                          <div className="bg-green-50 border border-green-200 rounded p-2">
-                            <p className="text-xs font-medium text-green-700 mb-1">
-                              Adicionais:
-                            </p>
-                            {item.customizations.addons.map(
-                              (addon: any, index: number) => (
-                                <p
-                                  key={index}
-                                  className="text-xs text-green-600"
-                                >
-                                  {addon.quantity}x {addon.name} (+
-                                  {formatCurrency(addon.price)})
-                                </p>
-                              )
-                            )}
-                          </div>
-                        )}
-
-                      {/* Observações */}
-                      {(item.customizations.observations || item.notes) && (
-                        <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                          <p className="text-xs font-medium text-blue-700 mb-1">
-                            Observações:
-                          </p>
-                          <p className="text-xs text-blue-600">
-                            {item.customizations.observations || item.notes}
-                          </p>
-                        </div>
-                      )}
+                    <div className="mt-3">
+                      <OrderItemCustomizations
+                        customizations={item.customizations}
+                        variant="detailed"
+                      />
                     </div>
                   )}
                 </div>

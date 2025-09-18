@@ -54,8 +54,8 @@ export function useDashboardMetrics(storeSlug: string) {
       staleTime: 2 * 60 * 1000, // 2 minutos
       gcTime: 5 * 60 * 1000, // 5 minutos
       // Otimizações adicionais
-      refetchInterval: 5 * 60 * 1000, // Re-fetch a cada 5 minutos
-      refetchIntervalInBackground: false, // Não re-fetch quando a aba não está ativa
+      // refetchInterval: 5 * 60 * 1000, // Re-fetch a cada 5 minutos
+      // refetchIntervalInBackground: false, // Não re-fetch quando a aba não está ativa
     }
   );
 

@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Order } from '@/types/cardapio-api';
-import { X, Bell } from 'lucide-react';
+import { formatCurrency } from "@/lib/utils/order-utils";
+import { Order } from "@/types/cardapio-api";
+import { Bell, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface NewOrderNotificationProps {
   newOrder?: Order | null;
   onClose: () => void;
 }
 
-export function NewOrderNotification({ newOrder, onClose }: NewOrderNotificationProps) {
+export function NewOrderNotification({
+  newOrder,
+  onClose,
+}: NewOrderNotificationProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (newOrder) {
       setIsVisible(true);
-      
+
       // Auto-hide após 5 segundos
       const timer = setTimeout(() => {
         setIsVisible(false);
@@ -36,14 +40,13 @@ export function NewOrderNotification({ newOrder, onClose }: NewOrderNotification
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">
-                Novo Pedido!
-              </p>
+              <p className="text-sm font-medium text-gray-900">Novo Pedido!</p>
               <p className="text-sm text-gray-600 truncate">
-                {newOrder.customerName} - {newOrder.items?.length || 0} item(s)
+                {newOrder.customer?.name || "Cliente"} -{" "}
+                {newOrder.items?.length || 0} item(s)
               </p>
               <p className="text-xs text-gray-500">
-                R$ {newOrder.total?.toFixed(2) || '0,00'}
+                {formatCurrency(newOrder.total || 0)}
               </p>
             </div>
           </div>

@@ -197,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        stores: response.user.userStores || [],
+        stores: (response.user as any).userStores || [],
         currentStoreSlug: response.user.storeSlug || undefined,
       };
 
@@ -238,7 +238,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        stores: response.user.userStores || [],
+        stores: (response.user as any).userStores || [],
         currentStoreSlug: response.user.storeSlug || undefined,
       };
 
@@ -276,7 +276,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        stores: response.user.userStores || [],
+        stores: (response.user as any).userStores || [],
         currentStoreSlug: response.user.storeSlug || undefined,
       };
 

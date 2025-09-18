@@ -10,7 +10,7 @@ import {
   useStoreStats,
 } from "@/hooks";
 import { OrderStatus, UserRole } from "@/types/cardapio-api";
-import { useState, memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { OrderManagement } from "./OrderManagement";
 import { StoreManagement } from "./StoreManagement";
@@ -383,7 +383,7 @@ const DashboardComponent = ({ storeSlug }: DashboardProps) => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {orders.data.slice(0, 5).map((order) => (
+                      {orders.data.slice(0, 5).map((order: any) => (
                         <tr key={order.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order.orderNumber}

@@ -4,6 +4,7 @@ import { Clock, X } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import { usePublicOrders } from "../../hooks/usePublicOrders";
 import { OrderStatus } from "../../types/cardapio-api";
+import { OrderItemCustomizations } from "../orders/OrderItemCustomizations";
 
 interface OrdersModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const formatPrice = (price: any): string => {
 
 const getStatusText = (status: OrderStatus) => {
   const statusMap: Record<OrderStatus, string> = {
+    [OrderStatus.PENDING]: "Pendente",
     [OrderStatus.RECEIVED]: "Recebido",
     [OrderStatus.CONFIRMED]: "Confirmado",
     [OrderStatus.PREPARING]: "Preparando",
@@ -42,6 +44,7 @@ const getStatusText = (status: OrderStatus) => {
 
 const getStatusColor = (status: OrderStatus) => {
   const colorMap: Record<OrderStatus, string> = {
+    [OrderStatus.PENDING]: "#6b7280",
     [OrderStatus.RECEIVED]: "#f59e0b",
     [OrderStatus.CONFIRMED]: "#3b82f6",
     [OrderStatus.PREPARING]: "#f97316",
@@ -127,16 +130,23 @@ export default function OrdersModal({
 
                     <div className="space-y-2 mb-3">
                       {order.items.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between text-sm"
-                        >
-                          <span className="text-gray-600">
-                            {item.quantity}x {item.name}
-                          </span>
-                          <span className="font-medium">
-                            R$ {formatPrice(item.price * item.quantity)}
-                          </span>
+                        <div key={index} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              {item.quantity}x {item.name}
+                            </span>
+                            <span className="font-medium">
+                              R$ {formatPrice(item.price * item.quantity)}
+                            </span>
+                          </div>
+
+                          {/* Resumo das customizações */}
+                          {item.customizations && (
+                            <OrderItemCustomizations
+                              customizations={item.customizations}
+                              variant="compact"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>

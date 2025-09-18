@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { OrderItemDetails } from "../../../../../components/orders/OrderItemDetails";
 import { useCustomerContext } from "../../../../../contexts/CustomerContext";
 import { useCart } from "../../../../../hooks/useCart";
 import { usePublicOrders } from "../../../../../hooks/usePublicOrders";
@@ -604,29 +605,56 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
               Resumo do Pedido
             </h2>
             <div className="space-y-4">
-              {cart.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between items-start p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="flex-1 pr-4">
-                    <span className="font-semibold text-gray-900 text-black">
-                      {item.quantity}x {item.product.name}
-                    </span>
-                    {item.notes && (
-                      <p className="text-sm text-gray-600 mt-1 italic">
-                        Obs: {item.notes}
-                      </p>
-                    )}
-                  </div>
-                  <span
-                    className="font-bold text-lg"
-                    style={{ color: brandingColors.primary }}
+              {cart.items.map((item) => {
+                // Calcular preço total do item incluindo adicionais
+                let itemTotalPrice = item.product.price * item.quantity;
+
+                if (item.customizations?.selectedAddons) {
+                  Object.entries(item.customizations.selectedAddons).forEach(
+                    ([addonId, addonQuantity]) => {
+                      const addon = item.product.addons?.find(
+                        (a) => a.id === addonId
+                      );
+                      if (addon) {
+                        itemTotalPrice +=
+                          addon.price * addonQuantity * item.quantity;
+                      }
+                    }
+                  );
+                }
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
-                    R$ {formatPrice(item.product.price * item.quantity)}
-                  </span>
-                </div>
-              ))}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 pr-4">
+                        <span className="font-semibold text-gray-900 text-black">
+                          {item.quantity}x {item.product.name}
+                        </span>
+                        {item.notes && (
+                          <p className="text-sm text-gray-600 mt-1 italic">
+                            Obs: {item.notes}
+                          </p>
+                        )}
+                      </div>
+                      <span
+                        className="font-bold text-lg"
+                        style={{ color: brandingColors.primary }}
+                      >
+                        R$ {formatPrice(itemTotalPrice)}
+                      </span>
+                    </div>
+
+                    {/* Detalhes dos adicionais e ingredientes removidos */}
+                    <OrderItemDetails
+                      item={item}
+                      primaryColor={brandingColors.primary}
+                    />
+                  </div>
+                );
+              })}
 
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-gray-700">

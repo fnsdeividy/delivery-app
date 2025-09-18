@@ -199,18 +199,18 @@ export default function AnalyticsPage() {
 
   // Dados para gráfico de vendas por período
   const salesChartData = {
-    labels: metrics.salesByPeriod.map((period) => period.period),
+    labels: metrics.salesByPeriod.map((period: any) => period.period),
     datasets: [
       {
         label: "Receita (R$)",
-        data: metrics.salesByPeriod.map((period) => period.revenue),
+        data: metrics.salesByPeriod.map((period: any) => period.revenue),
         borderColor: "rgb(34, 197, 94)",
         backgroundColor: "rgba(34, 197, 94, 0.1)",
         tension: 0.4,
       },
       {
         label: "Pedidos",
-        data: metrics.salesByPeriod.map((period) => period.orders),
+        data: metrics.salesByPeriod.map((period: any) => period.orders),
         borderColor: "rgb(59, 130, 246)",
         backgroundColor: "rgba(59, 130, 246, 0.1)",
         tension: 0.4,
