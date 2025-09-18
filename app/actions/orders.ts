@@ -28,6 +28,7 @@ export interface UpdateOrderActionData {
   orderId: string;
   status: OrderStatus;
   notes?: string;
+  storeSlug: string;
 }
 
 export async function createOrderAction(data: CreateOrderActionData) {
@@ -67,18 +68,21 @@ export async function createOrderAction(data: CreateOrderActionData) {
 
 export async function updateOrderAction(data: UpdateOrderActionData) {
   try {
-    const order = await apiClientServer.updateOrder(data.orderId, {
-      status: data.status,
-      notes: data.notes,
-    });
+    // Usar endpoint público de atualização de status com storeSlug para garantir persistência
+    const order = await apiClientServer.patch<Order>(
+      `/orders/public/${data.orderId}/status?storeSlug=${encodeURIComponent(
+        data.storeSlug
+      )}`,
+      { status: data.status }
+    );
 
     // Notificar via SSE
     const { notifyOrderUpdate } = await import("@/lib/sse-notifications");
     notifyOrderUpdate(order.storeSlug, data.orderId, order);
 
     // Revalidar cache
-    revalidatePath(`/dashboard/${order.storeSlug}/pedidos`);
-    revalidatePath(`/dashboard/${order.storeSlug}`);
+    revalidatePath(`/dashboard/${data.storeSlug}/pedidos`);
+    revalidatePath(`/dashboard/${data.storeSlug}`);
 
     return { success: true, order };
   } catch (error) {

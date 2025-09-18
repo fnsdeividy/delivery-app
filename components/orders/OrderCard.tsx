@@ -148,7 +148,7 @@ export default function OrderCard({
 
   return (
     <div
-      className={`relative bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 ${
+      className={`relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 hover:shadow-md transition-all duration-200 ${
         isLoading ? "opacity-75 pointer-events-none" : ""
       }`}
     >
@@ -162,34 +162,36 @@ export default function OrderCard({
         </div>
       )}
       {/* Header com status e informações principais */}
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 md:mb-6">
+        <div className="flex items-center space-x-3 md:space-x-4">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <StatusIcon className="h-5 w-5 text-gray-500" />
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${statusInfo.color}`}
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold ${statusInfo.color}`}
               >
                 {statusInfo.label}
               </span>
             </div>
             <div className="flex items-center space-x-1 text-gray-500">
-              <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+              <span className="text-xs md:text-sm font-mono bg-gray-100 px-2 py-1 rounded">
                 #{order.id.slice(-8)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${paymentStatusInfo.color}`}
-          >
-            {paymentStatusInfo.label}
-          </span>
+        <div className="flex items-center space-x-2 md:space-x-3">
+          {order.paymentStatus !== PaymentStatus.PENDING && (
+            <span
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold ${paymentStatusInfo.color}`}
+            >
+              {paymentStatusInfo.label}
+            </span>
+          )}
           <button
             onClick={() => onViewDetails(order)}
-            className="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+            className="px-3 py-1.5 text-xs md:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
           >
             Ver Detalhes
           </button>
@@ -197,29 +199,29 @@ export default function OrderCard({
       </div>
 
       {/* Informações do cliente e entrega */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
           <User className="h-5 w-5 text-gray-600" />
           <div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm md:text-base font-semibold text-gray-900">
               {order.customer?.name || "Cliente"}
             </p>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs md:text-sm text-gray-600">
               {order.customer?.email || "Email não informado"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
           <Phone className="h-5 w-5 text-gray-600" />
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-sm md:text-base font-medium text-gray-900">
             {order.customer?.phone || "Telefone não informado"}
           </span>
         </div>
 
-        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-3 p-2 md:p-3 bg-gray-50 rounded-lg">
           <MapPin className="h-5 w-5 text-gray-600" />
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-sm md:text-base font-medium text-gray-900">
             {getDeliveryTypeLabel(order.type)}
           </span>
         </div>
@@ -227,13 +229,13 @@ export default function OrderCard({
 
       {/* Informações do pedido */}
       <div className="border-t border-gray-200 pt-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3 md:mb-4">
           <div>
             <p className="text-sm text-gray-600 mb-1">
               {order.items?.length || 0} item
               {(order.items?.length || 0) > 1 ? "s" : ""}
             </p>
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-base md:text-lg font-bold text-gray-900">
               {formatCurrency(order.total || 0)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
@@ -274,13 +276,13 @@ export default function OrderCard({
         )}
 
         {/* Botões de Ação */}
-        <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 justify-stretch sm:justify-end">
           {order.status === OrderStatus.RECEIVED && (
             <>
               <button
                 onClick={() => handleConfirmOrder(order.id)}
                 disabled={isActionLoading("confirm")}
-                className="px-5 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
               >
                 {isActionLoading("confirm") ? (
                   <>
@@ -297,7 +299,7 @@ export default function OrderCard({
               <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isActionLoading("cancel")}
-                className="px-5 py-2.5 text-sm bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
               >
                 <XCircle className="h-4 w-4" />
                 <span>Cancelar</span>
@@ -311,7 +313,7 @@ export default function OrderCard({
                 handleStatusUpdate(order.id, OrderStatus.PREPARING)
               }
               disabled={isActionLoading("status-PREPARING")}
-              className="px-5 py-2.5 text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
             >
               {isActionLoading("status-PREPARING") ? (
                 <>
@@ -331,7 +333,7 @@ export default function OrderCard({
             <button
               onClick={() => handleStatusUpdate(order.id, OrderStatus.READY)}
               disabled={isActionLoading("status-READY")}
-              className="px-5 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
             >
               {isActionLoading("status-READY") ? (
                 <>
@@ -348,13 +350,13 @@ export default function OrderCard({
           )}
 
           {order.status === OrderStatus.READY && order.type === "DELIVERY" && (
-            <div className="flex flex-col items-end space-y-2">
+            <div className="flex flex-col items-stretch sm:items-end space-y-2 w-full">
               <button
                 onClick={() =>
                   handleStatusUpdate(order.id, OrderStatus.DELIVERING)
                 }
                 disabled={isActionLoading("status-DELIVERING")}
-                className="px-5 py-2.5 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
               >
                 {isActionLoading("status-DELIVERING") ? (
                   <>
@@ -381,7 +383,7 @@ export default function OrderCard({
                 handleStatusUpdate(order.id, OrderStatus.DELIVERED)
               }
               disabled={isActionLoading("status-DELIVERED")}
-              className="px-5 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
             >
               {isActionLoading("status-DELIVERED") ? (
                 <>
@@ -403,7 +405,7 @@ export default function OrderCard({
                 handleStatusUpdate(order.id, OrderStatus.DELIVERED)
               }
               disabled={isActionLoading("status-DELIVERED")}
-              className="px-5 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 disabled:hover:shadow-sm"
+              className="w-full sm:w-auto px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 disabled:hover:shadow-sm"
             >
               {isActionLoading("status-DELIVERED") ? (
                 <>
