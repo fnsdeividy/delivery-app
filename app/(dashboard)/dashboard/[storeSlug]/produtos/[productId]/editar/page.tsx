@@ -387,6 +387,10 @@ export default function EditarProdutoPage() {
     setAddons((prev) => prev.filter((addon) => addon.id !== id));
   };
 
+  const clearAllAddons = () => {
+    setAddons([]);
+  };
+
   // Funções para gerenciar tags
   const addTag = () => {
     if (!newTag.trim()) return;
@@ -410,38 +414,8 @@ export default function EditarProdutoPage() {
 
   const handleCategoryChange = (categoryId: string) => {
     setFormData((prev) => ({ ...prev, categoryId }));
-
-    // Carregar ingredientes padrão baseado na categoria
-    const category = categories.find((c) => c.id === categoryId);
-    if (category) {
-      const categoryName = category.name.toLowerCase();
-      let defaultIngredients: string[] = [];
-
-      if (categoryName.includes("hamb")) {
-        defaultIngredients = DEFAULT_INGREDIENTS.HAMBURGUER;
-      } else if (categoryName.includes("pizza")) {
-        defaultIngredients = DEFAULT_INGREDIENTS.PIZZA;
-      } else if (
-        categoryName.includes("beb") ||
-        categoryName.includes("drink")
-      ) {
-        defaultIngredients = DEFAULT_INGREDIENTS.BEBIDA;
-      }
-
-      if (defaultIngredients.length > 0) {
-        setIngredients((prev) => {
-          const existingNames = prev.map((ing) => ing.name);
-          const newIngredients = defaultIngredients
-            .filter((name) => !existingNames.includes(name))
-            .map((name) => ({
-              id: `default-${name}`,
-              name,
-              selected: false,
-            }));
-          return [...prev, ...newIngredients];
-        });
-      }
-    }
+    // Na edição, não carregamos ingredientes padrão automaticamente
+    // Os ingredientes devem ser mantidos como estão no produto
   };
 
   const handlePriceChange = (value: string) => {
@@ -933,10 +907,27 @@ export default function EditarProdutoPage() {
                   <h3 className="text-lg font-medium text-gray-900">
                     Adicionais (Extras)
                   </h3>
-                  <Button type="button" variant="outline" onClick={addAddonRow}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar linha
-                  </Button>
+                  <div className="flex gap-2">
+                    {addons.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={clearAllAddons}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Limpar todos
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addAddonRow}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Adicionar linha
+                    </Button>
+                  </div>
                 </div>
 
                 {addons.map((addon, index) => {

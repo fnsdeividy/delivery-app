@@ -599,6 +599,10 @@ export default function NovoProdutoPage() {
     setAddons((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const clearAllAddons = () => {
+    setAddons([]);
+  };
+
   // Limpar formulário
   const clearForm = () => {
     setFormData({
@@ -1322,14 +1326,27 @@ export default function NovoProdutoPage() {
                       <h3 className="text-lg font-medium text-gray-900">
                         Adicionais (Extras)
                       </h3>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={addAddonRow}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Adicionar linha
-                      </Button>
+                      <div className="flex gap-2">
+                        {addons.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={clearAllAddons}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Limpar todos
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addAddonRow}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adicionar linha
+                        </Button>
+                      </div>
                     </div>
 
                     {addons.map((addon, index) => {
@@ -1794,26 +1811,14 @@ export default function NovoProdutoPage() {
                     </Button>
                     <div className="flex gap-4">
                       <Button
-                        type="submit"
-                        disabled={isLoading || !isFormValid}
-                        className={`flex items-center gap-2 transition-colors ${
-                          isFormValid && !isLoading
-                            ? "bg-blue-600 hover:bg-blue-700 text-white"
-                            : "bg-gray-400 cursor-not-allowed text-gray-200"
-                        }`}
-                        aria-label="Salvar e publicar produto"
-                        title={
-                          !isFormValid
-                            ? "Preencha todos os campos obrigatórios"
-                            : "Salvar produto"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(`/dashboard/${slug}/produtos`)
                         }
+                        disabled={isLoading}
                       >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Save className="h-4 w-4" />
-                        )}
-                        {isLoading ? "Publicando..." : "Salvar e Publicar"}
+                        Cancelar
                       </Button>
                     </div>
                   </div>
