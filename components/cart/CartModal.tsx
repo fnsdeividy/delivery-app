@@ -85,16 +85,19 @@ export default function CartModal({
     setIsCheckingOut(true);
 
     try {
-      // Simular um pequeno delay para mostrar o loading
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Simular um delay para mostrar o loading
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Navegar para a página de checkout
       router.push(`/store/${storeSlug}/checkout`);
-      onClose();
+
+      // Aguardar um pouco antes de fechar o modal para garantir que a navegação iniciou
+      setTimeout(() => {
+        onClose();
+      }, 300);
     } catch (error) {
       console.error("Erro ao navegar para checkout:", error);
       showToast("Erro ao redirecionar para checkout", "error");
-    } finally {
       setIsCheckingOut(false);
     }
   };
@@ -107,19 +110,59 @@ export default function CartModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <div className="fixed inset-0 z-[9999] overflow-hidden">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm cart-modal-backdrop"
+        onClick={onClose}
+      />
 
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
+      <div className="absolute inset-x-0 top-0 mx-auto h-full w-full max-w-md bg-white shadow-2xl animate-slide-in-top sm:right-0 sm:left-auto sm:mx-0 cart-modal-mobile">
+        {/* Overlay de loading durante checkout */}
+        {isCheckingOut && (
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center checkout-overlay">
+            <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-xl shadow-lg">
+              <div className="checkout-loading-spinner rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500"></div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 checkout-loading-text">
+                  Redirecionando...
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Aguarde enquanto preparamos seu checkout
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Seu Carrinho</h2>
+          <div className="flex items-center justify-between p-4 border-b bg-gray-50 sticky top-0 z-10 cart-header-sticky">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="cart-back-button rounded-lg flex items-center gap-2 text-gray-700 hover:text-gray-900"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <h2 className="text-xl font-bold text-gray-900">Seu Carrinho</h2>
+            </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="cart-close-button rounded-lg text-red-600 hover:text-red-700"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
 
@@ -142,7 +185,7 @@ export default function CartModal({
                 {cart.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cart-item-mobile"
                   >
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">
@@ -196,11 +239,11 @@ export default function CartModal({
 
           {/* Footer */}
           {cart.items.length > 0 && (
-            <div className="border-t p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">Total:</span>
+            <div className="border-t bg-gray-50 p-4 space-y-4 sticky bottom-0 cart-footer-sticky">
+              <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                <span className="text-xl font-bold text-gray-900">Total:</span>
                 <span
-                  className="text-xl font-bold"
+                  className="text-2xl font-bold"
                   style={{ color: primaryColor }}
                 >
                   R$ {formatPrice(cart.total)}
@@ -223,13 +266,23 @@ export default function CartModal({
                   data-testid="checkout-button"
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
-                  className="w-full py-3 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{ backgroundColor: primaryColor }}
+                  className={`w-full py-4 text-white rounded-xl font-semibold text-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] checkout-button-mobile relative overflow-hidden ${
+                    isCheckingOut ? "checkout-loading" : ""
+                  }`}
+                  style={{
+                    backgroundColor: isCheckingOut ? "#9ca3af" : primaryColor,
+                    boxShadow: isCheckingOut
+                      ? "0 4px 20px rgba(156, 163, 175, 0.4)"
+                      : `0 4px 20px ${primaryColor}40`,
+                  }}
                 >
+                  {isCheckingOut && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                  )}
                   {isCheckingOut ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Redirecionando...
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span className="animate-pulse">Redirecionando...</span>
                     </>
                   ) : !isLoggedIn ? (
                     <>

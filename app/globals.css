@@ -794,3 +794,276 @@ input[type="number"] {
 .snap-start {
   scroll-snap-align: start;
 }
+
+/* ========================================
+   🛒 CART MODAL MOBILE IMPROVEMENTS
+======================================== */
+
+/* Animação de entrada do modal */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Melhorar visibilidade do modal em mobile */
+@media (max-width: 640px) {
+  .cart-modal-mobile {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .cart-modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+}
+
+/* Melhorar botão de checkout */
+.checkout-button-mobile {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkout-button-mobile::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.checkout-button-mobile:hover::before {
+  left: 100%;
+}
+
+.checkout-button-mobile:active {
+  transform: scale(0.98);
+}
+
+/* Melhorar visibilidade dos itens do carrinho */
+.cart-item-mobile {
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.cart-item-mobile:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Melhorar header sticky */
+.cart-header-sticky {
+  backdrop-filter: blur(8px);
+  background-color: rgba(249, 250, 251, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Melhorar footer sticky */
+.cart-footer-sticky {
+  backdrop-filter: blur(8px);
+  background-color: rgba(249, 250, 251, 0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Melhorar botões de voltar no mobile */
+.cart-back-button {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.cart-back-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.cart-back-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cart-close-button {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  transition: all 0.2s ease;
+}
+
+.cart-close-button:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: scale(1.05);
+}
+
+.cart-close-button:active {
+  transform: scale(0.95);
+}
+
+/* Garantir que os botões sejam visíveis em mobile */
+@media (max-width: 640px) {
+  .cart-back-button {
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .cart-close-button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .cart-back-button svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cart-close-button svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Botão flutuante específico para mobile */
+  .cart-back-button.rounded-full {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(8px);
+  }
+
+  .cart-back-button.rounded-full:hover {
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .cart-back-button.rounded-full:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ========================================
+   🔄 CHECKOUT LOADING IMPROVEMENTS
+======================================== */
+
+/* Animação de loading melhorada */
+@keyframes spin-smooth {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer-loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Botão de checkout com loading */
+.checkout-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer-loading 1.5s infinite;
+}
+
+/* Overlay de loading do modal */
+.checkout-overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.checkout-loading-spinner {
+  animation: spin-smooth 1s linear infinite;
+}
+
+.checkout-loading-text {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+/* Melhorar visibilidade do loading em mobile */
+@media (max-width: 640px) {
+  .checkout-loading-spinner {
+    width: 48px;
+    height: 48px;
+    border-width: 4px;
+  }
+
+  .checkout-loading-text {
+    font-size: 16px;
+    font-weight: 600;
+  }
+}

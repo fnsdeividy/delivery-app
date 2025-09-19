@@ -605,19 +605,19 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-10">
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-105"
+              className="p-2 sm:p-3 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-700" />
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700" />
             </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                 Finalizar Pedido
               </h1>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-xs sm:text-sm text-gray-600 font-medium truncate">
                 {config?.store?.name}
               </p>
             </div>
@@ -625,18 +625,21 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
-        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 md:space-y-8">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-6 md:space-y-8"
+        >
           {/* Resumo do Pedido */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-            <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 flex items-center gap-2">
               <div
-                className="w-2 h-2 rounded-full"
+                className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: brandingColors.primary }}
               ></div>
               Resumo do Pedido
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {cart.items.map((item) => {
                 // Calcular preço total do item incluindo adicionais
                 let itemTotalPrice = item.product.price * item.quantity;
@@ -658,21 +661,21 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 return (
                   <div
                     key={item.id}
-                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                    className="p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 pr-4">
-                        <span className="font-semibold text-gray-900 text-black">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-gray-900 text-black text-sm sm:text-base">
                           {item.quantity}x {item.product.name}
                         </span>
                         {item.notes && (
-                          <p className="text-sm text-gray-600 mt-1 italic">
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1 italic">
                             Obs: {item.notes}
                           </p>
                         )}
                       </div>
                       <span
-                        className="font-bold text-lg"
+                        className="font-bold text-base sm:text-lg flex-shrink-0"
                         style={{ color: brandingColors.primary }}
                       >
                         R$ {formatPrice(itemTotalPrice)}
@@ -688,20 +691,20 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 );
               })}
 
-              <div className="border-t border-gray-200 pt-4 space-y-3">
-                <div className="flex justify-between text-gray-700">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4 space-y-2 sm:space-y-3">
+                <div className="flex justify-between text-gray-700 text-sm sm:text-base">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-semibold">
                     R$ {formatPrice(cart.total)}
                   </span>
                 </div>
                 {formData.orderType === OrderType.DELIVERY && (
-                  <div className="flex justify-between text-gray-700">
+                  <div className="flex justify-between text-gray-700 text-sm sm:text-base">
                     <span className="font-medium">
                       Taxa de entrega
                       {freeDeliveryThreshold &&
                         cart.total >= freeDeliveryThreshold && (
-                          <span className="ml-2 text-green-600 text-sm font-bold">
+                          <span className="ml-1 sm:ml-2 text-green-600 text-xs sm:text-sm font-bold">
                             (GRÁTIS!)
                           </span>
                         )}
@@ -720,22 +723,22 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 {freeDeliveryThreshold &&
                   cart.total < freeDeliveryThreshold &&
                   formData.orderType === OrderType.DELIVERY && (
-                    <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                    <div className="text-xs sm:text-sm text-gray-600 bg-blue-50 p-2 sm:p-3 rounded">
                       💡 Faltam R${" "}
                       {formatPrice(freeDeliveryThreshold - cart.total)} para
                       entrega grátis!
                     </div>
                   )}
                 {minimumOrder > 0 && cart.total < minimumOrder && (
-                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                  <div className="text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded border border-red-200">
                     ⚠️ Pedido mínimo: R$ {formatPrice(minimumOrder)}. Faltam R${" "}
                     {formatPrice(minimumOrder - cart.total)}
                   </div>
                 )}
-                <div className="flex justify-between text-xl font-bold border-t border-gray-300 pt-3 bg-gray-50 -mx-3 px-3 py-2 rounded-lg">
+                <div className="flex justify-between text-lg sm:text-xl font-bold border-t border-gray-300 pt-3 bg-gray-50 -mx-2 sm:-mx-3 px-2 sm:px-3 py-2 rounded-lg">
                   <span className="text-gray-900">Total</span>
                   <span
-                    className="text-2xl"
+                    className="text-xl sm:text-2xl"
                     style={{ color: brandingColors.primary }}
                   >
                     R$ {formatPrice(total)}
@@ -746,15 +749,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           </div>
 
           {/* Tipo de Pedido */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-            <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 flex items-center gap-2">
               <Clock
-                className="h-6 w-6"
+                className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
                 style={{ color: brandingColors.primary }}
               />
               Tipo de Pedido
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Layout horizontal para mobile, vertical para desktop */}
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-3">
               <label className="cursor-pointer">
                 <input
                   type="radio"
@@ -770,10 +774,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   className="sr-only"
                 />
                 <div
-                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
+                  className={`flex items-center gap-3 p-3 sm:p-4 border-2 rounded-lg transition-all duration-300 hover:scale-105 min-h-[48px] ${
                     formData.orderType === OrderType.DELIVERY
-                      ? "shadow-lg transform scale-105"
-                      : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                      ? "shadow-md transform scale-105"
+                      : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                   }`}
                   style={{
                     borderColor:
@@ -787,7 +791,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   }}
                 >
                   <MapPin
-                    className="h-8 w-8 mx-auto mb-3"
+                    className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0"
                     style={{
                       color:
                         formData.orderType === OrderType.DELIVERY
@@ -795,17 +799,21 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                           : "#6b7280",
                     }}
                   />
-                  <span className="font-bold text-lg text-gray-900">
-                    Entrega
-                  </span>
-                  <p className="text-sm text-gray-600 mt-1 font-medium">
-                    {freeDeliveryThreshold &&
-                    cart.total >= freeDeliveryThreshold ? (
-                      <span className="text-green-600 font-bold">Grátis!</span>
-                    ) : (
-                      `R$ ${formatPrice(configuredDeliveryFee)}`
-                    )}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-sm sm:text-base text-gray-900 block">
+                      Entrega
+                    </span>
+                    <p className="text-xs text-gray-600 font-medium">
+                      {freeDeliveryThreshold &&
+                      cart.total >= freeDeliveryThreshold ? (
+                        <span className="text-green-600 font-bold">
+                          Grátis!
+                        </span>
+                      ) : (
+                        `R$ ${formatPrice(configuredDeliveryFee)}`
+                      )}
+                    </p>
+                  </div>
                 </div>
               </label>
 
@@ -824,10 +832,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   className="sr-only"
                 />
                 <div
-                  className={`p-6 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
+                  className={`flex items-center gap-3 p-3 sm:p-4 border-2 rounded-lg transition-all duration-300 hover:scale-105 min-h-[48px] ${
                     formData.orderType === OrderType.PICKUP
-                      ? "shadow-lg transform scale-105"
-                      : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                      ? "shadow-md transform scale-105"
+                      : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                   }`}
                   style={{
                     borderColor:
@@ -841,7 +849,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   }}
                 >
                   <Clock
-                    className="h-8 w-8 mx-auto mb-3"
+                    className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0"
                     style={{
                       color:
                         formData.orderType === OrderType.PICKUP
@@ -849,29 +857,29 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                           : "#6b7280",
                     }}
                   />
-                  <span className="font-bold text-lg text-gray-900">
-                    Retirada
-                  </span>
-                  <p className="text-sm text-gray-600 mt-1 font-medium">
-                    Grátis
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-bold text-sm sm:text-base text-gray-900 block">
+                      Retirada
+                    </span>
+                    <p className="text-xs text-gray-600 font-medium">Grátis</p>
+                  </div>
                 </div>
               </label>
             </div>
           </div>
 
           {/* Dados do Cliente */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-            <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 flex items-center gap-2">
               <User
-                className="h-6 w-6"
+                className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
                 style={{ color: brandingColors.primary }}
               />
               Seus Dados
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div id="customerName">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                   Nome completo *
                 </label>
                 <input
@@ -886,7 +894,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     }))
                   }
                   onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                  className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                     formErrors.customerName
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -899,15 +907,15 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   placeholder="Seu nome completo"
                 />
                 {formErrors.customerName && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                    <WarningCircle size={14} />
+                  <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                    <WarningCircle size={12} className="sm:w-3.5 sm:h-3.5" />
                     {formErrors.customerName}
                   </p>
                 )}
               </div>
 
               <div id="customerPhone">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                   WhatsApp *
                 </label>
                 <input
@@ -923,7 +931,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     }));
                   }}
                   onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                  className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                     formErrors.customerPhone
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -937,15 +945,15 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   maxLength={15}
                 />
                 {formErrors.customerPhone && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                    <WarningCircle size={14} />
+                  <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                    <WarningCircle size={12} className="sm:w-3.5 sm:h-3.5" />
                     {formErrors.customerPhone}
                   </p>
                 )}
               </div>
 
               <div className="sm:col-span-2" id="customerEmail">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                   Email
                 </label>
                 <input
@@ -959,7 +967,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     }))
                   }
                   onBlur={() => validateForm()}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                  className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                     formErrors.customerEmail
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -972,8 +980,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   placeholder="seu@email.com"
                 />
                 {formErrors.customerEmail && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                    <WarningCircle size={14} />
+                  <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                    <WarningCircle size={12} className="sm:w-3.5 sm:h-3.5" />
                     {formErrors.customerEmail}
                   </p>
                 )}
@@ -983,10 +991,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
           {/* Endereço de Entrega (apenas para delivery) */}
           {formData.orderType === OrderType.DELIVERY && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-              <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 flex items-center gap-2">
                 <MapPin
-                  className="h-6 w-6"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
                   style={{ color: brandingColors.primary }}
                 />
                 Endereço de Entrega
@@ -1091,9 +1099,9 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <div id="deliveryNumber">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                       Número *
                     </label>
                     <input
@@ -1107,7 +1115,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                      className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                         formErrors.deliveryNumber
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -1120,14 +1128,17 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       placeholder="123"
                     />
                     {formErrors.deliveryNumber && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                        <WarningCircle size={14} />
+                      <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                        <WarningCircle
+                          size={12}
+                          className="sm:w-3.5 sm:h-3.5"
+                        />
                         {formErrors.deliveryNumber}
                       </p>
                     )}
                   </div>
                   <div id="deliveryNeighborhood">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                       Bairro *
                     </label>
                     <input
@@ -1141,7 +1152,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                      className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                         formErrors.deliveryNeighborhood
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -1154,15 +1165,21 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       placeholder="Nome do bairro"
                     />
                     {formErrors.deliveryNeighborhood && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                        <WarningCircle size={14} />
+                      <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                        <WarningCircle
+                          size={12}
+                          className="sm:w-3.5 sm:h-3.5"
+                        />
                         {formErrors.deliveryNeighborhood}
                       </p>
                     )}
                   </div>
 
-                  <div id="deliveryCity">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <div
+                    id="deliveryCity"
+                    className="sm:col-span-2 lg:col-span-1"
+                  >
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                       Cidade *
                     </label>
                     <input
@@ -1176,7 +1193,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         }))
                       }
                       onBlur={() => validateForm()}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black ${
+                      className={`w-full px-3 sm:px-4 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
                         formErrors.deliveryCity
                           ? "border-red-500 bg-red-50"
                           : "border-gray-300 hover:border-gray-400 focus:bg-white"
@@ -1189,8 +1206,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       placeholder="Nome da cidade"
                     />
                     {formErrors.deliveryCity && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                        <WarningCircle size={14} />
+                      <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                        <WarningCircle
+                          size={12}
+                          className="sm:w-3.5 sm:h-3.5"
+                        />
                         {formErrors.deliveryCity}
                       </p>
                     )}
@@ -1224,15 +1244,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           )}
 
           {/* Forma de Pagamento */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-            <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 flex items-center gap-2">
               <CreditCard
-                className="h-6 w-6"
+                className="h-4 w-4 sm:h-5 sm:w-5"
                 style={{ color: brandingColors.primary }}
               />
               Forma de Pagamento
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Layout compacto: 2 colunas em mobile, 3 colunas em desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {enabledPaymentMethods.map((method: PaymentMethod) => (
                 <label key={method.id} className="cursor-pointer">
                   <input
@@ -1249,10 +1270,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                     className="sr-only"
                   />
                   <div
-                    className={`p-4 border-2 rounded-xl text-center transition-all duration-300 hover:scale-105 ${
+                    className={`p-2 sm:p-3 md:p-4 border-2 rounded-lg text-center transition-all duration-300 hover:scale-105 min-h-[48px] flex flex-col items-center justify-center ${
                       formData.paymentMethod === method.id
-                        ? "shadow-lg transform scale-105"
-                        : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                        ? "shadow-md transform scale-105"
+                        : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                     }`}
                     style={{
                       borderColor:
@@ -1265,12 +1286,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                           : undefined,
                     }}
                   >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-2xl">{method.icon}</span>
-                      <span className="font-bold text-black text-gray-900">
-                        {method.name}
-                      </span>
-                    </div>
+                    <span className="text-base sm:text-lg md:text-xl mb-1">
+                      {method.icon}
+                    </span>
+                    <span className="font-bold text-xs sm:text-sm text-gray-900 leading-tight">
+                      {method.name}
+                    </span>
                   </div>
                 </label>
               ))}
@@ -1278,8 +1299,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           </div>
 
           {/* Observações */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
-            <h2 className="text-xl font-bold mb-6 text-gray-900">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900">
               Observações
             </h2>
             <textarea
@@ -1302,24 +1323,30 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           </div>
 
           {/* Botão Finalizar */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300">
             <button
               type="submit"
               disabled={isSubmitting || !isLoggedIn}
-              className="w-full py-4 text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
+              className="w-full py-4 sm:py-5 text-white rounded-xl font-bold text-base sm:text-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100 min-h-[56px]"
               style={{
                 backgroundColor: brandingColors.primary,
               }}
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                  Finalizando pedido...
+                  <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-white mr-2 sm:mr-3"></div>
+                  <span className="text-sm sm:text-base">
+                    Finalizando pedido...
+                  </span>
                 </>
               ) : !isLoggedIn ? (
-                "Faça login para continuar"
+                <span className="text-sm sm:text-base">
+                  Faça login para continuar
+                </span>
               ) : (
-                `Finalizar Pedido - R$ ${formatPrice(total)}`
+                <span className="text-sm sm:text-base">
+                  Finalizar Pedido - R$ {formatPrice(total)}
+                </span>
               )}
             </button>
 
