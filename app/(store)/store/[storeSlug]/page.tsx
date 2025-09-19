@@ -24,6 +24,7 @@ import SearchModal from "../../../../components/SearchModal";
 import { useCustomerContext } from "../../../../contexts/CustomerContext";
 import { useCart } from "../../../../hooks/useCart";
 import { useStoreConfig } from "../../../../lib/store/useStoreConfig";
+import "../../../../styles/header-responsive.css";
 import { Product } from "../../../../types/cardapio-api";
 
 interface PageProps {
@@ -397,24 +398,33 @@ function StorePageContent({ params }: PageProps) {
 
               {isLoggedIn && customer ? (
                 <div
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-1 sm:space-x-2"
                   style={{ color: primary }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Olá, ${customer.name || customer.phone}`}
+                  title={`Olá, ${customer.name || customer.phone}`}
                 >
-                  <User className="h-5 w-5 lg:h-6 lg:w-6" />
-                  <span className="hidden sm:block text-sm lg:text-base font-medium truncate max-w-[120px] lg:max-w-[160px]">
+                  <User className="h-5 w-5 lg:h-6 lg:w-6 flex-shrink-0" />
+                  <span
+                    className="user-badge__name--truncated text-xs sm:text-sm lg:text-base font-medium"
+                    title={customer.name || customer.phone}
+                    aria-hidden="false"
+                  >
                     Olá, {customer.name || customer.phone}
                   </span>
                 </div>
               ) : (
                 <button
                   onClick={() => setIsPhoneLoginModalOpen(true)}
-                  className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+                  className="flex items-center space-x-1 sm:space-x-2 hover:opacity-75 transition-opacity"
                   style={{ color: primary }}
+                  aria-label="Fazer Login"
                   title="Fazer Login"
                 >
-                  <User className="h-5 w-5 lg:h-6 lg:w-6" />
-                  <span className="hidden sm:block text-sm lg:text-base font-medium">
-                    Login
+                  <User className="h-5 w-5 lg:h-6 lg:w-6 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm lg:text-base font-medium">
+                    Entrar
                   </span>
                 </button>
               )}
@@ -425,16 +435,20 @@ function StorePageContent({ params }: PageProps) {
 
       {/* Categorias */}
       <section className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div
-            className="flex items-center gap-3 sm:gap-4 lg:gap-6 py-4 sm:py-5 lg:py-6 overflow-x-auto scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="flex items-center gap-2 sm:gap-3 lg:gap-4 py-3 sm:py-4 lg:py-5 overflow-x-auto scrollbar-hide scroll-smooth"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              scrollSnapType: "x mandatory",
+            }}
           >
             <button
               onClick={() => setSelectedCategory("todos")}
-              className={`flex items-center space-x-2 px-4 sm:px-5 lg:px-6 py-2 sm:py-3 lg:py-4 rounded-lg whitespace-nowrap transition-all duration-300 ${
+              className={`flex items-center space-x-1.5 px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 rounded-lg whitespace-nowrap transition-all duration-300 flex-shrink-0 scroll-snap-align-start ${
                 selectedCategory === "todos"
-                  ? "text-white shadow-md"
+                  ? "text-white shadow-lg"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
               }`}
               style={{
@@ -442,10 +456,8 @@ function StorePageContent({ params }: PageProps) {
                   selectedCategory === "todos" ? primary : undefined,
               }}
             >
-              <span className="font-medium text-sm sm:text-base lg:text-lg">
-                Todos
-              </span>
-              <span className="text-xs sm:text-sm lg:text-base opacity-75">
+              <span className="font-medium text-sm sm:text-base">Todos</span>
+              <span className="text-xs sm:text-sm opacity-75">
                 (
                 {config?.menu?.products?.filter((p: any) => p.active).length ||
                   0}
@@ -467,9 +479,9 @@ function StorePageContent({ params }: PageProps) {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center space-x-2 px-4 sm:px-5 lg:px-6 py-2 sm:py-3 lg:py-4 rounded-lg whitespace-nowrap transition-all duration-300 ${
+                    className={`flex items-center space-x-1.5 px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-3 rounded-lg whitespace-nowrap transition-all duration-300 flex-shrink-0 scroll-snap-align-start ${
                       selectedCategory === category.name
-                        ? "text-white shadow-md"
+                        ? "text-white shadow-lg"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
                     }`}
                     style={{
@@ -479,10 +491,10 @@ function StorePageContent({ params }: PageProps) {
                           : undefined,
                     }}
                   >
-                    <span className="font-medium text-sm sm:text-base lg:text-lg">
+                    <span className="font-medium text-sm sm:text-base">
                       {category.name}
                     </span>
-                    <span className="text-xs sm:text-sm lg:text-base opacity-75">
+                    <span className="text-xs sm:text-sm opacity-75">
                       ({count})
                     </span>
                   </button>
@@ -494,19 +506,19 @@ function StorePageContent({ params }: PageProps) {
 
       {/* Banner */}
       {config?.branding?.banner && (
-        <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden">
+        <div className="relative h-32 sm:h-40 md:h-48 lg:h-56 xl:h-64 overflow-hidden">
           <img
             src={normalizeImageUrl(config.branding.banner)}
             alt={config.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 flex items-center justify-center p-4">
             <div className="text-center text-white max-w-4xl">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 lg:mb-4">
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 sm:mb-2 lg:mb-3">
                 {config.name}
               </h2>
               {!!config.description && (
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed">
                   {config.description}
                 </p>
               )}
@@ -540,7 +552,7 @@ function StorePageContent({ params }: PageProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
               {filteredProducts.map((product: any) => {
                 const isSoldOut =
                   product?.stock === 0 ||
@@ -551,10 +563,10 @@ function StorePageContent({ params }: PageProps) {
                   <article
                     key={product.id}
                     data-testid="product-card"
-                    className="bg-white rounded-lg sm:rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full min-h-[280px] sm:min-h-[350px] lg:min-h-[420px]"
+                    className="bg-white rounded-lg sm:rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full min-h-[240px] sm:min-h-[280px] lg:min-h-[320px]"
                   >
                     {/* Imagem no topo - altura fixa e aspect ratio consistente */}
-                    <div className="relative w-full h-32 sm:h-40 lg:h-48 bg-gray-100 flex-shrink-0">
+                    <div className="relative w-full h-28 sm:h-32 lg:h-36 bg-gray-100 flex-shrink-0">
                       {product.image ? (
                         <img
                           src={product.image}
@@ -590,34 +602,34 @@ function StorePageContent({ params }: PageProps) {
                     </div>
 
                     {/* Conteúdo - flex-grow para ocupar espaço restante */}
-                    <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-grow">
+                    <div className="p-2 sm:p-3 lg:p-4 flex flex-col flex-grow">
                       {/* Título com altura fixa */}
                       <h3
                         data-testid="product-name"
-                        className="text-sm sm:text-base lg:text-xl font-semibold text-gray-900 line-clamp-2 h-10 sm:h-12 lg:h-16 flex items-start"
+                        className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 line-clamp-2 h-8 sm:h-10 lg:h-12 flex items-start leading-tight"
                       >
                         {product.name}
                       </h3>
 
                       {/* Descrição com altura fixa */}
-                      <div className="h-8 sm:h-10 lg:h-14 mt-1 mb-2">
+                      <div className="h-6 sm:h-8 lg:h-10 mt-1 mb-2">
                         {(product?.subtitle || product?.description) && (
-                          <p className="text-xs sm:text-sm lg:text-lg text-gray-600 line-clamp-2">
+                          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-tight">
                             {product?.subtitle || product?.description}
                           </p>
                         )}
                       </div>
 
                       {/* Seção inferior - preço e botão */}
-                      <div className="mt-auto flex flex-col gap-2">
+                      <div className="mt-auto flex flex-col gap-1.5 sm:gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900">
+                          <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
                             R$ {formatPrice(product.price)}
                           </span>
 
                           {product?.preparationTime && (
-                            <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 flex-shrink-0">
-                              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                              <Clock className="h-3 w-3" />
                               {product.preparationTime}min
                             </span>
                           )}
@@ -627,7 +639,7 @@ function StorePageContent({ params }: PageProps) {
                           data-testid="add-to-cart"
                           onClick={() => handleAddToCart(product)}
                           disabled={!isOpen || isSoldOut}
-                          className="w-full px-3 py-2 sm:py-3 lg:py-5 text-white rounded-md sm:rounded-lg text-xs sm:text-sm lg:text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all duration-300 hover:scale-105"
+                          className="w-full px-2 py-2 sm:py-2.5 lg:py-3 text-white rounded-md text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center justify-center min-h-[36px]"
                           style={{
                             backgroundColor:
                               !isOpen || isSoldOut ? "#9ca3af" : primary,
@@ -650,10 +662,10 @@ function StorePageContent({ params }: PageProps) {
       </main>
 
       {/* Menu inferior Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-[60] md:hidden backdrop-blur-sm bg-white/95">
-        <div className="flex items-center justify-around px-2 py-1 safe-area-inset-bottom">
-          <button className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg">
-            <House className="h-6 w-6 mb-1" style={{ color: primary }} />
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-[60] md:hidden backdrop-blur-sm bg-white/95">
+        <div className="flex items-center justify-around px-1 py-1 safe-area-inset-bottom">
+          <button className="flex flex-col items-center py-2 px-1 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg">
+            <House className="h-5 w-5 mb-1" style={{ color: primary }} />
             <span
               className="text-xs font-medium leading-none"
               style={{ color: primary }}
@@ -664,9 +676,9 @@ function StorePageContent({ params }: PageProps) {
 
           <button
             onClick={() => setIsOrdersModalOpen(true)}
-            className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg"
+            className="flex flex-col items-center py-2 px-1 min-w-0 flex-1 transition-colors hover:bg-gray-50 rounded-lg"
           >
-            <Receipt className="h-6 w-6 mb-1 text-gray-500" />
+            <Receipt className="h-5 w-5 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500 leading-none">
               Pedidos
             </span>
@@ -675,16 +687,16 @@ function StorePageContent({ params }: PageProps) {
           <button
             data-testid="cart-button"
             onClick={() => setIsCartModalOpen(true)}
-            className="flex flex-col items-center py-3 px-2 min-w-0 flex-1 relative transition-colors hover:bg-gray-50 rounded-lg"
+            className="flex flex-col items-center py-2 px-1 min-w-0 flex-1 relative transition-colors hover:bg-gray-50 rounded-lg"
           >
-            <ShoppingCart className="h-6 w-6 mb-1 text-gray-500" />
+            <ShoppingCart className="h-5 w-5 mb-1 text-gray-500" />
             <span className="text-xs font-medium text-gray-500 leading-none">
               Carrinho
             </span>
             {cart.itemCount > 0 && (
               <span
                 data-testid="cart-count"
-                className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center text-xs font-bold text-white rounded-full shadow-md"
+                className="absolute -top-1 -right-1 min-w-[18px] h-4.5 flex items-center justify-center text-xs font-bold text-white rounded-full shadow-lg"
                 style={{ backgroundColor: primary }}
               >
                 {cart.itemCount > 99 ? "99+" : cart.itemCount}
