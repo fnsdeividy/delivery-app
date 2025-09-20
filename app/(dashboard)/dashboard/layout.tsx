@@ -15,10 +15,12 @@ import {
 } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { LoadingContent } from "../../../components/GlobalLoading";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import { useAuthContext } from "../../../contexts/AuthContext";
 import { useStores } from "../../../hooks";
+import { useDashboardRouteLoading } from "../../../hooks/useRouteLoading";
 import { useStoreConfig } from "../../../lib/store/useStoreConfig";
 import "./dashboard.css";
 
@@ -50,6 +52,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthContext();
+  const { navigateWithLoading, isLoading: isRouteLoading } =
+    useDashboardRouteLoading();
 
   // =========================
   // 1) DERIVAÇÃO DE CONTEXTO
@@ -295,13 +299,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {navigation.length > 0 ? (
               navigation.map((item) => (
                 <div key={item.name}>
-                  <a
-                    href={item.href}
-                    className={`dashboard-nav-button group flex items-center px-3 py-3 text-sm font-medium ${
+                  <button
+                    onClick={() => navigateWithLoading(item.href)}
+                    disabled={isRouteLoading}
+                    className={`dashboard-nav-button group flex items-center px-3 py-3 text-sm font-medium w-full text-left ${
                       item.current
                         ? "active"
                         : "text-gray-700 hover:text-gray-900"
-                    }`}
+                    } ${isRouteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <item.icon
                       className={`mr-3 h-5 w-5 ${
@@ -311,19 +316,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       }`}
                     />
                     {item.name}
-                  </a>
+                  </button>
 
                   {/* Submenu */}
                   {item.children && item.current && (
                     <div className="ml-6 mt-1 space-y-1">
                       {item.children.map((child) => (
-                        <a
+                        <button
                           key={child.name}
-                          href={child.href}
-                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          onClick={() => navigateWithLoading(child.href)}
+                          disabled={isRouteLoading}
+                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors w-full text-left ${
                             child.current
                               ? "bg-purple-50 text-purple-700"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          } ${
+                            isRouteLoading
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
                           }`}
                         >
                           <child.icon
@@ -334,7 +344,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             }`}
                           />
                           {child.name}
-                        </a>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -447,7 +457,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Page content */}
         <main className="dashboard-main-content">
           <div className="dashboard-content-wrapper">
-            <div className="dashboard-container">{children}</div>
+            <LoadingContent className="dashboard-container">
+              {children}
+            </LoadingContent>
           </div>
         </main>
       </div>
