@@ -1,7 +1,7 @@
 "use server";
 
 import { apiClientServer } from "@/lib/api-client-server";
-import { OrderStatus, OrderType, PaymentStatus } from "@/types/cardapio-api";
+import { Order, OrderStatus, OrderType, PaymentStatus } from "@/types/cardapio-api";
 import { revalidatePath } from "next/cache";
 
 export interface CreateOrderActionData {
