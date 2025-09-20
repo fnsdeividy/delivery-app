@@ -78,27 +78,39 @@ class ApiClientServer {
   // ==== TOKEN ==== //
   private async getAuthToken(): Promise<string | null> {
     try {
-      const cookieStore = await cookies();
-      const token = cookieStore.get("cardapio_token")?.value;
-
-      if (token) {
-        // Verificar se o token é válido
+      // Verificar se estamos em um contexto de servidor e se cookies está disponível
+      if (typeof window === "undefined") {
         try {
-          const parts = token.split(".");
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            const now = Math.floor(Date.now() / 1000);
+          const cookieStore = await cookies();
+          const token = cookieStore.get("cardapio_token")?.value;
 
-            // Se o token expirou, retornar null
-            if (payload.exp && payload.exp <= now) {
-              console.warn("Token expirado detectado no servidor");
+          if (token) {
+            // Verificar se o token é válido
+            try {
+              const parts = token.split(".");
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1]));
+                const now = Math.floor(Date.now() / 1000);
+
+                // Se o token expirou, retornar null
+                if (payload.exp && payload.exp <= now) {
+                  console.warn("Token expirado detectado no servidor");
+                  return null;
+                }
+
+                return token;
+              }
+            } catch (error) {
+              console.warn("Token inválido detectado no servidor:", error);
               return null;
             }
-
-            return token;
           }
-        } catch (error) {
-          console.warn("Token inválido detectado no servidor:", error);
+        } catch (cookieError) {
+          // Se houver erro ao acessar cookies (contexto estático), retornar null silenciosamente
+          console.warn(
+            "Cookies não disponíveis no contexto atual:",
+            cookieError
+          );
           return null;
         }
       }
