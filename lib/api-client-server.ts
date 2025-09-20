@@ -8,7 +8,6 @@ import {
   UpdateOrderDto,
 } from "@/types/cardapio-api";
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
-import { cookies } from "next/headers";
 import { apiConfig } from "./config";
 
 // ==== TYPES DE ERRO ==== //
@@ -78,9 +77,11 @@ class ApiClientServer {
   // ==== TOKEN ==== //
   private async getAuthToken(): Promise<string | null> {
     try {
-      // Verificar se estamos em um contexto de servidor e se cookies está disponível
+      // Verificar se estamos em um contexto de servidor
       if (typeof window === "undefined") {
         try {
+          // Usar dynamic import para evitar problemas de contexto estático
+          const { cookies } = await import("next/headers");
           const cookieStore = await cookies();
           const token = cookieStore.get("cardapio_token")?.value;
 

@@ -2,13 +2,13 @@
 
 import { Order, OrderStatus } from "@/types/cardapio-api";
 import {
-  CheckCircle,
-  Clock,
-  CookingPot,
-  SpeakerHigh,
-  SpeakerX,
-  Truck,
-  X,
+    CheckCircle,
+    Clock,
+    CookingPot,
+    SpeakerHigh,
+    SpeakerX,
+    Truck,
+    X,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
@@ -21,6 +21,7 @@ interface RealTimeNotificationProps {
 }
 
 const statusIcons = {
+  [OrderStatus.PENDING]: Clock,
   [OrderStatus.RECEIVED]: Clock,
   [OrderStatus.CONFIRMED]: CheckCircle,
   [OrderStatus.PREPARING]: CookingPot,
@@ -31,6 +32,7 @@ const statusIcons = {
 };
 
 const statusColors = {
+  [OrderStatus.PENDING]: "text-yellow-600 bg-yellow-50",
   [OrderStatus.RECEIVED]: "text-blue-600 bg-blue-50",
   [OrderStatus.CONFIRMED]: "text-green-600 bg-green-50",
   [OrderStatus.PREPARING]: "text-orange-600 bg-orange-50",
@@ -41,6 +43,7 @@ const statusColors = {
 };
 
 const statusMessages = {
+  [OrderStatus.PENDING]: "Pedido pendente!",
   [OrderStatus.RECEIVED]: "Novo pedido recebido!",
   [OrderStatus.CONFIRMED]: "Pedido confirmado!",
   [OrderStatus.PREPARING]: "Pedido em preparo!",

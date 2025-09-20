@@ -29,7 +29,7 @@ export function useDashboardUpdateOrderStatus() {
       id: string;
       status: OrderStatus;
       storeSlug: string;
-    }) => apiClient.updateDashboardOrderStatus(id, status, storeSlug),
+    }) => apiClient.updateOrder(id, { status }),
     onSuccess: (_, { id, storeSlug }) => {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
       queryClient.invalidateQueries({ queryKey: ["orders", storeSlug] });
@@ -44,7 +44,7 @@ export function useConfirmOrder() {
 
   return useMutation({
     mutationFn: ({ id, storeSlug }: { id: string; storeSlug: string }) =>
-      apiClient.confirmOrder(id, storeSlug),
+      apiClient.updateOrder(id, { status: OrderStatus.CONFIRMED }),
     onSuccess: (_, { id, storeSlug }) => {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
       queryClient.invalidateQueries({ queryKey: ["orders", storeSlug] });
@@ -66,7 +66,7 @@ export function useCancelOrder() {
       id: string;
       storeSlug: string;
       reason?: string;
-    }) => apiClient.cancelOrder(id, storeSlug, reason),
+    }) => apiClient.updateOrder(id, { status: OrderStatus.CANCELLED }),
     onSuccess: (_, { id, storeSlug }) => {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
       queryClient.invalidateQueries({ queryKey: ["orders", storeSlug] });
@@ -98,16 +98,7 @@ export function useOrdersByStore(
       endDate,
     ],
     queryFn: async () => {
-      const result = await apiClient.getDashboardOrders(
-        storeSlug,
-        page,
-        limit,
-        search,
-        status,
-        paymentStatus,
-        startDate,
-        endDate
-      );
+      const result = await apiClient.getOrders(storeSlug, page, limit);
       return result;
     },
     enabled: !!storeSlug,

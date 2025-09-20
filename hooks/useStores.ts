@@ -78,7 +78,7 @@ export function useApproveStore() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => apiClient.approveStore(id),
+    mutationFn: (id: string) => apiClient.updateStore(id, { approved: true }),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["store", id] });
       queryClient.invalidateQueries({ queryKey: ["stores"] });
@@ -100,7 +100,7 @@ export function useRejectStore() {
 
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      apiClient.rejectStore(id, reason),
+      apiClient.updateStore(id, { approved: false }),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["store", id] });
       queryClient.invalidateQueries({ queryKey: ["stores"] });

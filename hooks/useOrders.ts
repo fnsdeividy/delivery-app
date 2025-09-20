@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import { CreateOrderDto, UpdateOrderDto } from "@/types/cardapio-api";
+import { CreateOrderDto, Order, UpdateOrderDto } from "@/types/cardapio-api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useOrders(storeSlug: string, page = 1, limit = 10) {
@@ -84,7 +84,7 @@ export function useOrdersByStatus(storeSlug: string, status: string) {
       const response = await (apiClient as any).getOrders(storeSlug, 1, 100);
       return {
         ...response,
-        data: response.data.filter((order) => order.status === status),
+        data: response.data.filter((order: Order) => order.status === status),
       };
     },
     enabled: !!storeSlug && !!status,
@@ -129,7 +129,7 @@ export function useOrdersByType(storeSlug: string, type: string) {
       const response = await (apiClient as any).getOrders(storeSlug, 1, 100);
       return {
         ...response,
-        data: response.data.filter((order) => order.type === type),
+        data: response.data.filter((order: Order) => order.type === type),
       };
     },
     enabled: !!storeSlug && !!type,
@@ -187,7 +187,7 @@ export function useOrdersByPeriod(
       return {
         ...response,
         data: response.data.filter(
-          (order) => new Date(order.createdAt) >= startDate
+          (order: Order) => new Date(order.createdAt) >= startDate
         ),
       };
     },

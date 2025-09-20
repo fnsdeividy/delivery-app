@@ -8,6 +8,7 @@ import {
   useUpdateOrder,
 } from "@/hooks";
 import {
+  Order,
   OrderStatus,
   OrderType,
   PaymentStatus,
@@ -44,7 +45,7 @@ export function OrderManagement({ storeSlug }: OrderManagementProps) {
 
   // Filtrar pedidos
   const filteredOrders =
-    ordersData?.data.filter((order) => {
+    ordersData?.data.filter((order: Order) => {
       const matchesSearch =
         order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer?.name
@@ -286,7 +287,7 @@ export function OrderManagement({ storeSlug }: OrderManagementProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredOrders.map((order) => (
+            {filteredOrders.map((order: Order) => (
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>

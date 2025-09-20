@@ -1,8 +1,9 @@
+import { Order } from "@/types/cardapio-api";
 import { useEffect, useState } from "react";
 
 // ❌ ANTES: Componente com polling (REMOVER)
 export function OrdersListWithPolling({ storeSlug }: { storeSlug: string }) {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export function OrdersListWithPolling({ storeSlug }: { storeSlug: string }) {
 
 // ✅ DEPOIS: Componente com SSE (USAR)
 export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 

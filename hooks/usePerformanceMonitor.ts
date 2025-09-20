@@ -48,8 +48,8 @@ export function usePerformanceMonitor(options: PerformanceMonitorOptions = {}) {
 
       // Obter First Input Delay (se disponível)
       const fidEntries = performance.getEntriesByType('first-input');
-      const firstInputDelay = fidEntries[0]?.processingStart ? 
-        fidEntries[0].processingStart - fidEntries[0].startTime : 0;
+      const firstInputDelay = (fidEntries[0] as any)?.processingStart ? 
+        (fidEntries[0] as any).processingStart - fidEntries[0].startTime : 0;
 
       // Obter Cumulative Layout Shift (se disponível)
       const clsEntries = performance.getEntriesByType('layout-shift');
