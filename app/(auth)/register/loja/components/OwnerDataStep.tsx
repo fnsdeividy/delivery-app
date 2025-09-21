@@ -1,6 +1,6 @@
 import { useFormValidation } from "@/hooks";
 import { ownerSchema, RegisterLojaFormData } from "@/lib/validation/schemas";
-import { Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
+import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useEffect } from "react";
 
 interface OwnerDataStepProps {

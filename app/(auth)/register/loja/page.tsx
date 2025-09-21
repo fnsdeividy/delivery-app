@@ -10,7 +10,7 @@ import {
 import { apiClient } from "@/lib/api-client";
 import { ownerSchema, storeSchema } from "@/lib/validation/schemas";
 import { CreateStoreDto, CreateUserDto, UserRole } from "@/types";
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

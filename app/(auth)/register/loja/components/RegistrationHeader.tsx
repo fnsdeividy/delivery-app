@@ -1,4 +1,4 @@
-import { Storefront } from "@phosphor-icons/react/dist/ssr";
+import { Storefront } from "@phosphor-icons/react";
 
 interface RegistrationHeaderProps {
   step: number;

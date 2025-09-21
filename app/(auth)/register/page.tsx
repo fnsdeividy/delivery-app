@@ -1,6 +1,6 @@
 "use client";
 
-import { Storefront } from "@phosphor-icons/react/dist/ssr";
+import { Storefront } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

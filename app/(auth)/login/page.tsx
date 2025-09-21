@@ -2,7 +2,7 @@
 
 import { useCardapioAuth, useFormValidation } from "@/hooks";
 import { LoginFormData, loginSchema } from "@/lib/validation/schemas";
-import { Eye, EyeSlash, SignIn } from "@phosphor-icons/react/dist/ssr";
+import { Eye, EyeSlash, SignIn } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";

@@ -5,7 +5,7 @@ import {
   Crown,
   Eye,
   EyeSlash,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 // import { signIn, useSession } from 'next-auth/react'
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -5,7 +5,7 @@ import {
   Clock,
   House,
   Warning,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -21,9 +21,8 @@ export default function Unauthorized() {
         {/* 403 Icon */}
         <div className="mb-8">
           <div
-            className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${
-              isPendingApproval ? "bg-yellow-100" : "bg-red-100"
-            }`}
+            className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${isPendingApproval ? "bg-yellow-100" : "bg-red-100"
+              }`}
           >
             {isPendingApproval ? (
               <Clock className="w-12 h-12 text-yellow-500" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, Info, Warning, X, XCircle } from "@phosphor-icons/react";
+// Removido import de ícones para evitar problemas de SSR
 import { useEffect, useState } from "react";
 
 export type ToastType = "success" | "error" | "warning" | "info";
@@ -15,28 +15,28 @@ interface ToastProps {
 
 const toastConfig = {
   success: {
-    icon: CheckCircle,
+    icon: "✅",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
     textColor: "text-green-800",
     iconColor: "text-green-400",
   },
   error: {
-    icon: XCircle,
+    icon: "❌",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
     textColor: "text-red-800",
     iconColor: "text-red-400",
   },
   warning: {
-    icon: Warning,
+    icon: "⚠️",
     bgColor: "bg-yellow-50",
     borderColor: "border-yellow-200",
     textColor: "text-yellow-800",
     iconColor: "text-yellow-400",
   },
   info: {
-    icon: Info,
+    icon: "ℹ️",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
     textColor: "text-blue-800",
@@ -53,7 +53,6 @@ export function Toast({
 }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
   const config = toastConfig[type];
-  const Icon = config.icon;
 
   useEffect(() => {
     if (duration > 0) {
@@ -88,7 +87,7 @@ export function Toast({
       >
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <Icon className={`h-5 w-5 ${config.iconColor}`} />
+            <span className={`text-lg ${config.iconColor}`}>{config.icon}</span>
           </div>
           <div className="ml-3 flex-1">
             <h3 className={`text-sm font-medium ${config.textColor}`}>
@@ -107,7 +106,7 @@ export function Toast({
                 ${config.textColor} hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-${config.bgColor} focus:ring-${config.iconColor}
               `}
             >
-              <X className="h-4 w-4" />
+              <span className="text-sm">✕</span>
             </button>
           </div>
         </div>
