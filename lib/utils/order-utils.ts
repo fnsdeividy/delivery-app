@@ -10,8 +10,13 @@ import {
 
 export const getStatusInfo = (status: OrderStatus): StatusInfo => {
   const statusMap = {
+    [OrderStatus.PENDING]: {
+      label: "Aguardando",
+      color: "bg-gray-100 text-gray-800",
+      icon: Clock,
+    },
     [OrderStatus.RECEIVED]: {
-      label: "Pendente",
+      label: "Recebido",
       color: "bg-yellow-100 text-yellow-800",
       icon: Clock,
     },

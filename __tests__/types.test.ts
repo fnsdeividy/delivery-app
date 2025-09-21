@@ -1,21 +1,21 @@
 import {
-    ApiResponse,
-    CreateOrderDto,
-    CreateProductDto,
-    CreateStoreDto,
-    CreateUserDto,
-    LoginDto,
-    Order,
-    OrderStats,
-    OrderStatus,
-    PaginatedResponse,
-    PaymentStatus,
-    Product,
-    StockMovementType,
-    Store,
-    StoreStats,
-    User,
-    UserRole
+  ApiResponse,
+  CreateOrderDto,
+  CreateProductDto,
+  CreateStoreDto,
+  CreateUserDto,
+  LoginDto,
+  Order,
+  OrderStats,
+  OrderStatus,
+  PaginatedResponse,
+  PaymentStatus,
+  Product,
+  StockMovementType,
+  Store,
+  StoreStats,
+  User,
+  UserRole
 } from '../types/cardapio-api'
 
 describe('Cardap.IO API Types', () => {
@@ -439,6 +439,7 @@ describe('Cardap.IO API Types', () => {
       const orderStats: OrderStats = {
         totalOrders: 150,
         ordersByStatus: {
+          PENDING: 8,
           RECEIVED: 20,
           CONFIRMED: 30,
           PREPARING: 25,
