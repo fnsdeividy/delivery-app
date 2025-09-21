@@ -3,7 +3,7 @@ const connections = new Map<string, ReadableStreamDefaultController>();
 
 // Função para notificar sobre novos pedidos
 export function notifyNewOrder(storeSlug: string, orderData: any) {
-  for (const [id, controller] of connections.entries()) {
+  Array.from(connections.entries()).forEach(([id, controller]) => {
     if (id.startsWith(`${storeSlug}-`)) {
       try {
         const data = JSON.stringify({
@@ -17,7 +17,7 @@ export function notifyNewOrder(storeSlug: string, orderData: any) {
         connections.delete(id);
       }
     }
-  }
+  });
 }
 
 // Função para notificar sobre atualizações de pedidos
@@ -26,7 +26,7 @@ export function notifyOrderUpdate(
   orderId: string,
   orderData: any
 ) {
-  for (const [id, controller] of connections.entries()) {
+  Array.from(connections.entries()).forEach(([id, controller]) => {
     if (id.startsWith(`${storeSlug}-`)) {
       try {
         const data = JSON.stringify({
@@ -40,12 +40,12 @@ export function notifyOrderUpdate(
         connections.delete(id);
       }
     }
-  }
+  });
 }
 
 // Função para notificar sobre cancelamento de pedidos
 export function notifyOrderCancel(storeSlug: string, orderId: string) {
-  for (const [id, controller] of connections.entries()) {
+  Array.from(connections.entries()).forEach(([id, controller]) => {
     if (id.startsWith(`${storeSlug}-`)) {
       try {
         const data = JSON.stringify({
@@ -58,7 +58,7 @@ export function notifyOrderCancel(storeSlug: string, orderId: string) {
         connections.delete(id);
       }
     }
-  }
+  });
 }
 
 // Função para adicionar conexão
