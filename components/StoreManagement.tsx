@@ -559,20 +559,18 @@ export function StoreManagement({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="space-y-1">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        store.approved
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.approved
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
-                      }`}
+                        }`}
                     >
                       {store.approved ? "Aprovada" : "Pendente"}
                     </span>
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        store.active
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${store.active
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {store.active ? "Ativa" : "Inativa"}
                     </span>
@@ -647,9 +645,9 @@ export function StoreManagement({
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                R$ {storeStats.totalRevenue.toFixed(2)}
+                R$ {storeStats.weekSales.toFixed(2)}
               </div>
-              <div className="text-sm text-green-600">Receita Total</div>
+              <div className="text-sm text-green-600">Vendas da Semana</div>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
@@ -659,9 +657,9 @@ export function StoreManagement({
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
-                {storeStats.totalCustomers}
+                {storeStats.pendingOrders}
               </div>
-              <div className="text-sm text-purple-600">Total de Clientes</div>
+              <div className="text-sm text-purple-600">Pedidos Pendentes</div>
             </div>
           </div>
         </div>
@@ -678,11 +676,10 @@ export function StoreManagement({
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-2 rounded-md text-sm font-medium ${
-                  currentPage === page
+                className={`px-3 py-2 rounded-md text-sm font-medium ${currentPage === page
                     ? "bg-blue-600 text-white"
                     : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {page}
               </button>

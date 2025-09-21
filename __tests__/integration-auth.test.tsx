@@ -222,10 +222,13 @@ describe('Fluxo de Autenticação - Integração', () => {
       }
 
       const mockStoreStats = {
-        totalOrders: 150,
-        totalRevenue: 5000.0,
         totalProducts: 25,
-        totalCustomers: 80
+        totalOrders: 150,
+        pendingOrders: 5,
+        todaySales: 250.0,
+        weekSales: 1200.0,
+        lowStockProducts: 3,
+        outOfStockProducts: 1
       }
 
       // Mock das APIs

@@ -597,6 +597,16 @@ export interface StoreStats {
   totalCustomers: number;
 }
 
+export interface StoreDashboardMetrics {
+  totalProducts: number;
+  totalOrders: number;
+  pendingOrders: number;
+  todaySales: number;
+  weekSales: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+}
+
 export interface OrderStats {
   totalOrders: number;
   ordersByStatus: Record<OrderStatus, number>;

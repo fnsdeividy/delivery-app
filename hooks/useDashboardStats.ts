@@ -18,7 +18,7 @@ export function useDashboardStats(storeSlug: string): DashboardStats {
     error: storeStatsError,
   } = useQuery({
     queryKey: ["store", storeSlug, "stats"],
-    queryFn: () => (apiClient as any).getStoreStats(storeSlug),
+    queryFn: () => apiClient.getStoreStats(storeSlug),
     enabled: !!storeSlug,
   });
 

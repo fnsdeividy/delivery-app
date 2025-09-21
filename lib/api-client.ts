@@ -17,6 +17,7 @@ import {
   SetCurrentStoreDto,
   StockMovement,
   Store,
+  StoreDashboardMetrics,
   UpdateInventoryDto,
   UpdateOrderDto,
   UpdateProductDto,
@@ -121,7 +122,7 @@ class ApiClient {
           ErrorHandler.handleApiError(error);
           ErrorHandler.logError(error, "API Client");
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -327,7 +328,7 @@ class ApiClient {
               globalPermissions: [],
             },
           };
-        } catch {}
+        } catch { }
       }
     }
     // fallback
@@ -364,7 +365,7 @@ class ApiClient {
         try {
           const payload = JSON.parse(atob(parts[1]));
           return payload.storeSlug || null;
-        } catch {}
+        } catch { }
       }
     }
     return null;
@@ -419,6 +420,9 @@ class ApiClient {
   }
   async deleteStore(slug: string): Promise<void> {
     return this.delete<void>(`/stores/${slug}`);
+  }
+  async getStoreStats(slug: string): Promise<StoreDashboardMetrics> {
+    return this.get<StoreDashboardMetrics>(`/stores/dashboard-metrics/${slug}`);
   }
 
   // ==== CATEGORIAS ==== //
@@ -665,8 +669,7 @@ class ApiClient {
           422: "Dados inválidos.",
           500: "Erro interno do servidor.",
         }[status] ||
-        `Erro ${status}: ${
-          (data as ApiErrorResponse)?.error || "Erro desconhecido"
+        `Erro ${status}: ${(data as ApiErrorResponse)?.error || "Erro desconhecido"
         }`;
     } else if (error.code === "ECONNABORTED") {
       apiError.message = "Tempo limite da requisição excedido.";
