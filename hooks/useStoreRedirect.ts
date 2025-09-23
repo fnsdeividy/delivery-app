@@ -97,7 +97,7 @@ export function useStoreRedirect() {
     async (userRole: string, storeSlug?: string) => {
       try {
         switch (userRole) {
-          case "SUPER_ADMIN":
+          case "ADMIN":
             router.push("/admin");
             break;
 

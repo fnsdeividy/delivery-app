@@ -1,23 +1,46 @@
 "use client";
 
-import { LazyLoad } from "@/components/ui/lazy-load";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 // Lazy loading dos componentes pesados
-const DashboardMetrics = React.lazy(() => import("@/components/DashboardMetrics").then(m => ({ default: m.DashboardMetrics })));
-const DashboardQuickActions = React.lazy(() => import("@/components/DashboardQuickActions").then(m => ({ default: m.DashboardQuickActions })));
+const DashboardMetrics = React.lazy(() =>
+  import("@/components/DashboardMetrics").then((m) => ({
+    default: m.DashboardMetrics,
+  }))
+);
+const DashboardQuickActions = React.lazy(() =>
+  import("@/components/DashboardQuickActions").then((m) => ({
+    default: m.DashboardQuickActions,
+  }))
+);
 
 // Componentes locais com lazy loading
-const AdditionalInfoSection = React.lazy(() => import("./components/AdditionalInfoSection").then(m => ({ default: m.AdditionalInfoSection })));
-const OrderManagementSection = React.lazy(() => import("./components/OrderManagementSection").then(m => ({ default: m.OrderManagementSection })));
-const StockAlertsSection = React.lazy(() => import("./components/StockAlertsSection").then(m => ({ default: m.StockAlertsSection })));
-const StoreConfigSection = React.lazy(() => import("./components/StoreConfigSection").then(m => ({ default: m.StoreConfigSection })));
+const AdditionalInfoSection = React.lazy(() =>
+  import("./components/AdditionalInfoSection").then((m) => ({
+    default: m.AdditionalInfoSection,
+  }))
+);
+const OrderManagementSection = React.lazy(() =>
+  import("./components/OrderManagementSection").then((m) => ({
+    default: m.OrderManagementSection,
+  }))
+);
+const StockAlertsSection = React.lazy(() =>
+  import("./components/StockAlertsSection").then((m) => ({
+    default: m.StockAlertsSection,
+  }))
+);
+const StoreConfigSection = React.lazy(() =>
+  import("./components/StoreConfigSection").then((m) => ({
+    default: m.StoreConfigSection,
+  }))
+);
 
 export default function DashboardPage() {
   const params = useParams();
@@ -43,6 +66,7 @@ export default function DashboardPage() {
       try {
         // Verificar se está autenticado
         if (!isAuthenticated()) {
+          console.log("❌ Usuário não autenticado, redirecionando para login");
           router.push("/login");
           return;
         }
@@ -50,35 +74,42 @@ export default function DashboardPage() {
         // Obter token e decodificar
         const token = getCurrentToken();
         if (!token) {
+          console.log("❌ Token não encontrado, redirecionando para login");
           router.push("/login");
           return;
         }
 
         // Decodificar token JWT
         const payload = JSON.parse(atob(token.split(".")[1]));
+        console.log("✅ Token decodificado:", {
+          role: payload.role,
+          storeSlug: payload.storeSlug,
+        });
 
         setUserRole(payload.role);
         setUserStoreSlug(payload.storeSlug);
 
-        // Verificar permissões
-        if (payload.role === "SUPER_ADMIN") {
-          setHasAccess(true);
-        } else if (payload.role === "ADMIN") {
+        // Verificar permissões - ADMIN (logista) tem acesso total
+        if (payload.role === "ADMIN") {
           // ADMIN deve acessar a loja atual. Caso o token ainda não traga o storeSlug
           // recém-definido, forçamos a definição da loja atual e liberamos o acesso.
           if (payload.storeSlug === slug) {
+            console.log("✅ ADMIN com storeSlug correto");
             setHasAccess(true);
           } else {
             try {
+              console.log("🔄 Definindo loja atual para:", slug);
               await apiClient.setCurrentStore({ storeSlug: slug });
               setHasAccess(true);
             } catch (e) {
+              console.error("❌ Erro ao definir loja atual:", e);
               // fallback: enviar para gerenciar lojas
               router.push("/dashboard/gerenciar-lojas");
               return;
             }
           }
         } else {
+          console.log("❌ Role não autorizado:", payload.role);
           router.push("/unauthorized");
           return;
         }

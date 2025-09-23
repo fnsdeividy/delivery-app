@@ -310,10 +310,9 @@ export interface PaginatedResponse<T> {
 
 // Enums alinhados com o backend
 export enum UserRole {
-  SUPER_ADMIN = "SUPER_ADMIN",
-  ADMIN = "ADMIN", // Para compatibilidade - será depreciado
-  MANAGER = "MANAGER", // Para compatibilidade - será depreciado
-  EMPLOYEE = "EMPLOYEE", // Para compatibilidade - será depreciado
+  ADMIN = "ADMIN", // Logista - proprietário de loja
+  MANAGER = "MANAGER", // Gerente
+  EMPLOYEE = "EMPLOYEE", // Funcionário
   CLIENTE = "CLIENTE", // Cliente final
 }
 
@@ -327,7 +326,7 @@ export enum StoreRole {
 
 // Escopos de permissão
 export enum PermissionScope {
-  GLOBAL = "GLOBAL", // Acesso a todo o sistema (apenas SUPER_ADMIN)
+  GLOBAL = "GLOBAL", // Acesso a todo o sistema (apenas ADMIN)
   STORE = "STORE", // Acesso limitado a loja(s) específica(s)
 }
 

@@ -25,13 +25,7 @@ export default function DashboardAdmin() {
       // Decodificar token JWT
       const payload = JSON.parse(atob(token.split(".")[1]));
 
-      // SUPER_ADMIN vai para área de admin
-      if (payload.role === "SUPER_ADMIN") {
-        router.push("/admin");
-        return;
-      }
-
-      // ADMIN com loja definida -> dashboard da loja
+      // ADMIN (logista) com loja definida -> dashboard da loja
       if (payload.role === "ADMIN" && payload.storeSlug) {
         router.push(`/dashboard/${payload.storeSlug}`);
         return;

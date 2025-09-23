@@ -52,10 +52,7 @@ export function ProtectedProductRoute({
         // Verificar permissões baseadas no role
         let access = false;
 
-        if (payload.role === "SUPER_ADMIN") {
-          // Super admin tem acesso total
-          access = true;
-        } else if (payload.role === "ADMIN") {
+        if (payload.role === "ADMIN") {
           // Admin pode acessar apenas sua própria loja
           const userStoreSlug = payload.storeSlug || payload.currentStoreSlug;
           const userStores = payload.stores || [];

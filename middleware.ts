@@ -22,9 +22,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Proteger rotas de super admin
+  // Rotas de admin agora são tratadas como rotas normais do dashboard
   if (pathname.startsWith("/admin")) {
-    return await protectSuperAdminRoute(request);
+    return await protectDashboardRoute(request);
   }
 
   // Proteger rotas do dashboard
@@ -86,7 +86,7 @@ async function protectDashboardRoute(request: NextRequest) {
       }
 
       // Para outras rotas de loja, verificar se o usuário tem acesso
-      // Se o usuário é ADMIN ou OWNER, permitir acesso
+      // ADMIN (logista) tem acesso total
       if (
         payload.role === "ADMIN" ||
         payload.role === "OWNER" ||
@@ -94,54 +94,17 @@ async function protectDashboardRoute(request: NextRequest) {
       ) {
         return NextResponse.next();
       }
+
+      // Log para debug
+      console.log(
+        `❌ Middleware: Acesso negado para role ${payload.role} na rota ${pathname}`
+      );
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
     return NextResponse.next();
   } catch (error) {
+    console.error("❌ Middleware: Erro ao verificar token:", error);
     return NextResponse.redirect(new URL("/login", request.url));
-  }
-}
-
-/**
- * Protege rotas de super admin - apenas SUPER_ADMIN
- */
-async function protectSuperAdminRoute(request: NextRequest) {
-  // Verificar token JWT nos cookies, headers ou localStorage (via cookie de fallback)
-  let token =
-    request.cookies.get("cardapio_token")?.value ||
-    request.headers.get("authorization")?.replace("Bearer ", "");
-
-  // Se não houver token no cookie, verificar se há um cookie de fallback do localStorage
-  if (!token) {
-    const fallbackToken = request.cookies.get("localStorage_token")?.value;
-    if (fallbackToken) {
-      token = fallbackToken;
-    }
-  }
-
-  if (!token) {
-    // Redirecionar para login de super admin se não houver token
-    return NextResponse.redirect(new URL("/login/super-admin", request.url));
-  }
-
-  try {
-    // Decodificar token para verificar role
-    const payload = JSON.parse(atob(token.split(".")[1]));
-
-    // Verificar se token não expirou
-    if (payload.exp && payload.exp < Date.now() / 1000) {
-      return NextResponse.redirect(new URL("/login/super-admin", request.url));
-    }
-
-    // Verificar se é super admin
-    if (payload.role !== "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
-
-    return NextResponse.next();
-  } catch (error) {
-    // Token inválido, redirecionar para login
-    return NextResponse.redirect(new URL("/login/super-admin", request.url));
   }
 }
 

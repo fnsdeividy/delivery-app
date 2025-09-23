@@ -389,7 +389,35 @@ class ApiClient {
   }
 
   async updateStoreContext(storeSlug: string): Promise<void> {
-    safeLocalStorage.setItem("currentStoreSlug", storeSlug);
+    try {
+      // Atualizar token com a loja atual
+      const response = await this.post<AuthResponse>(
+        "/auth/refresh-token-with-store",
+        {
+          storeSlug: storeSlug,
+        }
+      );
+
+      // Atualizar token no localStorage
+      if (response.access_token) {
+        safeLocalStorage.setItem("cardapio_token", response.access_token);
+        // Sincronizar com cookie
+        if (typeof document !== "undefined") {
+          document.cookie = `cardapio_token=${
+            response.access_token
+          }; path=/; max-age=7200; SameSite=Lax; secure=${
+            window.location.protocol === "https:"
+          }`;
+        }
+      }
+
+      // Salvar storeSlug no localStorage também
+      safeLocalStorage.setItem("currentStoreSlug", storeSlug);
+    } catch (error) {
+      console.error("❌ Erro ao atualizar contexto da loja:", error);
+      // Fallback: apenas salvar no localStorage
+      safeLocalStorage.setItem("currentStoreSlug", storeSlug);
+    }
   }
 
   // ==== USUÁRIOS ==== //

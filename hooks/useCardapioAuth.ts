@@ -62,7 +62,7 @@ export function useCardapioAuth() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
 
       // Redirecionar baseado no role do usuário
-      if (data.user.role === "SUPER_ADMIN") {
+      if (data.user.role === "ADMIN") {
         router.push("/admin");
         return;
       } else if (data.user.role === "CLIENTE") {

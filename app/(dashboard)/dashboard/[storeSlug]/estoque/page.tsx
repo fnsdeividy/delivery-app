@@ -195,8 +195,7 @@ export default function EstoquePage() {
         const payload = JSON.parse(atob(token.split(".")[1]));
 
         const hasAccess =
-          payload.role === "SUPER_ADMIN" ||
-          (payload.role === "ADMIN" && payload.storeSlug === slug);
+          payload.role === "ADMIN" && payload.storeSlug === slug;
 
         if (hasAccess) {
           await loadInitialData();

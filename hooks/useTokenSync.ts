@@ -39,18 +39,31 @@ export function useTokenSync() {
           }`;
           document.cookie = cookieValue;
 
+          // Também criar um cookie de fallback para o middleware
+          const fallbackCookieValue = `localStorage_token=${token}; path=/; max-age=7200; SameSite=Lax; secure=${
+            window.location.protocol === "https:"
+          }`;
+          document.cookie = fallbackCookieValue;
+
           // Aguardar um pouco para o cookie ser processado
           setTimeout(() => {
             const cookieSet = document.cookie.includes("cardapio_token=");
+            const fallbackCookieSet = document.cookie.includes(
+              "localStorage_token="
+            );
 
-            if (!cookieSet && syncAttempts.current < maxSyncAttempts) {
+            if (
+              !cookieSet &&
+              !fallbackCookieSet &&
+              syncAttempts.current < maxSyncAttempts
+            ) {
               syncAttempts.current++;
               console.warn(
                 `🔄 Tentativa ${syncAttempts.current} de sincronização de token`
               );
               // Tentar novamente após um delay
               setTimeout(syncToken, 200);
-            } else if (cookieSet) {
+            } else if (cookieSet || fallbackCookieSet) {
               console.log("✅ Token sincronizado com sucesso");
               setIsSynced(true);
             } else {

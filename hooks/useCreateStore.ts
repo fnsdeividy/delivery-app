@@ -63,7 +63,8 @@ export function useCreateStore(): CreateStoreHookReturn {
       queryClient.invalidateQueries({ queryKey: ["user-context"] });
       queryClient.invalidateQueries({ queryKey: ["user-stores"] });
 
-      // Não fazer redirecionamento aqui - deixar para a página de registro
+      // Redirecionar para o dashboard da loja criada
+      await redirectAfterStoreCreation(data);
     },
     onError: (error: any) => {
       throw new Error(error.message || "Erro ao criar loja");

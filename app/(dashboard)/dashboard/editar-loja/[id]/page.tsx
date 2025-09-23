@@ -39,9 +39,8 @@ export default function EditarLojaPage() {
   // Verificar autorização do usuário
   useEffect(() => {
     if (isAuthenticated && user && storeData) {
-      // Verificar se o usuário tem permissão global (SUPER_ADMIN ou ADMIN)
-      const hasGlobalAccess =
-        user.role === "SUPER_ADMIN" || user.role === "ADMIN";
+      // Verificar se o usuário tem permissão global (ADMIN)
+      const hasGlobalAccess = user.role === "ADMIN";
 
       if (hasGlobalAccess) {
         // Usuários com role global podem editar qualquer loja

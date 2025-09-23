@@ -15,6 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { AuthDebug } from "../../../components/AuthDebug";
 import { LoadingContent } from "../../../components/GlobalLoading";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
@@ -385,8 +386,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <Storefront className="h-3 w-3" />
                       <span>{slug}</span>
                     </span>
-                  ) : user?.role === "SUPER_ADMIN" ? (
-                    "Super Administrador"
                   ) : user?.role === "ADMIN" ? (
                     "Administrador"
                   ) : (
@@ -465,6 +464,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       <ToastContainer />
+      <AuthDebug />
     </div>
   );
 }
