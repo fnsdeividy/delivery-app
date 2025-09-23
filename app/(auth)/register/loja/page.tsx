@@ -284,10 +284,15 @@ export default function RegisterLojaPage() {
         "success"
       );
 
-      // 4. Definir loja atual de forma otimista para ajudar os guards
+      // 4. Atualizar token com a nova loja para resolver problema de autorização
       try {
-        await apiClient.setCurrentStore({ storeSlug: storeResponse.slug });
+        await apiClient.refreshTokenWithStore(storeResponse.slug);
+        console.log("✅ Token atualizado com nova loja:", storeResponse.slug);
       } catch (e) {
+        console.warn(
+          "⚠️ Falha ao atualizar token, continuando com polling:",
+          e
+        );
         // se falhar, seguimos com polling
       }
 

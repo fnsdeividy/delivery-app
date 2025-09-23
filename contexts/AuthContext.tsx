@@ -317,6 +317,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const setCurrentStore = async (storeSlug: string) => {
     try {
+      // Primeiro, atualizar o token com a nova loja
+      const authResponse = await apiClient.refreshTokenWithStore(storeSlug);
+
+      // Depois, atualizar os dados do usuário
       const updatedUser = await apiClient.setCurrentStore({ storeSlug });
       setUser(updatedUser);
       setUserStores(updatedUser.stores || []);

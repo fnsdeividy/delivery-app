@@ -122,7 +122,7 @@ class ApiClient {
           ErrorHandler.handleApiError(error);
           ErrorHandler.logError(error, "API Client");
         })
-        .catch(() => { });
+        .catch(() => {});
     }
   }
 
@@ -328,7 +328,7 @@ class ApiClient {
               globalPermissions: [],
             },
           };
-        } catch { }
+        } catch {}
       }
     }
     // fallback
@@ -365,7 +365,7 @@ class ApiClient {
         try {
           const payload = JSON.parse(atob(parts[1]));
           return payload.storeSlug || null;
-        } catch { }
+        } catch {}
       }
     }
     return null;
@@ -374,6 +374,17 @@ class ApiClient {
   async setCurrentStore(data: SetCurrentStoreDto): Promise<User> {
     const response = await this.patch<User>("/users/me/current-store", data);
     safeLocalStorage.setItem("currentStoreSlug", data.storeSlug);
+    return response;
+  }
+
+  async refreshTokenWithStore(storeSlug: string): Promise<AuthResponse> {
+    const response = await this.post<AuthResponse>(
+      "/auth/refresh-token-with-store",
+      {
+        storeSlug,
+      }
+    );
+    if (response.access_token) this.storeAuthToken(response.access_token);
     return response;
   }
 
@@ -669,7 +680,8 @@ class ApiClient {
           422: "Dados inválidos.",
           500: "Erro interno do servidor.",
         }[status] ||
-        `Erro ${status}: ${(data as ApiErrorResponse)?.error || "Erro desconhecido"
+        `Erro ${status}: ${
+          (data as ApiErrorResponse)?.error || "Erro desconhecido"
         }`;
     } else if (error.code === "ECONNABORTED") {
       apiError.message = "Tempo limite da requisição excedido.";
