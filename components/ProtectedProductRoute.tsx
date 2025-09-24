@@ -49,52 +49,9 @@ export function ProtectedProductRoute({
           return;
         }
 
-        // Verificar permissões baseadas no role
-        let access = false;
-
-        if (payload.role === "SUPER_ADMIN") {
-          // Super admin tem acesso total
-          access = true;
-        } else if (payload.role === "ADMIN") {
-          // Admin pode acessar apenas sua própria loja
-          const userStoreSlug = payload.storeSlug || payload.currentStoreSlug;
-          const userStores = payload.stores || [];
-
-          // Verificar se o usuário tem acesso à loja solicitada
-          const hasStoreAccess =
-            userStoreSlug === storeSlug ||
-            userStores.some((store: any) => store.storeSlug === storeSlug);
-
-          if (hasStoreAccess) {
-            access = true;
-          } else {
-            access = false;
-          }
-        } else if (payload.role === "MANAGER") {
-          // Manager pode ler e escrever produtos
-          const userStoreSlug = payload.storeSlug || payload.currentStoreSlug;
-          const userStores = payload.stores || [];
-
-          // Verificar se o usuário tem acesso à loja solicitada
-          const hasStoreAccess =
-            userStoreSlug === storeSlug ||
-            userStores.some((store: any) => store.storeSlug === storeSlug);
-
-          if (hasStoreAccess && requiredAction !== "delete") {
-            access = true;
-          } else {
-            access = false;
-          }
-        } else {
-          // Outros roles não têm acesso
-          access = false;
-        }
-
-        if (access) {
-          setHasAccess(true);
-        } else {
-          router.push("/unauthorized");
-        }
+        // A autorização fina fica no back-end.
+        // Se o usuário está autenticado e o token é válido, permitir navegação.
+        setHasAccess(true);
       } catch (error) {
         router.push("/login");
       } finally {

@@ -2,9 +2,16 @@
 export const config = {
   // Configurações da API
   api: {
-    baseURL:
-      process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
-      "http://localhost:3001/api/v1",
+    baseURL: (() => {
+      const urlFromEnv =
+        process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3001";
+
+      // Garante sufixo /api/v1 apenas uma vez
+      const trimmed = urlFromEnv.replace(/\/$/, "");
+      return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
+    })(),
     timeout: 10000,
     debug: process.env.NODE_ENV === "development",
     logRequests: process.env.NODE_ENV === "development",
