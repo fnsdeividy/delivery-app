@@ -427,10 +427,14 @@ class ApiClient {
 
   // ==== CATEGORIAS ==== //
   async getCategories(storeSlug: string): Promise<Category[]> {
-    const response = await this.get<{ data: Category[] }>(
-      `/stores/${storeSlug}/categories`
+    // Backend expõe: GET /api/v1/categories/store/:storeSlug
+    const response = await this.get<Category[]>(
+      `/categories/store/${storeSlug}`
     );
-    return response.data;
+    // Alguns endpoints retornam array direto; padronizar saída
+    return Array.isArray(response)
+      ? response
+      : (response as unknown as { data: Category[] })?.data || [];
   }
 
   // ==== PRODUTOS ==== //
@@ -439,8 +443,9 @@ class ApiClient {
     page = 1,
     limit = 10
   ): Promise<PaginatedResponse<Product>> {
+    // Backend expõe: GET /api/v1/products/store/:storeSlug
     return this.get<PaginatedResponse<Product>>(
-      `/stores/${storeSlug}/products?page=${page}&limit=${limit}`
+      `/products/store/${storeSlug}?page=${page}&limit=${limit}`
     );
   }
   async getProductById(id: string, storeSlug: string): Promise<Product> {
@@ -461,8 +466,9 @@ class ApiClient {
     return this.delete<void>(`/products/${id}?storeSlug=${storeSlug}`);
   }
   async searchProducts(storeSlug: string, query: string): Promise<Product[]> {
+    // Backend expõe: GET /api/v1/products/store/:storeSlug/search
     return this.get<Product[]>(
-      `/stores/${storeSlug}/products/search?q=${encodeURIComponent(query)}`
+      `/products/store/${storeSlug}/search?q=${encodeURIComponent(query)}`
     );
   }
   async uploadProductImageByStore(storeSlug: string, file: File) {

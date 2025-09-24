@@ -85,16 +85,9 @@ async function protectDashboardRoute(request: NextRequest) {
         return NextResponse.next();
       }
 
-      // Para outras rotas de loja, verificar se o usuário tem acesso
-      // Se o usuário é ADMIN ou OWNER, permitir acesso
-      if (
-        payload.role === "ADMIN" ||
-        payload.role === "OWNER" ||
-        payload.role === "LOJA_ADMIN"
-      ) {
-        return NextResponse.next();
-      }
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
+      // Para outras rotas de loja, basta estar autenticado
+      // (Autorização fina é feita no back-end por loja/role)
+      return NextResponse.next();
     }
     return NextResponse.next();
   } catch (error) {
