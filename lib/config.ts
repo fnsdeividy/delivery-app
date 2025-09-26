@@ -12,7 +12,7 @@ export const config = {
       const trimmed = urlFromEnv.replace(/\/$/, "");
       return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
     })(),
-    timeout: 10000,
+    timeout: 1000,
     debug: process.env.NODE_ENV === "development",
     logRequests: process.env.NODE_ENV === "development",
     logResponses: process.env.NODE_ENV === "development",
