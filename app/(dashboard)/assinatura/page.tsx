@@ -121,7 +121,7 @@ export default function AssinaturaPage() {
                   {subscriptionInfo.isTrial ? 'Dias Restantes' : 'Período Atual'}
                 </p>
                 <p className="text-lg font-semibold">
-                  {subscriptionInfo.isTrial 
+                  {subscriptionInfo.isTrial
                     ? `${getTrialDaysRemaining()} dias`
                     : 'Ativo'
                   }
@@ -145,14 +145,14 @@ export default function AssinaturaPage() {
           <TabsTrigger value="plans">Planos Disponíveis</TabsTrigger>
           <TabsTrigger value="features">Funcionalidades</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="plans">
           <PlanComparison
             currentPlan={subscriptionInfo?.plan || 'BASIC'}
             onUpgrade={() => handleUpgrade('PRO')}
           />
         </TabsContent>
-        
+
         <TabsContent value="features">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {availablePlans.map((plan) => (
@@ -204,9 +204,9 @@ export default function AssinaturaPage() {
                         <span>iFood</span>
                       </div>
                     </div>
-                    
+
                     {plan.name === 'PRO' && subscriptionInfo?.plan !== 'PRO' && (
-                      <Button 
+                      <Button
                         onClick={() => handleUpgrade('PRO')}
                         disabled={isUpgrading}
                         className="w-full"
@@ -235,14 +235,14 @@ export default function AssinaturaPage() {
           <CardContent className="space-y-4">
             {!subscriptionInfo.isTrial && (
               <div className="flex gap-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => cancelSubscription()}
                   className="text-red-600 hover:text-red-700"
                 >
                   Cancelar Assinatura
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => window.open('/suporte', '_blank')}
                 >
@@ -250,12 +250,12 @@ export default function AssinaturaPage() {
                 </Button>
               </div>
             )}
-            
+
             {subscriptionInfo.isTrial && (
               <Alert>
                 <Zap className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Trial ativo!</strong> Você tem {getTrialDaysRemaining()} dias restantes. 
+                  <strong>Trial ativo!</strong> Você tem {getTrialDaysRemaining()} dias restantes.
                   Aproveite para testar todas as funcionalidades antes de fazer o upgrade.
                 </AlertDescription>
               </Alert>

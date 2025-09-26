@@ -76,7 +76,7 @@ export function useSubscription() {
   const fetchAvailablePlans = async () => {
     try {
       const response = await fetch('/api/v1/subscription/plans');
-      
+
       if (!response.ok) {
         throw new Error('Erro ao buscar planos disponíveis');
       }
@@ -235,8 +235,8 @@ export function useSubscription() {
   // Verificar se precisa de upgrade
   const needsUpgrade = (): boolean => {
     if (!subscriptionInfo) return true;
-    return subscriptionInfo.isTrialExpired || 
-           (subscriptionInfo.plan === 'BASIC' && subscriptionInfo.canUpgrade);
+    return subscriptionInfo.isTrialExpired ||
+      (subscriptionInfo.plan === 'BASIC' && subscriptionInfo.canUpgrade);
   };
 
   useEffect(() => {

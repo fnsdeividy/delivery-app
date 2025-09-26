@@ -33,11 +33,11 @@ interface UpgradePromptProps {
   className?: string;
 }
 
-export function UpgradePrompt({ 
-  subscriptionInfo, 
-  onUpgrade, 
+export function UpgradePrompt({
+  subscriptionInfo,
+  onUpgrade,
   onStartTrial,
-  className 
+  className
 }: UpgradePromptProps) {
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number>(0);
 

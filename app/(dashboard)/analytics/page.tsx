@@ -29,20 +29,20 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Banner de assinatura */}
-      <SubscriptionBanner 
+      <SubscriptionBanner
         showOnTrial={true}
         showOnBasic={true}
         showOnExpired={true}
       />
 
       {/* Avisos de limite */}
-      <LimitWarning 
+      <LimitWarning
         resource="orders"
         current={mockData.totalOrders}
         max={mockData.maxOrders}
       />
-      
-      <LimitWarning 
+
+      <LimitWarning
         resource="products"
         current={mockData.totalProducts}
         max={mockData.maxProducts}

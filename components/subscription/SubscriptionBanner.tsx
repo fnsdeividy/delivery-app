@@ -15,7 +15,7 @@ interface SubscriptionBannerProps {
   showOnExpired?: boolean;
 }
 
-export function SubscriptionBanner({ 
+export function SubscriptionBanner({
   className,
   showOnTrial = true,
   showOnBasic = true,
@@ -58,7 +58,7 @@ export function SubscriptionBanner({
   // Trial ativo
   if (subscriptionInfo.isTrial && isTrialValid()) {
     const daysRemaining = getTrialDaysRemaining();
-    
+
     return (
       <Alert className={`border-blue-200 bg-blue-50 ${className}`}>
         <Clock className="h-4 w-4 text-blue-500" />
@@ -156,7 +156,7 @@ interface LimitWarningProps {
 
 export function LimitWarning({ resource, current, max, className }: LimitWarningProps) {
   const { subscriptionInfo } = useSubscription();
-  
+
   if (!subscriptionInfo) return null;
 
   const percentage = (current / max) * 100;
