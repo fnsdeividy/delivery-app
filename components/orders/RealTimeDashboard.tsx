@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   CookingPot,
+  Eye,
   EyeSlash,
   Truck,
   WifiHigh,

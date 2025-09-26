@@ -40,7 +40,7 @@ interface PlanInfo {
 }
 
 export function useSubscription() {
-  const { user, isAuthenticated } = useAuth();
+  const { currentUser, isAuthenticated } = useAuth();
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
   const [availablePlans, setAvailablePlans] = useState<PlanInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,13 +48,14 @@ export function useSubscription() {
 
   // Buscar informações da assinatura
   const fetchSubscriptionInfo = async () => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !currentUser) return;
 
     try {
       setLoading(true);
+      const token = localStorage.getItem('cardapio_token');
       const response = await fetch('/api/v1/subscription/info', {
         headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -90,14 +91,15 @@ export function useSubscription() {
 
   // Iniciar trial
   const startTrial = async (plan: 'BASIC' | 'PRO' = 'BASIC') => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !currentUser) return;
 
     try {
       setLoading(true);
+      const token = localStorage.getItem('cardapio_token');
       const response = await fetch('/api/v1/subscription/trial', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ plan }),
@@ -121,14 +123,15 @@ export function useSubscription() {
 
   // Fazer upgrade
   const upgradePlan = async (plan: 'BASIC' | 'PRO') => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !currentUser) return;
 
     try {
       setLoading(true);
+      const token = localStorage.getItem('cardapio_token');
       const response = await fetch('/api/v1/subscription/upgrade', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ plan }),
@@ -152,14 +155,15 @@ export function useSubscription() {
 
   // Cancelar assinatura
   const cancelSubscription = async () => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !currentUser) return;
 
     try {
       setLoading(true);
+      const token = localStorage.getItem('cardapio_token');
       const response = await fetch('/api/v1/subscription/cancel', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -182,13 +186,14 @@ export function useSubscription() {
 
   // Verificar acesso a módulo
   const checkModuleAccess = async (module: string): Promise<boolean> => {
-    if (!isAuthenticated || !user) return false;
+    if (!isAuthenticated || !currentUser) return false;
 
     try {
+      const token = localStorage.getItem('cardapio_token');
       const response = await fetch('/api/v1/subscription/check-access', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ module }),
@@ -223,7 +228,8 @@ export function useSubscription() {
   // Verificar se pode acessar recurso
   const canAccess = (resource: keyof SubscriptionInfo['limits']): boolean => {
     if (!subscriptionInfo) return false;
-    return subscriptionInfo.limits[resource];
+    const value = subscriptionInfo.limits[resource];
+    return typeof value === 'boolean' ? value : false;
   };
 
   // Verificar se está em trial válido
@@ -240,11 +246,11 @@ export function useSubscription() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && currentUser) {
       fetchSubscriptionInfo();
       fetchAvailablePlans();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, currentUser]);
 
   return {
     subscriptionInfo,

@@ -203,7 +203,7 @@ export default function EstoquePage() {
         console.error("Erro ao carregar movimentações:", error);
 
         // Retry automático para erros de timeout
-        if (retryCount < 2 && error.message?.includes("Tempo limite")) {
+        if (retryCount < 2 && error instanceof Error && error.message?.includes("Tempo limite")) {
           console.log(
             `🔄 Tentativa ${retryCount + 1}/3 para carregar movimentações`
           );
@@ -481,21 +481,19 @@ export default function EstoquePage() {
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => handleTabChange("inventory")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "inventory"
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "inventory"
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 Inventário
               </button>
               <button
                 onClick={() => handleTabChange("movements")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "movements"
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "movements"
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 Movimentações
               </button>

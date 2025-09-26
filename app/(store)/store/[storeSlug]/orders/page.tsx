@@ -169,11 +169,10 @@ export default function OrdersPage() {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key as StatusFilter)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  statusFilter === key
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${statusFilter === key
                     ? "text-white"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                }`}
+                  }`}
                 style={{
                   backgroundColor:
                     statusFilter === key ? primaryColor : undefined,
@@ -225,6 +224,10 @@ export default function OrdersPage() {
                 key={order.id}
                 order={order}
                 primaryColor={primaryColor}
+                onViewDetails={(order) => {
+                  // Implementar visualização de detalhes se necessário
+                  console.log('Ver detalhes do pedido:', order);
+                }}
                 onRepeatOrder={handleRepeatOrder}
               />
             ))}
