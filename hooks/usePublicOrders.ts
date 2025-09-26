@@ -8,13 +8,24 @@ export function usePublicOrders(storeSlug: string) {
 
   // Carregar pedidos da API
   useEffect(() => {
-    const loadOrders = async () => {
+    const loadOrders = async (retryCount = 0) => {
       try {
         setLoading(true);
         const orders = await apiClient.getPublicOrders(storeSlug);
         setOrders(orders);
       } catch (error) {
         console.error("Erro ao carregar pedidos:", error);
+
+        // Retry automático para erros de timeout
+        if (
+          retryCount < 2 &&
+          (error as Error).message?.includes("Tempo limite")
+        ) {
+          console.log(`🔄 Tentativa ${retryCount + 1}/3 para carregar pedidos`);
+          setTimeout(() => loadOrders(retryCount + 1), 2000);
+          return;
+        }
+
         // Fallback para localStorage em caso de erro
         try {
           const savedOrders = localStorage.getItem(`orders-${storeSlug}`);
@@ -120,13 +131,24 @@ export function usePublicOrders(storeSlug: string) {
     }
   };
 
-  const refreshOrders = async () => {
+  const refreshOrders = async (retryCount = 0) => {
     try {
       setLoading(true);
       const orders = await apiClient.getPublicOrders(storeSlug);
       setOrders(orders);
     } catch (error) {
       console.error("Erro ao atualizar pedidos:", error);
+
+      // Retry automático para erros de timeout
+      if (
+        retryCount < 2 &&
+        (error as Error).message?.includes("Tempo limite")
+      ) {
+        console.log(`🔄 Tentativa ${retryCount + 1}/3 para atualizar pedidos`);
+        setTimeout(() => refreshOrders(retryCount + 1), 2000);
+        return;
+      }
+
       // Fallback para localStorage
       try {
         const savedOrders = localStorage.getItem(`orders-${storeSlug}`);

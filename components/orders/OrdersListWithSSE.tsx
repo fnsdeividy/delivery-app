@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOrdersSSE } from "../../hooks/useOrdersSSE";
+import { calculateChange } from "../../lib/utils/order-utils";
 
 interface Order {
   id: string;
@@ -157,6 +158,52 @@ export function OrdersListWithSSE({ storeSlug }: OrdersListWithSSEProps) {
                   </div>
                 </div>
               )}
+
+              {/* Informações de Pagamento, Observações e Troco */}
+              <div className="mt-3 space-y-2">
+                {/* Forma de Pagamento */}
+                {order.paymentMethod && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="font-medium">Pagamento:</span>
+                    </div>
+                    <span className="text-gray-700 capitalize">
+                      {order.paymentMethod.toLowerCase()}
+                    </span>
+                  </div>
+                )}
+
+                {/* Troco para */}
+                {order.cashChangeAmount && order.cashChangeAmount > 0 && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="font-medium">Troco:</span>
+                    </div>
+                    <span className="text-gray-700 font-semibold">
+                      R${" "}
+                      {calculateChange(
+                        order.cashChangeAmount,
+                        order.total
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Observações */}
+                {order.notes && (
+                  <div className="flex items-start space-x-2 text-sm">
+                    <div className="flex items-center space-x-1 text-gray-600 mt-0.5">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span className="font-medium">Observações:</span>
+                    </div>
+                    <span className="text-gray-700 italic">
+                      "{order.notes}"
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         )}

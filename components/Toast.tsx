@@ -63,7 +63,7 @@ export function Toast({
 
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [duration]); // Removido onClose da dependência
 
   const handleClose = () => {
     setIsVisible(false);

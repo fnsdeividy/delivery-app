@@ -61,8 +61,6 @@ export default function OrdersPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
   useEffect(() => {
@@ -79,11 +77,6 @@ export default function OrdersPage() {
       );
     }
   );
-
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setShowOrderDetails(true);
-  };
 
   const handleRepeatOrder = (order: Order) => {
     // Adicionar todos os itens do pedido ao carrinho
@@ -232,7 +225,6 @@ export default function OrdersPage() {
                 key={order.id}
                 order={order}
                 primaryColor={primaryColor}
-                onViewDetails={handleViewDetails}
                 onRepeatOrder={handleRepeatOrder}
               />
             ))}
@@ -290,16 +282,6 @@ export default function OrdersPage() {
 
       {/* Espaço para o menu fixo */}
       <div className="h-16 md:hidden" />
-
-      {/* Modal de Detalhes do Pedido */}
-      {showOrderDetails && selectedOrder && (
-        <OrderDetailsModal
-          order={selectedOrder}
-          isOpen={showOrderDetails}
-          onClose={() => setShowOrderDetails(false)}
-          primaryColor={primaryColor}
-        />
-      )}
 
       {/* Modal do Carrinho */}
       <CartModal

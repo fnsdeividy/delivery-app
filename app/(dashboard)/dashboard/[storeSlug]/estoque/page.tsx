@@ -97,75 +97,134 @@ export default function EstoquePage() {
   );
 
   // Memoizar função de carregamento do resumo do inventário
-  const loadInventorySummary = useCallback(async () => {
-    try {
-      const data = await apiClient.get<InventorySummary>(
-        `/inventory/store/${slug}/summary`
-      );
-      setSummary(data);
-    } catch (error) {
-      console.error("❌ Erro ao carregar resumo do estoque:", error);
-      showToast("Erro ao carregar resumo do estoque", "error");
-    }
-  }, [slug, showToast]);
+  const loadInventorySummary = useCallback(
+    async (retryCount = 0) => {
+      try {
+        const data = await apiClient.get<InventorySummary>(
+          `/inventory/store/${slug}/summary`
+        );
+        setSummary(data);
+      } catch (error) {
+        console.error("❌ Erro ao carregar resumo do estoque:", error);
+
+        // Retry automático para erros de timeout
+        if (
+          retryCount < 2 &&
+          (error as Error).message?.includes("Tempo limite")
+        ) {
+          console.log(
+            `🔄 Tentativa ${retryCount + 1}/3 para carregar resumo do estoque`
+          );
+          setTimeout(() => loadInventorySummary(retryCount + 1), 2000);
+          return;
+        }
+
+        showToast("Erro ao carregar resumo do estoque", "error");
+      }
+    },
+    [slug, showToast]
+  );
 
   // Memoizar função de carregamento do inventário
-  const loadInventory = useCallback(async () => {
-    setDataLoading(true);
-    try {
-      const queryParams = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        lowStock: showLowStock.toString(),
-      });
+  const loadInventory = useCallback(
+    async (retryCount = 0) => {
+      setDataLoading(true);
+      try {
+        const queryParams = new URLSearchParams({
+          page: pagination.page.toString(),
+          limit: pagination.limit.toString(),
+          lowStock: showLowStock.toString(),
+        });
 
-      if (searchQuery.trim()) {
-        queryParams.append("search", searchQuery.trim());
+        if (searchQuery.trim()) {
+          queryParams.append("search", searchQuery.trim());
+        }
+
+        const url = `/inventory/store/${slug}?${queryParams.toString()}`;
+
+        const data = await apiClient.get<PaginatedResponse<InventoryItem>>(url);
+
+        setInventory(data.data);
+        setPagination(data.pagination);
+      } catch (error) {
+        console.error("❌ Erro ao carregar inventário:", error);
+
+        // Retry automático para erros de timeout
+        if (
+          retryCount < 2 &&
+          (error as Error).message?.includes("Tempo limite")
+        ) {
+          console.log(
+            `🔄 Tentativa ${retryCount + 1}/3 para carregar inventário`
+          );
+          setTimeout(() => loadInventory(retryCount + 1), 2000);
+          return;
+        }
+
+        showToast("Erro ao carregar inventário", "error");
+      } finally {
+        setDataLoading(false);
       }
-
-      const url = `/inventory/store/${slug}?${queryParams.toString()}`;
-
-      const data = await apiClient.get<PaginatedResponse<InventoryItem>>(url);
-
-      setInventory(data.data);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error("❌ Erro ao carregar inventário:", error);
-      showToast("Erro ao carregar inventário", "error");
-    } finally {
-      setDataLoading(false);
-    }
-  }, [slug, showToast]); // Removidas dependências que causam loops
+    },
+    [
+      slug,
+      showToast,
+      pagination.page,
+      pagination.limit,
+      showLowStock,
+      searchQuery,
+    ]
+  );
 
   // Memoizar função de carregamento das movimentações
-  const loadMovements = useCallback(async () => {
-    setDataLoading(true);
-    try {
-      const queryParams = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-      });
+  const loadMovements = useCallback(
+    async (retryCount = 0) => {
+      setDataLoading(true);
+      try {
+        const queryParams = new URLSearchParams({
+          page: pagination.page.toString(),
+          limit: pagination.limit.toString(),
+        });
 
-      if (selectedType) {
-        queryParams.append("type", selectedType);
+        if (selectedType) {
+          queryParams.append("type", selectedType);
+        }
+
+        if (searchQuery.trim()) {
+          queryParams.append("search", searchQuery.trim());
+        }
+
+        const data = await apiClient.get<PaginatedResponse<StockMovement>>(
+          `/inventory/store/${slug}/movements?${queryParams.toString()}`
+        );
+        setMovements(data.data);
+        setPagination(data.pagination);
+      } catch (error) {
+        console.error("Erro ao carregar movimentações:", error);
+
+        // Retry automático para erros de timeout
+        if (retryCount < 2 && error.message?.includes("Tempo limite")) {
+          console.log(
+            `🔄 Tentativa ${retryCount + 1}/3 para carregar movimentações`
+          );
+          setTimeout(() => loadMovements(retryCount + 1), 2000);
+          return;
+        }
+
+        showToast("Erro ao carregar movimentações", "error");
+      } finally {
+        setDataLoading(false);
       }
-
-      if (searchQuery.trim()) {
-        queryParams.append("search", searchQuery.trim());
-      }
-
-      const data = await apiClient.get<PaginatedResponse<StockMovement>>(
-        `/inventory/store/${slug}/movements?${queryParams.toString()}`
-      );
-      setMovements(data.data);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error("Erro ao carregar movimentações:", error);
-      showToast("Erro ao carregar movimentações", "error");
-    } finally {
-      setDataLoading(false);
-    }
-  }, [slug, showToast]); // Removidas dependências que causam loops
+    },
+    [
+      slug,
+      showToast,
+      pagination.page,
+      pagination.limit,
+      selectedType,
+      searchQuery,
+    ]
+  );
 
   // Memoizar função de carregamento inicial
   const loadInitialData = useCallback(async () => {

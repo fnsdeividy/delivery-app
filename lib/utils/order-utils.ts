@@ -84,6 +84,20 @@ export const formatCurrency = (value: number | string): string => {
   return `R$ ${numValue.toFixed(2).replace(".", ",")}`;
 };
 
+/**
+ * Calcula o troco que deve ser dado ao cliente
+ * @param cashChangeAmount - Valor que o cliente vai pagar
+ * @param orderTotal - Total do pedido
+ * @returns Valor do troco a ser dado
+ */
+export const calculateChange = (
+  cashChangeAmount: number,
+  orderTotal: number
+): number => {
+  if (!cashChangeAmount || cashChangeAmount <= 0) return 0;
+  return Math.max(0, cashChangeAmount - orderTotal);
+};
+
 export const formatDateTime = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleString("pt-BR", {
