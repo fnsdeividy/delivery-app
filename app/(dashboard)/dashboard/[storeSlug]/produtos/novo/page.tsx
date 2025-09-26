@@ -6,6 +6,7 @@ import { ProductBasicInfo } from "@/components/products/ProductBasicInfo";
 import { ProductClassifications } from "@/components/products/ProductClassifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useCardapioAuth } from "@/hooks/useCardapioAuth";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useToast } from "@/hooks/useToast";
@@ -187,14 +188,14 @@ export default function NovoProdutoPage() {
     );
   }
 
-  // Guardamos strings para inputs com máscara, e números no submit
+  // Estado do formulário com valores numéricos para preços
   const [formData, setFormData] = useState({
     storeSlug: slug,
     productType: "FOOD" as "FOOD" | "BEVERAGE",
     name: "",
     categoryId: "",
-    priceStr: "", // string para digitação (aceita vírgula/ponto)
-    originalPriceStr: "", // string para digitação (aceita vírgula/ponto)
+    price: 0, // valor numérico para o preço principal
+    originalPrice: 0, // valor numérico para o preço original
     description: "",
     image: undefined as string | undefined,
     images: [] as string[],
@@ -228,17 +229,6 @@ export default function NovoProdutoPage() {
   const [addons, setAddons] = useState<UIAddon[]>([]);
 
   // Valores numéricos derivados
-  const price = useMemo(
-    () => parseDecimal(formData.priceStr),
-    [formData.priceStr]
-  );
-  const originalPrice = useMemo(
-    () =>
-      formData.originalPriceStr.trim()
-        ? parseDecimal(formData.originalPriceStr)
-        : undefined,
-    [formData.originalPriceStr]
-  );
   const alcoholPercentage = useMemo(
     () => Number(sanitizeDecimalToString(formData.alcoholPercentageStr) || "0"),
     [formData.alcoholPercentageStr]
@@ -280,11 +270,18 @@ export default function NovoProdutoPage() {
 
       case 2:
         // Passo 2: Nome, categoria e preço são obrigatórios
+        const isPriceValid = formData.price > 0 && formData.price <= 999999.99;
+        const isOriginalPriceValid =
+          !formData.originalPrice ||
+          (formData.originalPrice > 0 &&
+            formData.originalPrice <= 999999.99 &&
+            formData.originalPrice >= formData.price);
+
         return (
           formData.name.trim() !== "" &&
           formData.categoryId !== "" &&
-          price > 0 &&
-          price <= 999999.99 &&
+          isPriceValid &&
+          isOriginalPriceValid &&
           isValidUrlOrEmpty(formData.image)
         );
 
@@ -316,7 +313,8 @@ export default function NovoProdutoPage() {
     formData.image,
     formData.productType,
     formData.alcoholic,
-    price,
+    formData.price,
+    formData.originalPrice,
     alcoholPercentage,
     addons,
   ]);
@@ -327,7 +325,17 @@ export default function NovoProdutoPage() {
     if (!formData.name.trim() || !formData.categoryId) return false;
 
     // Preço válido
-    if (price <= 0 || price > 999999.99) return false;
+    if (formData.price <= 0 || formData.price > 999999.99) return false;
+
+    // Preço original válido (se preenchido)
+    if (
+      formData.originalPrice &&
+      (formData.originalPrice <= 0 ||
+        formData.originalPrice > 999999.99 ||
+        formData.originalPrice < formData.price)
+    ) {
+      return false;
+    }
 
     // URL da imagem válida
     if (!isValidUrlOrEmpty(formData.image)) return false;
@@ -354,7 +362,8 @@ export default function NovoProdutoPage() {
     formData.image,
     formData.productType,
     formData.alcoholic,
-    price,
+    formData.price,
+    formData.originalPrice,
     alcoholPercentage,
     addons,
   ]);
@@ -453,17 +462,17 @@ export default function NovoProdutoPage() {
     setFormData((prev) => ({ ...prev, categoryId: value }));
   };
 
-  const handlePriceChange = (value: string) => {
+  const handlePriceChange = (value: number) => {
     setFormData((prev) => ({
       ...prev,
-      priceStr: sanitizeDecimalToString(value),
+      price: value,
     }));
   };
 
-  const handleOriginalPriceChange = (value: string) => {
+  const handleOriginalPriceChange = (value: number) => {
     setFormData((prev) => ({
       ...prev,
-      originalPriceStr: sanitizeDecimalToString(value),
+      originalPrice: value,
     }));
   };
 
@@ -610,8 +619,8 @@ export default function NovoProdutoPage() {
       productType: "FOOD" as "FOOD" | "BEVERAGE",
       name: "",
       categoryId: "",
-      priceStr: "",
-      originalPriceStr: "",
+      price: 0,
+      originalPrice: 0,
       description: "",
       image: undefined,
       images: [],
@@ -651,8 +660,22 @@ export default function NovoProdutoPage() {
       return;
     }
 
-    if (price <= 0 || price > 999999.99) {
-      showToast("Preço deve ser maior que zero", "error");
+    if (formData.price <= 0 || formData.price > 999999.99) {
+      showToast("Valor mínimo é R$ 0,01", "error");
+      return;
+    }
+
+    // Validação do preço original
+    if (
+      formData.originalPrice &&
+      (formData.originalPrice <= 0 ||
+        formData.originalPrice > 999999.99 ||
+        formData.originalPrice < formData.price)
+    ) {
+      showToast(
+        "Preço original deve ser maior ou igual ao preço principal",
+        "error"
+      );
       return;
     }
 
@@ -720,14 +743,14 @@ export default function NovoProdutoPage() {
         productType: formData.productType,
         name: formData.name.trim(),
         categoryId: formData.categoryId,
-        price: price || 0,
+        price: formData.price || 0,
         description: formData.description || "",
         image: formData.image || undefined,
         images:
           formData.images && formData.images.length > 0
             ? formData.images
             : undefined,
-        originalPrice: originalPrice,
+        originalPrice: formData.originalPrice || undefined,
         active: formData.active,
         ncm: formData.ncm || undefined,
         cest: formData.cest || undefined,
@@ -894,8 +917,8 @@ export default function NovoProdutoPage() {
                     formData={{
                       name: formData.name,
                       categoryId: formData.categoryId,
-                      price: price,
-                      originalPrice: originalPrice ?? 0,
+                      price: formData.price,
+                      originalPrice: formData.originalPrice ?? 0,
                       description: formData.description,
                       image: formData.image,
                     }}
@@ -907,10 +930,10 @@ export default function NovoProdutoPage() {
                       if (typeof updates.categoryId === "string")
                         handleCategoryChange(updates.categoryId);
                       if (typeof updates.price !== "undefined")
-                        handlePriceChange(String(updates.price ?? ""));
+                        handlePriceChange(Number(updates.price ?? 0));
                       if (typeof updates.originalPrice !== "undefined")
                         handleOriginalPriceChange(
-                          String(updates.originalPrice ?? "")
+                          Number(updates.originalPrice ?? 0)
                         );
                       if (typeof updates.description === "string")
                         handleDescriptionChange(updates.description);
@@ -921,69 +944,65 @@ export default function NovoProdutoPage() {
 
                   {/* Preço (com máscara BRL) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label htmlFor="price" className="text-sm font-medium">
-                        Preço <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="price"
-                        type="text"
-                        inputMode="numeric"
-                        value={formData.priceStr}
-                        onChange={(e) => handlePriceChange(e.target.value)}
-                        onBlur={() =>
-                          setFormData((p) => ({
-                            ...p,
-                            priceStr: formatBRL(price),
-                          }))
-                        }
-                        placeholder="R$ 0,00"
-                        aria-label="Campo para preço em reais"
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                          formData.priceStr && (price <= 0 || price > 999999.99)
-                            ? "border-red-500 focus:ring-red-500"
-                            : "focus:ring-blue-500"
-                        }`}
-                      />
-                      {formData.priceStr &&
-                        (price <= 0 || price > 999999.99) && (
-                          <p className="text-[11px] text-red-500">
-                            Preço deve ser maior que zero e menor que R$
-                            999.999,99
-                          </p>
-                        )}
-                      <p className="text-[11px] text-gray-500">
-                        Digite números; usamos máscara BRL automaticamente
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <label
-                        htmlFor="originalPrice"
-                        className="text-sm font-medium"
-                      >
-                        Preço Original (opcional)
-                      </label>
-                      <input
-                        id="originalPrice"
-                        type="text"
-                        inputMode="numeric"
-                        value={formData.originalPriceStr}
-                        onChange={(e) =>
-                          handleOriginalPriceChange(e.target.value)
-                        }
-                        onBlur={() =>
-                          setFormData((p) => ({
-                            ...p,
-                            originalPriceStr: originalPrice
-                              ? formatBRL(originalPrice)
-                              : "",
-                          }))
-                        }
-                        placeholder="R$ 0,00"
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                    <CurrencyInput
+                      id="price"
+                      label="Preço Principal"
+                      value={formData.price}
+                      onChange={handlePriceChange}
+                      placeholder="R$ 0,00"
+                      helperText="Digite o preço de venda do produto"
+                      min={0.01}
+                      max={999999.99}
+                      required
+                      error={formData.price <= 0 || formData.price > 999999.99}
+                    />
+
+                    <CurrencyInput
+                      id="originalPrice"
+                      label="Preço Original (Opcional)"
+                      value={formData.originalPrice || 0}
+                      onChange={handleOriginalPriceChange}
+                      placeholder="R$ 0,00"
+                      helperText="Preço antes do desconto (para mostrar desconto)"
+                      min={0}
+                      max={999999.99}
+                      error={
+                        formData.originalPrice > 0 &&
+                        (formData.originalPrice <= 0 ||
+                          formData.originalPrice > 999999.99 ||
+                          formData.originalPrice < formData.price)
+                      }
+                    />
                   </div>
+
+                  {/* Mensagem de erro para preço original */}
+                  {formData.originalPrice > 0 &&
+                    formData.originalPrice < formData.price && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-700">
+                          <strong>Erro:</strong> Preço original deve ser maior
+                          ou igual ao preço principal.
+                        </p>
+                      </div>
+                    )}
+
+                  {/* Indicador de desconto */}
+                  {formData.originalPrice &&
+                    formData.originalPrice > formData.price &&
+                    formData.price > 0 && (
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-800">
+                          <span className="font-medium">Desconto:</span>{" "}
+                          {formatBRL(formData.originalPrice - formData.price)} (
+                          {Math.round(
+                            ((formData.originalPrice - formData.price) /
+                              formData.originalPrice) *
+                              100
+                          )}
+                          % off)
+                        </p>
+                      </div>
+                    )}
 
                   {/* URL da Imagem */}
                   <div className="space-y-2 mt-2">
@@ -1382,50 +1401,27 @@ export default function NovoProdutoPage() {
                             </p>
                           </div>
 
-                          {/* Preço extra com preview BRL */}
+                          {/* Preço extra com CurrencyInput */}
                           <div className="space-y-1">
-                            <label
-                              className="sr-only"
-                              htmlFor={`addon-price-${index}`}
-                            >
-                              Preço do adicional {index + 1}
-                            </label>
-
-                            <input
+                            <CurrencyInput
                               id={`addon-price-${index}`}
-                              type="text"
-                              inputMode="numeric"
-                              value={addon.priceText}
-                              onChange={(e) =>
+                              label={`Preço do adicional ${index + 1}`}
+                              value={addon.price}
+                              onChange={(value) => {
+                                const { text } = parseAndFormatBRL(
+                                  String(value)
+                                );
                                 updateAddon(addon.id, {
-                                  priceText: e.target.value,
-                                })
-                              }
-                              onBlur={() => {
-                                updateAddon(addon.id, {
-                                  priceText:
-                                    addon.price > 0
-                                      ? formatBRL(addon.price)
-                                      : "",
+                                  priceText: text,
+                                  price: value,
                                 });
                               }}
                               placeholder="R$ 0,00"
-                              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                                addon.name.trim() && addon.price < 0
-                                  ? "border-red-500 focus:ring-red-500"
-                                  : "focus:ring-blue-500"
-                              }`}
-                              aria-label={`Preço do adicional ${index + 1}`}
+                              helperText="Deixe vazio para adicional sem custo"
+                              min={0}
+                              max={999.99}
+                              error={!!(addon.name.trim() && addon.price < 0)}
                             />
-                            {addon.name.trim() && addon.price < 0 && (
-                              <p className="text-[11px] text-red-500">
-                                Preço não pode ser negativo
-                              </p>
-                            )}
-
-                            <p className="text-[11px] text-gray-500">
-                              Digite apenas números (ex.: 250 vira R$ 2,50)
-                            </p>
                           </div>
 
                           {/* Remover */}
@@ -1791,7 +1787,7 @@ export default function NovoProdutoPage() {
                         {formData.description || "Descrição do produto"}
                       </div>
                       <div className="mt-2 font-bold">
-                        {formatBRL(price || 0)}
+                        {formatBRL(formData.price || 0)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {formData.productType === "BEVERAGE"

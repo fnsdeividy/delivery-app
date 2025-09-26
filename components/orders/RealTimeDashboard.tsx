@@ -7,7 +7,6 @@ import {
   CheckCircle,
   Clock,
   CookingPot,
-  Eye,
   EyeSlash,
   Truck,
   WifiHigh,
@@ -21,7 +20,6 @@ interface RealTimeDashboardProps {
   isConnected: boolean;
   connectionError: string | null;
   onReconnect: () => void;
-  onViewOrder: (order: Order) => void;
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
 }
 
@@ -42,7 +40,6 @@ export function RealTimeDashboard({
   isConnected,
   connectionError,
   onReconnect,
-  onViewOrder,
   onUpdateOrderStatus,
 }: RealTimeDashboardProps) {
   const [showNotifications, setShowNotifications] = useState(true);
@@ -82,6 +79,14 @@ export function RealTimeDashboard({
       style: "currency",
       currency: "BRL",
     }).format(value);
+  };
+
+  const calculateChange = (
+    cashChangeAmount: number,
+    orderTotal: number
+  ): number => {
+    if (!cashChangeAmount || cashChangeAmount <= 0) return 0;
+    return Math.max(0, cashChangeAmount - orderTotal);
   };
 
   const formatTime = (date: Date) => {
@@ -314,6 +319,40 @@ export function RealTimeDashboard({
                         {order.customer?.name || "Cliente"} •{" "}
                         {formatTime(new Date(order.createdAt))}
                       </p>
+
+                      {/* Informações de Pagamento, Observações e Troco - Layout Compacto */}
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {/* Forma de Pagamento */}
+                        {order.paymentMethod && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            💳 {order.paymentMethod.toLowerCase()}
+                          </span>
+                        )}
+
+                        {/* Troco para */}
+                        {order.cashChangeAmount &&
+                          order.cashChangeAmount > 0 && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              💰 Troco:{" "}
+                              {formatCurrency(
+                                calculateChange(
+                                  order.cashChangeAmount,
+                                  Number(order.total)
+                                )
+                              )}
+                            </span>
+                          )}
+
+                        {/* Observações */}
+                        {order.notes && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                            📝{" "}
+                            {order.notes.length > 20
+                              ? `${order.notes.substring(0, 20)}...`
+                              : order.notes}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -326,14 +365,6 @@ export function RealTimeDashboard({
                         {order.items?.length || 0} item(s)
                       </p>
                     </div>
-
-                    <button
-                      onClick={() => onViewOrder(order)}
-                      className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Ver detalhes"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               </div>

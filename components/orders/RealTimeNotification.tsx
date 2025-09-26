@@ -2,20 +2,19 @@
 
 import { Order, OrderStatus } from "@/types/cardapio-api";
 import {
-    CheckCircle,
-    Clock,
-    CookingPot,
-    SpeakerHigh,
-    SpeakerX,
-    Truck,
-    X,
+  CheckCircle,
+  Clock,
+  CookingPot,
+  SpeakerHigh,
+  SpeakerX,
+  Truck,
+  X,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 interface RealTimeNotificationProps {
   order: Order | null;
   onClose: () => void;
-  onViewDetails: (order: Order) => void;
   autoCloseDelay?: number;
   enableSound?: boolean;
 }
@@ -56,7 +55,6 @@ const statusMessages = {
 export function RealTimeNotification({
   order,
   onClose,
-  onViewDetails,
   autoCloseDelay = 5000,
   enableSound = true,
 }: RealTimeNotificationProps) {
@@ -133,6 +131,14 @@ export function RealTimeNotification({
       style: "currency",
       currency: "BRL",
     }).format(value);
+  };
+
+  const calculateChange = (
+    cashChangeAmount: number,
+    orderTotal: number
+  ): number => {
+    if (!cashChangeAmount || cashChangeAmount <= 0) return 0;
+    return Math.max(0, cashChangeAmount - orderTotal);
   };
 
   const formatTime = (dateString: string) => {
@@ -230,6 +236,40 @@ export function RealTimeNotification({
               </div>
             )}
 
+            {/* Informações de Pagamento e Troco */}
+            <div className="mt-2 space-y-1">
+              {/* Forma de Pagamento */}
+              {order.paymentMethod && (
+                <div className="flex items-center space-x-2 text-xs">
+                  <div className="flex items-center space-x-1 text-gray-500">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    <span className="font-medium">Pagamento:</span>
+                  </div>
+                  <span className="text-gray-600 capitalize">
+                    {order.paymentMethod.toLowerCase()}
+                  </span>
+                </div>
+              )}
+
+              {/* Troco para */}
+              {order.cashChangeAmount && order.cashChangeAmount > 0 && (
+                <div className="flex items-center space-x-2 text-xs">
+                  <div className="flex items-center space-x-1 text-gray-500">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <span className="font-medium">Troco:</span>
+                  </div>
+                  <span className="text-gray-600 font-semibold">
+                    {formatCurrency(
+                      calculateChange(
+                        order.cashChangeAmount,
+                        Number(order.total)
+                      )
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Notes */}
             {order.notes && (
               <div className="mt-2">
@@ -247,20 +287,10 @@ export function RealTimeNotification({
           <div className="flex space-x-2 mt-4">
             <button
               onClick={() => {
-                onViewDetails(order);
                 setIsVisible(false);
                 setTimeout(onClose, 300);
               }}
-              className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              Ver Detalhes
-            </button>
-            <button
-              onClick={() => {
-                setIsVisible(false);
-                setTimeout(onClose, 300);
-              }}
-              className="px-3 py-2 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors"
+              className="w-full px-3 py-2 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors"
             >
               Fechar
             </button>

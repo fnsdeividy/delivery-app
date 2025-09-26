@@ -290,7 +290,7 @@ export default function CartModal({
                       Entrar com telefone
                     </>
                   ) : (
-                    "Ir para Checkout"
+                    "Ir para Pagamento"
                   )}
                 </button>
 

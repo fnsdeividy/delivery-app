@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle, Warning, X } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -15,14 +15,15 @@ interface ToastProps {
 export default function Toast({ message, type, onClose, duration = 4000 }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onClose, 300); // Aguarda animação de saída
-    }, duration);
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onClose, 300); // Aguarda animação de saída
+  }, [onClose]);
 
+  useEffect(() => {
+    const timer = setTimeout(handleClose, duration);
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [duration, handleClose]);
 
   const getToastStyles = () => {
     switch (type) {
@@ -65,10 +66,7 @@ export default function Toast({ message, type, onClose, duration = 4000 }: Toast
             <p className="text-sm font-medium">{message}</p>
           </div>
           <button
-            onClick={() => {
-              setIsVisible(false);
-              setTimeout(onClose, 300);
-            }}
+            onClick={handleClose}
             className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600"
           >
             <X className="w-4 h-4" />
@@ -87,16 +85,16 @@ export function useToast() {
     type: ToastType;
   }>>([]);
 
-  const showToast = (message: string, type: ToastType = "info") => {
+  const showToast = useCallback((message: string, type: ToastType = "info") => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts(prev => [...prev, { id, message, type }]);
-  };
+  }, []);
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
+  }, []);
 
-  const ToastContainer = () => (
+  const ToastContainer = useCallback(() => (
     <div className="fixed top-4 right-4 z-50 space-y-2">
       {toasts.map(toast => (
         <Toast
@@ -107,7 +105,7 @@ export function useToast() {
         />
       ))}
     </div>
-  );
+  ), [toasts, removeToast]);
 
   return { showToast, ToastContainer };
 }
