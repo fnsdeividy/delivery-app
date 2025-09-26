@@ -108,7 +108,10 @@ export default function EstoquePage() {
         console.error("❌ Erro ao carregar resumo do estoque:", error);
 
         // Retry automático para erros de timeout
-        if (retryCount < 2 && error.message?.includes("Tempo limite")) {
+        if (
+          retryCount < 2 &&
+          (error as Error).message?.includes("Tempo limite")
+        ) {
           console.log(
             `🔄 Tentativa ${retryCount + 1}/3 para carregar resumo do estoque`
           );
@@ -147,7 +150,10 @@ export default function EstoquePage() {
         console.error("❌ Erro ao carregar inventário:", error);
 
         // Retry automático para erros de timeout
-        if (retryCount < 2 && error.message?.includes("Tempo limite")) {
+        if (
+          retryCount < 2 &&
+          (error as Error).message?.includes("Tempo limite")
+        ) {
           console.log(
             `🔄 Tentativa ${retryCount + 1}/3 para carregar inventário`
           );

@@ -38,6 +38,7 @@ interface FormErrors {
   deliveryNumber?: string;
   deliveryNeighborhood?: string;
   deliveryCity?: string;
+  cashChangeAmount?: string;
 }
 
 interface PaymentMethod {
@@ -130,6 +131,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     paymentMethod: "PIX" as const,
     orderType: OrderType.DELIVERY as OrderType,
     observations: "",
+    cashChangeAmount: "",
   });
 
   // Estado para controlar o carregamento da busca de CEP
@@ -362,6 +364,24 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
       }
     }
 
+    // Validar campo de troco se pagamento for em dinheiro
+    if (formData.paymentMethod === "DINHEIRO") {
+      if (!formData.cashChangeAmount.trim()) {
+        errors.cashChangeAmount = "Valor do troco é obrigatório";
+      } else {
+        const cashAmount = parseFloat(
+          formData.cashChangeAmount.replace(",", ".")
+        );
+        if (isNaN(cashAmount) || cashAmount <= 0) {
+          errors.cashChangeAmount = "Valor inválido";
+        } else if (cashAmount < total) {
+          errors.cashChangeAmount = `Valor deve ser maior ou igual ao total (R$ ${formatPrice(
+            total
+          )})`;
+        }
+      }
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -454,6 +474,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         paymentStatus: PaymentStatus.PENDING,
         subtotal: parsePrice(cart.total),
         total: parsePrice(cart.total) + parsePrice(deliveryFee),
+        cashChangeAmount:
+          formData.paymentMethod === "DINHEIRO" && formData.cashChangeAmount
+            ? parseFloat(formData.cashChangeAmount.replace(",", "."))
+            : undefined,
         notes: `Nome: ${formData.customerName}\nTelefone: ${
           formData.customerPhone
         }${formData.customerEmail ? `\nEmail: ${formData.customerEmail}` : ""}${
@@ -470,6 +494,10 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             : ""
         }${
           formData.observations ? `\nObservações: ${formData.observations}` : ""
+        }${
+          formData.paymentMethod === "DINHEIRO" && formData.cashChangeAmount
+            ? `\nTroco para: R$ ${formData.cashChangeAmount}`
+            : ""
         }`,
         items: cart.items.map((item): OrderItemDto => {
           const customizations = item.customizations
@@ -1265,6 +1293,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       setFormData((prev) => ({
                         ...prev,
                         paymentMethod: e.target.value as any,
+                        // Limpar campo de troco se mudar de dinheiro para outro método
+                        cashChangeAmount:
+                          e.target.value !== "DINHEIRO"
+                            ? ""
+                            : prev.cashChangeAmount,
                       }))
                     }
                     className="sr-only"
@@ -1296,6 +1329,64 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 </label>
               ))}
             </div>
+
+            {/* Campo de Troco - aparece apenas quando Dinheiro é selecionado */}
+            {formData.paymentMethod === "DINHEIRO" && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div id="cashChangeAmount">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
+                    Troco para quanto? *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
+                      R$
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      value={formData.cashChangeAmount}
+                      onChange={(e) => {
+                        // Permitir apenas números e vírgula
+                        const value = e.target.value.replace(/[^\d,]/g, "");
+                        // Limitar a 2 casas decimais
+                        const parts = value.split(",");
+                        if (parts.length > 2) {
+                          return;
+                        }
+                        if (parts[1] && parts[1].length > 2) {
+                          return;
+                        }
+                        setFormData((prev) => ({
+                          ...prev,
+                          cashChangeAmount: value,
+                        }));
+                      }}
+                      onBlur={() => validateForm()}
+                      className={`w-full pl-8 pr-3 sm:px-8 py-3 sm:py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 text-black text-sm sm:text-base ${
+                        formErrors.cashChangeAmount
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-300 hover:border-gray-400 focus:bg-white"
+                      }`}
+                      style={
+                        {
+                          "--tw-ring-color": brandingColors.primary + "80",
+                        } as React.CSSProperties
+                      }
+                      placeholder="Ex: 100,00"
+                    />
+                  </div>
+                  {formErrors.cashChangeAmount && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-500 flex items-center gap-1">
+                      <WarningCircle size={12} className="sm:w-3.5 sm:h-3.5" />
+                      {formErrors.cashChangeAmount}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-600">
+                    💡 Informe o valor em dinheiro que você vai usar para pagar
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Observações */}

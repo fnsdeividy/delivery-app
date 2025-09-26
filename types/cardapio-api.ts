@@ -213,6 +213,7 @@ export interface CreateOrderDto {
   deliveryFee: number;
   discount: number;
   total: number;
+  cashChangeAmount?: number;
   estimatedDeliveryTime?: Date;
 }
 
@@ -476,6 +477,7 @@ export interface Order {
   type: OrderType;
   paymentMethod: string;
   paymentStatus: PaymentStatus;
+  cashChangeAmount?: number;
   customerId: string;
   customer: Customer;
   userId?: string;
