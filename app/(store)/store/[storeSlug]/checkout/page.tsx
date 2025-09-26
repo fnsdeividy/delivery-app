@@ -365,8 +365,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     }
 
     // Validar campo de troco se pagamento for em dinheiro
-    if (formData.paymentMethod === "DINHEIRO") {
-      if (!formData.cashChangeAmount.trim()) {
+    if ((formData.paymentMethod as string) === "DINHEIRO") {
+      if (!formData.cashChangeAmount?.trim()) {
         errors.cashChangeAmount = "Valor do troco é obrigatório";
       } else {
         const cashAmount = parseFloat(
@@ -475,7 +475,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         subtotal: parsePrice(cart.total),
         total: parsePrice(cart.total) + parsePrice(deliveryFee),
         cashChangeAmount:
-          formData.paymentMethod === "DINHEIRO" && formData.cashChangeAmount
+          (formData.paymentMethod as string) === "DINHEIRO" &&
+          formData.cashChangeAmount
             ? parseFloat(formData.cashChangeAmount.replace(",", "."))
             : undefined,
         notes: `Nome: ${formData.customerName}\nTelefone: ${
@@ -495,7 +496,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         }${
           formData.observations ? `\nObservações: ${formData.observations}` : ""
         }${
-          formData.paymentMethod === "DINHEIRO" && formData.cashChangeAmount
+          (formData.paymentMethod as string) === "DINHEIRO" &&
+          formData.cashChangeAmount
             ? `\nTroco para: R$ ${formData.cashChangeAmount}`
             : ""
         }`,
@@ -1331,7 +1333,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             </div>
 
             {/* Campo de Troco - aparece apenas quando Dinheiro é selecionado */}
-            {formData.paymentMethod === "DINHEIRO" && (
+            {(formData.paymentMethod as string) === "DINHEIRO" && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div id="cashChangeAmount">
                   <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
