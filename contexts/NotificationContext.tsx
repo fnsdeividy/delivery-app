@@ -62,7 +62,13 @@ export function NotificationProvider({
         return;
       }
       lastNotifiedOrderIdRef.current = data?.order?.id ?? null;
-      showNotification(data);
+
+      // Adicionar timestamp aos dados antes de chamar showNotification
+      const notificationData: NotificationData = {
+        ...data,
+        timestamp: new Date().toISOString(),
+      };
+      showNotification(notificationData);
     },
     onOrderCountersUpdated: (counters) => {
       setOrderCounters(counters);
@@ -105,8 +111,8 @@ export function NotificationProvider({
         console.warn("Falha ao processar NEW_ORDER via SSE:", err);
       }
     },
-    onOrderUpdated: () => {},
-    onOrderCancelled: () => {},
+    onOrderUpdated: () => { },
+    onOrderCancelled: () => { },
     onError: (e) => {
       console.warn("SSE erro (global):", e);
     },
