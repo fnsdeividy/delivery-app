@@ -1,7 +1,8 @@
 "use client";
 
 import { Warning, X } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface CancelOrderModalProps {
   isOpen: boolean;
@@ -18,6 +19,11 @@ export default function CancelOrderModal({
 }: CancelOrderModalProps) {
   const [reason, setReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,11 +46,11 @@ export default function CancelOrderModal({
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !isMounted) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center space-x-2">
             <Warning className="h-6 w-6 text-red-500" />
@@ -54,7 +60,8 @@ export default function CancelOrderModal({
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Fechar modal"
           >
             <X className="h-6 w-6" />
           </button>
@@ -79,7 +86,7 @@ export default function CancelOrderModal({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ex: Produto indisponível, cliente solicitou cancelamento, etc."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
               rows={4}
               required
             />
@@ -105,4 +112,7 @@ export default function CancelOrderModal({
       </div>
     </div>
   );
+
+  // Renderizar o modal usando portal para garantir que apareça no nível mais alto
+  return createPortal(modalContent, document.body);
 }
