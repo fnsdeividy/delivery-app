@@ -62,7 +62,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
  */
 export function useDebouncedSearch<T>(
   searchFn: (query: string) => Promise<T>,
-  delay: number = 300
+  delay: number = 150
 ) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<T | null>(null);

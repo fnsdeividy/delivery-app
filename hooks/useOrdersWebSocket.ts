@@ -78,7 +78,7 @@ export function useOrdersWebSocket({
   }, [onError]);
 
   const maxReconnectAttempts = 5;
-  const reconnectDelay = 3000; // 3 segundos
+  const reconnectDelay = 1000; // 1 segundo
 
   // Função para conectar
   const connect = useCallback(() => {
@@ -353,7 +353,7 @@ export function useOrdersWebSocket({
     if (state.isConnected) {
       const pingInterval = setInterval(() => {
         sendPing();
-      }, 30000); // Ping a cada 30 segundos
+      }, 10000); // Ping a cada 10 segundos
 
       return () => clearInterval(pingInterval);
     }

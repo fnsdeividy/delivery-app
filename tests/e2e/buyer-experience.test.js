@@ -19,7 +19,7 @@ const path = require('path');
 const config = {
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
   headless: process.env.HEADLESS === 'true' || false,
-  slowMo: parseInt(process.env.SLOW_MO) || 100, // Atraso entre ações (ms)
+  slowMo: parseInt(process.env.SLOW_MO) || 0, // Atraso entre ações (ms)
   timeout: parseInt(process.env.TIMEOUT) || 30000, // Timeout padrão
   viewport: {
     width: parseInt(process.env.VIEWPORT_WIDTH) || 1366,
@@ -478,7 +478,7 @@ class BuyerExperienceTest {
           }
 
           await field.click();
-          await field.type(value, { delay: 50 });
+          await field.type(value, { delay: 0 });
           filledFields[fieldName] = true;
           console.log(`   ✅ Campo ${fieldName} preenchido`);
         } else {

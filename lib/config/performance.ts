@@ -32,9 +32,9 @@ export const PERFORMANCE_CONFIG = {
 
   // Configurações de lazy loading
   LAZY_LOADING: {
-    INTERSECTION_MARGIN: '50px', // Margem para intersection observer
+    INTERSECTION_MARGIN: "50px", // Margem para intersection observer
     THRESHOLD: 0.1, // Threshold para intersection observer
-    ROOT_MARGIN: '0px 0px 100px 0px', // Margem do root
+    ROOT_MARGIN: "0px 0px 100px 0px", // Margem do root
   },
 
   // Configurações de imagens
@@ -50,7 +50,7 @@ export const PERFORMANCE_CONFIG = {
       MEDIUM: 600,
       LARGE: 1200,
     },
-    FORMATS: ['image/webp', 'image/avif'],
+    FORMATS: ["image/webp", "image/avif"],
   },
 
   // Configurações de bundle
@@ -64,7 +64,7 @@ export const PERFORMANCE_CONFIG = {
   API: {
     TIMEOUT: 10000, // 10 segundos
     RETRY_ATTEMPTS: 3,
-    RETRY_DELAY: 1000, // 1 segundo
+    RETRY_DELAY: 300, // 300ms
     BATCH_SIZE: 10, // Tamanho do batch para múltiplas requisições
   },
 
@@ -76,9 +76,9 @@ export const PERFORMANCE_CONFIG = {
       SLOW: 500,
     },
     EASING: {
-      EASE_IN: 'cubic-bezier(0.4, 0, 1, 1)',
-      EASE_OUT: 'cubic-bezier(0, 0, 0.2, 1)',
-      EASE_IN_OUT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      EASE_IN: "cubic-bezier(0.4, 0, 1, 1)",
+      EASE_OUT: "cubic-bezier(0, 0, 0.2, 1)",
+      EASE_IN_OUT: "cubic-bezier(0.4, 0, 0.2, 1)",
     },
   },
 
@@ -91,15 +91,23 @@ export const PERFORMANCE_CONFIG = {
 };
 
 // Função para obter configuração de cache baseada no tipo de dados
-export function getCacheConfig(type: 'static' | 'dynamic' | 'realtime') {
+export function getCacheConfig(type: "static" | "dynamic" | "realtime") {
   return {
-    staleTime: PERFORMANCE_CONFIG.CACHE.STALE_TIME[type.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.STALE_TIME],
-    gcTime: PERFORMANCE_CONFIG.CACHE.GC_TIME[type.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.GC_TIME],
+    staleTime:
+      PERFORMANCE_CONFIG.CACHE.STALE_TIME[
+        type.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.STALE_TIME
+      ],
+    gcTime:
+      PERFORMANCE_CONFIG.CACHE.GC_TIME[
+        type.toUpperCase() as keyof typeof PERFORMANCE_CONFIG.CACHE.GC_TIME
+      ],
   };
 }
 
 // Função para obter configuração de imagem baseada no contexto
-export function getImageConfig(context: 'thumbnail' | 'product' | 'banner' | 'logo') {
+export function getImageConfig(
+  context: "thumbnail" | "product" | "banner" | "logo"
+) {
   const configs = {
     thumbnail: {
       quality: PERFORMANCE_CONFIG.IMAGES.QUALITY.LOW,
@@ -123,13 +131,18 @@ export function getImageConfig(context: 'thumbnail' | 'product' | 'banner' | 'lo
 }
 
 // Função para verificar se deve usar lazy loading
-export function shouldUseLazyLoading(priority: boolean = false, aboveFold: boolean = false) {
+export function shouldUseLazyLoading(
+  priority: boolean = false,
+  aboveFold: boolean = false
+) {
   return !priority && !aboveFold;
 }
 
 // Função para calcular tamanho de chunk baseado no tamanho do arquivo
-export function calculateChunkSize(fileSize: number): 'small' | 'medium' | 'large' {
-  if (fileSize < PERFORMANCE_CONFIG.BUNDLE.VENDOR_CHUNK_SIZE) return 'small';
-  if (fileSize < PERFORMANCE_CONFIG.BUNDLE.MAX_CHUNK_SIZE) return 'medium';
-  return 'large';
+export function calculateChunkSize(
+  fileSize: number
+): "small" | "medium" | "large" {
+  if (fileSize < PERFORMANCE_CONFIG.BUNDLE.VENDOR_CHUNK_SIZE) return "small";
+  if (fileSize < PERFORMANCE_CONFIG.BUNDLE.MAX_CHUNK_SIZE) return "medium";
+  return "large";
 }

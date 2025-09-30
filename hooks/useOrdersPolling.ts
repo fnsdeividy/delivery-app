@@ -151,7 +151,7 @@ export function useOrdersPolling({
     stopPolling();
     setTimeout(() => {
       startPolling();
-    }, 1000);
+    }, 200);
   }, [stopPolling, startPolling]);
 
   // Efeito para gerenciar polling

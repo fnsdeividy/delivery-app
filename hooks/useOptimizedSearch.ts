@@ -11,7 +11,7 @@ export function useProductSearch(storeSlug: string) {
       if (!query.trim()) return [];
       return await apiClient.searchProducts(storeSlug, query);
     },
-    300 // 300ms de delay
+    150 // 150ms de delay
   );
 }
 

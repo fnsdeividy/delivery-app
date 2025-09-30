@@ -10,7 +10,7 @@ async function testThemeIntegration() {
   
   const browser = await puppeteer.launch({ 
     headless: false, // Mostrar o navegador para debug
-    slowMo: 100 
+    slowMo: 0 
   });
   
   try {

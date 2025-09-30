@@ -25,7 +25,7 @@ export const createQueryClient = () => {
         },
         
         // Delay entre tentativas (exponencial)
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 5000),
         
         // Re-fetch quando a janela ganha foco (útil para dados que podem ter mudado)
         refetchOnWindowFocus: false,

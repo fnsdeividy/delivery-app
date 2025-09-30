@@ -12,7 +12,7 @@ async function quickTest() {
   try {
     browser = await puppeteer.launch({
       headless: false,
-      slowMo: 250,
+      slowMo: 0,
       defaultViewport: { width: 1366, height: 768 },
     });
 
