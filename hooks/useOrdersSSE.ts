@@ -86,17 +86,14 @@ export function useOrdersSSE({
 
         switch (data.type) {
           case "NEW_ORDER":
-            console.log("🆕 Novo pedido:", data.payload);
             handleNewOrder(data.payload);
             break;
 
           case "ORDER_UPDATED":
-            console.log("🔄 Pedido atualizado:", data.payload);
             handleOrderUpdated(data.payload);
             break;
 
           case "ORDER_CANCELLED":
-            console.log("❌ Pedido cancelado:", data.payload);
             handleOrderCancelled(data.payload);
             break;
         }

@@ -86,7 +86,7 @@ export default function CancelOrderModal({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ex: Produto indisponível, cliente solicitou cancelamento, etc."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none text-black"
               rows={4}
               required
             />

@@ -102,7 +102,6 @@ export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
             break;
 
           case "ORDER_UPDATED":
-            console.log("🔄 Pedido atualizado:", data.payload);
             setOrders((prev) =>
               prev.map((order) =>
                 order.id === data.payload.id ? data.payload : order
