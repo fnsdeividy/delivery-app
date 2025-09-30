@@ -93,7 +93,11 @@ export function useOrdersWebSocket({
     try {
       isConnectingRef.current = true;
       const socket = io(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/orders`,
+        `${
+          process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+          process.env.NEXT_PUBLIC_API_URL ||
+          "http://localhost:3001"
+        }/orders`,
         {
           auth: {
             token,

@@ -63,7 +63,10 @@ export function useOrdersSSE({
     }
 
     // Criar nova conexão SSE (usar backend direto)
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:3001";
     const eventSource = new EventSource(
       `${baseUrl}/api/v1/orders/public/stream?storeSlug=${storeSlug}`
     );
