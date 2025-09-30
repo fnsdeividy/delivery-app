@@ -19,6 +19,10 @@ import { LoadingContent } from "../../../components/GlobalLoading";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import { useAuthContext } from "../../../contexts/AuthContext";
+import {
+  NotificationProvider,
+  useNotification,
+} from "../../../contexts/NotificationContext";
 import { useStores } from "../../../hooks";
 import { useDashboardRouteLoading } from "../../../hooks/useRouteLoading";
 import { useStoreConfig } from "../../../lib/store/useStoreConfig";
@@ -34,6 +38,249 @@ interface NavigationItem {
   icon: React.ComponentType<{ className?: string }>;
   current: boolean;
   children?: NavigationItem[];
+}
+
+function OrdersBadge() {
+  const { orderCounters } = useNotification();
+  const pending = orderCounters?.newOrders ?? 0;
+  if (!pending || pending <= 0) return null;
+  return (
+    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+      {pending}
+    </span>
+  );
+}
+
+function DashboardContent({
+  children,
+  navigation,
+  slug,
+  config,
+  user,
+  logout,
+  navigateWithLoading,
+  isRouteLoading,
+  sidebarOpen,
+  setSidebarOpen,
+  pathname,
+}: any) {
+  return (
+    <div className="dashboard-layout">
+      {/* Mobile menu overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div
+            className="fixed inset-0 bg-gray-600 bg-opacity-75"
+            onClick={() => setSidebarOpen(false)}
+          />
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <div className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/60">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            {config?.branding?.logo ? (
+              <img
+                src={config.branding.logo}
+                alt={config.name || "Logo"}
+                className="h-8 w-auto hover-scale"
+              />
+            ) : (
+              <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Storefront className="h-5 w-5 text-white" />
+              </div>
+            )}
+            <h2 className="text-lg font-semibold text-gray-900 truncate ml-3">
+              {config?.name || slug || "Dashboard"}
+            </h2>
+          </div>
+          {/* Botão de fechar sidebar - só mostra quando sidebar está aberto */}
+          {sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
+            {navigation.length > 0 ? (
+              navigation.map((item: any) => (
+                <div key={item.name}>
+                  <button
+                    onClick={() => navigateWithLoading(item.href)}
+                    disabled={isRouteLoading}
+                    className={`dashboard-nav-button group flex items-center px-3 py-3 text-sm font-medium w-full text-left ${
+                      item.current
+                        ? "active"
+                        : "text-gray-700 hover:text-gray-900"
+                    } ${isRouteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <item.icon
+                      className={`mr-3 h-5 w-5 ${
+                        item.current
+                          ? "text-purple-500"
+                          : "text-gray-400 group-hover:text-gray-500"
+                      }`}
+                    />
+                    {item.name}
+                    {item.name === "Pedidos" && <OrdersBadge />}
+                  </button>
+
+                  {/* Submenu */}
+                  {item.children && item.current && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.children.map((child: any) => (
+                        <button
+                          key={child.name}
+                          onClick={() => navigateWithLoading(child.href)}
+                          disabled={isRouteLoading}
+                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors w-full text-left ${
+                            child.current
+                              ? "bg-purple-50 text-purple-700"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          } ${
+                            isRouteLoading
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
+                          <child.icon
+                            className={`mr-3 h-4 w-4 ${
+                              child.current
+                                ? "text-purple-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          {child.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-500">
+                  Navegação não disponível
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Slug: {slug || "não definido"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Rota especial:{" "}
+                  {pathname.includes("gerenciar-lojas") ? "sim" : "não"}
+                </p>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* User section */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200/60 bg-gradient-to-t from-gray-50/80 to-transparent">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+                <span className="text-sm">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {user?.name || "Usuário"}
+                </p>
+                <p className="text-xs text-gray-500 font-medium truncate">
+                  {slug && !pathname.includes("gerenciar-lojas") ? (
+                    <span className="flex items-center space-x-1">
+                      <Storefront className="h-3 w-3" />
+                      <span>{slug}</span>
+                    </span>
+                  ) : user?.role === "SUPER_ADMIN" ? (
+                    "Super Administrador"
+                  ) : user?.role === "ADMIN" ? (
+                    "Administrador"
+                  ) : (
+                    "Usuário"
+                  )}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 flex-shrink-0"
+              title="Sair"
+            >
+              <SignOut className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="dashboard-main-layout">
+        {/* Top bar */}
+        <div className="dashboard-main-header sticky top-0 z-30">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200"
+            >
+              <List className="h-6 w-6" />
+            </button>
+
+            <div className="flex items-center space-x-4">
+              {/* Breadcrumb */}
+              <nav className="breadcrumb">
+                <span className="breadcrumb-item">Dashboard</span>
+                {pathname.startsWith("/dashboard/gerenciar-lojas") && (
+                  <span className="breadcrumb-item">Gerenciar Lojas</span>
+                )}
+                {slug && !pathname.includes("gerenciar-lojas") && (
+                  <span className="breadcrumb-item flex items-center">
+                    {config?.branding?.logo && (
+                      <img
+                        src={config.branding.logo}
+                        alt={config?.name || slug}
+                        className="w-4 h-4 rounded mr-2 object-cover"
+                      />
+                    )}
+                    {config?.name || slug}
+                  </span>
+                )}
+              </nav>
+
+              {slug && !pathname.includes("gerenciar-lojas") && (
+                <a
+                  href={`/loja/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                >
+                  <Truck className="h-4 w-4 mr-2" />
+                  Ver Loja
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <main className="dashboard-main-content">
+          <div className="dashboard-content-wrapper">
+            <LoadingContent className="dashboard-container">
+              {children}
+            </LoadingContent>
+          </div>
+        </main>
+      </div>
+
+      <ToastContainer />
+    </div>
+  );
 }
 
 // Auxiliar para detectar 404 de forma resiliente
@@ -253,218 +500,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // =========================
 
   return (
-    <div className="dashboard-layout">
-      {/* Mobile menu overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75"
-            onClick={() => setSidebarOpen(false)}
-          />
-        </div>
-      )}
-
-      {/* Sidebar */}
-      <div className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200/60">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            {config?.branding?.logo ? (
-              <img
-                src={config.branding.logo}
-                alt={config.name || "Logo"}
-                className="h-8 w-auto hover-scale"
-              />
-            ) : (
-              <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Storefront className="h-5 w-5 text-white" />
-              </div>
-            )}
-            <h2 className="text-lg font-semibold text-gray-900 truncate ml-3">
-              {config?.name || slug || "Dashboard"}
-            </h2>
-          </div>
-          {/* Botão de fechar sidebar - só mostra quando sidebar está aberto */}
-          {sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        <nav className="mt-6 px-3">
-          <div className="space-y-1">
-            {navigation.length > 0 ? (
-              navigation.map((item) => (
-                <div key={item.name}>
-                  <button
-                    onClick={() => navigateWithLoading(item.href)}
-                    disabled={isRouteLoading}
-                    className={`dashboard-nav-button group flex items-center px-3 py-3 text-sm font-medium w-full text-left ${
-                      item.current
-                        ? "active"
-                        : "text-gray-700 hover:text-gray-900"
-                    } ${isRouteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <item.icon
-                      className={`mr-3 h-5 w-5 ${
-                        item.current
-                          ? "text-purple-500"
-                          : "text-gray-400 group-hover:text-gray-500"
-                      }`}
-                    />
-                    {item.name}
-                  </button>
-
-                  {/* Submenu */}
-                  {item.children && item.current && (
-                    <div className="ml-6 mt-1 space-y-1">
-                      {item.children.map((child) => (
-                        <button
-                          key={child.name}
-                          onClick={() => navigateWithLoading(child.href)}
-                          disabled={isRouteLoading}
-                          className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors w-full text-left ${
-                            child.current
-                              ? "bg-purple-50 text-purple-700"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                          } ${
-                            isRouteLoading
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                        >
-                          <child.icon
-                            className={`mr-3 h-4 w-4 ${
-                              child.current
-                                ? "text-purple-500"
-                                : "text-gray-400"
-                            }`}
-                          />
-                          {child.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-sm text-gray-500">
-                  Navegação não disponível
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Slug: {slug || "não definido"}
-                </p>
-                <p className="text-xs text-gray-400">
-                  Rota especial: {isSpecialRoute ? "sim" : "não"}
-                </p>
-              </div>
-            )}
-          </div>
-        </nav>
-
-        {/* User section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200/60 bg-gradient-to-t from-gray-50/80 to-transparent">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                <span className="text-sm">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {user?.name || "Usuário"}
-                </p>
-                <p className="text-xs text-gray-500 font-medium truncate">
-                  {slug && !isSpecialRoute ? (
-                    <span className="flex items-center space-x-1">
-                      <Storefront className="h-3 w-3" />
-                      <span>{slug}</span>
-                    </span>
-                  ) : user?.role === "SUPER_ADMIN" ? (
-                    "Super Administrador"
-                  ) : user?.role === "ADMIN" ? (
-                    "Administrador"
-                  ) : (
-                    "Usuário"
-                  )}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 flex-shrink-0"
-              title="Sair"
-            >
-              <SignOut className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="dashboard-main-layout">
-        {/* Top bar */}
-        <div className="dashboard-main-header sticky top-0 z-30">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200"
-            >
-              <List className="h-6 w-6" />
-            </button>
-
-            <div className="flex items-center space-x-4">
-              {/* Breadcrumb */}
-              <nav className="breadcrumb">
-                <span className="breadcrumb-item">Dashboard</span>
-                {pathname.startsWith("/dashboard/gerenciar-lojas") && (
-                  <span className="breadcrumb-item">Gerenciar Lojas</span>
-                )}
-                {slug && !isSpecialRoute && (
-                  <span className="breadcrumb-item flex items-center">
-                    {config?.branding?.logo && (
-                      <img
-                        src={config.branding.logo}
-                        alt={config?.name || slug}
-                        className="w-4 h-4 rounded mr-2 object-cover"
-                      />
-                    )}
-                    {config?.name || slug}
-                  </span>
-                )}
-              </nav>
-
-              {slug && !isSpecialRoute && (
-                <a
-                  href={`/loja/${slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                >
-                  <Truck className="h-4 w-4 mr-2" />
-                  Ver Loja
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Page content */}
-        <main className="dashboard-main-content">
-          <div className="dashboard-content-wrapper">
-            <LoadingContent className="dashboard-container">
-              {children}
-            </LoadingContent>
-          </div>
-        </main>
-      </div>
-
-      <ToastContainer />
-    </div>
+    <NotificationProvider storeSlug={slug}>
+      <DashboardContent
+        children={children}
+        navigation={navigation}
+        slug={slug}
+        config={config}
+        user={user}
+        logout={handleLogout}
+        navigateWithLoading={navigateWithLoading}
+        isRouteLoading={isRouteLoading}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        pathname={pathname}
+      />
+    </NotificationProvider>
   );
 }

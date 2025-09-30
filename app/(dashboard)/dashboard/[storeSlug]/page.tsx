@@ -1,23 +1,46 @@
 "use client";
 
-import { LazyLoad } from "@/components/ui/lazy-load";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 // Lazy loading dos componentes pesados
-const DashboardMetrics = React.lazy(() => import("@/components/DashboardMetrics").then(m => ({ default: m.DashboardMetrics })));
-const DashboardQuickActions = React.lazy(() => import("@/components/DashboardQuickActions").then(m => ({ default: m.DashboardQuickActions })));
+const DashboardMetrics = React.lazy(() =>
+  import("@/components/DashboardMetrics").then((m) => ({
+    default: m.DashboardMetrics,
+  }))
+);
+const DashboardQuickActions = React.lazy(() =>
+  import("@/components/DashboardQuickActions").then((m) => ({
+    default: m.DashboardQuickActions,
+  }))
+);
 
 // Componentes locais com lazy loading
-const AdditionalInfoSection = React.lazy(() => import("./components/AdditionalInfoSection").then(m => ({ default: m.AdditionalInfoSection })));
-const OrderManagementSection = React.lazy(() => import("./components/OrderManagementSection").then(m => ({ default: m.OrderManagementSection })));
-const StockAlertsSection = React.lazy(() => import("./components/StockAlertsSection").then(m => ({ default: m.StockAlertsSection })));
-const StoreConfigSection = React.lazy(() => import("./components/StoreConfigSection").then(m => ({ default: m.StoreConfigSection })));
+const AdditionalInfoSection = React.lazy(() =>
+  import("./components/AdditionalInfoSection").then((m) => ({
+    default: m.AdditionalInfoSection,
+  }))
+);
+const OrderManagementSection = React.lazy(() =>
+  import("./components/OrderManagementSection").then((m) => ({
+    default: m.OrderManagementSection,
+  }))
+);
+const StockAlertsSection = React.lazy(() =>
+  import("./components/StockAlertsSection").then((m) => ({
+    default: m.StockAlertsSection,
+  }))
+);
+const StoreConfigSection = React.lazy(() =>
+  import("./components/StoreConfigSection").then((m) => ({
+    default: m.StoreConfigSection,
+  }))
+);
 
 export default function DashboardPage() {
   const params = useParams();

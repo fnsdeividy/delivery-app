@@ -59,7 +59,6 @@ export function useOrdersSSE({
 
     // Fechar conexão anterior se existir
     if (eventSourceRef.current) {
-      console.log("🔌 Fechando conexão SSE anterior");
       eventSourceRef.current.close();
     }
 
@@ -116,7 +115,6 @@ export function useOrdersSSE({
 
     // Cleanup ao desmontar componente
     return () => {
-      console.log("🔌 Fechando conexão SSE");
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;

@@ -5,10 +5,21 @@ import { io, Socket } from "socket.io-client";
 interface UseOrdersWebSocketProps {
   storeSlug: string;
   token: string;
-  onNewOrder?: (order: Order) => void;
+  onNewOrder?: (data: {
+    order: Order;
+    orderNumber: string;
+    customerName: string;
+    total: number;
+    itemsCount: number;
+  }) => void;
   onOrderUpdated?: (order: Order) => void;
   onOrderCancelled?: (order: Order) => void;
   onStatsUpdated?: (stats: any) => void;
+  onOrderCountersUpdated?: (counters: {
+    newOrders: number;
+    totalOrders: number;
+    pendingOrders: number;
+  }) => void;
   onError?: (error: string) => void;
 }
 
@@ -26,6 +37,7 @@ export function useOrdersWebSocket({
   onOrderUpdated,
   onOrderCancelled,
   onStatsUpdated,
+  onOrderCountersUpdated,
   onError,
 }: UseOrdersWebSocketProps) {
   const socketRef = useRef<Socket | null>(null);
@@ -36,6 +48,7 @@ export function useOrdersWebSocket({
   const onOrderUpdatedRef = useRef<typeof onOrderUpdated>();
   const onOrderCancelledRef = useRef<typeof onOrderCancelled>();
   const onStatsUpdatedRef = useRef<typeof onStatsUpdated>();
+  const onOrderCountersUpdatedRef = useRef<typeof onOrderCountersUpdated>();
   const onErrorRef = useRef<typeof onError>();
 
   const [state, setState] = useState<WebSocketState>({
@@ -57,6 +70,9 @@ export function useOrdersWebSocket({
   useEffect(() => {
     onStatsUpdatedRef.current = onStatsUpdated;
   }, [onStatsUpdated]);
+  useEffect(() => {
+    onOrderCountersUpdatedRef.current = onOrderCountersUpdated;
+  }, [onOrderCountersUpdated]);
   useEffect(() => {
     onErrorRef.current = onError;
   }, [onError]);
@@ -82,9 +98,8 @@ export function useOrdersWebSocket({
           auth: {
             token,
           },
-          transports: ["websocket", "polling"],
+          // deixar o Socket.IO decidir transporte (polling -> upgrade para websocket)
           timeout: 10000,
-          // permitir reuso da conexão quando possível
           forceNew: false,
         }
       );
@@ -139,7 +154,7 @@ export function useOrdersWebSocket({
       // Eventos de pedidos
       socket.on("new_order", (data) => {
         console.log("🆕 Novo pedido recebido via WebSocket:", data);
-        onNewOrderRef.current?.(data.order);
+        onNewOrderRef.current?.(data);
       });
 
       socket.on("order_updated", (data) => {
@@ -155,6 +170,14 @@ export function useOrdersWebSocket({
       socket.on("stats_updated", (data) => {
         console.log("📊 Estatísticas atualizadas via WebSocket:", data);
         onStatsUpdatedRef.current?.(data.stats);
+      });
+
+      socket.on("order_counters_updated", (data) => {
+        console.log(
+          "🔢 Contadores de pedidos atualizados via WebSocket:",
+          data
+        );
+        onOrderCountersUpdatedRef.current?.(data.counters);
       });
 
       socket.on("store_stats", (stats) => {
@@ -220,12 +243,6 @@ export function useOrdersWebSocket({
       reconnectAttempts: prev.reconnectAttempts + 1,
       connectionError: null,
     }));
-
-    console.log(
-      `🔄 Tentativa de reconexão ${
-        state.reconnectAttempts + 1
-      }/${maxReconnectAttempts}`
-    );
 
     setTimeout(() => {
       disconnect();
@@ -304,9 +321,10 @@ export function useOrdersWebSocket({
 
   // Efeito para conectar/desconectar
   useEffect(() => {
-    if (storeSlug && token) {
-      connect();
-    }
+    if (!storeSlug) return;
+    if (!token || token.trim().length < 10) return; // evita conectar com token vazio/curto
+
+    connect();
 
     return () => {
       disconnect();
