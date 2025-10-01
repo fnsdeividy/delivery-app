@@ -1,37 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import {
-  CheckCircle,
-  XCircle,
-  QrCode,
-  Phone,
-  ChatCircle,
-  ArrowLeft,
-  WarningCircle,
-  Spinner,
-} from "@phosphor-icons/react";
 import { apiClient } from "@/lib/api-client";
+import {
+  ChatCircle,
+  CheckCircle,
+  QrCode,
+  WarningCircle,
+  X,
+  Lightning,
+  DeviceMobile,
+  ArrowClockwise,
+  Power,
+  PaperPlaneTilt,
+} from "@phosphor-icons/react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-enum ConnectionStatus {
-  DISCONNECTED = "disconnected",
-  CONNECTING = "connecting",
-  CONNECTED = "connected",
-  QR_CODE_READY = "qr_code_ready",
-  ERROR = "error",
-}
-
-interface WhatsAppConfig {
-  enabled: boolean;
+interface ConnectionStatus {
+  connected: boolean;
+  status: "disconnected" | "connecting" | "connected" | "qr_code_ready" | "error";
   phoneNumber?: string;
-  connectionStatus: ConnectionStatus;
-  autoSendMessages: boolean;
-  sendOrderConfirmation: boolean;
-  sendOrderReady: boolean;
-  sendOrderDelivered: boolean;
-  sendOrderCancelled: boolean;
-  businessName?: string;
   lastConnectedAt?: string;
   errorMessage?: string;
 }
@@ -41,145 +30,124 @@ export default function WhatsAppSimplesPage() {
   const router = useRouter();
   const storeSlug = params?.storeSlug as string;
 
-  const [config, setConfig] = useState<WhatsAppConfig | null>(null);
+  const [status, setStatus] = useState<ConnectionStatus>({
+    connected: false,
+    status: "disconnected",
+  });
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qrExpiry, setQrExpiry] = useState<number>(60);
   const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState(false);
   const [message, setMessage] = useState<{
-    type: "success" | "error";
+    type: "success" | "error" | "info";
     text: string;
   } | null>(null);
-  const [qrExpiry, setQrExpiry] = useState<number>(60);
 
-  // Carregar configurações
-  useEffect(() => {
-    loadConfig();
-  }, [storeSlug]);
-
-  // Polling para verificar status da conexão
-  useEffect(() => {
-    if (connecting) {
-      const interval = setInterval(() => {
-        checkConnectionStatus();
-      }, 3000);
-
-      return () => clearInterval(interval);
+  // Buscar status da conexão
+  const fetchStatus = async () => {
+    try {
+      const response = await apiClient.get(
+        `/stores/${storeSlug}/whatsapp-simple/status`
+      ) as any;
+      setStatus(response.data?.data || response.data);
+    } catch (error: any) {
+      console.error("Erro ao buscar status:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [connecting]);
+  };
 
-  // Timer para expiração do QR Code
-  useEffect(() => {
-    if (qrCode && qrExpiry > 0) {
-      const timer = setTimeout(() => {
-        setQrExpiry(qrExpiry - 1);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    } else if (qrExpiry === 0 && qrCode) {
-      setMessage({ type: "error", text: "QR Code expirou. Tente novamente." });
-      setQrCode(null);
-      setConnecting(false);
-    }
-  }, [qrCode, qrExpiry]);
-
-  const loadConfig = async () => {
+  // Iniciar conexão
+  const handleConnect = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(
-        `/stores/${storeSlug}/whatsapp-simple/config`
-      );
+      setMessage(null);
+      setQrCode(null);
 
-      if (response.data?.success) {
-        setConfig(response.data.data);
+      const response = await apiClient.post(
+        `/stores/${storeSlug}/whatsapp-simple/connect`
+      ) as any;
+
+      if (response.data?.success || response.success) {
+        setStatus({
+          ...status,
+          status: "qr_code_ready",
+        });
+        setQrCode(response.data?.qrCode || response.qrCode);
+        setQrExpiry(60);
+
+        // Iniciar polling para verificar conexão
+        startConnectionPolling();
+
+        setMessage({
+          type: "info",
+          text: "QR Code gerado! Escaneie com seu WhatsApp.",
+        });
       }
     } catch (error: any) {
-      console.error("Erro ao carregar configurações:", error);
-      // Configuração padrão se não existir
-      setConfig({
-        enabled: false,
-        connectionStatus: ConnectionStatus.DISCONNECTED,
-        autoSendMessages: true,
-        sendOrderConfirmation: true,
-        sendOrderReady: true,
-        sendOrderDelivered: true,
-        sendOrderCancelled: true,
+      setMessage({
+        type: "error",
+        text: error.response?.data?.message || "Erro ao gerar QR Code",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleConnect = async () => {
-    try {
-      setConnecting(true);
-      setQrCode(null);
-      setQrExpiry(60);
-      setMessage(null);
+  // Polling para verificar conexão
+  const startConnectionPolling = () => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await apiClient.get(
+          `/stores/${storeSlug}/whatsapp-simple/status`
+        ) as any;
+        const newStatus = response.data?.data || response.data;
 
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/connect`
-      );
+        setStatus(newStatus);
 
-      if (response.data?.success) {
-        setQrCode(response.data.qrCode);
-        setMessage({
-          type: "success",
-          text: "QR Code gerado! Escaneie com seu WhatsApp.",
-        });
-      } else {
-        throw new Error(response.data?.message || "Erro ao gerar QR Code");
-      }
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Erro ao conectar WhatsApp",
-      });
-      setConnecting(false);
-    }
-  };
-
-  const checkConnectionStatus = async () => {
-    try {
-      const response = await apiClient.get(
-        `/stores/${storeSlug}/whatsapp-simple/status`
-      );
-
-      if (response.data?.success) {
-        const status = response.data.status;
-
-        if (status === ConnectionStatus.CONNECTED) {
+        if (newStatus.status === "connected") {
+          clearInterval(interval);
+          setQrCode(null);
           setMessage({
             type: "success",
-            text: "WhatsApp conectado com sucesso! 🎉",
+            text: "WhatsApp conectado com sucesso!",
           });
-          setQrCode(null);
-          setConnecting(false);
-          await loadConfig();
         }
+      } catch (error) {
+        console.error("Erro ao verificar status:", error);
       }
-    } catch (error) {
-      console.error("Erro ao verificar status:", error);
-    }
+    }, 2000); // Verifica a cada 2 segundos
+
+    // Limpar após 60 segundos
+    setTimeout(() => {
+      clearInterval(interval);
+      if (status.status !== "connected") {
+        setQrCode(null);
+        setMessage({
+          type: "error",
+          text: "QR Code expirou. Tente novamente.",
+        });
+      }
+    }, 60000);
   };
 
+  // Desconectar
   const handleDisconnect = async () => {
-    if (!confirm("Deseja realmente desconectar o WhatsApp?")) {
+    if (!confirm("Tem certeza que deseja desconectar o WhatsApp?")) {
       return;
     }
 
     try {
       setLoading(true);
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/disconnect`
-      );
+      await apiClient.post(`/stores/${storeSlug}/whatsapp-simple/disconnect`) as any;
 
-      if (response.data?.success) {
-        setMessage({
-          type: "success",
-          text: "WhatsApp desconectado com sucesso",
-        });
-        await loadConfig();
-      }
+      setStatus({
+        connected: false,
+        status: "disconnected",
+      });
+      setMessage({
+        type: "success",
+        text: "WhatsApp desconectado com sucesso.",
+      });
     } catch (error: any) {
       setMessage({
         type: "error",
@@ -190,28 +158,21 @@ export default function WhatsAppSimplesPage() {
     }
   };
 
+  // Enviar mensagem de teste
   const handleTestMessage = async () => {
+    const phoneNumber = prompt("Digite o número para teste (com DDD):");
+    if (!phoneNumber) return;
+
     try {
-      const phoneNumber = prompt(
-        "Digite o número de telefone para teste (com DDD):\nExemplo: 11999999999"
-      );
-
-      if (!phoneNumber) return;
-
       setLoading(true);
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/send-test`,
-        {
-          phoneNumber: `55${phoneNumber}`,
-        }
-      );
+      await apiClient.post(`/stores/${storeSlug}/whatsapp-simple/send-test`, {
+        to: phoneNumber,
+      }) as any;
 
-      if (response.data?.success) {
-        setMessage({
-          type: "success",
-          text: "Mensagem de teste enviada com sucesso! ✅",
-        });
-      }
+      setMessage({
+        type: "success",
+        text: "Mensagem de teste enviada!",
+      });
     } catch (error: any) {
       setMessage({
         type: "error",
@@ -222,46 +183,29 @@ export default function WhatsAppSimplesPage() {
     }
   };
 
-  const handleToggleSetting = async (setting: keyof WhatsAppConfig) => {
-    if (!config) return;
-
-    try {
-      const newConfig = {
-        ...config,
-        [setting]: !config[setting],
-      };
-
-      const response = await apiClient.patch(
-        `/stores/${storeSlug}/whatsapp-simple/config`,
-        {
-          whatsappSimple: newConfig,
-        }
-      );
-
-      if (response.data?.success) {
-        setConfig(newConfig);
-        setMessage({
-          type: "success",
-          text: "Configuração atualizada com sucesso",
-        });
-      }
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Erro ao atualizar configuração",
-      });
+  useEffect(() => {
+    if (storeSlug) {
+      fetchStatus();
     }
-  };
+  }, [storeSlug]);
 
-  if (loading && !config) {
+  useEffect(() => {
+    if (qrCode && qrExpiry > 0) {
+      const timer = setInterval(() => {
+        setQrExpiry((prev) => Math.max(0, prev - 1));
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [qrCode, qrExpiry]);
+
+  if (loading && !status.status) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spinner className="h-8 w-8 animate-spin text-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     );
   }
-
-  const isConnected = config?.connectionStatus === ConnectionStatus.CONNECTED;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -270,20 +214,51 @@ export default function WhatsAppSimplesPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-              >
-                <ArrowLeft className="h-5 w-5" />
-                Voltar
-              </button>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <ChatCircle className="h-8 w-8 text-green-600" />
-                WhatsApp - Conexão Simples
+                WhatsApp Simplificado
               </h1>
               <p className="mt-2 text-gray-600">
-                Conecte seu WhatsApp em segundos! Sem tokens, sem complicações.
+                Conecte seu WhatsApp em segundos! Sem tokens, sem complicação.
               </p>
+            </div>
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <X className="h-5 w-5" />
+              Voltar
+            </button>
+          </div>
+        </div>
+
+        {/* Benefícios */}
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3">
+              <Lightning className="h-6 w-6 text-yellow-500" />
+              <div>
+                <h3 className="font-medium text-gray-900">Super Rápido</h3>
+                <p className="text-sm text-gray-600">Conecta em 30 segundos</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3">
+              <QrCode className="h-6 w-6 text-blue-500" />
+              <div>
+                <h3 className="font-medium text-gray-900">Fácil</h3>
+                <p className="text-sm text-gray-600">Só escanear o QR Code</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+              <div>
+                <h3 className="font-medium text-gray-900">Gratuito</h3>
+                <p className="text-sm text-gray-600">R$ 0,00 por mensagem</p>
+              </div>
             </div>
           </div>
         </div>
@@ -292,283 +267,285 @@ export default function WhatsAppSimplesPage() {
         {message && (
           <div
             className={`mb-6 p-4 rounded-md ${message.type === "success"
-                ? "bg-green-50 border border-green-200 text-green-800"
-                : "bg-red-50 border border-red-200 text-red-800"
+              ? "bg-green-50 border border-green-200 text-green-800"
+              : message.type === "error"
+                ? "bg-red-50 border border-red-200 text-red-800"
+                : "bg-blue-50 border border-blue-200 text-blue-800"
               }`}
           >
-            <div className="flex">
+            <div className="flex items-start">
               <div className="flex-shrink-0">
                 {message.type === "success" ? (
                   <CheckCircle className="h-5 w-5 text-green-400" />
-                ) : (
+                ) : message.type === "error" ? (
                   <WarningCircle className="h-5 w-5 text-red-400" />
+                ) : (
+                  <ChatCircle className="h-5 w-5 text-blue-400" />
                 )}
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium">{message.text}</p>
               </div>
+              <button
+                onClick={() => setMessage(null)}
+                className="ml-auto flex-shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
         )}
 
         {/* Status Card */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div
-                className={`p-3 rounded-full ${isConnected ? "bg-green-100" : "bg-gray-100"
-                  }`}
-              >
-                <Phone
-                  className={`h-6 w-6 ${isConnected ? "text-green-600" : "text-gray-400"
-                    }`}
-                />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Status da Conexão
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  {isConnected ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="text-green-600 font-medium">
-                        Conectado
-                      </span>
-                      {config?.phoneNumber && (
-                        <span className="text-gray-500">
-                          • {config.phoneNumber}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-gray-400" />
-                      <span className="text-gray-600">Desconectado</span>
-                    </>
-                  )}
-                </div>
-                {config?.lastConnectedAt && isConnected && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Conectado desde:{" "}
-                    {new Date(config.lastConnectedAt).toLocaleString("pt-BR")}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              {!isConnected ? (
-                <button
-                  onClick={handleConnect}
-                  disabled={connecting}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-md hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {connecting ? (
-                    <>
-                      <Spinner className="h-5 w-5 animate-spin" />
-                      Conectando...
-                    </>
-                  ) : (
-                    <>
-                      <QrCode className="h-5 w-5" />
-                      Conectar WhatsApp
-                    </>
-                  )}
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleTestMessage}
-                    className="flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-600 rounded-md hover:bg-blue-50"
-                  >
-                    <ChatCircle className="h-5 w-5" />
-                    Testar Envio
-                  </button>
-                  <button
-                    onClick={handleDisconnect}
-                    className="flex items-center gap-2 px-4 py-2 border border-red-500 text-red-600 rounded-md hover:bg-red-50"
-                  >
-                    <XCircle className="h-5 w-5" />
-                    Desconectar
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* QR Code */}
-        {qrCode && (
-          <div className="bg-white rounded-lg shadow p-8 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          {/* Desconectado */}
+          {status.status === "disconnected" && !qrCode && (
             <div className="text-center">
-              <div className="inline-block p-4 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg mb-4">
-                <QrCode className="h-12 w-12 text-green-600" />
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <ChatCircle className="h-12 w-12 text-gray-400" />
               </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                WhatsApp Desconectado
+              </h2>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Conecte seu WhatsApp para enviar notificações automáticas de
+                pedidos para seus clientes.
+              </p>
+              <button
+                onClick={handleConnect}
+                disabled={loading}
+                className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
+              >
+                <QrCode className="h-6 w-6" />
+                {loading ? "Gerando QR Code..." : "Conectar WhatsApp"}
+              </button>
+            </div>
+          )}
+
+          {/* QR Code */}
+          {qrCode && status.status !== "connected" && (
+            <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Escaneie o QR Code
               </h2>
               <p className="text-gray-600 mb-6">
-                Use seu celular para escanear o código abaixo
+                Abra o WhatsApp no seu celular e escaneie o código
               </p>
 
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-white rounded-lg border-4 border-green-500">
-                  <img
-                    src={qrCode}
-                    alt="QR Code WhatsApp"
-                    className="w-64 h-64"
-                  />
-                </div>
+              {/* QR Code Display */}
+              <div className="inline-block p-6 bg-white border-4 border-gray-200 rounded-lg mb-6">
+                <Image
+                  src={qrCode}
+                  alt="QR Code WhatsApp"
+                  width={300}
+                  height={300}
+                  className="mx-auto"
+                />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-                <h3 className="font-medium text-blue-900 mb-2">
-                  📱 Como escanear:
+              {/* Timer */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-600">
+                  Código expira em:{" "}
+                  <span className="font-mono font-bold text-red-600">
+                    {Math.floor(qrExpiry / 60)}:
+                    {(qrExpiry % 60).toString().padStart(2, "0")}
+                  </span>
+                </p>
+              </div>
+
+              {/* Instruções */}
+              <div className="bg-blue-50 rounded-lg p-6 text-left max-w-md mx-auto">
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <DeviceMobile className="h-5 w-5" />
+                  Como conectar:
                 </h3>
-                <ol className="text-left text-sm text-blue-800 space-y-2">
-                  <li>1. Abra o WhatsApp no celular</li>
-                  <li>2. Toque em Mais opções (⋮) ou Configurações</li>
-                  <li>3. Toque em &quot;Aparelhos conectados&quot;</li>
-                  <li>4. Toque em &quot;Conectar um aparelho&quot;</li>
-                  <li>5. Aponte a câmera para este QR Code</li>
+                <ol className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">1.</span>
+                    Abra o WhatsApp no seu celular
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">2.</span>
+                    Toque em <strong>Mais opções (⋮)</strong>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">3.</span>
+                    Toque em <strong>Aparelhos conectados</strong>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">4.</span>
+                    Toque em <strong>Conectar um aparelho</strong>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">5.</span>
+                    Aponte a câmera para este código
+                  </li>
                 </ol>
               </div>
 
-              {qrExpiry > 0 && (
-                <p className="mt-4 text-sm text-gray-500">
-                  ⏱️ Código expira em: {Math.floor(qrExpiry / 60)}:
-                  {(qrExpiry % 60).toString().padStart(2, "0")}
-                </p>
+              {/* Botão para gerar novo QR */}
+              {qrExpiry === 0 && (
+                <button
+                  onClick={handleConnect}
+                  className="mt-6 inline-flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  <ArrowClockwise className="h-4 w-4" />
+                  Gerar Novo QR Code
+                </button>
               )}
+            </div>
+          )}
 
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <Spinner className="h-4 w-4 animate-spin text-blue-500" />
-                <span className="text-sm text-gray-600">
-                  Aguardando conexão...
-                </span>
+          {/* Conectado */}
+          {status.status === "connected" && (
+            <div className="text-center">
+              <div className="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle className="h-12 w-12 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                WhatsApp Conectado! 🎉
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Seu WhatsApp está conectado e pronto para enviar notificações
+              </p>
+
+              {/* Informações da Conexão */}
+              <div className="bg-gray-50 rounded-lg p-6 max-w-md mx-auto mb-8">
+                <div className="space-y-3 text-left">
+                  {status.phoneNumber && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Número:</span>
+                      <span className="font-medium text-gray-900">
+                        {status.phoneNumber}
+                      </span>
+                    </div>
+                  )}
+                  {status.lastConnectedAt && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Conectado em:
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {new Date(status.lastConnectedAt).toLocaleString(
+                          "pt-BR"
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Notificações Ativas */}
+              <div className="bg-green-50 rounded-lg p-6 max-w-md mx-auto mb-8">
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center justify-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Notificações Ativas
+                </h3>
+                <div className="space-y-2 text-sm text-left">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Confirmação de pedido</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Pedido pronto para retirada</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Pedido saiu para entrega</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Pedido entregue</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Pedido cancelado</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleTestMessage}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <PaperPlaneTilt className="h-4 w-4" />
+                  Enviar Teste
+                </button>
+                <button
+                  onClick={handleDisconnect}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 px-6 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Power className="h-4 w-4" />
+                  Desconectar
+                </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Configurações */}
-        {isConnected && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Notificações Automáticas
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Configure quais mensagens serão enviadas automaticamente para os
-              clientes
-            </p>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    📝 Confirmação de Pedido
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Enviada quando um novo pedido é confirmado
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config?.sendOrderConfirmation}
-                    onChange={() => handleToggleSetting("sendOrderConfirmation")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                </label>
+          {/* Erro */}
+          {status.status === "error" && (
+            <div className="text-center">
+              <div className="mx-auto w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                <WarningCircle className="h-12 w-12 text-red-600" />
               </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    ✅ Pedido Pronto
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Enviada quando o pedido está pronto para retirada/entrega
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config?.sendOrderReady}
-                    onChange={() => handleToggleSetting("sendOrderReady")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    🚚 Pedido Entregue
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Enviada quando o pedido é entregue ao cliente
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config?.sendOrderDelivered}
-                    onChange={() => handleToggleSetting("sendOrderDelivered")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    ❌ Pedido Cancelado
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Enviada quando um pedido é cancelado
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={config?.sendOrderCancelled}
-                    onChange={() => handleToggleSetting("sendOrderCancelled")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                </label>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Erro na Conexão
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {status.errorMessage || "Ocorreu um erro ao conectar o WhatsApp"}
+              </p>
+              <button
+                onClick={handleConnect}
+                className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                <ArrowClockwise className="h-4 w-4" />
+                Tentar Novamente
+              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Info Box */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">
-                ✨ Por que esta integração é melhor?
-              </h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>✅ Sem tokens complicados</li>
-                <li>✅ Sem conta no Meta/Facebook</li>
-                <li>✅ Totalmente GRATUITO</li>
-                <li>✅ Conecta em 30 segundos</li>
-                <li>✅ Mensagens automáticas para clientes</li>
-              </ul>
-            </div>
-          </div>
+        {/* Info Card */}
+        <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+          <h3 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+            <ChatCircle className="h-5 w-5" />
+            Por que esta integração é melhor?
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Gratuito:</strong> Não paga nada por mensagem
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Simples:</strong> Só escanear o QR Code e pronto
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Rápido:</strong> Conecta em 30 segundos
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Sem complicação:</strong> Não precisa de tokens ou
+                configurações técnicas
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   );
 }
-

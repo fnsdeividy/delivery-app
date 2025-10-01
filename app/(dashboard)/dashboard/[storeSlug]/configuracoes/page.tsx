@@ -145,14 +145,14 @@ export default function ConfiguracoesPage() {
       badge: storeStatus.hasDeliveryConfig ? "Configurado" : "Opcional",
     },
     {
-      id: "whatsapp",
-      title: "Integração WhatsApp",
+      id: "whatsapp-simples",
+      title: "WhatsApp Simples",
       description:
-        "Configure mensagens automáticas e notificações via WhatsApp",
+        "Conecte via QR Code! Sem tokens, sem complicação - igual ao Anotaí",
       icon: ChatCircle,
-      href: `/dashboard/${storeSlug}/configuracoes/whatsapp`,
+      href: `/dashboard/${storeSlug}/configuracoes/whatsapp-simples`,
       status: storeStatus.hasWhatsAppConfig ? "completed" : "optional",
-      badge: storeStatus.hasWhatsAppConfig ? "Configurado" : "Opcional",
+      badge: storeStatus.hasWhatsAppConfig ? "Conectado" : "Grátis",
     },
     {
       id: "ifood",
@@ -318,30 +318,27 @@ export default function ConfiguracoesPage() {
           {configSections.map((section) => (
             <div
               key={section.id}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer min-h-[120px] sm:min-h-[140px] ${
-                section.status === "completed" ? "ring-2 ring-green-200" : ""
-              }`}
+              className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer min-h-[120px] sm:min-h-[140px] ${section.status === "completed" ? "ring-2 ring-green-200" : ""
+                }`}
               onClick={() => router.push(section.href)}
             >
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex items-start space-x-3 flex-1 min-w-0">
                   <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      section.status === "completed"
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${section.status === "completed"
                         ? "bg-green-100"
                         : section.status === "pending"
-                        ? "bg-blue-100"
-                        : "bg-gray-100"
-                    }`}
+                          ? "bg-blue-100"
+                          : "bg-gray-100"
+                      }`}
                   >
                     <section.icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                        section.status === "completed"
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${section.status === "completed"
                           ? "text-green-600"
                           : section.status === "pending"
-                          ? "text-blue-600"
-                          : "text-gray-600"
-                      }`}
+                            ? "text-blue-600"
+                            : "text-gray-600"
+                        }`}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
