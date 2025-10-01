@@ -61,3 +61,4 @@ export {
 export { useIfoodConfig } from "./useIfoodConfig";
 export { useToast } from "./useToast";
 export { useWhatsAppConfig } from "./useWhatsAppConfig";
+export { useWhatsAppSimple } from "./useWhatsAppSimple";
