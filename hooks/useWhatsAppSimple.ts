@@ -59,12 +59,13 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.get(
-        `/stores/${storeSlug}/whatsapp-simple/config`
-      );
+      const response = await apiClient.get<{
+        success: boolean;
+        data: WhatsAppSimpleConfig;
+      }>(`/stores/${storeSlug}/whatsapp-simple/config`);
 
-      if (response.data?.success) {
-        setConfig(response.data.data);
+      if (response?.success) {
+        setConfig(response.data);
       } else {
         // Configuração padrão se não existir
         setConfig({
@@ -112,14 +113,16 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
       setError(null);
       setQrCode(null);
 
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/connect`
-      );
+      const response = await apiClient.post<{
+        success: boolean;
+        qrCode?: string;
+        message?: string;
+      }>(`/stores/${storeSlug}/whatsapp-simple/connect`);
 
-      if (response.data?.success) {
-        setQrCode(response.data.qrCode);
+      if (response?.success) {
+        setQrCode(response.qrCode || null);
       } else {
-        throw new Error(response.data?.message || "Erro ao gerar QR Code");
+        throw new Error(response?.message || "Erro ao gerar QR Code");
       }
     } catch (err: any) {
       console.error("Erro ao conectar WhatsApp:", err);
@@ -134,12 +137,13 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
     if (!isClient || !storeSlug) return;
 
     try {
-      const response = await apiClient.get(
-        `/stores/${storeSlug}/whatsapp-simple/status`
-      );
+      const response = await apiClient.get<{
+        success: boolean;
+        status: WhatsAppConnectionStatus;
+      }>(`/stores/${storeSlug}/whatsapp-simple/status`);
 
-      if (response.data?.success) {
-        const status = response.data.status;
+      if (response?.success) {
+        const status = response.status;
 
         if (status === WhatsAppConnectionStatus.CONNECTED) {
           setQrCode(null);
@@ -160,14 +164,15 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/disconnect`
-      );
+      const response = await apiClient.post<{
+        success: boolean;
+        message?: string;
+      }>(`/stores/${storeSlug}/whatsapp-simple/disconnect`);
 
-      if (response.data?.success) {
+      if (response?.success) {
         await refreshConfig();
       } else {
-        throw new Error(response.data?.message || "Erro ao desconectar");
+        throw new Error(response?.message || "Erro ao desconectar");
       }
     } catch (err: any) {
       console.error("Erro ao desconectar:", err);
@@ -186,13 +191,15 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.post(
-        `/stores/${storeSlug}/whatsapp-simple/send-test`,
-        { phoneNumber }
-      );
+      const response = await apiClient.post<{
+        success: boolean;
+        message?: string;
+      }>(`/stores/${storeSlug}/whatsapp-simple/send-test`, {
+        phoneNumber,
+      });
 
-      if (!response.data?.success) {
-        throw new Error(response.data?.message || "Erro ao enviar mensagem");
+      if (!response?.success) {
+        throw new Error(response?.message || "Erro ao enviar mensagem");
       }
     } catch (err: any) {
       console.error("Erro ao enviar mensagem de teste:", err);
@@ -211,17 +218,17 @@ export function useWhatsAppSimple(storeSlug: string): UseWhatsAppSimpleReturn {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.patch(
-        `/stores/${storeSlug}/whatsapp-simple/config`,
-        {
-          whatsappSimple: data,
-        }
-      );
+      const response = await apiClient.patch<{
+        success: boolean;
+        message?: string;
+      }>(`/stores/${storeSlug}/whatsapp-simple/config`, {
+        whatsappSimple: data,
+      });
 
-      if (response.data?.success) {
+      if (response?.success) {
         setConfig((prev) => (prev ? { ...prev, ...data } : null));
       } else {
-        throw new Error(response.data?.message || "Erro ao atualizar configuração");
+        throw new Error(response?.message || "Erro ao atualizar configuração");
       }
     } catch (err: any) {
       console.error("Erro ao atualizar configuração:", err);
