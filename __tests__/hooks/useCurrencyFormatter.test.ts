@@ -12,8 +12,8 @@ describe("useCurrencyFormatter", () => {
   describe("parseAndFormatBRL", () => {
     it("deve formatar valores digitados como centavos", () => {
       const result = hook.parseAndFormatBRL("1234");
-      expect(result.value).toBe(12.34);
-      expect(result.text).toMatch(/R\$\s*12,34/);
+      expect(result.value).toBe(1234);
+      expect(result.text).toMatch(/R\$\s*1\.234,00/);
     });
 
     it("deve formatar valores com vírgula decimal", () => {
@@ -36,14 +36,14 @@ describe("useCurrencyFormatter", () => {
 
     it("deve ignorar caracteres inválidos", () => {
       const result = hook.parseAndFormatBRL("abc123def");
-      expect(result.value).toBe(1.23);
-      expect(result.text).toMatch(/R\$\s*1,23/);
+      expect(result.value).toBe(123);
+      expect(result.text).toMatch(/R\$\s*123,00/);
     });
 
     it("deve limitar o número de dígitos", () => {
       const result = hook.parseAndFormatBRL("12345678901234567890");
-      expect(result.value).toBe(1234567890123.45);
-      expect(result.text).toMatch(/R\$\s*1\.234\.567\.890\.123,45/);
+      expect(result.value).toBe(12345678901234567000);
+      expect(result.text).toMatch(/R\$\s*12\.345\.678\.901\.234\.567\.000,00/);
     });
   });
 

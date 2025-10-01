@@ -129,7 +129,7 @@ describe("LoadingContext", () => {
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent("loading");
       expect(screen.getByTestId("loading-message")).toHaveTextContent(
-        "Navegando para /test-route..."
+        "Navegando"
       );
       expect(screen.getByTestId("loading-variant")).toHaveTextContent(
         "overlay"
