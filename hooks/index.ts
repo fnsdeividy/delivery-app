@@ -60,5 +60,6 @@ export {
 // Hook para configuração WhatsApp
 export { useIfoodConfig } from "./useIfoodConfig";
 export { useToast } from "./useToast";
+export { useTokenManager } from "./useTokenManager";
 export { useWhatsAppConfig } from "./useWhatsAppConfig";
 export { useWhatsAppSimple } from "./useWhatsAppSimple";

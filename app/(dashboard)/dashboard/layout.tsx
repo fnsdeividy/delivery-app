@@ -15,6 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ConnectionStatus } from "../../../components/ConnectionStatus";
 import { LoadingContent } from "../../../components/GlobalLoading";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
@@ -63,6 +64,7 @@ function DashboardContent({
   sidebarOpen,
   setSidebarOpen,
   pathname,
+  isSpecialRoute,
 }: any) {
   return (
     <div className="dashboard-layout">
@@ -279,6 +281,9 @@ function DashboardContent({
       </div>
 
       <ToastContainer />
+
+      {/* Status de conexão WebSocket */}
+      {slug && !isSpecialRoute && <ConnectionStatus storeSlug={slug} />}
     </div>
   );
 }
@@ -513,6 +518,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         pathname={pathname}
+        isSpecialRoute={isSpecialRoute}
       />
     </NotificationProvider>
   );

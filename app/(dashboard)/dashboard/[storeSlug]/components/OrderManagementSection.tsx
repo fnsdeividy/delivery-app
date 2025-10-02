@@ -24,7 +24,7 @@ export function OrderManagementSection({
   // Configurar WebSocket para receber atualizações de contadores
   useOrdersWebSocket({
     storeSlug,
-    token: (isAuthenticated() && getCurrentToken()) || "",
+    // Token será obtido automaticamente pelo hook
     onOrderCountersUpdated: (newCounters) => {
       setCounters(newCounters);
     },
@@ -40,6 +40,10 @@ export function OrderManagementSection({
             (statusCounts["PREPARING"] || 0) + (statusCounts["CONFIRMED"] || 0),
         });
       }
+    },
+    onAuthError: (error) => {
+      console.error("Erro de autenticação no WebSocket:", error);
+      // O hook já gerencia o redirecionamento para login
     },
   });
 

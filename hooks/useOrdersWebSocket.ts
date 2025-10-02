@@ -3,10 +3,11 @@ import { buildOrdersWebSocketUrl } from "@/lib/utils/url-validation";
 import { Order, OrderStatus } from "@/types/cardapio-api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { useTokenManager } from "./useTokenManager";
 
 interface UseOrdersWebSocketProps {
   storeSlug: string;
-  token: string;
+  token?: string; // Token agora é opcional, será obtido automaticamente se não fornecido
   onNewOrder?: (data: {
     order: Order;
     orderNumber: string;
@@ -23,6 +24,7 @@ interface UseOrdersWebSocketProps {
     pendingOrders: number;
   }) => void;
   onError?: (error: string) => void;
+  onAuthError?: (error: string) => void; // Novo callback para erros de autenticação
 }
 
 interface WebSocketState {
@@ -30,20 +32,24 @@ interface WebSocketState {
   connectionError: string | null;
   reconnectAttempts: number;
   lastPing: Date | null;
+  authError: string | null;
+  isConnecting: boolean;
 }
 
 export function useOrdersWebSocket({
   storeSlug,
-  token,
+  token: providedToken,
   onNewOrder,
   onOrderUpdated,
   onOrderCancelled,
   onStatsUpdated,
   onOrderCountersUpdated,
   onError,
+  onAuthError,
 }: UseOrdersWebSocketProps) {
   const socketRef = useRef<Socket | null>(null);
   const isConnectingRef = useRef<boolean>(false);
+  const tokenManager = useTokenManager();
 
   // Manter callbacks estáveis entre renders para não recriar a conexão
   const onNewOrderRef = useRef<typeof onNewOrder>();
@@ -52,12 +58,15 @@ export function useOrdersWebSocket({
   const onStatsUpdatedRef = useRef<typeof onStatsUpdated>();
   const onOrderCountersUpdatedRef = useRef<typeof onOrderCountersUpdated>();
   const onErrorRef = useRef<typeof onError>();
+  const onAuthErrorRef = useRef<typeof onAuthError>();
 
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,
     connectionError: null,
     reconnectAttempts: 0,
     lastPing: null,
+    authError: null,
+    isConnecting: false,
   });
 
   useEffect(() => {
@@ -78,6 +87,9 @@ export function useOrdersWebSocket({
   useEffect(() => {
     onErrorRef.current = onError;
   }, [onError]);
+  useEffect(() => {
+    onAuthErrorRef.current = onAuthError;
+  }, [onAuthError]);
 
   const maxReconnectAttempts = 5;
   const reconnectDelay = 1000; // 1 segundo
@@ -87,25 +99,66 @@ export function useOrdersWebSocket({
     if (socketRef.current?.connected || isConnectingRef.current) {
       return;
     }
+
+    // Obter token válido (usar fornecido ou obter automaticamente)
+    const token = providedToken || tokenManager.getValidTokenForWebSocket();
+    
     if (!token) {
-      console.warn("WebSocket: token ausente, conexão não iniciada");
+      const errorMsg = "Token de autenticação não disponível para WebSocket";
+      console.warn("⚠️ WebSocket:", errorMsg);
+      setState((prev) => ({
+        ...prev,
+        authError: errorMsg,
+        isConnecting: false,
+      }));
+      onAuthErrorRef.current?.(errorMsg);
+      return;
+    }
+
+    // Validar token antes de conectar
+    const validation = tokenManager.validateToken(token);
+    if (!validation.isValid) {
+      const errorMsg = validation.isExpired 
+        ? "Token expirado - faça login novamente" 
+        : "Token inválido";
+      console.error("❌ WebSocket:", errorMsg);
+      setState((prev) => ({
+        ...prev,
+        authError: errorMsg,
+        isConnecting: false,
+      }));
+      onAuthErrorRef.current?.(errorMsg);
+      
+      if (validation.isExpired) {
+        tokenManager.forceTokenRefresh();
+      }
       return;
     }
 
     try {
       isConnectingRef.current = true;
+      setState((prev) => ({
+        ...prev,
+        isConnecting: true,
+        authError: null,
+        connectionError: null,
+      }));
 
       // Usar a mesma URL base que o apiClient usa
       const wsUrl = buildOrdersWebSocketUrl(apiClient.baseURL);
 
       console.log("🔌 Conectando WebSocket para:", wsUrl);
       console.log("📡 Base URL do apiClient:", apiClient.baseURL);
+      console.log("🔑 Token válido:", {
+        isValid: validation.isValid,
+        expiresAt: validation.expiresAt,
+        timeUntilExpiry: validation.timeUntilExpiry,
+      });
 
       const socket = io(wsUrl, {
         auth: {
           token,
         },
-        // deixar o Socket.IO decidir transporte (polling -> upgrade para websocket)
         timeout: 10000,
         forceNew: false,
       });
@@ -119,7 +172,9 @@ export function useOrdersWebSocket({
           ...prev,
           isConnected: true,
           connectionError: null,
+          authError: null,
           reconnectAttempts: 0,
+          isConnecting: false,
         }));
 
         // Entrar na sala da loja
@@ -129,6 +184,10 @@ export function useOrdersWebSocket({
 
       socket.on("connected", (data) => {
         console.log("✅ Autenticado no WebSocket:", data);
+        setState((prev) => ({
+          ...prev,
+          authError: null,
+        }));
       });
 
       socket.on("joined_store", (data) => {
@@ -140,22 +199,40 @@ export function useOrdersWebSocket({
         setState((prev) => ({
           ...prev,
           isConnected: false,
+          isConnecting: false,
           connectionError:
             reason === "io server disconnect"
               ? "Desconectado pelo servidor"
               : "Conexão perdida",
         }));
+        isConnectingRef.current = false;
       });
 
       socket.on("connect_error", (error) => {
         console.error("❌ Erro de conexão WebSocket:", error);
         console.error("📡 URL que falhou:", wsUrl);
         console.error("🏪 StoreSlug:", storeSlug);
+        
+        const errorMessage = error.message || "Erro de conexão";
+        const isAuthError = errorMessage.includes("Token inválido") || 
+                           errorMessage.includes("Token de autenticação") ||
+                           errorMessage.includes("Unauthorized");
+        
         setState((prev) => ({
           ...prev,
           isConnected: false,
-          connectionError: error.message || "Erro de conexão",
+          isConnecting: false,
+          connectionError: isAuthError ? null : errorMessage,
+          authError: isAuthError ? errorMessage : null,
         }));
+        
+        if (isAuthError) {
+          onAuthErrorRef.current?.(errorMessage);
+          tokenManager.forceTokenRefresh();
+        } else {
+          onErrorRef.current?.(errorMessage);
+        }
+        
         isConnectingRef.current = false;
       });
 
@@ -200,7 +277,21 @@ export function useOrdersWebSocket({
 
       socket.on("error", (error) => {
         console.error("❌ Erro no WebSocket:", error);
-        onErrorRef.current?.(error.message || "Erro desconhecido");
+        const errorMessage = error.message || "Erro desconhecido";
+        const isAuthError = errorMessage.includes("Token inválido") || 
+                           errorMessage.includes("Token de autenticação") ||
+                           errorMessage.includes("Unauthorized");
+        
+        if (isAuthError) {
+          setState((prev) => ({
+            ...prev,
+            authError: errorMessage,
+          }));
+          onAuthErrorRef.current?.(errorMessage);
+          tokenManager.forceTokenRefresh();
+        } else {
+          onErrorRef.current?.(errorMessage);
+        }
       });
 
       // Ping/Pong para manter conexão ativa
@@ -219,12 +310,16 @@ export function useOrdersWebSocket({
       });
     } catch (error) {
       console.error("Erro ao criar conexão WebSocket:", error);
-      onErrorRef.current?.(
-        error instanceof Error ? error.message : "Erro desconhecido"
-      );
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      setState((prev) => ({
+        ...prev,
+        isConnecting: false,
+        connectionError: errorMessage,
+      }));
+      onErrorRef.current?.(errorMessage);
       isConnectingRef.current = false;
     }
-  }, [storeSlug, token]);
+  }, [storeSlug, providedToken, tokenManager]);
 
   // Função para desconectar
   const disconnect = useCallback(() => {
@@ -235,6 +330,7 @@ export function useOrdersWebSocket({
         ...prev,
         isConnected: false,
         connectionError: null,
+        isConnecting: false,
       }));
     }
   }, []);
@@ -243,6 +339,12 @@ export function useOrdersWebSocket({
   const reconnect = useCallback(() => {
     if (state.reconnectAttempts >= maxReconnectAttempts) {
       console.log("❌ Máximo de tentativas de reconexão atingido");
+      return;
+    }
+
+    // Verificar se há erro de autenticação antes de tentar reconectar
+    if (state.authError) {
+      console.log("❌ Erro de autenticação detectado, não tentando reconectar");
       return;
     }
 
@@ -258,6 +360,7 @@ export function useOrdersWebSocket({
     }, reconnectDelay);
   }, [
     state.reconnectAttempts,
+    state.authError,
     maxReconnectAttempts,
     reconnectDelay,
     disconnect,
@@ -330,18 +433,37 @@ export function useOrdersWebSocket({
   // Efeito para conectar/desconectar
   useEffect(() => {
     if (!storeSlug) return;
-    if (!token || token.trim().length < 10) return; // evita conectar com token vazio/curto
+    
+    // Verificar se há token válido antes de tentar conectar
+    const token = providedToken || tokenManager.getValidTokenForWebSocket();
+    if (!token) {
+      console.warn("⚠️ WebSocket: Token não disponível, conexão não iniciada");
+      return;
+    }
+
+    // Validar token antes de conectar
+    const validation = tokenManager.validateToken(token);
+    if (!validation.isValid) {
+      console.warn("⚠️ WebSocket: Token inválido, conexão não iniciada");
+      if (validation.isExpired) {
+        tokenManager.forceTokenRefresh();
+      }
+      return;
+    }
 
     connect();
 
     return () => {
       disconnect();
     };
-  }, [storeSlug, token, connect, disconnect]);
+  }, [storeSlug, providedToken, tokenManager, connect, disconnect]);
 
   // Efeito para reconexão automática
   useEffect(() => {
-    if (!state.isConnected && state.reconnectAttempts < maxReconnectAttempts) {
+    if (!state.isConnected && 
+        state.reconnectAttempts < maxReconnectAttempts && 
+        !state.authError && 
+        !state.isConnecting) {
       const timer = setTimeout(() => {
         reconnect();
       }, reconnectDelay);
@@ -351,6 +473,8 @@ export function useOrdersWebSocket({
   }, [
     state.isConnected,
     state.reconnectAttempts,
+    state.authError,
+    state.isConnecting,
     maxReconnectAttempts,
     reconnectDelay,
     reconnect,
@@ -370,8 +494,10 @@ export function useOrdersWebSocket({
   return {
     isConnected: state.isConnected,
     connectionError: state.connectionError,
+    authError: state.authError,
     reconnectAttempts: state.reconnectAttempts,
     lastPing: state.lastPing,
+    isConnecting: state.isConnecting,
     connect,
     disconnect,
     reconnect,

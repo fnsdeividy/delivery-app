@@ -55,7 +55,7 @@ export function NotificationProvider({
   // Configurar WebSocket para notificações de novos pedidos
   useOrdersWebSocket({
     storeSlug,
-    token: (isAuthenticated() && getCurrentToken()) || "",
+    // Token será obtido automaticamente pelo hook
     onNewOrder: (data) => {
       console.log("🎉 Novo pedido recebido no dashboard:", data);
       if (data?.order?.id && lastNotifiedOrderIdRef.current === data.order.id) {
@@ -85,6 +85,10 @@ export function NotificationProvider({
     },
     onError: (error) => {
       console.error("Erro no WebSocket do dashboard:", error);
+    },
+    onAuthError: (error) => {
+      console.error("Erro de autenticação no WebSocket do dashboard:", error);
+      // O hook já gerencia o redirecionamento para login
     },
   });
 
