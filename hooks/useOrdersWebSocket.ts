@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+import { buildOrdersWebSocketUrl } from "@/lib/utils/url-validation";
 import { Order, OrderStatus } from "@/types/cardapio-api";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -92,21 +94,21 @@ export function useOrdersWebSocket({
 
     try {
       isConnectingRef.current = true;
-      const socket = io(
-        `${
-          process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
-          process.env.NEXT_PUBLIC_API_URL ||
-          "http://localhost:3001"
-        }/orders`,
-        {
-          auth: {
-            token,
-          },
-          // deixar o Socket.IO decidir transporte (polling -> upgrade para websocket)
-          timeout: 10000,
-          forceNew: false,
-        }
-      );
+
+      // Usar a mesma URL base que o apiClient usa
+      const wsUrl = buildOrdersWebSocketUrl(apiClient.baseURL);
+
+      console.log("🔌 Conectando WebSocket para:", wsUrl);
+      console.log("📡 Base URL do apiClient:", apiClient.baseURL);
+
+      const socket = io(wsUrl, {
+        auth: {
+          token,
+        },
+        // deixar o Socket.IO decidir transporte (polling -> upgrade para websocket)
+        timeout: 10000,
+        forceNew: false,
+      });
 
       socketRef.current = socket;
 
@@ -147,6 +149,8 @@ export function useOrdersWebSocket({
 
       socket.on("connect_error", (error) => {
         console.error("❌ Erro de conexão WebSocket:", error);
+        console.error("📡 URL que falhou:", wsUrl);
+        console.error("🏪 StoreSlug:", storeSlug);
         setState((prev) => ({
           ...prev,
           isConnected: false,

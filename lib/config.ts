@@ -1,4 +1,6 @@
 // Configurações centralizadas da aplicação
+import { normalizeApiUrl, getBaseUrlWithoutApi } from "./utils/url-validation";
+
 export const config = {
   // Configurações da API
   api: {
@@ -8,9 +10,16 @@ export const config = {
         process.env.NEXT_PUBLIC_API_URL ||
         "http://localhost:3001";
 
-      // Garante sufixo /api/v1 apenas uma vez
-      const trimmed = urlFromEnv.replace(/\/$/, "");
-      return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
+      return normalizeApiUrl(urlFromEnv);
+    })(),
+    // URL base sem /api/v1 para WebSocket e SSE
+    baseURLWithoutApi: (() => {
+      const urlFromEnv =
+        process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:3001";
+
+      return getBaseUrlWithoutApi(urlFromEnv);
     })(),
     timeout: 10000, // 10 segundos
     debug: process.env.NODE_ENV === "development",

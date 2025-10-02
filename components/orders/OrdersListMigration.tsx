@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+import { buildOrdersSSEUrl } from "@/lib/utils/url-validation";
 import { Order } from "@/types/cardapio-api";
 import { useEffect, useState } from "react";
 
@@ -82,9 +84,13 @@ export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
   useEffect(() => {
     if (!storeSlug) return;
 
-    const eventSource = new EventSource(
-      `/api/v1/orders/public/stream?storeSlug=${storeSlug}`
-    );
+    // Usar a mesma URL base que o apiClient usa
+    const streamUrl = buildOrdersSSEUrl(apiClient.baseURL, storeSlug);
+
+    console.log("🔗 Conectando SSE para:", streamUrl);
+    console.log("📡 Base URL do apiClient:", apiClient.baseURL);
+
+    const eventSource = new EventSource(streamUrl);
 
     eventSource.onopen = () => {
       console.log("🔗 SSE conectado");

@@ -1,3 +1,5 @@
+import { apiClient } from "@/lib/api-client";
+import { buildOrdersSSEUrl } from "@/lib/utils/url-validation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface OrderEvent {
@@ -62,15 +64,10 @@ export function useOrdersSSE({
       eventSourceRef.current.close();
     }
 
-    // Criar nova conexão SSE (usar backend direto)
-    const baseUrl =
-      process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3001";
-    const eventSource = new EventSource(
-      `${baseUrl}/api/v1/orders/public/stream?storeSlug=${storeSlug}`
-    );
+    // Usar a mesma URL base que o apiClient usa
+    const streamUrl = buildOrdersSSEUrl(apiClient.baseURL, storeSlug);
 
+    const eventSource = new EventSource(streamUrl);
     eventSourceRef.current = eventSource;
 
     // Evento de conexão aberta
