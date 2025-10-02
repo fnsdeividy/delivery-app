@@ -1,4 +1,5 @@
 import { useAuthContext } from "@/contexts/AuthContext";
+import { apiConfig } from "@/lib/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseOrdersPollingOptions {
@@ -33,7 +34,7 @@ export function useOrdersPolling({
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/v1/orders/public?storeSlug=${encodeURIComponent(
+        `${apiConfig.api.baseURL}/orders/public?storeSlug=${encodeURIComponent(
           storeSlug
         )}&page=1&limit=50`
       );
@@ -117,7 +118,35 @@ export function useOrdersPolling({
       }
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error);
-      setConnectionError("Erro ao buscar pedidos");
+
+      // Tratamento de erro mais específico e amigável
+      let errorMessage = "Erro ao buscar pedidos";
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("NetworkError")
+        ) {
+          errorMessage =
+            "Erro de conexão com o servidor. Verifique sua internet e tente novamente.";
+        } else if (error.message.includes("HTTP 401")) {
+          errorMessage = "Sessão expirada. Faça login novamente.";
+        } else if (error.message.includes("HTTP 403")) {
+          errorMessage = "Acesso negado. Verifique suas permissões.";
+        } else if (error.message.includes("HTTP 404")) {
+          errorMessage = "Loja não encontrada.";
+        } else if (error.message.includes("HTTP 500")) {
+          errorMessage =
+            "Erro interno do servidor. Tente novamente em alguns minutos.";
+        } else if (error.message.includes("HTTP 503")) {
+          errorMessage =
+            "Servidor temporariamente indisponível. Tente novamente em alguns minutos.";
+        } else {
+          errorMessage = `Erro: ${error.message}`;
+        }
+      }
+
+      setConnectionError(errorMessage);
       setIsConnected(false);
     }
   }, [storeSlug, user?.id, onNewOrder, onOrderUpdate, onOrderCancel]);

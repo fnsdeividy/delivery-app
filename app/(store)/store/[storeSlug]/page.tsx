@@ -63,6 +63,8 @@ const normalizeImageUrl = (url: string): string => {
 
   // normaliza hosts locais comuns para usar o proxy do Next
   const hostsLocais = [
+    process.env.NEXT_PUBLIC_CARDAPIO_API_URL || "http://localhost:3001",
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
     "http://localhost:3001",
     "https://localhost:3001",
     "http://127.0.0.1:3001",

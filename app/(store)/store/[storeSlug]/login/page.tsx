@@ -24,7 +24,11 @@ export default function CustomerLoginPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:3001/api/v1/stores/public/${storeSlug}`,
+          `${
+            process.env.NEXT_PUBLIC_CARDAPIO_API_URL ||
+            process.env.NEXT_PUBLIC_API_URL ||
+            "http://localhost:3001/api/v1"
+          }/stores/public/${storeSlug}`,
           { cache: "no-store" }
         );
 
