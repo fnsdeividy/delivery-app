@@ -9,11 +9,49 @@ export function useStores(page = 1, limit = 10, enabled = true) {
       try {
         const response = await apiClient.getStores(page, limit);
         return response;
-      } catch (error) {
+      } catch (error: any) {
+        console.error("Erro ao buscar lojas:", error);
+
+        // Tratamento específico para diferentes tipos de erro
+        if (error.status === 401) {
+          console.error("🔒 Erro de autenticação - token inválido ou expirado");
+          throw new Error("Sessão expirada. Faça login novamente.");
+        } else if (error.status === 403) {
+          console.error("🚫 Erro de permissão - usuário não tem acesso");
+          throw new Error(
+            "Você não tem permissão para acessar esta funcionalidade."
+          );
+        } else if (error.status === 404) {
+          console.error("🔍 Endpoint não encontrado");
+          throw new Error("Serviço temporariamente indisponível.");
+        } else if (error.status >= 500) {
+          console.error("🔥 Erro interno do servidor");
+          throw new Error(
+            "Erro interno do servidor. Tente novamente em alguns minutos."
+          );
+        } else if (
+          error.message?.includes("Network Error") ||
+          error.code === "ERR_NETWORK"
+        ) {
+          console.error("🌐 Erro de conexão");
+          throw new Error(
+            "Erro de conexão. Verifique sua internet e tente novamente."
+          );
+        }
+
         throw error;
       }
     },
     enabled: enabled,
+    retry: (failureCount, error: any) => {
+      // Não tentar novamente para erros de autenticação ou permissão
+      if (error.status === 401 || error.status === 403) {
+        return false;
+      }
+      // Tentar até 3 vezes para outros erros
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
