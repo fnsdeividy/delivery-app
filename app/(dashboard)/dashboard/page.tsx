@@ -25,20 +25,38 @@ export default function DashboardAdmin() {
       // Decodificar token JWT
       const payload = JSON.parse(atob(token.split(".")[1]));
 
-      // SUPER_ADMIN vai para área de admin
-      if (payload.role === "SUPER_ADMIN") {
-        router.push("/admin");
-        return;
-      }
-
       // ADMIN com loja definida -> dashboard da loja
       if (payload.role === "ADMIN" && payload.storeSlug) {
         router.push(`/dashboard/${payload.storeSlug}`);
         return;
       }
 
-      // ADMIN sem loja -> gerenciar lojas
+      // ADMIN sem loja -> buscar lojas do usuário e redirecionar para a primeira
       if (payload.role === "ADMIN" && !payload.storeSlug) {
+        // Tentar buscar lojas do usuário via API
+        try {
+          const response = await fetch("/api/v1/stores", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const storesData = await response.json();
+            const userStores = storesData.data || [];
+
+            if (userStores.length > 0) {
+              // Redirecionar para o dashboard da primeira loja
+              router.push(`/dashboard/${userStores[0].slug}`);
+              return;
+            }
+          }
+        } catch (error) {
+          console.warn("Erro ao buscar lojas do usuário:", error);
+        }
+
+        // Se não conseguir buscar lojas ou não tiver lojas, mostrar mensagem
         router.push("/dashboard/gerenciar-lojas");
         return;
       }

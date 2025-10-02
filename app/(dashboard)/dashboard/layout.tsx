@@ -201,8 +201,6 @@ function DashboardContent({
                       <Storefront className="h-3 w-3" />
                       <span>{slug}</span>
                     </span>
-                  ) : user?.role === "SUPER_ADMIN" ? (
-                    "Super Administrador"
                   ) : user?.role === "ADMIN" ? (
                     "Administrador"
                   ) : (
@@ -490,10 +488,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             Verifique se o endereço está correto.
           </p>
           <button
-            onClick={() => router.push("/dashboard/gerenciar-lojas")}
+            onClick={() => router.push("/dashboard")}
             className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            Voltar para Gerenciar Lojas
+            Voltar para Dashboard
           </button>
         </div>
       </div>

@@ -62,10 +62,7 @@ export function useCardapioAuth() {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
 
       // Redirecionar baseado no role do usuário
-      if (data.user.role === "SUPER_ADMIN") {
-        router.push("/admin");
-        return;
-      } else if (data.user.role === "CLIENTE") {
+      if (data.user.role === "CLIENTE") {
         router.push("/");
         return;
       } else if (data.user.role === "ADMIN") {
@@ -74,6 +71,12 @@ export function useCardapioAuth() {
           // Se o usuário já tem uma loja associada, redirecionar para o dashboard da loja
           router.push(`/dashboard/${data.user.storeSlug}`);
         } else {
+          // Se não tem loja associada, verificar se está no processo de criação de loja
+          // Se estiver na página de registro de loja, não redirecionar automaticamente
+          if (window.location.pathname.includes("/register/loja")) {
+            // Não redirecionar durante o processo de criação de loja
+            return;
+          }
           // Se não tem loja associada, redirecionar para gerenciar lojas
           router.push("/dashboard/gerenciar-lojas");
         }

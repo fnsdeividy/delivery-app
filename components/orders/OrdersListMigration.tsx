@@ -93,7 +93,6 @@ export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
     const eventSource = new EventSource(streamUrl);
 
     eventSource.onopen = () => {
-      console.log("🔗 SSE conectado");
       setIsConnected(true);
     };
 
@@ -103,7 +102,6 @@ export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
 
         switch (data.type) {
           case "NEW_ORDER":
-            console.log("🆕 Novo pedido:", data.payload);
             setOrders((prev) => [data.payload, ...prev]);
             break;
 
@@ -116,7 +114,6 @@ export function OrdersListWithSSE({ storeSlug }: { storeSlug: string }) {
             break;
 
           case "ORDER_CANCELLED":
-            console.log("❌ Pedido cancelado:", data.payload);
             setOrders((prev) =>
               prev.filter((order) => order.id !== data.payload.id)
             );

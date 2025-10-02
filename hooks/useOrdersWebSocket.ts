@@ -102,7 +102,7 @@ export function useOrdersWebSocket({
 
     // Obter token válido (usar fornecido ou obter automaticamente)
     const token = providedToken || tokenManager.getValidTokenForWebSocket();
-    
+
     if (!token) {
       const errorMsg = "Token de autenticação não disponível para WebSocket";
       console.warn("⚠️ WebSocket:", errorMsg);
@@ -118,8 +118,8 @@ export function useOrdersWebSocket({
     // Validar token antes de conectar
     const validation = tokenManager.validateToken(token);
     if (!validation.isValid) {
-      const errorMsg = validation.isExpired 
-        ? "Token expirado - faça login novamente" 
+      const errorMsg = validation.isExpired
+        ? "Token expirado - faça login novamente"
         : "Token inválido";
       console.error("❌ WebSocket:", errorMsg);
       setState((prev) => ({
@@ -128,7 +128,7 @@ export function useOrdersWebSocket({
         isConnecting: false,
       }));
       onAuthErrorRef.current?.(errorMsg);
-      
+
       if (validation.isExpired) {
         tokenManager.forceTokenRefresh();
       }
@@ -147,14 +147,6 @@ export function useOrdersWebSocket({
       // Usar a mesma URL base que o apiClient usa
       const wsUrl = buildOrdersWebSocketUrl(apiClient.baseURL);
 
-      console.log("🔌 Conectando WebSocket para:", wsUrl);
-      console.log("📡 Base URL do apiClient:", apiClient.baseURL);
-      console.log("🔑 Token válido:", {
-        isValid: validation.isValid,
-        expiresAt: validation.expiresAt,
-        timeUntilExpiry: validation.timeUntilExpiry,
-      });
-
       const socket = io(wsUrl, {
         auth: {
           token,
@@ -167,7 +159,6 @@ export function useOrdersWebSocket({
 
       // Eventos de conexão
       socket.on("connect", () => {
-        console.log("🔌 WebSocket conectado");
         setState((prev) => ({
           ...prev,
           isConnected: true,
@@ -183,19 +174,15 @@ export function useOrdersWebSocket({
       });
 
       socket.on("connected", (data) => {
-        console.log("✅ Autenticado no WebSocket:", data);
         setState((prev) => ({
           ...prev,
           authError: null,
         }));
       });
 
-      socket.on("joined_store", (data) => {
-        console.log("🏪 Entrou na loja:", data);
-      });
+      socket.on("joined_store", (data) => {});
 
       socket.on("disconnect", (reason) => {
-        console.log("🔌 WebSocket desconectado:", reason);
         setState((prev) => ({
           ...prev,
           isConnected: false,
@@ -209,15 +196,12 @@ export function useOrdersWebSocket({
       });
 
       socket.on("connect_error", (error) => {
-        console.error("❌ Erro de conexão WebSocket:", error);
-        console.error("📡 URL que falhou:", wsUrl);
-        console.error("🏪 StoreSlug:", storeSlug);
-        
         const errorMessage = error.message || "Erro de conexão";
-        const isAuthError = errorMessage.includes("Token inválido") || 
-                           errorMessage.includes("Token de autenticação") ||
-                           errorMessage.includes("Unauthorized");
-        
+        const isAuthError =
+          errorMessage.includes("Token inválido") ||
+          errorMessage.includes("Token de autenticação") ||
+          errorMessage.includes("Unauthorized");
+
         setState((prev) => ({
           ...prev,
           isConnected: false,
@@ -225,48 +209,39 @@ export function useOrdersWebSocket({
           connectionError: isAuthError ? null : errorMessage,
           authError: isAuthError ? errorMessage : null,
         }));
-        
+
         if (isAuthError) {
           onAuthErrorRef.current?.(errorMessage);
           tokenManager.forceTokenRefresh();
         } else {
           onErrorRef.current?.(errorMessage);
         }
-        
+
         isConnectingRef.current = false;
       });
 
       // Eventos de pedidos
       socket.on("new_order", (data) => {
-        console.log("🆕 Novo pedido recebido via WebSocket:", data);
         onNewOrderRef.current?.(data);
       });
 
       socket.on("order_updated", (data) => {
-        console.log("🔄 Pedido atualizado via WebSocket:", data);
         onOrderUpdatedRef.current?.(data.order);
       });
 
       socket.on("order_cancelled", (data) => {
-        console.log("❌ Pedido cancelado via WebSocket:", data);
         onOrderCancelledRef.current?.(data.order);
       });
 
       socket.on("stats_updated", (data) => {
-        console.log("📊 Estatísticas atualizadas via WebSocket:", data);
         onStatsUpdatedRef.current?.(data.stats);
       });
 
       socket.on("order_counters_updated", (data) => {
-        console.log(
-          "🔢 Contadores de pedidos atualizados via WebSocket:",
-          data
-        );
         onOrderCountersUpdatedRef.current?.(data.counters);
       });
 
       socket.on("store_stats", (stats) => {
-        console.log("📊 Estatísticas iniciais da loja:", stats);
         onStatsUpdatedRef.current?.(stats);
       });
 
@@ -278,10 +253,11 @@ export function useOrdersWebSocket({
       socket.on("error", (error) => {
         console.error("❌ Erro no WebSocket:", error);
         const errorMessage = error.message || "Erro desconhecido";
-        const isAuthError = errorMessage.includes("Token inválido") || 
-                           errorMessage.includes("Token de autenticação") ||
-                           errorMessage.includes("Unauthorized");
-        
+        const isAuthError =
+          errorMessage.includes("Token inválido") ||
+          errorMessage.includes("Token de autenticação") ||
+          errorMessage.includes("Unauthorized");
+
         if (isAuthError) {
           setState((prev) => ({
             ...prev,
@@ -310,7 +286,8 @@ export function useOrdersWebSocket({
       });
     } catch (error) {
       console.error("Erro ao criar conexão WebSocket:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido";
       setState((prev) => ({
         ...prev,
         isConnecting: false,
@@ -433,7 +410,7 @@ export function useOrdersWebSocket({
   // Efeito para conectar/desconectar
   useEffect(() => {
     if (!storeSlug) return;
-    
+
     // Verificar se há token válido antes de tentar conectar
     const token = providedToken || tokenManager.getValidTokenForWebSocket();
     if (!token) {
@@ -460,10 +437,12 @@ export function useOrdersWebSocket({
 
   // Efeito para reconexão automática
   useEffect(() => {
-    if (!state.isConnected && 
-        state.reconnectAttempts < maxReconnectAttempts && 
-        !state.authError && 
-        !state.isConnecting) {
+    if (
+      !state.isConnected &&
+      state.reconnectAttempts < maxReconnectAttempts &&
+      !state.authError &&
+      !state.isConnecting
+    ) {
       const timer = setTimeout(() => {
         reconnect();
       }, reconnectDelay);

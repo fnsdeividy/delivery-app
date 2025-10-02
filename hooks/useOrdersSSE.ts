@@ -72,7 +72,6 @@ export function useOrdersSSE({
 
     // Evento de conexão aberta
     eventSource.onopen = () => {
-      console.log("🔗 SSE conectado para loja:", storeSlug);
       setIsConnected(true);
       setConnectionError(null);
     };
@@ -81,8 +80,6 @@ export function useOrdersSSE({
     eventSource.onmessage = (event) => {
       try {
         const data: OrderEvent = JSON.parse(event.data);
-
-        console.log("📨 Evento SSE recebido:", data);
 
         switch (data.type) {
           case "NEW_ORDER":

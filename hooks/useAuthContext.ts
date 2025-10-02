@@ -164,11 +164,6 @@ export function useHasPermission() {
       return false; // Temporariamente não é admin global
     },
 
-    isSuperAdmin: () => {
-      // TODO: Implementar quando o endpoint estiver disponível
-      return false; // Temporariamente não é super admin
-    },
-
     isStoreAdmin: (storeSlug: string) => {
       // TODO: Implementar quando o endpoint estiver disponível
       return true; // Temporariamente é admin da loja

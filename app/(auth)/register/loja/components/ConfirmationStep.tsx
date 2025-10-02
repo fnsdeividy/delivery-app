@@ -20,14 +20,10 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
         <div>
           <h4 className="font-medium text-gray-900">Proprietário</h4>
           <p className="text-sm text-gray-600">
-            {typeof formData.ownerName === "string"
-              ? formData.ownerName
-              : ""}
+            {typeof formData.ownerName === "string" ? formData.ownerName : ""}
           </p>
           <p className="text-sm text-gray-600">
-            {typeof formData.ownerEmail === "string"
-              ? formData.ownerEmail
-              : ""}
+            {typeof formData.ownerEmail === "string" ? formData.ownerEmail : ""}
           </p>
           {formData.ownerPhone ? (
             <p className="text-sm text-gray-600">
@@ -41,19 +37,13 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
         <div>
           <h4 className="font-medium text-gray-900">Loja</h4>
           <p className="text-sm text-gray-600">
-            {typeof formData.storeName === "string"
-              ? formData.storeName
-              : ""}
+            {typeof formData.storeName === "string" ? formData.storeName : ""}
           </p>
           <p className="text-sm text-gray-500">
-            {typeof formData.storeSlug === "string"
-              ? formData.storeSlug
-              : ""}
+            {typeof formData.storeSlug === "string" ? formData.storeSlug : ""}
           </p>
           <p className="text-sm text-gray-600">
-            {typeof formData.category === "string"
-              ? formData.category
-              : ""}
+            {typeof formData.category === "string" ? formData.category : ""}
           </p>
           {Boolean(formData.description) && (
             <p className="text-sm text-gray-500 italic">
@@ -65,9 +55,7 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
         <div>
           <h4 className="font-medium text-gray-900">Endereço</h4>
           <p className="text-sm text-gray-600">
-            {typeof formData.address === "string"
-              ? formData.address
-              : ""}
+            {typeof formData.address === "string" ? formData.address : ""}
           </p>
           <p className="text-sm text-gray-600">
             {typeof formData.city === "string" ? formData.city : ""} -{" "}
@@ -84,8 +72,7 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
         <div>
           <h4 className="font-medium text-gray-900">Configurações</h4>
           <p className="text-sm text-gray-600">
-            Entrega:{" "}
-            {formData.deliveryEnabled ? "Ativada" : "Desativada"}
+            Entrega: {formData.deliveryEnabled ? "Ativada" : "Desativada"}
           </p>
           {formData.deliveryEnabled && (
             <>
@@ -110,9 +97,7 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
                       : typeof formData.minimumOrder === "string"
                       ? parseFloat(formData.minimumOrder)
                       : 0;
-                  return !isNaN(minOrder)
-                    ? minOrder.toFixed(2)
-                    : "0.00";
+                  return !isNaN(minOrder) ? minOrder.toFixed(2) : "0.00";
                 })()}
               </p>
             </>
@@ -121,17 +106,20 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h4 className="font-medium text-blue-800 mb-2">
-          Próximos passos
-        </h4>
+        <h4 className="font-medium text-blue-800 mb-2">Próximos passos</h4>
         <ul className="text-sm text-blue-700 space-y-1">
+          <li>🔐 Você será mantido logado automaticamente</li>
           <li>
-            🏠 Será redirecionado para a página inicial como usuário logado
+            🏪 Será redirecionado diretamente para o dashboard da sua loja
           </li>
-          <li>🏪 Poderá acessar o dashboard para configurar produtos</li>
+          <li>📦 Poderá começar a adicionar produtos imediatamente</li>
           <li>🎨 Personalizar cores e logo da loja</li>
           <li>📱 Configurar horários de funcionamento</li>
           <li>💳 Configurar métodos de pagamento</li>
+          <li>
+            🌐 Sua loja estará disponível em:{" "}
+            <strong>delivery-app.com/{formData.storeSlug}</strong>
+          </li>
         </ul>
       </div>
     </div>

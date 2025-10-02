@@ -211,7 +211,7 @@ export default function RegisterLojaPage() {
 
       // 2. Aguardar um momento para garantir que o token foi armazenado
       setCreationStep("creating-store");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // 3. Criar loja com slug do usuário
       const userSlug =
@@ -291,24 +291,37 @@ export default function RegisterLojaPage() {
         // se falhar, seguimos com polling
       }
 
-      // 5. Tela intermediária + polling até ter acesso ao dashboard
-      const start = Date.now();
-      const timeoutMs = 15000; // 15s
-      const intervalMs = 700; // 0.7s
+      // 5. Redirecionamento otimizado para o dashboard
+      // Aguardar um momento para garantir que tudo foi processado
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Verificar se o usuário tem acesso ao dashboard
       const canAccessDashboard = async () => {
         try {
-          // Se conseguir obter a loja pelo slug autenticado, pressupomos acesso
+          // Verificar se consegue acessar a loja criada
           await apiClient.getStoreBySlug(storeResponse.slug);
           return true;
         } catch (err: any) {
-          // 401/403: ainda não propagou permissão; continuar tentando
-          // 404: loja pode não estar disponível imediatamente; continuar tentando
+          console.log("Ainda não tem acesso ao dashboard:", err.message);
           return false;
         }
       };
 
-      // Loop de polling com timeout
+      // Tentar acessar o dashboard imediatamente
+      const hasAccess = await canAccessDashboard();
+
+      if (hasAccess) {
+        // Redirecionar imediatamente se já tem acesso
+        router.push(`/dashboard/${storeResponse.slug}`);
+        return;
+      }
+
+      // Se não tem acesso imediato, fazer polling mais rápido
+      const start = Date.now();
+      const timeoutMs = 10000; // 10s (reduzido)
+      const intervalMs = 500; // 0.5s (mais rápido)
+
+      // Loop de polling otimizado
       while (Date.now() - start < timeoutMs) {
         const ok = await canAccessDashboard();
         if (ok) {
@@ -321,14 +334,14 @@ export default function RegisterLojaPage() {
 
       // Se expirou, redirecionar para o dashboard mesmo assim
       showToast(
-        "Loja criada com sucesso! Você já pode acessar seu dashboard.",
+        "Loja criada com sucesso! Redirecionando para seu dashboard...",
         "success"
       );
 
-      // Aguardar um pouco para o toast aparecer e redirecionar
+      // Redirecionar imediatamente após o toast
       setTimeout(() => {
         router.push(`/dashboard/${storeResponse.slug}`);
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
       console.error("❌ Erro durante o processo de registro:", err);
       setCreationStep("idle");
