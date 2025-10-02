@@ -168,7 +168,6 @@ export default function ProdutosPage() {
         const p = new URLSearchParams();
         p.set("page", "1");
         p.set("limit", "10");
-        p.set("active", "true");
 
         const productsData = await apiClient.get<PaginatedResponse<Product>>(
           `/stores/${slug}/products?${p.toString()}`

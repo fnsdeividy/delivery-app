@@ -798,11 +798,26 @@ export default function NovoProdutoPage() {
       }, 1200);
     } catch (error: any) {
       console.error("Erro ao criar produto:", error);
-      const errorMessage =
-        error?.response?.data?.message ||
-        (Array.isArray(error?.response?.data?.message)
-          ? error.response.data.message.join(", ")
-          : "Erro ao criar produto");
+
+      let errorMessage = "Erro ao criar produto";
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.status === 409) {
+        errorMessage =
+          "Já existe um produto com este nome na sua loja. Por favor, escolha um nome diferente.";
+      } else if (error?.response?.status === 400) {
+        errorMessage =
+          "Dados inválidos. Verifique se todos os campos obrigatórios estão preenchidos corretamente.";
+      } else if (error?.response?.status === 401) {
+        errorMessage = "Sessão expirada. Por favor, faça login novamente.";
+      } else if (error?.response?.status === 403) {
+        errorMessage = "Você não tem permissão para criar produtos nesta loja.";
+      } else if (error?.response?.status >= 500) {
+        errorMessage =
+          "Erro interno do servidor. Tente novamente em alguns instantes.";
+      }
+
       showToast(errorMessage, "error");
     } finally {
       setIsLoading(false);
