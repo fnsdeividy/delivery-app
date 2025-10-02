@@ -429,7 +429,11 @@ export default function HorariosConfigPage() {
     status: "open" | "closed";
     message: string;
   } => {
+    // Usar fuso horário do Brasil
     const now = new Date();
+    const brazilTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+    );
     const dayNames = [
       "sunday",
       "monday",
@@ -439,10 +443,10 @@ export default function HorariosConfigPage() {
       "friday",
       "saturday",
     ];
-    const currentDay = dayNames[now.getDay()] as keyof WorkingHours;
+    const currentDay = dayNames[brazilTime.getDay()] as keyof WorkingHours;
 
     // Converter hora atual para minutos desde meia-noite
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = brazilTime.getHours() * 60 + brazilTime.getMinutes();
 
     const todayHours = settings.workingHours[currentDay];
     if (todayHours.closed) {

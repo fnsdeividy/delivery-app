@@ -1,7 +1,8 @@
 import { apiClient } from "@/lib/api-client";
+import { checkStoreStatus, WorkingHours } from "@/lib/utils/store-status";
 import { Product } from "@/types/cardapio-api";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface StoreConfig {
   id: string;
@@ -128,6 +129,10 @@ function mapPublicToStoreConfig(data: PublicStoreApiResponse): StoreConfig {
   const paymentMethods: string[] = Array.isArray(cfg.paymentMethods)
     ? cfg.paymentMethods
     : [];
+  const workingHours = cfg?.schedule?.workingHours ?? cfg?.businessHours ?? {};
+
+  // Verificar status da loja usando a nova lógica
+  const storeStatus = checkStoreStatus(workingHours as WorkingHours);
 
   return {
     id: data.store.id,
@@ -176,14 +181,17 @@ function mapPublicToStoreConfig(data: PublicStoreApiResponse): StoreConfig {
     },
     schedule: {
       timezone: "America/Sao_Paulo",
-      workingHours: cfg?.schedule?.workingHours ?? cfg?.businessHours ?? {},
+      workingHours: workingHours,
     },
     business: {
       phone: cfg?.phone ?? "",
       email: cfg?.email ?? "",
       address: cfg?.address ?? "",
     },
-    status: data.status ?? { isOpen: false, reason: "Indisponível" },
+    status: {
+      isOpen: storeStatus.isOpen,
+      reason: storeStatus.message,
+    },
     email: cfg?.email ?? "",
     phone: cfg?.phone ?? "",
   };
@@ -239,12 +247,12 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
   // Mapear erro para mensagem amigável
   const error = useMemo(() => {
     if (!queryError) return null;
-    
+
     const rawMsg = extractErrorMessage(
       queryError,
       "Erro ao carregar dados da loja"
     );
-    
+
     if (/404|não encontrada|nao encontrada|loja não encontrada/i.test(rawMsg)) {
       return "Loja não encontrada";
     } else if (/inativa|desativada/i.test(rawMsg)) {
@@ -256,7 +264,7 @@ export function useStoreConfig(slug: string): UseStoreConfigReturn {
     } else if (/indispon[ií]vel|503|Service Unavailable/i.test(rawMsg)) {
       return "Serviço temporariamente indisponível";
     }
-    
+
     return "Erro ao carregar dados da loja";
   }, [queryError]);
 
