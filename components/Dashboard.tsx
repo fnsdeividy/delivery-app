@@ -82,6 +82,7 @@ const DashboardComponent = ({ storeSlug }: DashboardProps) => {
 
   // Determinar tipo de dashboard baseado no role do usuário
   const isAdmin = user?.role === UserRole.ADMIN;
+  const isSuperAdmin = user?.role === UserRole.ADMIN && !user?.storeSlug;
   const isStoreOwner =
     user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
   const isEmployee = user?.role === UserRole.EMPLOYEE;

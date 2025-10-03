@@ -3,6 +3,7 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
+import { checkStoreAccess } from "@/lib/utils/permissions";
 import { Package, Plus } from "@phosphor-icons/react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -257,12 +258,14 @@ export default function EstoquePage() {
         // Decodificar token JWT
         const payload = JSON.parse(atob(token.split(".")[1]));
 
-        const hasAccess =
-          payload.role === "ADMIN" && payload.storeSlug === slug;
+        // Verificar permissões usando função utilitária
+        const accessCheck = checkStoreAccess(payload, slug);
 
-        if (hasAccess) {
+        if (accessCheck.hasAccess) {
+          console.log(`✅ Acesso autorizado: ${accessCheck.reason}`);
           await loadInitialData();
         } else {
+          console.log(`❌ Acesso negado: ${accessCheck.reason}`);
           router.push("/unauthorized");
         }
       } catch (error) {

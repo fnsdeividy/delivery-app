@@ -118,7 +118,7 @@ export default function ConfirmationStep({ formData }: ConfirmationStepProps) {
           <li>💳 Configurar métodos de pagamento</li>
           <li>
             🌐 Sua loja estará disponível em:{" "}
-            <strong>delivery-app.com/{formData.storeSlug}</strong>
+            <strong>delivery-app.com/{formData.storeSlug as string}</strong>
           </li>
         </ul>
       </div>

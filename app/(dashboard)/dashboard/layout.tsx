@@ -17,6 +17,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ConnectionStatus } from "../../../components/ConnectionStatus";
 import { LoadingContent } from "../../../components/GlobalLoading";
+import { NotificationIcon } from "../../../components/notifications/NotificationIcon";
 import OptimizedLoadingSpinner from "../../../components/OptimizedLoadingSpinner";
 import { ToastContainer } from "../../../components/Toast";
 import { useAuthContext } from "../../../contexts/AuthContext";
@@ -254,15 +255,21 @@ function DashboardContent({
               </nav>
 
               {slug && !pathname.includes("gerenciar-lojas") && (
-                <a
-                  href={`/loja/${slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                >
-                  <Truck className="h-4 w-4 mr-2" />
-                  Ver Loja
-                </a>
+                <>
+                  {/* Ícone de notificações */}
+                  <NotificationIcon storeSlug={slug} />
+
+                  {/* Botão Ver Loja */}
+                  <a
+                    href={`/loja/${slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    <Truck className="h-4 w-4 mr-2" />
+                    Ver Loja
+                  </a>
+                </>
               )}
             </div>
           </div>

@@ -4,6 +4,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCardapioAuth, useDashboardMetrics } from "@/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useStoreConfig } from "@/lib/store/useStoreConfig";
+import { checkStoreAccess } from "@/lib/utils/permissions";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
@@ -83,15 +84,17 @@ export default function DashboardPage() {
         setUserRole(payload.role);
         setUserStoreSlug(payload.storeSlug);
 
-        // Verificar permissões
-        if (payload.role === "SUPER_ADMIN") {
+        // Verificar permissões usando função utilitária
+        const accessCheck = checkStoreAccess(payload, slug);
+
+        if (accessCheck.hasAccess) {
+          console.log(`✅ Acesso autorizado: ${accessCheck.reason}`);
           setHasAccess(true);
-        } else if (payload.role === "ADMIN") {
-          // ADMIN deve acessar a loja atual. Caso o token ainda não traga o storeSlug
-          // recém-definido, forçamos a definição da loja atual e liberamos o acesso.
-          if (payload.storeSlug === slug) {
-            setHasAccess(true);
-          } else {
+        } else {
+          console.log(`❌ Acesso negado: ${accessCheck.reason}`);
+
+          // Para ADMINs, tentar definir a loja atual
+          if (payload.role === "ADMIN") {
             try {
               await apiClient.setCurrentStore({ storeSlug: slug });
               setHasAccess(true);
@@ -100,10 +103,10 @@ export default function DashboardPage() {
               router.push("/dashboard/gerenciar-lojas");
               return;
             }
+          } else {
+            router.push("/unauthorized");
+            return;
           }
-        } else {
-          router.push("/unauthorized");
-          return;
         }
       } catch (error) {
         console.error("❌ Erro na verificação de autorização:", error);
