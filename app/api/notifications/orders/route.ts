@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const backendUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(
-      `${backendUrl}/notifications/orders?storeSlug=${storeSlug}&limit=${limit}`,
+      `${backendUrl}/api/v1/notifications/orders?storeSlug=${storeSlug}&limit=${limit}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

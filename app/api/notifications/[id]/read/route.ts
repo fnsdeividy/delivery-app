@@ -28,13 +28,16 @@ export async function POST(
     // Fazer requisição para o backend
     const backendUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${backendUrl}/notifications/${id}/read`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${backendUrl}/api/v1/notifications/${id}/read`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

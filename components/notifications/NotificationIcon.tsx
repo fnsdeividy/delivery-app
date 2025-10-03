@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useNotification } from "../../contexts/NotificationContext";
 import { useCardapioAuth } from "../../hooks";
+import { useOrdersWebSocket } from "../../hooks/useOrdersWebSocket";
+import { apiClient } from "../../lib/api-client";
 
 interface OrderNotification {
   id: string;
@@ -58,22 +60,39 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
   const { orderCounters } = useNotification();
   const { getCurrentToken } = useCardapioAuth();
 
+  // WebSocket para atualizações em tempo real do badge
+  const { isConnected } = useOrdersWebSocket({
+    storeSlug,
+    onNewOrder: (data) => {
+      console.log("🔔 Novo pedido recebido no NotificationIcon:", data);
+      // Atualizar contadores automaticamente
+      fetchOrderStats();
+    },
+    onOrderCountersUpdated: (counters) => {
+      console.log("📊 Contadores atualizados no NotificationIcon:", counters);
+      // Os contadores já são atualizados via NotificationContext
+    },
+    onStatsUpdated: (stats) => {
+      console.log("📈 Stats atualizados no NotificationIcon:", stats);
+      if (stats?.statusCounts) {
+        setStatusCounts(stats.statusCounts);
+      }
+    },
+    onError: (error) => {
+      console.error("Erro no WebSocket do NotificationIcon:", error);
+    },
+  });
+
   // Buscar estatísticas de pedidos
   const fetchOrderStats = async () => {
     try {
       const token = await getCurrentToken();
       if (!token) return;
 
-      const response = await fetch(`/api/orders/stats?storeSlug=${storeSlug}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const stats = await response.json();
-        setStatusCounts(stats.statusCounts || {});
-      }
+      const stats = (await apiClient.get(
+        `/orders/stats?storeSlug=${storeSlug}`
+      )) as any;
+      setStatusCounts(stats.statusCounts || {});
     } catch (error) {
       console.error("Erro ao buscar estatísticas de pedidos:", error);
     }
@@ -91,20 +110,11 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
         return;
       }
 
-      const response = await fetch(
-        `/api/notifications/orders?storeSlug=${storeSlug}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-        setUnreadCount(data.filter((n: OrderNotification) => !n.read).length);
-      }
+      const data = (await apiClient.get(
+        `/notifications/orders?storeSlug=${storeSlug}&limit=10`
+      )) as any;
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.totalUnread || 0);
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
     } finally {
@@ -118,12 +128,7 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
       const token = await getCurrentToken();
       if (!token) return;
 
-      await fetch(`/api/notifications/${notificationId}/read`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await apiClient.post(`/notifications/${notificationId}/read`);
 
       // Atualizar estado local
       setNotifications((prev) =>
@@ -217,11 +222,47 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
     fetchOrderStats();
   }, [storeSlug]);
 
+  // Atualizar estatísticas quando os contadores do contexto mudarem
+  useEffect(() => {
+    if (orderCounters?.newOrders !== undefined) {
+      console.log(
+        "🔄 Atualizando statusCounts com contadores em tempo real:",
+        orderCounters
+      );
+      // Atualizar statusCounts baseado nos contadores em tempo real
+      setStatusCounts((prev) => ({
+        ...prev,
+        RECEIVED: orderCounters.newOrders || 0,
+        PENDING: orderCounters.pendingOrders || 0,
+      }));
+    }
+  }, [orderCounters]);
+
   // Usar contador de pedidos que precisam de atenção
-  const displayCount =
-    unreadCount > 0
-      ? unreadCount
-      : getTotalAttentionCount() || orderCounters.newOrders;
+  // Priorizar contadores em tempo real do WebSocket, depois local, depois do contexto
+  const displayCount = (() => {
+    // Se há notificações não lidas, mostrar essas
+    if (unreadCount > 0) {
+      console.log("🔔 Usando unreadCount:", unreadCount);
+      return unreadCount;
+    }
+
+    // Usar contadores em tempo real do WebSocket/contexto
+    const realtimeNewOrders = orderCounters?.newOrders || 0;
+    const localAttentionCount = getTotalAttentionCount();
+
+    console.log("📊 Calculando displayCount:", {
+      realtimeNewOrders,
+      localAttentionCount,
+      orderCounters,
+      statusCounts,
+    });
+
+    // Priorizar o maior valor entre contadores em tempo real e locais
+    const finalCount = Math.max(realtimeNewOrders, localAttentionCount);
+    console.log("✅ DisplayCount final:", finalCount);
+    return finalCount;
+  })();
 
   const handleNotificationClick = (notification: OrderNotification) => {
     markAsRead(notification.id);
@@ -257,6 +298,11 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {displayCount > 99 ? "99+" : displayCount}
           </span>
+        )}
+
+        {/* Indicador de conexão WebSocket */}
+        {isConnected && (
+          <span className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
         )}
       </button>
 
