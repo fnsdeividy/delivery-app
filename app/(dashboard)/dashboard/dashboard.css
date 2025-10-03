@@ -202,7 +202,7 @@
   background: var(--dashboard-card);
   border: 1px solid var(--dashboard-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px var(--dashboard-shadow), 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 8px 24px var(--dashboard-shadow), 0 2px 6px rgba(0, 0, 0, 0.02);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   backdrop-filter: blur(8px);
@@ -235,7 +235,7 @@
 ======================================== */
 .dashboard-metrics-grid {
   display: grid;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   grid-template-columns: 1fr;
 }
 
@@ -256,8 +256,8 @@
   position: relative;
   background: var(--dashboard-card);
   border: 1px solid var(--dashboard-border);
-  border-radius: 20px;
-  padding: var(--space-xl);
+  border-radius: 16px;
+  padding: calc(var(--space-lg) - 0.25rem);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   backdrop-filter: blur(8px);
@@ -291,17 +291,17 @@
 /* Responsividade das métricas */
 @media (max-width: 639px) {
   .dashboard-metric-card {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
 
   .dashboard-metric-card .metric-number {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
   }
 }
 
 @media (min-width: 640px) {
   .dashboard-metric-card .metric-number {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
 }
 
@@ -513,8 +513,8 @@
    🎯 QUICK ACTIONS RESPONSIVAS
 ======================================== */
 .dashboard-actions-grid {
-  display: grid;
-  gap: var(--space-md);
+  /* Não definir display aqui para não sobrescrever utilitários (ex.: hidden, grid) */
+  gap: 16px; /* conforme especificação */
   grid-template-columns: 1fr;
 }
 
@@ -527,6 +527,13 @@
 @media (min-width: 768px) {
   .dashboard-actions-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Aumentar respiro entre cards de métricas no mobile */
+@media (max-width: 639px) {
+  .dashboard-metrics-grid {
+    gap: var(--space-lg);
   }
 }
 

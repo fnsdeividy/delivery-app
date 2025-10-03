@@ -225,10 +225,6 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
   // Atualizar estatísticas quando os contadores do contexto mudarem
   useEffect(() => {
     if (orderCounters?.newOrders !== undefined) {
-      console.log(
-        "🔄 Atualizando statusCounts com contadores em tempo real:",
-        orderCounters
-      );
       // Atualizar statusCounts baseado nos contadores em tempo real
       setStatusCounts((prev) => ({
         ...prev,
@@ -243,7 +239,6 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
   const displayCount = (() => {
     // Se há notificações não lidas, mostrar essas
     if (unreadCount > 0) {
-      console.log("🔔 Usando unreadCount:", unreadCount);
       return unreadCount;
     }
 
@@ -251,16 +246,8 @@ export function NotificationIcon({ storeSlug }: NotificationIconProps) {
     const realtimeNewOrders = orderCounters?.newOrders || 0;
     const localAttentionCount = getTotalAttentionCount();
 
-    console.log("📊 Calculando displayCount:", {
-      realtimeNewOrders,
-      localAttentionCount,
-      orderCounters,
-      statusCounts,
-    });
-
     // Priorizar o maior valor entre contadores em tempo real e locais
     const finalCount = Math.max(realtimeNewOrders, localAttentionCount);
-    console.log("✅ DisplayCount final:", finalCount);
     return finalCount;
   })();
 

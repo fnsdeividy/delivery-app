@@ -262,14 +262,11 @@ export default function EstoquePage() {
         const accessCheck = checkStoreAccess(payload, slug);
 
         if (accessCheck.hasAccess) {
-          console.log(`✅ Acesso autorizado: ${accessCheck.reason}`);
           await loadInitialData();
         } else {
-          console.log(`❌ Acesso negado: ${accessCheck.reason}`);
           router.push("/unauthorized");
         }
       } catch (error) {
-        console.error("❌ Erro na verificação de autenticação:", error);
         router.push("/login");
       } finally {
         setIsLoading(false);

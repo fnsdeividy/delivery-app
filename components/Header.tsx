@@ -4,14 +4,27 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { CaretDown, SignOut, Storefront, User } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuthContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const effectiveStoreSlug = (user as any)?.currentStoreSlug || (user as any)?.storeSlug || apiClient.getCurrentStoreSlug();
+  const effectiveStoreSlug =
+    (user as any)?.currentStoreSlug ||
+    (user as any)?.storeSlug ||
+    apiClient.getCurrentStoreSlug();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -24,7 +37,13 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-300 ${
+          isScrolled
+            ? "bg-white/90 backdrop-blur-sm border-b border-gray-200 shadow-sm"
+            : "bg-transparent border-transparent"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 sm:h-24">
             {/* Logo */}

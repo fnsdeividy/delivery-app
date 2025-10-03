@@ -27,23 +27,23 @@ export default function HomePage() {
   // Preços e links dos planos
   const pricing = {
     basic: {
-      monthly: 49.90,
-      annual: 39.90,
-      annualTotal: 478.80,
+      monthly: 49.9,
+      annual: 39.9,
+      annualTotal: 478.8,
       links: {
         monthly: "https://www.asaas.com/c/xi1hxswf6w4byiyb",
-        annual: "https://www.asaas.com/c/puok12mozv54zzpj"
-      }
+        annual: "https://www.asaas.com/c/puok12mozv54zzpj",
+      },
     },
     pro: {
-      monthly: 69.90,
-      annual: 55.90,
-      annualTotal: 670.80,
+      monthly: 69.9,
+      annual: 55.9,
+      annualTotal: 670.8,
       links: {
         monthly: "https://www.asaas.com/c/yzh10w61k2ykli4b",
-        annual: "https://www.asaas.com/c/hx2w5fkrupvwsouj"
-      }
-    }
+        annual: "https://www.asaas.com/c/hx2w5fkrupvwsouj",
+      },
+    },
   };
 
   const features = [
@@ -120,7 +120,7 @@ export default function HomePage() {
                   href={pricing.basic.links.monthly}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="px-6 md:px-8 py-3 md:py-4 bg-white text-blue-600 rounded-lg font-semibold text-base md:text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] will-change-transform"
                 >
                   ➕ Criar Minha Loja
                 </Link>
@@ -361,13 +361,19 @@ export default function HomePage() {
             <Animated animation="fadeIn" config={{ delay: 0.2 }}>
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
                 Transforme seu negócio com as ferramentas certas.
-                <span className="text-blue-600 font-semibold"> Apenas R$ 20 de diferença</span> para recursos profissionais completos.
+                <span className="text-blue-600 font-semibold">
+                  {" "}
+                  Apenas R$ 20 de diferença
+                </span>{" "}
+                para recursos profissionais completos.
               </p>
             </Animated>
             <Animated animation="fadeIn" config={{ delay: 0.3 }}>
               <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mt-4">
                 <CheckCircle className="w-4 h-4 mr-2" />
-                <span>✨ 7 dias grátis em qualquer plano • Cancele quando quiser</span>
+                <span>
+                  ✨ 7 dias grátis em qualquer plano • Cancele quando quiser
+                </span>
               </div>
             </Animated>
           </div>
@@ -379,19 +385,21 @@ export default function HomePage() {
                 <div className="flex">
                   <button
                     onClick={() => setIsAnnual(false)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${!isAnnual
-                      ? 'text-blue-600 bg-blue-50 shadow-sm'
-                      : 'text-gray-700 bg-white hover:bg-gray-50'
-                      }`}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                      !isAnnual
+                        ? "text-blue-600 bg-blue-50 shadow-sm"
+                        : "text-gray-700 bg-white hover:bg-gray-50"
+                    }`}
                   >
                     Mensal
                   </button>
                   <button
                     onClick={() => setIsAnnual(true)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md relative transition-all duration-200 ${isAnnual
-                      ? 'text-blue-600 bg-blue-50 shadow-sm'
-                      : 'text-gray-700 bg-white hover:bg-gray-50'
-                      }`}
+                    className={`px-4 py-2 text-sm font-medium rounded-md relative transition-all duration-200 ${
+                      isAnnual
+                        ? "text-blue-600 bg-blue-50 shadow-sm"
+                        : "text-gray-700 bg-white hover:bg-gray-50"
+                    }`}
                   >
                     Anual
                     <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
@@ -405,7 +413,6 @@ export default function HomePage() {
 
           <StaggerList staggerDelay={0.1}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
-
               {/* Basic Plan */}
               <StaggerItem animation="scaleIn">
                 <AnimatedCard className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 hover:shadow-xl transition-all duration-300 relative">
@@ -418,19 +425,27 @@ export default function HomePage() {
                     </p>
                     <div className="mb-4">
                       <div className="text-4xl font-bold text-gray-900">
-                        R$ {isAnnual ? pricing.basic.annual.toFixed(2).replace('.', ',') : pricing.basic.monthly.toFixed(2).replace('.', ',')}
+                        R${" "}
+                        {isAnnual
+                          ? pricing.basic.annual.toFixed(2).replace(".", ",")
+                          : pricing.basic.monthly.toFixed(2).replace(".", ",")}
                         <span className="text-lg font-normal text-gray-500">
-                          {isAnnual ? '/mês' : '/mês'}
+                          {isAnnual ? "/mês" : "/mês"}
                         </span>
                       </div>
                       <div className="text-sm text-gray-500 mt-1">
                         {isAnnual ? (
                           <>
-                            cobrado anualmente R$ {pricing.basic.annualTotal.toFixed(2).replace('.', ',')}
-                            <span className="text-green-600 font-medium ml-1">(economize R$ 120,00)</span>
+                            cobrado anualmente R${" "}
+                            {pricing.basic.annualTotal
+                              .toFixed(2)
+                              .replace(".", ",")}
+                            <span className="text-green-600 font-medium ml-1">
+                              (economize R$ 120,00)
+                            </span>
                           </>
                         ) : (
-                          'ou R$ 478,80/ano (2 meses grátis)'
+                          "ou R$ 478,80/ano (2 meses grátis)"
                         )}
                       </div>
                     </div>
@@ -443,49 +458,67 @@ export default function HomePage() {
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="font-medium">Integração com iFood</span>
-                        <p className="text-sm text-gray-500">Sincronize automaticamente seus produtos</p>
+                        <span className="font-medium">
+                          Integração com iFood
+                        </span>
+                        <p className="text-sm text-gray-500">
+                          Sincronize automaticamente seus produtos
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Integração WhatsApp</span>
-                        <p className="text-sm text-gray-500">Receba pedidos sem taxas extras</p>
+                        <p className="text-sm text-gray-500">
+                          Receba pedidos sem taxas extras
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Dashboards básicos</span>
-                        <p className="text-sm text-gray-500">Métricas essenciais do seu negócio</p>
+                        <p className="text-sm text-gray-500">
+                          Métricas essenciais do seu negócio
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Módulo de Caixa</span>
-                        <p className="text-sm text-gray-500">Controle básico de vendas</p>
+                        <p className="text-sm text-gray-500">
+                          Controle básico de vendas
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Módulo Financeiro</span>
-                        <p className="text-sm text-gray-500">Gestão simples de finanças</p>
+                        <p className="text-sm text-gray-500">
+                          Gestão simples de finanças
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Suporte Online</span>
-                        <p className="text-sm text-gray-500">Atendimento por chat e email</p>
+                        <p className="text-sm text-gray-500">
+                          Atendimento por chat e email
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <Link
-                    href={isAnnual ? pricing.basic.links.annual : pricing.basic.links.monthly}
+                    href={
+                      isAnnual
+                        ? pricing.basic.links.annual
+                        : pricing.basic.links.monthly
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full bg-gray-900 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -509,36 +542,50 @@ export default function HomePage() {
                   </div>
 
                   <div className="text-center mb-6 mt-4">
-                    <h3 className="text-2xl font-bold mb-2">
-                      Pro
-                    </h3>
+                    <h3 className="text-2xl font-bold mb-2">Pro</h3>
                     <p className="text-blue-100 text-lg mb-4">
                       Para negócios que querem escalar
                     </p>
                     <div className="mb-4">
                       <div className="text-4xl font-bold">
-                        R$ {isAnnual ? pricing.pro.annual.toFixed(2).replace('.', ',') : pricing.pro.monthly.toFixed(2).replace('.', ',')}
-                        <span className="text-lg font-normal text-blue-100">/mês</span>
+                        R${" "}
+                        {isAnnual
+                          ? pricing.pro.annual.toFixed(2).replace(".", ",")
+                          : pricing.pro.monthly.toFixed(2).replace(".", ",")}
+                        <span className="text-lg font-normal text-blue-100">
+                          /mês
+                        </span>
                       </div>
                       <div className="text-sm text-blue-100 mt-1">
                         {isAnnual ? (
                           <>
-                            cobrado anualmente R$ {pricing.pro.annualTotal.toFixed(2).replace('.', ',')}
-                            <span className="text-yellow-300 font-medium ml-1">(economize R$ 168,00)</span>
+                            cobrado anualmente R${" "}
+                            {pricing.pro.annualTotal
+                              .toFixed(2)
+                              .replace(".", ",")}
+                            <span className="text-yellow-300 font-medium ml-1">
+                              (economize R$ 168,00)
+                            </span>
                           </>
                         ) : (
-                          'ou R$ 670,80/ano (2 meses grátis)'
+                          "ou R$ 670,80/ano (2 meses grátis)"
                         )}
                       </div>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full inline-block">
                       <p className="text-sm font-medium">
-                        🚀 Apenas <span className="font-bold text-yellow-300">
-                          R$ {isAnnual
-                            ? (pricing.pro.annual - pricing.basic.annual).toFixed(2).replace('.', ',')
-                            : (pricing.pro.monthly - pricing.basic.monthly).toFixed(2).replace('.', ',')
-                          }
-                        </span> a mais por recursos profissionais
+                        🚀 Apenas{" "}
+                        <span className="font-bold text-yellow-300">
+                          R${" "}
+                          {isAnnual
+                            ? (pricing.pro.annual - pricing.basic.annual)
+                                .toFixed(2)
+                                .replace(".", ",")
+                            : (pricing.pro.monthly - pricing.basic.monthly)
+                                .toFixed(2)
+                                .replace(".", ",")}
+                        </span>{" "}
+                        a mais por recursos profissionais
                       </p>
                     </div>
                   </div>
@@ -547,15 +594,23 @@ export default function HomePage() {
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="font-medium">Integração com iFood</span>
-                        <p className="text-sm text-blue-100">Sincronização automática avançada</p>
+                        <span className="font-medium">
+                          Integração com iFood
+                        </span>
+                        <p className="text-sm text-blue-100">
+                          Sincronização automática avançada
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="font-medium">Integração WhatsApp Premium</span>
-                        <p className="text-sm text-blue-100">Automação e templates personalizados</p>
+                        <span className="font-medium">
+                          Integração WhatsApp Premium
+                        </span>
+                        <p className="text-sm text-blue-100">
+                          Automação e templates personalizados
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
@@ -563,8 +618,12 @@ export default function HomePage() {
                         PRO
                       </div>
                       <div>
-                        <span className="font-medium">Dashboards completos</span>
-                        <p className="text-sm text-blue-100">Analytics avançados + relatórios personalizados</p>
+                        <span className="font-medium">
+                          Dashboards completos
+                        </span>
+                        <p className="text-sm text-blue-100">
+                          Analytics avançados + relatórios personalizados
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
@@ -572,8 +631,12 @@ export default function HomePage() {
                         PRO
                       </div>
                       <div>
-                        <span className="font-medium">Módulo de Caixa Avançado</span>
-                        <p className="text-sm text-blue-100">Controle total + múltiplos operadores</p>
+                        <span className="font-medium">
+                          Módulo de Caixa Avançado
+                        </span>
+                        <p className="text-sm text-blue-100">
+                          Controle total + múltiplos operadores
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
@@ -581,21 +644,31 @@ export default function HomePage() {
                         PRO
                       </div>
                       <div>
-                        <span className="font-medium">Módulo Financeiro Completo</span>
-                        <p className="text-sm text-blue-100">Fluxo de caixa + projeções + impostos</p>
+                        <span className="font-medium">
+                          Módulo Financeiro Completo
+                        </span>
+                        <p className="text-sm text-blue-100">
+                          Fluxo de caixa + projeções + impostos
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-300 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-medium">Suporte Prioritário</span>
-                        <p className="text-sm text-blue-100">Atendimento VIP + consultoria gratuita</p>
+                        <p className="text-sm text-blue-100">
+                          Atendimento VIP + consultoria gratuita
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <Link
-                    href={isAnnual ? pricing.pro.links.annual : pricing.pro.links.monthly}
+                    href={
+                      isAnnual
+                        ? pricing.pro.links.annual
+                        : pricing.pro.links.monthly
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full bg-white text-blue-600 text-center py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -623,22 +696,37 @@ export default function HomePage() {
                     <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-2xl">📊</span>
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Insights Poderosos</h4>
-                    <p className="text-sm text-gray-600">Dashboards completos que mostram exatamente onde melhorar suas vendas</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Insights Poderosos
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Dashboards completos que mostram exatamente onde melhorar
+                      suas vendas
+                    </p>
                   </div>
                   <div className="text-center">
                     <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-2xl">💰</span>
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">ROI Garantido</h4>
-                    <p className="text-sm text-gray-600">Clientes Pro aumentam vendas em média 67% nos primeiros 3 meses</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      ROI Garantido
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Clientes Pro aumentam vendas em média 67% nos primeiros 3
+                      meses
+                    </p>
                   </div>
                   <div className="text-center">
                     <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-2xl">🚀</span>
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Crescimento Acelerado</h4>
-                    <p className="text-sm text-gray-600">Ferramentas profissionais por apenas R$ 20 a mais que o Basic</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Crescimento Acelerado
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Ferramentas profissionais por apenas R$ 20 a mais que o
+                      Basic
+                    </p>
                   </div>
                 </div>
               </div>

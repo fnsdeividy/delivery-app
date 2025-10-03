@@ -48,7 +48,7 @@ export function OrderManagementSection({
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 dashboard-main-card">
       <h2 className="text-base md:text-lg font-medium text-gray-900 mb-3 md:mb-4 flex items-center">
         <ShoppingBag className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-green-600 mr-1.5 sm:mr-2" />
         Gestão de Pedidos
@@ -62,13 +62,14 @@ export function OrderManagementSection({
         onCountersUpdate={(newCounters) => {
           setCounters(newCounters);
         }}
+        
       />
 
       {/* Links para diferentes status */}
       <div className="mt-3 md:mt-4">
         <Link
           href={`/dashboard/${storeSlug}/pedidos`}
-          className="inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs sm:text-sm md:text-base"
+          className="inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs sm:text-sm md:text-base whitespace-nowrap"
         >
           <Eye className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1.5 sm:mr-2" />
           Ver Todos os Pedidos

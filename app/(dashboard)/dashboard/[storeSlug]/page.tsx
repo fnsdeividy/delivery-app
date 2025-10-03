@@ -88,11 +88,8 @@ export default function DashboardPage() {
         const accessCheck = checkStoreAccess(payload, slug);
 
         if (accessCheck.hasAccess) {
-          console.log(`✅ Acesso autorizado: ${accessCheck.reason}`);
           setHasAccess(true);
         } else {
-          console.log(`❌ Acesso negado: ${accessCheck.reason}`);
-
           // Para ADMINs, tentar definir a loja atual
           if (payload.role === "ADMIN") {
             try {
@@ -109,7 +106,6 @@ export default function DashboardPage() {
           }
         }
       } catch (error) {
-        console.error("❌ Erro na verificação de autorização:", error);
         router.push("/login");
         return;
       } finally {

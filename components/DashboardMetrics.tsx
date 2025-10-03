@@ -73,28 +73,29 @@ export function DashboardMetrics({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="dashboard-metrics-grid mb-6 md:mb-8 mt-10">
       {metricCards.map((card) => {
         const Icon = card.icon;
         return (
-          <div
-            key={card.label}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-          >
+          <div key={card.label} className="dashboard-metric-card">
             <div className="flex items-center">
-              <Icon className={`w-8 h-8 ${card.color}`} />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">
+              <Icon
+                className={`w-6 h-6 md:w-7 md:h-7 dashboard-metric-icon ${card.color}`}
+              />
+              <div className="ml-3">
+                <p className="text-xs md:text-sm font-medium text-gray-500">
                   {card.label}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className="metric-number text-xl md:text-2xl font-bold text-gray-900">
+                  {card.value}
+                </p>
               </div>
             </div>
             <Link
               href={card.href}
-              className="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+              className="mt-3 md:mt-4 inline-flex items-center text-xs md:text-sm text-blue-600 hover:text-blue-800"
             >
-              Ver todos <TrendUp className="w-4 h-4 ml-1" />
+              Ver todos <TrendUp className="w-3.5 h-3.5 md:w-4 md:h-4 ml-1" />
             </Link>
           </div>
         );

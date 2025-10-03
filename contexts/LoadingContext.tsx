@@ -40,8 +40,8 @@ export function LoadingProvider({ children }: LoadingProviderProps) {
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     variant: "topbar",
-    minimumMs: 300,
-    timeoutMs: 10000,
+    minimumMs: 0,
+    timeoutMs: 0,
   });
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);

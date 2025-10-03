@@ -15,6 +15,7 @@ import {
   MapPin,
   Package,
   Phone,
+  Printer,
   Timer,
   Truck,
   User,
@@ -23,6 +24,7 @@ import {
 import { useState } from "react";
 import CancelOrderModal from "./CancelOrderModal";
 import { OrderItemCustomizations } from "./OrderItemCustomizations";
+import { OrderPrintModal } from "./OrderPrintModal";
 
 interface OrderCardProps {
   order: Order;
@@ -44,6 +46,7 @@ export default function OrderCard({
   isLoading = false,
 }: OrderCardProps) {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
   const [loadingStates, setLoadingStates] = useState<LoadingState>({});
   const { notification, showNotification, hideNotification } =
     useErrorNotification();
@@ -130,6 +133,10 @@ export default function OrderCard({
     } finally {
       setLoading("cancel", false);
     }
+  };
+
+  const handlePrintOrder = () => {
+    setShowPrintModal(true);
   };
 
   const getDeliveryTypeLabel = (type: string) => {
@@ -347,45 +354,83 @@ export default function OrderCard({
           )}
 
           {order.status === OrderStatus.CONFIRMED && (
-            <button
-              onClick={() =>
-                handleStatusUpdate(order.id, OrderStatus.PREPARING)
-              }
-              disabled={isActionLoading("status-PREPARING")}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
-            >
-              {isActionLoading("status-PREPARING") ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Preparando...</span>
-                </>
-              ) : (
-                <>
-                  <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>Preparar</span>
-                </>
-              )}
-            </button>
+            <>
+              <button
+                onClick={() =>
+                  handleStatusUpdate(order.id, OrderStatus.PREPARING)
+                }
+                disabled={isActionLoading("status-PREPARING")}
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
+              >
+                {isActionLoading("status-PREPARING") ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Preparando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Preparar</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handlePrintOrder}
+                disabled={isActionLoading("print")}
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
+              >
+                {isActionLoading("print") ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Imprimindo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Imprimir Pedido</span>
+                  </>
+                )}
+              </button>
+            </>
           )}
 
           {order.status === OrderStatus.PREPARING && (
-            <button
-              onClick={() => handleStatusUpdate(order.id, OrderStatus.READY)}
-              disabled={isActionLoading("status-READY")}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
-            >
-              {isActionLoading("status-READY") ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Finalizando...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>Pronto</span>
-                </>
-              )}
-            </button>
+            <>
+              <button
+                onClick={() => handleStatusUpdate(order.id, OrderStatus.READY)}
+                disabled={isActionLoading("status-READY")}
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
+              >
+                {isActionLoading("status-READY") ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Finalizando...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Pronto</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handlePrintOrder}
+                disabled={isActionLoading("print")}
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1 sm:space-x-2 disabled:hover:shadow-sm min-h-[36px]"
+              >
+                {isActionLoading("print") ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Imprimindo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Imprimir Pedido</span>
+                  </>
+                )}
+              </button>
+            </>
           )}
 
           {order.status === OrderStatus.READY && order.type === "DELIVERY" && (
@@ -469,6 +514,14 @@ export default function OrderCard({
         onConfirm={(reason) => handleCancelOrder(order.id, reason)}
         orderNumber={order.id}
       />
+
+      {/* Modal de Impressão */}
+      {showPrintModal && (
+        <OrderPrintModal
+          order={order}
+          onClose={() => setShowPrintModal(false)}
+        />
+      )}
 
       {/* Notificação de Erro */}
       <ErrorNotification

@@ -582,6 +582,24 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Animated gradient background for hero */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 12s ease infinite;
+}
+
 /* Page transitions */
 .page-enter {
   opacity: 0;

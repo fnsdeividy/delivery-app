@@ -3,12 +3,13 @@
 import { useAuthContext } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import {
-  ChartLineUp,
   Crown,
+  House,
   List,
   LockSimple,
   Question,
   SignOut,
+  SquaresFour,
   User,
   X,
 } from "@phosphor-icons/react";
@@ -44,7 +45,7 @@ const DEFAULT_LINKS: NavLink[] = [
   {
     href: "/",
     label: "Início",
-    icon: ChartLineUp,
+    icon: House,
     description: "Voltar para a página inicial",
   },
 ];
@@ -56,7 +57,7 @@ const getAuthenticatedLinks = (
   {
     href: "/",
     label: "Início",
-    icon: ChartLineUp,
+    icon: House,
     description: "Voltar para a página inicial",
   },
   ...(effectiveStoreSlug || user?.storeSlug
@@ -64,7 +65,7 @@ const getAuthenticatedLinks = (
         {
           href: `/dashboard/${effectiveStoreSlug || user.storeSlug}`,
           label: "Dashboard",
-          icon: ChartLineUp,
+          icon: SquaresFour,
           requiresAuth: true,
           description: "Acompanhe suas métricas",
         },
@@ -122,7 +123,7 @@ export const MobileMenu = memo(function MobileMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden p-1.5 sm:p-2 rounded-lg text-gray-700 hover:text-primary hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition-colors duration-200"
+          className="lg:hidden p-1.5 sm:p-2 rounded-lg text-gray-800 hover:text-[#7F3DFF] hover:bg-[#7F3DFF]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#7F3DFF] transition-colors duration-200"
           aria-label="Abrir menu de navegação"
           aria-expanded={isOpen}
         >
@@ -149,7 +150,7 @@ export const MobileMenu = memo(function MobileMenu({
             <SheetTitle className="text-lg font-semibold text-gray-900 dark:text-white">
               {isAuthenticated ? (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center size-8 bg-primary/10 rounded-full text-primary">
+                  <div className="flex items-center justify-center size-8 rounded-full bg-[#7F3DFF]/10 text-[#7F3DFF]">
                     <User className="size-4" />
                   </div>
                   <span className="truncate">
@@ -169,10 +170,10 @@ export const MobileMenu = memo(function MobileMenu({
                       href={`/dashboard/${
                         effectiveStoreSlug || user.storeSlug
                       }`}
-                      className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center px-3 py-1.5 bg-[#7F3DFF] text-white text-xs font-medium rounded-lg hover:bg-[#6F2BFF] transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
-                      <ChartLineUp className="w-3.5 h-3.5 mr-1.5" />
+                      <SquaresFour className="w-3.5 h-3.5 mr-1.5" />
                       Dashboard
                     </Link>
                   </div>
@@ -204,12 +205,12 @@ export const MobileMenu = memo(function MobileMenu({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors duration-200 group"
+                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-gray-800 hover:bg-[#7F3DFF]/10 hover:text-[#7F3DFF] dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7F3DFF] transition-colors duration-200 group"
                       prefetch={false}
                       onClick={() => setIsOpen(false)}
                     >
                       <IconComponent
-                        className="size-5 flex-shrink-0 text-gray-500 group-hover:text-primary dark:text-gray-400"
+                        className="size-5 flex-shrink-0 text-gray-500 group-hover:text-[#7F3DFF] dark:text-gray-400"
                         aria-hidden="true"
                       />
                       <div className="flex flex-col">
@@ -239,7 +240,7 @@ export const MobileMenu = memo(function MobileMenu({
                     onClick={handleLogout}
                     variant="outline"
                     disabled={isLoggingOut}
-                    className="flex-1 border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-600 dark:border-gray-700 dark:text-gray-300"
+                    className="flex-1 border-gray-300 text-gray-800 hover:border-red-500 hover:text-red-600 dark:border-gray-700 dark:text-gray-300"
                   >
                     {isLoggingOut ? (
                       <>
@@ -260,7 +261,7 @@ export const MobileMenu = memo(function MobileMenu({
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full gap-2 py-3 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300"
+                  className="w-full gap-2 py-3 border-gray-300 text-gray-800 hover:border-gray-400 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300"
                   size="lg"
                 >
                   <Link
@@ -276,7 +277,7 @@ export const MobileMenu = memo(function MobileMenu({
                 <Button
                   asChild
                   variant="gradient"
-                  className="w-full gap-2 py-3"
+                  className="w-full gap-2 py-3 bg-[#7F3DFF] hover:bg-[#6F2BFF]"
                   size="lg"
                 >
                   <Link
@@ -296,7 +297,7 @@ export const MobileMenu = memo(function MobileMenu({
               Ao continuar, você concorda com nossos{" "}
               <Link
                 href="/termos"
-                className="underline underline-offset-4 hover:no-underline hover:text-primary dark:hover:text-primary-300"
+                className="underline underline-offset-4 hover:no-underline text-gray-700 hover:text-[#7F3DFF]"
                 prefetch={false}
                 onClick={() => setIsOpen(false)}
               >
@@ -305,7 +306,7 @@ export const MobileMenu = memo(function MobileMenu({
               e{" "}
               <Link
                 href="/privacidade"
-                className="underline underline-offset-4 hover:no-underline hover:text-primary dark:hover:text-primary-300"
+                className="underline underline-offset-4 hover:no-underline text-gray-700 hover:text-[#7F3DFF]"
                 prefetch={false}
                 onClick={() => setIsOpen(false)}
               >
