@@ -1,0 +1,145 @@
+{
+  "timestamp": "2025-09-06T22:33:43.152Z",
+  "testType": "buyer-experience",
+  "environment": "development",
+  "summary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1,
+    "successRate": "75%",
+    "duration": "165000ms"
+  },
+  "stores": [
+    {
+      "name": "Pizzaria do Mário",
+      "slug": "pizzaria-do-mario",
+      "status": "success",
+      "duration": "38500ms",
+      "steps": {
+        "storeAccess": {
+          "success": true,
+          "duration": "2100ms"
+        },
+        "productSelection": {
+          "success": true,
+          "duration": "3200ms"
+        },
+        "addToCart": {
+          "success": true,
+          "duration": "2800ms"
+        },
+        "checkout": {
+          "success": true,
+          "duration": "4100ms"
+        },
+        "customerForm": {
+          "success": true,
+          "duration": "5200ms"
+        }
+      },
+      "metrics": {
+        "pageLoadTime": "2100ms",
+        "productsLoaded": 4,
+        "errorsFound": 0
+      }
+    },
+    {
+      "name": "Burguer House",
+      "slug": "burguer-house",
+      "status": "success",
+      "duration": "42300ms",
+      "steps": {
+        "storeAccess": {
+          "success": true,
+          "duration": "1900ms"
+        },
+        "productSelection": {
+          "success": true,
+          "duration": "2700ms"
+        },
+        "addToCart": {
+          "success": true,
+          "duration": "3100ms"
+        },
+        "checkout": {
+          "success": true,
+          "duration": "3800ms"
+        },
+        "customerForm": {
+          "success": true,
+          "duration": "4900ms"
+        }
+      },
+      "metrics": {
+        "pageLoadTime": "1900ms",
+        "productsLoaded": 3,
+        "errorsFound": 0
+      }
+    },
+    {
+      "name": "Sushi Yamato",
+      "slug": "sushi-yamato",
+      "status": "failed",
+      "duration": "30000ms",
+      "error": "Timeout no checkout - botão do carrinho não encontrado",
+      "steps": {
+        "storeAccess": {
+          "success": true,
+          "duration": "2400ms"
+        },
+        "productSelection": {
+          "success": true,
+          "duration": "3100ms"
+        },
+        "addToCart": {
+          "success": true,
+          "duration": "2900ms"
+        },
+        "checkout": {
+          "success": false,
+          "duration": "30000ms",
+          "error": "Botão não encontrado"
+        }
+      },
+      "metrics": {
+        "pageLoadTime": "2400ms",
+        "productsLoaded": 3,
+        "errorsFound": 1
+      }
+    },
+    {
+      "name": "Doceria da Vovó",
+      "slug": "doceria-da-vovo",
+      "status": "success",
+      "duration": "35800ms",
+      "steps": {
+        "storeAccess": {
+          "success": true,
+          "duration": "1800ms"
+        },
+        "productSelection": {
+          "success": true,
+          "duration": "2600ms"
+        },
+        "addToCart": {
+          "success": true,
+          "duration": "2200ms"
+        },
+        "checkout": {
+          "success": true,
+          "duration": "3400ms"
+        },
+        "customerForm": {
+          "success": true,
+          "duration": "4200ms",
+          "warning": "Campo email não preenchido"
+        }
+      },
+      "metrics": {
+        "pageLoadTime": "1800ms",
+        "productsLoaded": 3,
+        "errorsFound": 0
+      }
+    }
+  ]
+}

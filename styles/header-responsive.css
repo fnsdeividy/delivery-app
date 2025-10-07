@@ -1,0 +1,19 @@
+/* Header Responsivo - User Badge */
+.user-badge__name--truncated {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .user-badge__name--truncated {
+    max-width: 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .user-badge__name--truncated {
+    max-width: 160px;
+  }
+}
